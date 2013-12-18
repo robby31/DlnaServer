@@ -10,7 +10,7 @@ Application::Application(QQmlApplicationEngine *engine):
     server = new HttpServer(&log, &requestsModel);
     upnp = new UPNPHelper(&log, server);
 
-    log.setLevel(2);
+    log.setLevel(INF);
 }
 
 int Application::load(QUrl url)
