@@ -10,7 +10,7 @@ Application::Application(QQmlApplicationEngine *engine):
     server = new HttpServer(&log, &requestsModel);
     upnp = new UPNPHelper(&log, server);
 
-    log.setLevel(1);
+    log.setLevel(2);
 }
 
 int Application::load(QUrl url)
@@ -25,7 +25,7 @@ int Application::load(QUrl url)
 
         QQuickWindow *window = qobject_cast<QQuickWindow *>(topLevel);
         if ( !window ) {
-            qWarning("Error: Your root item has to be a Window.");
+            log.ERROR("Your root item has to be a Window.");
             return -1;
         }
         window->show();
