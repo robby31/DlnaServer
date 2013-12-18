@@ -3,12 +3,14 @@
 
 #include <QDebug>
 
+enum LogLevel {TRA, DEBG, INF, WAR, ERR};
+
 class Logger
 {
 public:
     Logger();
 
-    void setLevel(int level);
+    void setLevel(LogLevel level);
 
     void TRACE(QString message) const;
     void DEBUG(QString message) const;
@@ -23,7 +25,7 @@ private:
     //    2: INFO
     //    3: WARNING
     //    4: ERROR
-    int level;
+    LogLevel level;
 };
 
 #endif // LOGGER_H
