@@ -60,12 +60,13 @@ Item {
             TableViewColumn {
                 role: "argument"
                 title: "Argument"
-                width: 120
+                width: 200
             }
 
-            onClicked: {
+            onCurrentRowChanged: {
                 header.text = requestsModel.get(currentRow, 5);
                 content.text = requestsModel.get(currentRow, 6);
+                answer.text = requestsModel.get(currentRow, 9);
             }
 
 
@@ -82,6 +83,11 @@ Item {
                 id: content
                 Layout.fillWidth: true
             }
+        }
+
+        TextArea {
+            id: answer
+            Layout.fillWidth: true
         }
     }
 }
