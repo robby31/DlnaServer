@@ -95,6 +95,7 @@ bool Request::appendHeader(QString headerLine)
     QRegExp rxContentLength("CONTENT-LENGTH:\\s*(\\d+)", Qt::CaseInsensitive);
     QRegExp rxTransferMode("transferMode.dlna.org:\\s*(\\w+)", Qt::CaseInsensitive);
     QRegExp rxContentFeatures("getcontentFeatures.dlna.org:\\s*(\\w+)", Qt::CaseInsensitive);
+    QRegExp rxMediaInfoSec("getMediaInfo.sec:\\s*(\\w+)", Qt::CaseInsensitive);
 
     if (fields.length() > 0) {
 
@@ -148,6 +149,9 @@ bool Request::appendHeader(QString headerLine)
         }
         else if (rxContentFeatures.indexIn(headerLine) != -1) {
             contentFeatures = rxContentFeatures.cap(1);
+        }
+        else if (rxMediaInfoSec.indexIn(headerLine) != -1) {
+            mediaInfoSec = rxMediaInfoSec.cap(1);
         }
         else if (rxHost.indexIn(headerLine) != -1) {
 
@@ -670,6 +674,10 @@ void Request::answer(QTcpSocket *client)
 
                 if (!contentFeatures.isNull()) {
                     answerHeader << "ContentFeatures.DLNA.ORG: " + dlna->getDlnaContentFeatures();
+                }
+
+                if (!mediaInfoSec.isNull()) {
+                    answerHeader << QString("MediaInfo.sec: SEC_Duration=%1").arg(dlna->getLengthInSeconds());
                 }
 
                 answerHeader << "Accept-Ranges: bytes";

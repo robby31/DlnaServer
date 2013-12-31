@@ -84,6 +84,9 @@ public:
     // return the size of the media
     virtual int size() = 0;
 
+    // return the length in seconds of the media
+    virtual int getLengthInSeconds() = 0;
+
     // Returns the stream of this DLNA node.
     virtual QByteArray getStream(HttpRange* range) = 0;
 

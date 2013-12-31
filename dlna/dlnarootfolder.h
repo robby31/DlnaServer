@@ -33,6 +33,9 @@ public:
     // return the size of the DLNA node, no size for a folder.
     virtual int size() { return -1; }
 
+    // return the length in seconds of the media
+    virtual int getLengthInSeconds() { return -1; }
+
     // Returns an InputStream of this DLNA node, no stream for a folder.
     virtual QByteArray getStream(HttpRange* range) { return QByteArray(); }
 

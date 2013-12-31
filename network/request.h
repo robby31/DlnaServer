@@ -150,6 +150,7 @@ private:
 
     QString transferMode;
     QString contentFeatures;
+    QString mediaInfoSec;
     double timeseek;
     double timeRangeEnd;
 

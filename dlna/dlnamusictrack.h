@@ -64,6 +64,9 @@ public:
     // return the size of the audio track
     virtual int size();
 
+    // return the length in seconds of the media
+    virtual int getLengthInSeconds();
+
     // return the bitrate of the audio track
     int bitrate();
 

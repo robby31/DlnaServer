@@ -80,6 +80,10 @@ int DlnaMusicTrack::size() {
     }
 }
 
+int DlnaMusicTrack::getLengthInSeconds() {
+    return taglibFile.audioProperties()->length();
+}
+
 /*
 * Returns XML (DIDL) representation of the DLNA node. It gives a
 * complete representation of the item, with as many tags as available.
