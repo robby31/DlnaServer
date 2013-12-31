@@ -1,12 +1,23 @@
 #ifndef DLNAMUSICTRACK_H
 #define DLNAMUSICTRACK_H
 
-#include "logger.h"
-#include "dlnaresource.h"
-#include "fileref.h"
-
 #include <QFileInfo>
 #include <QFile>
+
+#include "logger.h"
+#include "dlnaresource.h"
+
+// TagLib includes
+#include "fileref.h"
+
+#include "mp4file.h"
+#include "mp4tag.h"
+#include "mp4coverart.h"
+
+#include "mpegfile.h"
+#include "id3v2tag.h"
+#include "attachedpictureframe.h"
+
 
 // Format available for transcoding
 enum TranscodeFormatAvailable {MP3, LPCM};
@@ -55,6 +66,8 @@ public:
 
     // return the bitrate of the audio track
     int bitrate();
+
+    virtual QImage getAlbumArt() const;
 
 
 private:

@@ -288,18 +288,33 @@ void TestRequest::testCase_DlnaMusicTrack_AAC() {
     xml_res.clear();
 
     QVERIFY(track.mimeType() == "audio/mpeg");
+    QVERIFY(track.size() == 7560000);
+    QVERIFY(track.bitrate() == 320);
 
-    /*QVERIFY(track.getStream(0, -1).size() == 3190914);
-    QVERIFY(track.getStream(0, -1).size() == 3190914);
-    QVERIFY(track.getStream(14, -1).size() == 3190900);
-    QVERIFY(track.getStream(3190950, 0).size() == 0);
-    QVERIFY(track.getStream(14, 1000).size() == 986);
-    QVERIFY(track.getStream(0, 0).size() == 3190914);*/
+    HttpRange* range = 0;
+    range = new HttpRange("RANGE: BYTES=0-");
+    QVERIFY(track.getStream(range).isNull() == true);  // returns null because it shall be transcoded
+    transcodeProcess = track.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedBytes.clear();
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    QVERIFY(transcodedBytes.size() == 7558825);
+    delete transcodeProcess;
+    transcodeProcess = 0;
+    delete range;
+    range = 0;
 
     QVERIFY(track.getdlnaOrgOpFlags() == "01");
     QVERIFY(track.getdlnaOrgPN() == "MP3");
     QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
+
+    QVERIFY(track.getAlbumArt().isNull() == true);
+    QVERIFY(track.getByteAlbumArt().isNull() == true);
+
 }
 
 void TestRequest::testCase_DlnaMusicTrack_MP3() {
@@ -337,17 +352,101 @@ void TestRequest::testCase_DlnaMusicTrack_MP3() {
     xml_res.clear();
 
     QVERIFY(track.mimeType() == "audio/mpeg");
+    QVERIFY(track.size() == 376593);
+    QVERIFY(track.bitrate() == 150);
 
-    /*QVERIFY(track.getStream(0, -1).size() == 376593);
-    QVERIFY(track.getStream(0, -1).size() == 376593);
-    QVERIFY(track.getStream(93, -1).size() == 376500);
-    QVERIFY(track.getStream(3190950, 0).size() == 0);
-    QVERIFY(track.getStream(14, 1000).size() == 986);*/
+    HttpRange* range;
+    range = new HttpRange("RANGE: BYTES=0-");
+    QVERIFY(track.getStream(range).size() == 376593);
+    QVERIFY(track.getStream(range).size() == 376593);
+    delete range;
+
+    range = new HttpRange("RANGE: BYTES=93-");
+    QVERIFY(track.getStream(range).size() == 376500);
+    delete range;
+
+    range = new HttpRange("RANGE: BYTES=3190950-");
+    QVERIFY(track.getStream(range).size() == 0);
+    delete range;
+
+    range = new HttpRange("RANGE: BYTES=14-1000");
+    QVERIFY(track.getStream(range).size() == 987);
+    delete range;
 
     QVERIFY(track.getdlnaOrgOpFlags() == "01");
     QVERIFY(track.getdlnaOrgPN() == "MP3");
     QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
+
+    QVERIFY(track.getAlbumArt().isNull() == true);
+    QVERIFY(track.getByteAlbumArt().isNull() == true);
+}
+
+void TestRequest::testCase_DlnaMusicTrack_MP3_with_image() {
+
+    Logger log;
+    DlnaMusicTrack track(&log, "/Users/doudou/workspace/DLNA_server/tests/AUDIO/16 Funk Ad.mp3", "host", 600);
+    QVERIFY(track.getSystemName() == "/Users/doudou/workspace/DLNA_server/tests/AUDIO/16 Funk Ad.mp3");
+
+    QDomDocument xml_res;
+    xml_res.appendChild(track.getXmlContentDirectory(&xml_res));
+    QVERIFY(xml_res.childNodes().size() == 1);
+    QVERIFY(xml_res.elementsByTagName("item").size() == 1);
+    QDomNode node = xml_res.elementsByTagName("item").at(0);
+    QVERIFY(node.attributes().namedItem("id").nodeValue() == "");
+    QVERIFY(node.attributes().namedItem("parentID").nodeValue() == "-1");
+    QVERIFY(node.attributes().namedItem("restricted").nodeValue() == "true");
+    QVERIFY(xml_res.elementsByTagName("dc:title").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("dc:title").at(0).firstChild().nodeValue() == "Funk Ad");
+    QVERIFY(xml_res.elementsByTagName("upnp:album").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("upnp:album").at(0).firstChild().nodeValue() == "Homework");
+    QVERIFY(xml_res.elementsByTagName("upnp:artist").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("upnp:artist").at(0).firstChild().nodeValue() == "Daft Punk");
+    QVERIFY(xml_res.elementsByTagName("upnp:creator").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("upnp:creator").at(0).firstChild().nodeValue() == "Daft Punk");
+    QVERIFY(xml_res.elementsByTagName("upnp:genre").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("upnp:genre").at(0).firstChild().nodeValue() == "House");
+    QVERIFY(xml_res.elementsByTagName("upnp:originalTrackNumber").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("upnp:originalTrackNumber").at(0).firstChild().nodeValue() == "16");
+    QVERIFY(xml_res.elementsByTagName("upnp:date").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("upnp:date").at(0).firstChild().nodeValue() == "2013-01-02T20:57:02");
+    QVERIFY(xml_res.elementsByTagName("upnp:class").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("upnp:class").at(0).firstChild().nodeValue() == "object.item.audioItem.musicTrack");
+    QVERIFY(xml_res.elementsByTagName("res").size() == 1);
+    qWarning() << track.getStringContentDirectory();
+    xml_res.clear();
+
+    QVERIFY(track.mimeType() == "audio/mpeg");
+    QVERIFY(track.size() == 845029);
+    QVERIFY(track.bitrate() == 128);
+
+    HttpRange* range;
+    range = new HttpRange("RANGE: BYTES=0-");
+    QVERIFY(track.getStream(range).size() == 845029);
+    QVERIFY(track.getStream(range).size() == 845029);
+    delete range;
+
+    range = new HttpRange("RANGE: BYTES=29-");
+    QVERIFY(track.getStream(range).size() == 845000);
+    delete range;
+
+    range = new HttpRange("RANGE: BYTES=845050-");
+    QVERIFY(track.getStream(range).size() == 0);
+    delete range;
+
+    range = new HttpRange("RANGE: BYTES=14-1000");
+    QVERIFY(track.getStream(range).size() == 987);
+    delete range;
+
+    QVERIFY(track.getdlnaOrgOpFlags() == "01");
+    QVERIFY(track.getdlnaOrgPN() == "MP3");
+    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
+
+    QVERIFY(track.getAlbumArt().isNull() == false);
+    QVERIFY(track.getAlbumArt().size().width() == 306);
+    QVERIFY(track.getAlbumArt().size().height() == 300);
+    QVERIFY(track.getByteAlbumArt().size() == 22568);
 }
 
 void TestRequest::testCase_DlnaMusicTrack_WAV() {
@@ -435,18 +534,50 @@ void TestRequest::testCase_DlnaMusicTrack_WAV() {
     delete range;
     range = 0;
 
-
-    /*range = new HttpRange("RANGE: BYTES=274-");
-    QVERIFY(track.getStream(range).size() == 21786000);
+    range = new HttpRange("RANGE: BYTES=11786000-");
+    QVERIFY(track.getStream(range).isNull() == true);  // returns null because it shall be transcoded
+    transcodeProcess = track.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedBytes.clear();
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    QVERIFY(transcodedBytes.size() == 10017634);
+    delete transcodeProcess;
+    transcodeProcess = 0;
     delete range;
+    range = 0;
 
-    range = new HttpRange("RANGE: BYTES=21786280-");
-    QVERIFY(track.getStream(range).size() == 0);
+    range = new HttpRange("RANGE: BYTES=21886280-");
+    QVERIFY(track.getStream(range).isNull() == true);  // returns null because it shall be transcoded
+    transcodeProcess = track.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedBytes.clear();
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 1);
+    QVERIFY(transcodedBytes.size() == 0);
+    delete transcodeProcess;
+    transcodeProcess = 0;
     delete range;
+    range = 0;
 
     range = new HttpRange("RANGE: BYTES=14-1000");
-    QVERIFY(track.getStream(0, range).size() == 987);
-    delete range;*/
+    QVERIFY(track.getStream(range).isNull() == true);  // returns null because it shall be transcoded
+    transcodeProcess = track.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedBytes.clear();
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    QVERIFY(transcodedBytes.size() == 3874);
+    delete transcodeProcess;
+    transcodeProcess = 0;
+    delete range;
+    range = 0;
 
     QVERIFY(track.getdlnaOrgOpFlags() == "01");
     QVERIFY(track.getdlnaOrgPN() == "MP3");
@@ -487,30 +618,97 @@ void TestRequest::testCase_DlnaMusicTrack_WAV() {
     QVERIFY(track.mimeType() == "audio/L16");
     QVERIFY(track.size() == 104640000);
     QVERIFY(track.bitrate() == 1536);
-/*
-    // first time transcode is launched and empty buffer is returned
-    track.waitTranscodingFinished(); // robustness
+
+    // Test getStream and getTranscodeProcess
+    range = 0;
+    QVERIFY(track.getStream(range).isNull() == true);  // returns null because it shall be transcoded
+    transcodeProcess = track.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedBytes.clear();
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    QVERIFY(transcodedBytes.size() == 104568320);
+    delete transcodeProcess;
+    transcodeProcess = 0;
+    delete range;
+    range = 0;
+
     range = new HttpRange("RANGE: BYTES=0-");
-    res = track.getStream(0, range).size();
-    track.waitTranscodingFinished();
-    QVERIFY2(res == 104568320, QString("%1").arg(res).toUtf8());
-    res = track.getStream(0, range).size();
-    QVERIFY2(res == 104568320, QString("%1").arg(res).toUtf8());
-    res = track.getStream(0, range).size();
-    QVERIFY2(res == 104568320, QString("%1").arg(res).toUtf8());
+    QVERIFY(track.getStream(range).isNull() == true);  // returns null because it shall be transcoded
+    transcodeProcess = track.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedBytes.clear();
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    QVERIFY(transcodedBytes.size() == 104568320);
+    delete transcodeProcess;
+    transcodeProcess = 0;
     delete range;
+    range = 0;
 
-    range = new HttpRange("RANGE: BYTES=320-");
-    QVERIFY(track.getStream(0, range).size() == 104568000);
+    range = new HttpRange("RANGE: BYTES=0-0");
+    QVERIFY(track.getStream(range).isNull() == true);  // returns null because it shall be transcoded
+    transcodeProcess = track.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedBytes.clear();
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    QVERIFY(transcodedBytes.size() == 4096);
+    delete transcodeProcess;
+    transcodeProcess = 0;
     delete range;
+    range = 0;
 
-    range = new HttpRange("RANGE: BYTES=104568500-");
-    QVERIFY(track.getStream(0, range).size() == 0);
+    range = new HttpRange("RANGE: BYTES=11786000-");
+    QVERIFY(track.getStream(range).isNull() == true);  // returns null because it shall be transcoded
+    transcodeProcess = track.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedBytes.clear();
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    QVERIFY(transcodedBytes.size() == 92856320);
+    delete transcodeProcess;
+    transcodeProcess = 0;
     delete range;
+    range = 0;
+
+    range = new HttpRange("RANGE: BYTES=105568500-");
+    QVERIFY(track.getStream(range).isNull() == true);  // returns null because it shall be transcoded
+    transcodeProcess = track.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedBytes.clear();
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 1);
+    QVERIFY(transcodedBytes.size() == 0);
+    delete transcodeProcess;
+    transcodeProcess = 0;
+    delete range;
+    range = 0;
 
     range = new HttpRange("RANGE: BYTES=14-1000");
-    QVERIFY(track.getStream(0, range).size() == 987);
-    delete range;*/
+    QVERIFY(track.getStream(range).isNull() == true);  // returns null because it shall be transcoded
+    transcodeProcess = track.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedBytes.clear();
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    QVERIFY(transcodedBytes.size() == 4096);
+    delete transcodeProcess;
+    transcodeProcess = 0;
+    delete range;
+    range = 0;
 
     QVERIFY(track.getdlnaOrgOpFlags() == "01");
     QVERIFY(track.getdlnaOrgPN() == "LPCM");

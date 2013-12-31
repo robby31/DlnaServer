@@ -79,3 +79,7 @@ QDomElement DlnaRootFolder::getXmlContentDirectory(QDomDocument *xml) {
 
     return xml_obj;
 }
+
+QImage DlnaRootFolder::getAlbumArt() const {
+    return QImage();
+}

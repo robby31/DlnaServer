@@ -2,6 +2,7 @@
 #define DLNARESOURCE_H
 
 #include <QtXml>
+#include <QImage>
 
 #include "logger.h"
 #include "httprange.h"
@@ -104,6 +105,10 @@ public:
 
     QString getdlnaOrgPN() const { return dlnaOrgPN; }
     void setdlnaOrgPN(QString arg) { dlnaOrgPN=arg; }
+
+    // Returns album art in jpeg format
+    virtual QImage getAlbumArt() const = 0;
+    QByteArray getByteAlbumArt() const;
 
 private:
     Logger* log;

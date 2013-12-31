@@ -627,15 +627,20 @@ void Request::answer(QTcpSocket *client)
 
             if (fileName.startsWith("thumbnail0000")) {
                 // This is a request for a thumbnail file.
-                /*sendLine(client, "Content-Type: " + dlna.getThumbnailContentType());
-                sendLine(client, "Accept-Ranges: bytes");
-                sendLine(client, "Expires: " + getFUTUREDATE() + " GMT");
-                sendLine(client, "Connection: keep-alive");
-                if (mediaRenderer.isMediaParserV2()) {
-                    dlna.checkThumbnail();
-                }
+                answerHeader << "Content-Type: image/jpeg";
+                answerHeader << "Accept-Ranges: bytes";
+//                answerHeader << "Expires: " + getFUTUREDATE() + " GMT";
+                answerHeader << "Connection: keep-alive";
+                answerHeader << "Server: " + servername;
 
-                inputStream = dlna.getThumbnailInputStream();*/
+                QByteArray answerContent = dlna->getByteAlbumArt();
+                if (answerContent.isNull()) {
+                    log->ERROR("Unable to get thumbnail: " + dlna->getDisplayName());
+                    status = "KO";
+                } else {
+                    sendAnswer(client, method, answerHeader, answerContent);
+                    status = "OK";
+                }
 
             } else if (fileName.indexOf("subtitle0000") > -1) {
                 // This is a request for a subtitle file
@@ -978,7 +983,7 @@ void Request::start_read() {
             log->TRACE("HTTP User-Agent: " + getUserAgent());
         }
 
-        log->INFO("HTTP: " + getMethod() + " " + getArgument() + " / " + QString("%1").arg(getLowRange()) + "-" + QString("%1").arg(getHighRange()));
+        log->DEBUG("HTTP: " + getMethod() + " " + getArgument() + " / " + QString("%1").arg(getLowRange()) + "-" + QString("%1").arg(getHighRange()));
 
         answer(client);
 

@@ -43,6 +43,8 @@ public:
     // Returns the mimeType for this DLNA node.
     virtual QString mimeType() const { return ""; }
 
+    virtual QImage getAlbumArt() const;
+
 private:
     QFileInfo fileinfo;
     QString host;

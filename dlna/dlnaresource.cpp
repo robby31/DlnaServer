@@ -149,3 +149,17 @@ QString DlnaResource::getProtocolInfo() const {
 
     return QString("http-get:*:%1:").arg(mimeType()) + result.join(";");
 }
+
+QByteArray DlnaResource::getByteAlbumArt() const {
+    QImage picture = getAlbumArt();
+    if (!picture.isNull()) {
+        QByteArray result;
+        QBuffer buffer(&result);
+        if (buffer.open(QIODevice::WriteOnly)) {
+            if (picture.save(&buffer, "JPEG")) {
+                return result;
+            }
+        }
+    }
+    return QByteArray();
+}

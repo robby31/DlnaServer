@@ -6,7 +6,7 @@ DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString filename, QString host, int 
     taglibFile(fileinfo.absoluteFilePath().toUtf8()),
     host(host),
     port(port),
-    transcodeFormat(LPCM)   // default transcode format
+    transcodeFormat(MP3)   // default transcode format
 {    
     setDiscovered(true);
 
@@ -126,6 +126,15 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml) {
     upnpDate.appendChild(xml->createTextNode(fileinfo.lastModified().toString("yyyy-MM-ddThh:mm:ss")));
     xml_obj.appendChild(upnpDate);
 
+    QImage picture = getAlbumArt();
+    if (!picture.isNull()) {
+        QDomElement upnpAlbumArtURI = xml->createElement("upnp:albumArtURI");
+        upnpAlbumArtURI.setAttribute("xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
+        upnpAlbumArtURI.setAttribute("dlna:profileID", "JPEG_TN");
+        upnpAlbumArtURI.appendChild(xml->createTextNode(QString("http://%1:%2/get/%4/thumbnail0000%3&").arg(host).arg(port).arg(getDisplayName()).arg(getResourceId())));
+        xml_obj.appendChild(upnpAlbumArtURI);
+    }
+
     QDomElement upnpClass = xml->createElement("upnp:class");
     upnpClass.appendChild(xml->createTextNode("object.item.audioItem.musicTrack"));
     xml_obj.appendChild(upnpClass);
@@ -164,25 +173,37 @@ QProcess* DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
         QString program = "/Users/doudou/workspace/DLNA_server/exe/ffmpeg";
 
         QStringList arguments;
+        if (range != 0 && !range->isNull()) {
+
+            if (range->getStartByte(size()) > 0) {
+                int start_position = float(range->getStartByte(size()))/size()*taglibFile.audioProperties()->length();
+                arguments << "-ss" << QString("%1").arg(start_position);
+            }
+        }
+
         arguments << "-i" << fileinfo.absoluteFilePath();
+        arguments << "-map" <<  "0:a";
+
         if (transcodeFormat == MP3) {
             arguments << "-f" << "mp3";
+            arguments << "-map_metadata" << "-1";
             arguments << "-ab" << "320000";
-
-            if (range == 0) {
-                // no range requested
-            } else if (range->isNull()) {
-                // invalid range
-            } else {
-                // range is valid
-                if (range->getLength(size()) > 0) {
-                    arguments << "-fs" << QString("%1").arg(range->getLength(size()));
-                }
-            }
 
         } else if (transcodeFormat == LPCM) {
             arguments << "-f" << "s16be";
         }
+
+        if (range != 0 && !range->isNull()) {
+
+            if (range->getLength(size()) > 0) {
+                arguments << "-fs" << QString("%1").arg(range->getLength(size()));
+            } else {
+                // invalid length
+                arguments << "-fs 0";
+            }
+
+        }
+
         arguments << "pipe:";
 
         QProcess* transcodeProcess = new QProcess();
@@ -237,4 +258,44 @@ QString DlnaMusicTrack::mimeType() const {
         }
     }
     return mime_type.name();
+}
+
+QImage DlnaMusicTrack::getAlbumArt() const {
+    QImage picture;
+
+    if (mime_type.name() == "audio/mpeg") {
+
+        TagLib::MPEG::File mpegFile(fileinfo.absoluteFilePath().toUtf8());
+        if (mpegFile.isValid() && mpegFile.ID3v2Tag() != 0) {
+
+            TagLib::ID3v2::FrameList frames = mpegFile.ID3v2Tag()->frameList("APIC");
+            if(!frames.isEmpty()) {
+
+                TagLib::ID3v2::AttachedPictureFrame *pic =
+                        static_cast<TagLib::ID3v2::AttachedPictureFrame *>(frames.front());
+                if (pic != 0) {
+                    if (picture.loadFromData((const uchar *) pic->picture().data(), pic->picture().size())) {
+                        return picture;
+                    }
+                }
+            }
+        }
+    } /*else if (mime_type.name() == "audio/mp4") {
+        TagLib::MP4::File mp4File(fileinfo.absoluteFilePath().toUtf8());
+        if (mp4File.isValid()) {
+            TagLib::MP4::Tag* tag = mp4File.tag();
+            qWarning() << "TAG" << tag->isEmpty() << getSystemName();
+            TagLib::MP4::ItemListMap itemsListMap = tag->itemListMap();
+            qWarning() << "TEST" << itemsListMap.isEmpty();
+            //TagLib::MP4::Item coverItem = itemsListMap["covr"];
+            qWarning() << coverItem.isValid();
+            TagLib::MP4::CoverArtList coverArtList = coverItem.toCoverArtList();
+            TagLib::MP4::CoverArt coverArt = coverArtList.front();
+            if (picture.loadFromData((const uchar *) coverArt.data().data(),coverArt.data().size())) {
+                return picture;
+            }
+        }
+    }*/
+
+    return picture;
 }

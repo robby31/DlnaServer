@@ -33,6 +33,7 @@ private Q_SLOTS:
     void testCase_DlnaFolder();
     void testCase_DlnaMusicTrack_AAC();
     void testCase_DlnaMusicTrack_MP3();
+    void testCase_DlnaMusicTrack_MP3_with_image();
     void testCase_DlnaMusicTrack_WAV();
 
 private:
