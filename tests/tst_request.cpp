@@ -288,8 +288,13 @@ void TestRequest::testCase_DlnaMusicTrack_AAC() {
     xml_res.clear();
 
     QVERIFY(track.mimeType() == "audio/mpeg");
-    QVERIFY(track.size() == 7560000);
-    QVERIFY(track.bitrate() == 320);
+    QVERIFY(track.size() == 7559480);
+    QVERIFY(track.bitrate() == 320000);
+    QVERIFY(track.getLengthInSeconds() == 188);
+    QVERIFY(track.getLengthInMilliSeconds() == 188987);
+    QVERIFY(track.samplerate() == 44100);
+    QVERIFY(track.channelCount() == 2);
+
 
     HttpRange* range = 0;
     range = new HttpRange("RANGE: BYTES=0-");
@@ -312,8 +317,11 @@ void TestRequest::testCase_DlnaMusicTrack_AAC() {
     QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
 
-    QVERIFY(track.getAlbumArt().isNull() == true);
-    QVERIFY(track.getByteAlbumArt().isNull() == true);
+    QVERIFY(track.getAlbumArt().isNull() == false);
+    QVERIFY(track.getByteAlbumArt().isNull() == false);
+    QVERIFY(track.getAlbumArt().size().width() == 300);
+    QVERIFY(track.getAlbumArt().size().height() == 300);
+    QVERIFY(track.getByteAlbumArt().size() == 25089);
 
 }
 
@@ -353,7 +361,11 @@ void TestRequest::testCase_DlnaMusicTrack_MP3() {
 
     QVERIFY(track.mimeType() == "audio/mpeg");
     QVERIFY(track.size() == 376593);
-    QVERIFY(track.bitrate() == 150);
+    QVERIFY(track.bitrate() == 149832);
+    QVERIFY(track.getLengthInSeconds() == 19);
+    QVERIFY(track.getLengthInMilliSeconds() == 19382);
+    QVERIFY(track.samplerate() == 44100);
+    QVERIFY(track.channelCount() == 2);
 
     HttpRange* range;
     range = new HttpRange("RANGE: BYTES=0-");
@@ -418,7 +430,11 @@ void TestRequest::testCase_DlnaMusicTrack_MP3_with_image() {
 
     QVERIFY(track.mimeType() == "audio/mpeg");
     QVERIFY(track.size() == 845029);
-    QVERIFY(track.bitrate() == 128);
+    QVERIFY(track.bitrate() == 128000);
+    QVERIFY(track.getLengthInSeconds() == 51);
+    QVERIFY(track.getLengthInMilliSeconds() == 51056);
+    QVERIFY(track.samplerate() == 44100);
+    QVERIFY(track.channelCount() == 2);
 
     HttpRange* range;
     range = new HttpRange("RANGE: BYTES=0-");
@@ -475,7 +491,7 @@ void TestRequest::testCase_DlnaMusicTrack_WAV() {
     QVERIFY(xml_res.elementsByTagName("upnp:genre").size() == 1);
     QVERIFY(xml_res.elementsByTagName("upnp:genre").at(0).firstChild().nodeValue() == "");
     QVERIFY(xml_res.elementsByTagName("upnp:originalTrackNumber").size() == 1);
-    QVERIFY(xml_res.elementsByTagName("upnp:originalTrackNumber").at(0).firstChild().nodeValue() == "0");
+    QVERIFY(xml_res.elementsByTagName("upnp:originalTrackNumber").at(0).firstChild().nodeValue() == "");
     QVERIFY(xml_res.elementsByTagName("upnp:date").size() == 1);
     QVERIFY(xml_res.elementsByTagName("upnp:date").at(0).firstChild().nodeValue() == "2013-08-27T18:22:53");
     QVERIFY(xml_res.elementsByTagName("upnp:class").size() == 1);
@@ -485,8 +501,12 @@ void TestRequest::testCase_DlnaMusicTrack_WAV() {
     xml_res.clear();
 
     QVERIFY(track.mimeType() == "audio/mpeg");
-    QVERIFY(track.size() == 21800000);
-    QVERIFY(track.bitrate() == 320);
+    QVERIFY(track.size() == 21785040);
+    QVERIFY(track.bitrate() == 320000);
+    QVERIFY(track.getLengthInSeconds() == 544);
+    QVERIFY(track.getLengthInMilliSeconds() == 544626);
+    QVERIFY(track.samplerate() == 48000);
+    QVERIFY(track.channelCount() == 2);
 
     // Test getStream and getTranscodeProcess
     HttpRange* range = 0;
@@ -543,7 +563,7 @@ void TestRequest::testCase_DlnaMusicTrack_WAV() {
     transcodeProcess->start();
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodedBytes.size() == 10017634);
+    QVERIFY(transcodedBytes.size() == 10002274);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -606,7 +626,7 @@ void TestRequest::testCase_DlnaMusicTrack_WAV() {
     QVERIFY(xml_res.elementsByTagName("upnp:genre").size() == 1);
     QVERIFY(xml_res.elementsByTagName("upnp:genre").at(0).firstChild().nodeValue() == "");
     QVERIFY(xml_res.elementsByTagName("upnp:originalTrackNumber").size() == 1);
-    QVERIFY(xml_res.elementsByTagName("upnp:originalTrackNumber").at(0).firstChild().nodeValue() == "0");
+    QVERIFY(xml_res.elementsByTagName("upnp:originalTrackNumber").at(0).firstChild().nodeValue() == "");
     QVERIFY(xml_res.elementsByTagName("upnp:date").size() == 1);
     QVERIFY(xml_res.elementsByTagName("upnp:date").at(0).firstChild().nodeValue() == "2013-08-27T18:22:53");
     QVERIFY(xml_res.elementsByTagName("upnp:class").size() == 1);
@@ -616,8 +636,12 @@ void TestRequest::testCase_DlnaMusicTrack_WAV() {
     xml_res.clear();
 
     QVERIFY(track.mimeType() == "audio/L16");
-    QVERIFY(track.size() == 104640000);
-    QVERIFY(track.bitrate() == 1536);
+    QVERIFY(track.size() == 104568192);
+    QVERIFY(track.bitrate() == 1536000);
+    QVERIFY(track.getLengthInSeconds() == 544);
+    QVERIFY(track.getLengthInMilliSeconds() == 544626);
+    QVERIFY(track.samplerate() == 48000);
+    QVERIFY(track.channelCount() == 2);
 
     // Test getStream and getTranscodeProcess
     range = 0;
@@ -674,7 +698,7 @@ void TestRequest::testCase_DlnaMusicTrack_WAV() {
     transcodeProcess->start();
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodedBytes.size() == 92856320);
+    QVERIFY(transcodedBytes.size() == 92782592);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;

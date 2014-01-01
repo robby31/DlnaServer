@@ -35,6 +35,7 @@ public:
 
     // return the length in seconds of the media
     virtual int getLengthInSeconds() { return -1; }
+    virtual int getLengthInMilliSeconds() { return -1; }
 
     // Returns an InputStream of this DLNA node, no stream for a folder.
     virtual QByteArray getStream(HttpRange* range) { Q_UNUSED(range); return QByteArray(); }
@@ -48,7 +49,7 @@ public:
     // Returns the mimeType for this DLNA node.
     virtual QString mimeType() const { return ""; }
 
-    virtual QImage getAlbumArt() const;
+    virtual QImage getAlbumArt();
 
 private:
     QString host;

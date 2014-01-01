@@ -3,17 +3,22 @@
 DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString filename, QString host, int port):
     DlnaResource(log),
     fileinfo(QFileInfo(filename)),
-    taglibFile(fileinfo.absoluteFilePath().toUtf8()),
     host(host),
     port(port),
     transcodeFormat(MP3)   // default transcode format
 {    
+    MI.Open(__T(filename.toStdString()));
+
     setDiscovered(true);
 
     QMimeDatabase db;
     mime_type = db.mimeTypeForFile(fileinfo);
 
     updateDLNAOrgPn();
+}
+
+DlnaMusicTrack::~DlnaMusicTrack() {
+    MI.Close();
 }
 
 void DlnaMusicTrack::updateDLNAOrgPn() {
@@ -41,47 +46,54 @@ QString DlnaMusicTrack::getDisplayName() const {
 int DlnaMusicTrack::bitrate() {
     if (toTranscode()) {
         if (transcodeFormat == MP3) {
-            return 320;
+            return 320000;
 
         } else if (transcodeFormat == LPCM) {
 
-            if (taglibFile.audioProperties()->sampleRate() == 44100) {
-                return 1411;
+            if (samplerate() == 44100) {
+                return 1411000;
 
             } else {
-                return 1536;
+                return 1536000;
             }
         }
 
         return 0;
     } else {
-        return taglibFile.audioProperties()->bitrate();
+        return QString(MI.Get(MediaInfoDLL::Stream_General, 0, __T("OverallBitRate")).c_str()).toInt();
     }
 }
 
 int DlnaMusicTrack::size() {
     if (toTranscode()) {
-        if (transcodeFormat == MP3) {
-            return 320000*(taglibFile.audioProperties()->length()+1)/8;
-
-        } else if (transcodeFormat == LPCM) {
-
-            if (taglibFile.audioProperties()->sampleRate() == 44100) {
-                return 1411*1000*(taglibFile.audioProperties()->length()+1)/8;
-
-            } else {
-                return 1536*1000*(taglibFile.audioProperties()->length()+1)/8;
-            }
-        }
-
-        return 0;
+        return double(bitrate())*double(getLengthInMilliSeconds())/8000.0;
     } else {
         return fileinfo.size();
     }
 }
 
+int DlnaMusicTrack::channelCount() {
+    int audioStreamCount = MI.Count_Get(MediaInfoDLL::Stream_Audio);
+    if (audioStreamCount == 1) {
+        return QString::fromStdString(MI.Get(MediaInfoDLL::Stream_Audio, 0, __T("Channel(s)"))).toInt();
+    }
+    return 0;
+}
+
+int DlnaMusicTrack::samplerate() {
+    int audioStreamCount = MI.Count_Get(MediaInfoDLL::Stream_Audio);
+    if (audioStreamCount == 1) {
+        return QString::fromStdString(MI.Get(MediaInfoDLL::Stream_Audio, 0, __T("SamplingRate"))).toInt();
+    }
+    return 0;
+}
+
 int DlnaMusicTrack::getLengthInSeconds() {
-    return taglibFile.audioProperties()->length();
+    return getLengthInMilliSeconds()/1000;
+}
+
+int DlnaMusicTrack::getLengthInMilliSeconds() {
+    return QString(MI.Get(MediaInfoDLL::Stream_General, 0, __T("Duration")).c_str()).toInt();
 }
 
 /*
@@ -99,7 +111,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml) {
     xml_obj.setAttribute("restricted", "true");
 
     QDomElement dcTitle = xml->createElement("dc:title");
-    QString title = taglibFile.tag()->title().toCString(true);
+    QString title = MI.Get(MediaInfoDLL::Stream_General, 0, __T("Title")).c_str();
     if (title.isEmpty()) {
         title = getDisplayName();
     }
@@ -107,23 +119,23 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml) {
     xml_obj.appendChild(dcTitle);
 
     QDomElement upnpAlbum = xml->createElement("upnp:album");
-    upnpAlbum.appendChild(xml->createTextNode(taglibFile.tag()->album().toCString(true)));
+    upnpAlbum.appendChild(xml->createTextNode(MI.Get(MediaInfoDLL::Stream_General, 0, __T("Album")).c_str()));
     xml_obj.appendChild(upnpAlbum);
 
     QDomElement upnpArtist = xml->createElement("upnp:artist");
-    upnpArtist.appendChild(xml->createTextNode(taglibFile.tag()->artist().toCString(true)));
+    upnpArtist.appendChild(xml->createTextNode(MI.Get(MediaInfoDLL::Stream_General, 0, __T("Performer")).c_str()));
     xml_obj.appendChild(upnpArtist);
 
     QDomElement upnpCreator = xml->createElement("upnp:creator");
-    upnpCreator.appendChild(xml->createTextNode(taglibFile.tag()->artist().toCString(true)));
+    upnpCreator.appendChild(xml->createTextNode(MI.Get(MediaInfoDLL::Stream_General, 0, __T("Performer")).c_str()));
     xml_obj.appendChild(upnpCreator);
 
     QDomElement upnpGenre = xml->createElement("upnp:genre");
-    upnpGenre.appendChild(xml->createTextNode(taglibFile.tag()->genre().toCString(true)));
+    upnpGenre.appendChild(xml->createTextNode(MI.Get(MediaInfoDLL::Stream_General, 0, __T("Genre")).c_str()));
     xml_obj.appendChild(upnpGenre);
 
     QDomElement upnpTrackNumber = xml->createElement("upnp:originalTrackNumber");
-    upnpTrackNumber.appendChild(xml->createTextNode(QString("%1").arg(taglibFile.tag()->track())));
+    upnpTrackNumber.appendChild(xml->createTextNode(MI.Get(MediaInfoDLL::Stream_General, 0, __T("Track/Position")).c_str()));
     xml_obj.appendChild(upnpTrackNumber);
 
     QDomElement upnpDate = xml->createElement("upnp:date");
@@ -147,10 +159,10 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml) {
     QDomElement res = xml->createElement("res");
     res.setAttribute("xmlns:dlna", "urn:schemas-dlna-org:metadata-1-0/");
     res.setAttribute("protocolInfo", getProtocolInfo());
-    res.setAttribute("bitrate", QString("%1").arg(bitrate()));
-    res.setAttribute("duration", QString("%1,00").arg(duration.addSecs(taglibFile.audioProperties()->length()).toString()));
-    res.setAttribute("sampleFrequency", QString("%1").arg(taglibFile.audioProperties()->sampleRate()));
-    res.setAttribute("nrAudioChannels", QString("%1").arg(taglibFile.audioProperties()->channels()));
+    res.setAttribute("bitrate", QString("%1").arg(bitrate()/1000));
+    res.setAttribute("duration", QString("%1,00").arg(duration.addSecs(getLengthInSeconds()).toString()));
+    res.setAttribute("sampleFrequency", QString("%1").arg(samplerate()));
+    res.setAttribute("nrAudioChannels", QString("%1").arg(channelCount()));
     res.setAttribute("size", QString("%1").arg(size()));
     res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId()).arg(host).arg(port).arg(fileinfo.fileName().replace(" ", "+"))));
     xml_obj.appendChild(res);
@@ -180,7 +192,7 @@ QProcess* DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
         if (range != 0 && !range->isNull()) {
 
             if (range->getStartByte(size()) > 0) {
-                int start_position = float(range->getStartByte(size()))/size()*taglibFile.audioProperties()->length();
+                int start_position = float(range->getStartByte(size()))/size()*getLengthInSeconds();
                 arguments << "-ss" << QString("%1").arg(start_position);
             }
         }
@@ -191,7 +203,7 @@ QProcess* DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
         if (transcodeFormat == MP3) {
             arguments << "-f" << "mp3";
             arguments << "-map_metadata" << "-1";
-            arguments << "-ab" << "320000";
+            arguments << "-ab" << QString("%1").arg(bitrate());
 
         } else if (transcodeFormat == LPCM) {
             arguments << "-f" << "s16be";
@@ -264,42 +276,14 @@ QString DlnaMusicTrack::mimeType() const {
     return mime_type.name();
 }
 
-QImage DlnaMusicTrack::getAlbumArt() const {
+QImage DlnaMusicTrack::getAlbumArt() {
     QImage picture;
 
-    if (mime_type.name() == "audio/mpeg") {
+    QByteArray bytesPicture =  QByteArray::fromBase64(MI.Get(MediaInfoDLL::Stream_General, 0, __T("Cover_Data")).c_str());
 
-        TagLib::MPEG::File mpegFile(fileinfo.absoluteFilePath().toUtf8());
-        if (mpegFile.isValid() && mpegFile.ID3v2Tag() != 0) {
-
-            TagLib::ID3v2::FrameList frames = mpegFile.ID3v2Tag()->frameList("APIC");
-            if(!frames.isEmpty()) {
-
-                TagLib::ID3v2::AttachedPictureFrame *pic =
-                        static_cast<TagLib::ID3v2::AttachedPictureFrame *>(frames.front());
-                if (pic != 0) {
-                    if (picture.loadFromData((const uchar *) pic->picture().data(), pic->picture().size())) {
-                        return picture;
-                    }
-                }
-            }
-        }
-    } /*else if (mime_type.name() == "audio/mp4") {
-        TagLib::MP4::File mp4File(fileinfo.absoluteFilePath().toUtf8());
-        if (mp4File.isValid()) {
-            TagLib::MP4::Tag* tag = mp4File.tag();
-            qWarning() << "TAG" << tag->isEmpty() << getSystemName();
-            TagLib::MP4::ItemListMap itemsListMap = tag->itemListMap();
-            qWarning() << "TEST" << itemsListMap.isEmpty();
-            //TagLib::MP4::Item coverItem = itemsListMap["covr"];
-            qWarning() << coverItem.isValid();
-            TagLib::MP4::CoverArtList coverArtList = coverItem.toCoverArtList();
-            TagLib::MP4::CoverArt coverArt = coverArtList.front();
-            if (picture.loadFromData((const uchar *) coverArt.data().data(),coverArt.data().size())) {
-                return picture;
-            }
-        }
-    }*/
+    if (picture.loadFromData((const uchar *) bytesPicture.data(), bytesPicture.size())) {
+        return picture;
+    }
 
     return picture;
 }

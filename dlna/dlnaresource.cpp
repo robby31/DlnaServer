@@ -150,7 +150,7 @@ QString DlnaResource::getProtocolInfo() const {
     return QString("http-get:*:%1:").arg(mimeType()) + result.join(";");
 }
 
-QByteArray DlnaResource::getByteAlbumArt() const {
+QByteArray DlnaResource::getByteAlbumArt() {
     QImage picture = getAlbumArt();
     if (!picture.isNull()) {
         QByteArray result;

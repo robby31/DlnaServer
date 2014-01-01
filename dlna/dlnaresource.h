@@ -86,6 +86,7 @@ public:
 
     // return the length in seconds of the media
     virtual int getLengthInSeconds() = 0;
+    virtual int getLengthInMilliSeconds() = 0;
 
     // Returns the stream of this DLNA node.
     virtual QByteArray getStream(HttpRange* range) = 0;
@@ -110,8 +111,8 @@ public:
     void setdlnaOrgPN(QString arg) { dlnaOrgPN=arg; }
 
     // Returns album art in jpeg format
-    virtual QImage getAlbumArt() const = 0;
-    QByteArray getByteAlbumArt() const;
+    virtual QImage getAlbumArt() = 0;
+    QByteArray getByteAlbumArt();
 
 private:
     Logger* log;

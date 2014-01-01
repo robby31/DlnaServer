@@ -1,8 +1,8 @@
 INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
-INCLUDEPATH += "/opt/local/include/taglib/"
-LIBS += "/opt/local/lib/libtag.1.12.0.dylib"
+INCLUDEPATH += "../MediaInfoLib/Developpers/include"
+LIBS += "/Users/doudou/workspace/DLNA_server/MediaInfoLib/libmediainfo.0.0.0.dylib"
 
 HEADERS += \
     $$PWD/dlnaresource.h \
