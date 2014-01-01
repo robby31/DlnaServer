@@ -31,11 +31,15 @@ void RequestListModel::clearAll() {
 
 int RequestListModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
+
     return mRecords.count();
 }
 
 int RequestListModel::columnCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
+
     return mRoles.keys().length();
 }
 

@@ -862,6 +862,8 @@ void Request::waitTranscodingFinished() {
 }
 
 void Request::errorTrancodedData(QProcess::ProcessError error) {
+    Q_UNUSED(error);
+
     if (transcodeProcess != 0) {
         // an error occured
         log->ERROR(QString("Transcoding failed (%1).").arg(transcodeProcess->errorString()));

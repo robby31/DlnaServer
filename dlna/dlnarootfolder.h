@@ -37,10 +37,10 @@ public:
     virtual int getLengthInSeconds() { return -1; }
 
     // Returns an InputStream of this DLNA node, no stream for a folder.
-    virtual QByteArray getStream(HttpRange* range) { return QByteArray(); }
+    virtual QByteArray getStream(HttpRange* range) { Q_UNUSED(range); return QByteArray(); }
 
     // Returns the process for transcoding, no transcoding for a folder.
-    virtual QProcess* getTranscodeProcess(HttpRange* range) { return 0; }
+    virtual QProcess* getTranscodeProcess(HttpRange* range) { Q_UNUSED(range); return 0; }
 
     // return true if the DLNA node shall be transcoded, no transcoding for a folder.
     virtual bool toTranscode() const { return false; }
