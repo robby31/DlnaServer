@@ -34,7 +34,7 @@ public:
     virtual bool isFolder() const { return false; }
 
     // Returns the XML (DIDL) representation of the DLNA node.
-    virtual QDomElement getXmlContentDirectory(QDomDocument *xml);
+    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
 
     // Returns an InputStream of this DLNA node.
     virtual QByteArray getStream(HttpRange* range);

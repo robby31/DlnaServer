@@ -28,7 +28,7 @@ public:
     bool addFolder(QString folder);
 
     // Returns the XML (DIDL) representation of the DLNA node.
-    virtual QDomElement getXmlContentDirectory(QDomDocument *xml);
+    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
 
     // return the size of the DLNA node, no size for a folder.
     virtual int size() { return -1; }

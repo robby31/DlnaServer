@@ -459,8 +459,11 @@ void Request::answer(QTcpSocket *client)
             if (list.length() > 0) {
                 browseFlag = list.at(0).toElement().text();
             }
-            else {
-                browseFlag = QString();
+
+            QStringList filter;
+            list = doc.elementsByTagName("Filter");
+            if (list.length() > 0) {
+                filter = list.at(0).toElement().text().split(",");
             }
 
             // prepare the answer to send
@@ -545,7 +548,7 @@ void Request::answer(QTcpSocket *client)
             if (!files.isEmpty()) {
                 foreach (DlnaResource* uf, files) {
                     //if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
-                    didlLite.appendChild(uf->getXmlContentDirectory(&didlDoc));
+                    didlLite.appendChild(uf->getXmlContentDirectory(&didlDoc, filter));
                     //} else {
                     //    minus++;
                     //}

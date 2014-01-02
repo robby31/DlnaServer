@@ -104,9 +104,9 @@ QString DlnaResource::getParentId() const {
 
 }
 
-QString DlnaResource::getStringContentDirectory() {
+QString DlnaResource::getStringContentDirectory(QStringList properties) {
     QDomDocument xml;
-    xml.appendChild(getXmlContentDirectory(&xml));
+    xml.appendChild(getXmlContentDirectory(&xml, properties));
 
     QDomDocument res;
     QDomElement result = res.createElement("Result");

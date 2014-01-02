@@ -47,27 +47,16 @@ bool DlnaRootFolder::addFolder(QString folder) {
 *
 * Reference: http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v1-Service.pdf
 */
-QDomElement DlnaRootFolder::getXmlContentDirectory(QDomDocument *xml) {
+QDomElement DlnaRootFolder::getXmlContentDirectory(QDomDocument *xml, QStringList properties) {
     QDomElement xml_obj;
 
     xml_obj = xml->createElement("container");
 
+    // mandatory properties are: id, parentID, title, class, restricted
+
     xml_obj.setAttribute("id", getResourceId());
 
-    if (!isDiscovered() && getChildren().size() == 0) {
-        //  When a folder has not been scanned for resources, it will automatically have zero children.
-        //  Some renderers like XBMC will assume a folder is empty when encountering childCount="0" and
-        //  will not display the folder. By returning childCount="1" these renderers will still display
-        //  the folder. When it is opened, its children will be discovered and childrenNumber() will be
-        //  set to the right value.
-        xml_obj.setAttribute("childCount", "1");
-    } else {
-        xml_obj.setAttribute("childCount", QString("%1").arg(getChildren().size()));
-    }
-
-
     xml_obj.setAttribute("parentID", getParentId());
-    xml_obj.setAttribute("restricted", "true");
 
     QDomElement dcTitle = xml->createElement("dc:title");
     dcTitle.appendChild(xml->createTextNode(getDisplayName()));
@@ -76,6 +65,21 @@ QDomElement DlnaRootFolder::getXmlContentDirectory(QDomDocument *xml) {
     QDomElement upnpClass = xml->createElement("upnp:class");
     upnpClass.appendChild(xml->createTextNode("object.container.storageFolder"));
     xml_obj.appendChild(upnpClass);
+
+    xml_obj.setAttribute("restricted", "true");
+
+    if (properties.contains("@childCount")) {
+        if (!isDiscovered()) {
+            //  When a folder has not been scanned for resources, it will automatically have zero children.
+            //  Some renderers like XBMC will assume a folder is empty when encountering childCount="0" and
+            //  will not display the folder. By returning childCount="1" these renderers will still display
+            //  the folder. When it is opened, its children will be discovered and childrenNumber() will be
+            //  set to the right value.
+            xml_obj.setAttribute("childCount", "1");
+        } else {
+            xml_obj.setAttribute("childCount", QString("%1").arg(getChildren().size()));
+        }
+    }
 
     return xml_obj;
 }
