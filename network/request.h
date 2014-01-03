@@ -15,7 +15,7 @@
 #include "dlnaresource.h"
 #include "httprange.h"
 
-class Request: public QObject
+class Request: public QThread
 {
     Q_OBJECT
 
@@ -71,16 +71,31 @@ public:
     // Construct a proper HTTP response to a received request
     // and provide answer to the client on the request
     // See "http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html" for HTTP header field definitions.
-    void answer(QTcpSocket *client);
+    void run();
 
-    // read the http request received (header+content)
-    void start_read();
+signals:
+    // emit signal when data changed
+    void dataChanged();
+
+    // emit signal to send answer to client
+    void answerReady(QString method, QStringList headerAnswer, QByteArray contentAnswer = QByteArray(), int totalSize = -1);
+
+    // emit signal to start transcoding
+    void startTranscoding(DlnaResource* dlna, QStringList answerHeader);
 
 private slots:
+    // slots for incoming data
+    void readSocket();
+
     // slots for transcoding
+    void runTranscoding(DlnaResource* dlna, QStringList answerHeader);
     void receivedTranscodedData();
     void errorTrancodedData(QProcess::ProcessError error);
     void finishedTranscodeData(int exitCode);
+
+    // slot to send data to client
+    void sendAnswer(QString method, QStringList headerAnswer, QByteArray contentAnswer = QByteArray(), int totalSize = -1);
+
 
 private:
     static const QString CONTENT_TYPE_UTF8;
@@ -112,6 +127,7 @@ private:
     Logger* log;
 
     QTcpSocket* client;
+    QElapsedTimer clock;  // clock to measure time taken to answer to the request
 
     QProcess* transcodeProcess;
     QElapsedTimer transcodeClock;
@@ -158,21 +174,23 @@ private:
 
     void setHttp10(bool http10) { this->http10 = http10; }
 
-    void setStatus(QString status) { this->status = status; }
+    void setStatus(QString status) { this->status = status; emit dataChanged(); }
 
-    void setDuration(QString duration) { this->duration = duration; }
+    void setDuration(QString duration) { this->duration = duration; emit dataChanged(); }
 
-    void setDate(QString date) { this->date = date; }
+    void setDate(QString date) { this->date = date; emit dataChanged(); }
 
     void setSoapaction(QString soapaction);
 
     void setTextContent(QString content) { this->content = content; }
 
     void sendLine(QTcpSocket *client, QString msg);
-    void sendAnswer(QTcpSocket *client, QString method, QStringList headerAnswer, QByteArray contentAnswer = QByteArray(), int totalSize = -1);
 
     // wait transcoding is finished
     void waitTranscodingFinished();
+
+    // close the client
+    void closeClient();
 };
 
 #endif // REQUEST_H

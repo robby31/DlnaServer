@@ -42,6 +42,18 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     range(0),
     http10(false)
 {
+    // start clock to measure time taken to answer to the request
+    clock.start();
+
+    setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
+
+    connect(client, SIGNAL(readyRead()), this, SLOT(readSocket()));
+
+    connect(this, SIGNAL(answerReady(QString,QStringList,QByteArray,int)), this, SLOT(sendAnswer(QString,QStringList,QByteArray,int)));
+
+    connect(this, SIGNAL(startTranscoding(DlnaResource*, QStringList)), this, SLOT(runTranscoding(DlnaResource*, QStringList)));
+
+    log->TRACE("HTTP server: receiving a request from " + client->peerAddress().toString());
 }
 
 Request::~Request() {
@@ -225,7 +237,7 @@ void Request::sendLine(QTcpSocket *client, QString msg)
     log->DEBUG("Wrote on socket: " + msg);
 }
 
-void Request::sendAnswer(QTcpSocket *client, QString method, QStringList headerAnswer, QByteArray contentAnswer, int totalSize)
+void Request::sendAnswer(QString method, QStringList headerAnswer, QByteArray contentAnswer, int totalSize)
 {
     if (range != 0)
     {
@@ -273,10 +285,13 @@ void Request::sendAnswer(QTcpSocket *client, QString method, QStringList headerA
 
         }
     }
+
+    closeClient();
 }
 
-void Request::answer(QTcpSocket *client)
-{
+void Request::run() {
+    // prepare data and send answer
+
     log->TRACE("ANSWER: " + method + " " + argument);
 
     if ((method == "GET" || method == "HEAD") && (argument == "description/fetch" || argument.endsWith("1.0.xml"))) {
@@ -307,9 +322,9 @@ void Request::answer(QTcpSocket *client)
             log->ERROR("Unable to read PMS.xml for description/fetch answer.");
         }
 
-        sendAnswer(client, method, answerHeader, answerContent.toUtf8());
+        emit answerReady(method, answerHeader, answerContent.toUtf8());
 
-        status = "OK";
+        setStatus("OK");
     }
     else if (method == "POST" && argument.endsWith("upnp/control/connection_manager")) {
 
@@ -328,9 +343,9 @@ void Request::answer(QTcpSocket *client)
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            sendAnswer(client, method, answerHeader, answerContent.toUtf8());
+            emit answerReady(method, answerHeader, answerContent.toUtf8());
 
-            status = "OK";
+            setStatus("OK");
         }
 
     }
@@ -354,9 +369,9 @@ void Request::answer(QTcpSocket *client)
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            sendAnswer(client, method, answerHeader, answerContent.toUtf8());
+            emit answerReady(method, answerHeader, answerContent.toUtf8());
 
-            status = "OK";
+            setStatus("OK");
 
         } else if (!soapaction.isEmpty() && soapaction.indexOf("ContentDirectory:1#GetSortCapabilities") > -1) {
             answerContent.append(XML_HEADER);
@@ -368,9 +383,9 @@ void Request::answer(QTcpSocket *client)
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            sendAnswer(client, method, answerHeader, answerContent.toUtf8());
+            emit answerReady(method, answerHeader, answerContent.toUtf8());
 
-            status = "OK";
+            setStatus("OK");
 
         } else if (!soapaction.isEmpty() && soapaction.indexOf("ContentDirectory:1#X_GetFeatureList") > -1) {
             // Added for Samsung 2012 TVs
@@ -383,9 +398,9 @@ void Request::answer(QTcpSocket *client)
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            sendAnswer(client, method, answerHeader, answerContent.toUtf8());
+            emit answerReady(method, answerHeader, answerContent.toUtf8());
 
-            status = "OK";
+            setStatus("OK");
 
         } else if (!soapaction.isEmpty()  && soapaction.indexOf("ContentDirectory:1#GetSearchCapabilities") > -1) {
             answerContent.append(XML_HEADER);
@@ -397,9 +412,9 @@ void Request::answer(QTcpSocket *client)
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            sendAnswer(client, method, answerHeader, answerContent.toUtf8());
+            emit answerReady(method, answerHeader, answerContent.toUtf8());
 
-            status = "OK";
+            setStatus("OK");
 
         } else if (!soapaction.isEmpty() && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
 
@@ -595,11 +610,11 @@ void Request::answer(QTcpSocket *client)
             }
 
             //send the answer to client
-            sendAnswer(client, method, answerHeader, xml.toString(-1).toUtf8());
+            emit answerReady(method, answerHeader, xml.toString(-1).toUtf8());
 
-            status = "OK";
+            setStatus("OK");
         } else {
-            status = "KO";
+            setStatus("KO");
         }
     }
     else if ((method == "GET" || method == "HEAD") && argument.startsWith("get/")) {
@@ -643,10 +658,10 @@ void Request::answer(QTcpSocket *client)
                 QByteArray answerContent = dlna->getByteAlbumArt();
                 if (answerContent.isNull()) {
                     log->ERROR("Unable to get thumbnail: " + dlna->getDisplayName());
-                    status = "KO";
+                    setStatus("KO");
                 } else {
-                    sendAnswer(client, method, answerHeader, answerContent);
-                    status = "OK";
+                    emit answerReady(method, answerHeader, answerContent);
+                    setStatus("OK");
                 }
 
             } else if (fileName.indexOf("subtitle0000") > -1) {
@@ -671,8 +686,6 @@ void Request::answer(QTcpSocket *client)
                 }*/
             } else {
                 // This is a request for a regular file.
-                QString name = dlna->getDisplayName();
-
                 answerHeader << "Content-Type: " + dlna->mimeType();
 
                 if (!contentFeatures.isNull()) {
@@ -690,8 +703,8 @@ void Request::answer(QTcpSocket *client)
                 answerHeader << "Server: " + servername;
 
                 if (method == "HEAD") {
-                    sendAnswer(client, method, answerHeader, QByteArray(""), dlna->size());
-                    status = "OK";
+                    emit answerReady(method, answerHeader, QByteArray(""), dlna->size());
+                    setStatus("OK");
 
                 } else {
 
@@ -702,50 +715,17 @@ void Request::answer(QTcpSocket *client)
 
                         if (stream.isNull()) {
                             // No inputStream indicates that transcoding / remuxing probably crashed.
-                            log->ERROR("There is no inputstream to return for " + name);
-                            status = "KO";
+                            log->ERROR("There is no inputstream to return for " + dlna->getDisplayName());
+                            setStatus("KO");
                         } else {
-                            sendAnswer(client, method, answerHeader, stream, dlna->size());
-                            log->INFO("Serving " + name);
-                            status = "OK";
+                            emit answerReady(method, answerHeader, stream, dlna->size());
+                            log->INFO("Serving " + dlna->getDisplayName());
+                            setStatus("OK");
                         }
 
                     } else {
                         // transcode file
-                        if (transcodeProcess == 0) {
-                            transcodeProcess = dlna->getTranscodeProcess(range);
-
-                            if (transcodeProcess == 0) {
-                                log->ERROR(QString("Cannot create transcoding process"));
-                                status = "KO";
-
-                            } else {
-                                // send header answer
-                                sendAnswer(client, method, answerHeader, QByteArray(), dlna->size());
-
-                                log->INFO(QString("Start transcoding (%1)").arg(name));
-                                transcodedBytes.clear();
-
-                                connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
-                                connect(transcodeProcess, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorTrancodedData(QProcess::ProcessError)));
-                                connect(transcodeProcess, SIGNAL(finished(int)), this, SLOT(finishedTranscodeData(int)));
-
-                                transcodeClock.start();
-
-                                transcodeProcess->start();
-                                if (!transcodeProcess->waitForStarted()) {
-                                    log->ERROR(transcodeProcess->errorString());
-                                    status = "KO";
-                                } else {
-                                    // transcoding process started
-                                    log->INFO("Serving " + name);
-                                    status = "OK";
-                                }
-                            }
-                        } else {
-                            log->ERROR(QString("Transcoding already in progress"));
-                            status = "KO";
-                        }
+                        emit startTranscoding(dlna, answerHeader);
                     }
                 }
             }
@@ -760,7 +740,7 @@ void Request::answer(QTcpSocket *client)
         answerHeader << "Timeout: Second-1800";
         answerHeader << "";
 
-        sendAnswer(client, method, answerHeader);
+        emit answerReady(method, answerHeader);
         client->flush();
 
         QString answerContent;
@@ -784,7 +764,7 @@ void Request::answer(QTcpSocket *client)
         }
         else {
             log->ERROR(QString("Cannot connect to %1").arg(cb));
-            status = "ERROR";
+            setStatus("ERROR");
             return;
         }
 
@@ -800,9 +780,9 @@ void Request::answer(QTcpSocket *client)
             answerContent.append(EVENT_Prop.arg("CurrentConnectionIDs").arg(""));
             answerContent.append(EVENT_FOOTER);
 
-            sendAnswer(client, method, answerHeader, answerContent.toUtf8());
+            emit answerReady(method, answerHeader, answerContent.toUtf8());
 
-            status = "OK";
+            setStatus("OK");
 
         } else if (argument.contains("content_directory")) {
             QStringList answerHeader;
@@ -814,9 +794,9 @@ void Request::answer(QTcpSocket *client)
             answerContent.append(EVENT_Prop.arg("SystemUpdateID").arg(1));
             answerContent.append(EVENT_FOOTER);
 
-            sendAnswer(client, method, answerHeader, answerContent.toUtf8());
+            emit answerReady(method, answerHeader, answerContent.toUtf8());
 
-            status = "OK";
+            setStatus("OK");
         }
     }
     else if ((method == "GET" || method == "HEAD") && (argument.toLower().endsWith(".png") || argument.toLower().endsWith(".jpg") || argument.toLower().endsWith(".jpeg"))) {
@@ -846,15 +826,52 @@ void Request::answer(QTcpSocket *client)
             log->ERROR(QString("Unable to read %1 for %2 answer.").arg(argument).arg(method));
         }
 
-        sendAnswer(client, method, answerHeader, answerContent);
+        emit answerReady(method, answerHeader, answerContent);
 
-        status = "OK";
+        setStatus("OK");
     }
     else {
         log->ERROR("Unkown answer for: " + method + " " + argument);
-        status = "KO";
+        setStatus("KO");
     }
+}
 
+void Request::runTranscoding(DlnaResource* dlna, QStringList answerHeader) {
+    if (transcodeProcess == 0) {
+
+        transcodeProcess = dlna->getTranscodeProcess(range);
+
+        if (transcodeProcess == 0) {
+            log->ERROR(QString("Cannot create transcoding process"));
+            setStatus("KO");
+
+        } else {
+            // send header answer
+            emit answerReady(method, answerHeader, QByteArray(), dlna->size());
+
+            log->INFO(QString("Start transcoding (%1)").arg(dlna->getDisplayName()));
+            transcodedBytes.clear();
+
+            connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+            connect(transcodeProcess, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorTrancodedData(QProcess::ProcessError)));
+            connect(transcodeProcess, SIGNAL(finished(int)), this, SLOT(finishedTranscodeData(int)));
+
+            transcodeClock.start();
+
+            transcodeProcess->start();
+            if (!transcodeProcess->waitForStarted()) {
+                log->ERROR(transcodeProcess->errorString());
+                setStatus("KO");
+            } else {
+                // transcoding process started
+                log->INFO("Serving " + dlna->getDisplayName());
+                setStatus("Transcoding");
+            }
+        }
+    } else {
+        log->ERROR(QString("Transcoding already in progress"));
+        setStatus("KO");
+    }
 }
 
 void Request::waitTranscodingFinished() {
@@ -898,114 +915,71 @@ void Request::finishedTranscodeData(int exitCode) {
     transcodeProcess->deleteLater();
     transcodeProcess = 0;
 
-    client->flush();
+    closeClient();
 
-    log->TRACE("Close connection");
-    client->close();
+    setStatus("OK");
 }
 
-void Request::start_read() {
-    QElapsedTimer clock;  // clock to measure time taken to answer to the request
-    clock.start();
+void Request::readSocket() {
 
-    setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
-
-    if (client->bytesAvailable() == 0) {
-        if (!client->waitForReadyRead()) {
-            log->ERROR("HTTP Request: no data available.");
-            setStatus("header KO");
-            return;
-        }
-    }
-
-    log->TRACE("HTTP server: receiving a request from " + client->peerAddress().toString());
-
-    char tmp[1024] = {0};
-    int bytesRead = client->readLine(tmp, sizeof(tmp));
-    if (bytesRead <= 0) {
-
-        log->ERROR("HTTP request: unable to read request header.");
-        setStatus("header KO");
+    if (client == 0) {
+        log->ERROR("data received but client is deleted.");
 
     } else {
+        bool flagHeaderReading = true;
 
-        QString headerLine(tmp);
-
-        while (headerLine != "\r\n")
-        {
-            log->TRACE("HTTP server: Received on socket: " + headerLine);
-
-            appendHeader(headerLine);
-
-            if (client->bytesAvailable() == 0) {
-                if (!client->waitForReadyRead()) {
-                    log->ERROR("HTTP Request: no data available.");
-                    setStatus("header KO");
-                    return;
-                }
-            }
-
-            bytesRead = client->readLine(tmp, sizeof(tmp));
-            if (bytesRead <= 0) {
-
-                log->ERROR("HTTP request: unable to read request header.");
-                setStatus("header KO");
-                return;
-
-            } else {
-
-                headerLine = QString(tmp);
-            }
-        }
-
-        setStatus("header read");
-
-        if (getReceivedContentLength() > 0)
-        {
-            int totalbytesRead = 0;
-            char buf[getReceivedContentLength()];
-            while (totalbytesRead < getReceivedContentLength())
-            {
-                if (client->bytesAvailable() == 0) {
-                    if (!client->waitForReadyRead()) {
-                        log->ERROR("HTTP Request: no data available during content reading.");
-                        setStatus("content KO");
-                        return;
+        if (header.isEmpty()) {
+            // read the header
+            foreach (QString headerLine, client->readAll().split('\n')) {
+                if (flagHeaderReading && !headerLine.isEmpty() && headerLine != "\r") {
+                    log->TRACE("HTTP server: Received on socket: " + headerLine);
+                    appendHeader(headerLine);
+                } else {
+                    if (flagHeaderReading) {
+                        flagHeaderReading = false;
+                    } else if (!headerLine.isEmpty()) {
+                        content.append(headerLine).append('\n');
                     }
                 }
-
-                bytesRead = client->read(buf, getReceivedContentLength());
-
-                if (bytesRead <= 0) {
-                    log->ERROR("HTTP request: unable to read request header.");
-                    setStatus("content KO");
-                    return;
-                }
-
-                totalbytesRead += bytesRead;
             }
 
-            setStatus("content read");
-            setTextContent(QString(buf));
-            log->TRACE("Bytes Read: " + QString("%1").arg(bytesRead));
-            log->TRACE("Data Read: " + QString(buf));
+            setStatus("header read");
+
+            if (!getUserAgent().isEmpty())
+            {
+                log->DEBUG("HTTP User-Agent: " + getUserAgent());
+            }
+
+            log->DEBUG("HTTP: " + getMethod() + " " + getArgument() + " / " + QString("%1").arg(getLowRange()) + "-" + QString("%1").arg(getHighRange()));
+
+            if ((getReceivedContentLength() <= 0) || (content.size() == getReceivedContentLength())) {
+                // no content expected to received
+
+                // prepare and send answer
+                start();
+            }
+
+        } else {
+            // read the content
+            content.append(client->readAll());
+
+            if (content.size() == getReceivedContentLength()) {
+                setStatus("content read");
+                log->TRACE("Bytes Read: " + QString("%1").arg(content.size()));
+                log->TRACE("Data Read: " + content);
+
+                // prepare and send answer
+                start();
+            }
         }
+    }
+}
 
-        if (!getUserAgent().isEmpty())
-        {
-            log->TRACE("HTTP User-Agent: " + getUserAgent());
-        }
-
-        log->DEBUG("HTTP: " + getMethod() + " " + getArgument() + " / " + QString("%1").arg(getLowRange()) + "-" + QString("%1").arg(getHighRange()));
-
-        answer(client);
-
-        if (transcodeProcess == 0) {
-            client->flush();
-
-            log->TRACE("Close connection");
-            client->close();
-        }
+void Request::closeClient() {
+    if (transcodeProcess == 0) {
+        // No transcoding in progress
+        log->TRACE("Close connection");
+        client->close();
 
         setDuration(QString("%1 ms").arg(clock.elapsed()));
     }
