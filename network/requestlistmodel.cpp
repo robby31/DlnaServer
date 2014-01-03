@@ -94,9 +94,16 @@ Request* RequestListModel::addRequest(Logger *log, QTcpSocket *client, QString u
         beginInsertRows(QModelIndex(), mRecords.length(), mRecords.length());
         mRecords.append(request);
         endInsertRows();
+
+        connect(request, SIGNAL(dataChanged()), this, SLOT(requestChanged()));
     }
 
     return request;
+}
+
+void RequestListModel::requestChanged() {
+    int requestIndex = mRecords.indexOf(static_cast<Request*>(sender()));
+    emit dataChanged(index(requestIndex, 0), index(requestIndex, columnCount()-1));
 }
 
 QVariant RequestListModel::get(int index, int roleIndex)

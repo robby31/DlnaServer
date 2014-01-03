@@ -12,8 +12,8 @@ public:
     explicit RequestListModel(QObject *parent = 0);
     ~RequestListModel();
 
-    int rowCount(const QModelIndex &parent) const;
-    int columnCount(const QModelIndex &parent) const;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const;
+    int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role) const;
     virtual QHash<int,QByteArray> roleNames() const;
 
@@ -27,6 +27,9 @@ public:
 
     // remove all requests from the model
     void clearAll();
+
+public slots:
+    void requestChanged();
 
 private:
     QList<Request *> mRecords;
