@@ -57,11 +57,11 @@ DlnaResource* DlnaResource::search(QString searchId, QString searchStr) {
         return this;
     }
     else if (getResourceId().length() < searchId.length() and searchId.startsWith(getResourceId())) {
-        foreach (DlnaResource* child, children) {
-            DlnaResource* found = child->search(searchId, searchStr);
-            if (found != 0) {
-                return found;
-            }
+
+        int child_index = searchId.split("$").at(getResourceId().split("$").length()).toInt()-1;
+
+        if ((child_index >= 0) && (child_index < getChildren().size())) {
+            return children.at(child_index)->search(searchId, searchStr);
         }
     }
 
@@ -80,7 +80,7 @@ QList<DlnaResource*> DlnaResource::getDLNAResources(QString objectId, bool retur
             if (count > 0) {
                 for (int i = start; i < start + count; i++) {
                     if (i < dlna->getChildren().size()) {
-                        DlnaResource* child = dlna->getChildren().at(i);
+                        DlnaResource* child = dlna->children.at(i);
                         resources.append(child);
                     }
                 }

@@ -211,6 +211,9 @@ void TestRequest::testCase_DlnaRootFolder()
     found = rootFolder.search("0$0", "");
     QVERIFY(found == 0);
 
+    found = rootFolder.search("0$2$1$1", "");
+    QVERIFY(found != 0);
+
     QList<DlnaResource*> list_found;
     list_found = rootFolder.getDLNAResources("0", false, 0, 10, "");
     QVERIFY(list_found.isEmpty() == false);
