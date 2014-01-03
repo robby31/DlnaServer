@@ -29,6 +29,7 @@ HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel):
     }
 
     connect(&server, SIGNAL(newConnection()), this, SLOT(acceptConnection()));
+    connect(&server, SIGNAL(acceptError(QAbstractSocket::SocketError)), this, SLOT(newConnectionError(QAbstractSocket::SocketError)));
 
     if (hostaddress.isNull()) {
         log->ERROR("HTTP server: unable to define host ip address.");
@@ -71,11 +72,8 @@ void HttpServer::acceptConnection()
                                         UUID, QString("%1 [%2]").arg(SERVERNAME).arg(QHostInfo::localHostName()),
                                         getHost().toString(), getPort(),
                                         rootFolder);
+}
 
-    if (request != 0) {
-        // start reading http request
-        request->start_read();
-    } else {
-        log->ERROR("HTTP server: invalid request");
-    }
+void HttpServer::newConnectionError(QAbstractSocket::SocketError error) {
+    log->ERROR("HTTP server: error at new connection.");
 }

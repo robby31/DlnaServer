@@ -28,8 +28,9 @@ public:
     static const QString SERVERNAME;
 
 private slots :
-    // new connection detected
-    void acceptConnection();
+    void acceptConnection();                                      // new connection detected
+    void newConnectionError(QAbstractSocket::SocketError error);  // error during new connection
+
 
 private :
     QTcpServer server;
