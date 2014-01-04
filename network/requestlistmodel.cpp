@@ -14,6 +14,7 @@ RequestListModel::RequestListModel(QObject *parent) :
     mRoles[Qt::UserRole+7] = "duration";
     mRoles[Qt::UserRole+8] = "date";
     mRoles[Qt::UserRole+9] = "answer";
+    mRoles[Qt::UserRole+10] = "network_status";
 }
 
 RequestListModel::~RequestListModel() {
@@ -70,6 +71,8 @@ QVariant RequestListModel::data(const QModelIndex &index, int role) const
             return mRecords.at(index.row())->getDate();
         else if (role == Qt::UserRole+9)
             return mRecords.at(index.row())->getTextAnswer();
+        else if (role == Qt::UserRole+10)
+            return mRecords.at(index.row())->getNetworkStatus();
     }
 
     return QVariant();

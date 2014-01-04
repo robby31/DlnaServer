@@ -34,6 +34,12 @@ Item {
             }
 
             TableViewColumn {
+                role: "network_status"
+                title: "NetworkStatus"
+                width: 120
+            }
+
+            TableViewColumn {
                 role: "duration"
                 title: "ResponseTime"
                 width: 120
