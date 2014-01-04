@@ -64,14 +64,15 @@ QString HttpServer::getURL() const {
 
 void HttpServer::acceptConnection()
 {
-    log->TRACE("HTTP server: new connection");
+    while (server.hasPendingConnections()) {
+        log->TRACE("HTTP server: new connection");
 
-    Request* request;
-    request = requestsModel->addRequest(log,
-                                        server.nextPendingConnection(),
-                                        UUID, QString("%1 [%2]").arg(SERVERNAME).arg(QHostInfo::localHostName()),
-                                        getHost().toString(), getPort(),
-                                        rootFolder);
+        requestsModel->addRequest(log,
+                                  server.nextPendingConnection(),
+                                  UUID, QString("%1 [%2]").arg(SERVERNAME).arg(QHostInfo::localHostName()),
+                                  getHost().toString(), getPort(),
+                                  rootFolder);
+    }
 }
 
 void HttpServer::newConnectionError(QAbstractSocket::SocketError error) {
