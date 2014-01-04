@@ -939,13 +939,15 @@ void Request::finishedTranscodeData(int exitCode) {
     if (exitCode != 0) {
         // trancoding failed
         transcodedBytes = QByteArray();
+        setStatus("Transcoding failed.");
+    } else {
+        setStatus("OK");
     }
+
     transcodeProcess->deleteLater();
     transcodeProcess = 0;
 
     closeClient();
-
-    setStatus("OK");
 }
 
 void Request::readSocket() {
@@ -1008,7 +1010,14 @@ void Request::disconnectedSocket() {
 }
 
 void Request::errorSocket(QAbstractSocket::SocketError error) {
-    log->ERROR("Error occurs with network interface of a request: " + client->errorString());
+    log->ERROR("error occurs with network interface: " + client->errorString());
+
+    if (error == QAbstractSocket::RemoteHostClosedError) {
+        if (transcodeProcess != 0) {
+            log->INFO("Kill transcoding process.");
+            transcodeProcess->kill();
+        }
+    }
 }
 
 void Request::closeClient() {
