@@ -28,8 +28,10 @@ const QString Request::EVENT_FOOTER = "</e:propertyset>";
 Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString servername, QString host, int port, DlnaRootFolder *rootFolder):
     log(log),
     client(client),
+    keepSocketOpened(false),
     transcodeProcess(0),
     status("init"),
+    networkStatus("connected"),
     rootFolder(rootFolder),
     uuid(uuid),
     servername(servername),
@@ -48,12 +50,18 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
 
     connect(client, SIGNAL(readyRead()), this, SLOT(readSocket()));
+    connect(client, SIGNAL(disconnected()), this, SLOT(disconnectedSocket()));
+    connect(client, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorSocket(QAbstractSocket::SocketError)));
 
     connect(this, SIGNAL(answerReady(QString,QStringList,QByteArray,int)), this, SLOT(sendAnswer(QString,QStringList,QByteArray,int)));
 
     connect(this, SIGNAL(startTranscoding(DlnaResource*, QStringList)), this, SLOT(runTranscoding(DlnaResource*, QStringList)));
 
-    log->TRACE("HTTP server: receiving a request from " + client->peerAddress().toString());
+    log->TRACE("HTTP server: receiving a request from " + peerAddress);
+
+    if (client->isOpen()) {
+        setNetworkStatus("opened");
+    }
 }
 
 Request::~Request() {
@@ -225,68 +233,76 @@ bool Request::appendHeader(QString headerLine)
 
 void Request::sendLine(QTcpSocket *client, QString msg)
 {
-    QByteArray tmp;
+    if (client == 0) {
+        log->ERROR("Unable to send line (client deleted).");
+    } else {
+        QByteArray tmp;
 
-    tmp.append(msg.toUtf8()).append(CRLF.toUtf8());
+        tmp.append(msg.toUtf8()).append(CRLF.toUtf8());
 
-    if (client->write(tmp) == -1) {
-        log->ERROR("HTTP Request: Unable to send line.");
+        if (client->write(tmp) == -1) {
+            log->ERROR("HTTP Request: Unable to send line: " + msg);
+        }
+
+        stringAnswer.append(msg+CRLF);
+        log->DEBUG("Wrote on socket: " + msg);
     }
-
-    stringAnswer.append(msg+CRLF);
-    log->DEBUG("Wrote on socket: " + msg);
 }
 
 void Request::sendAnswer(QString method, QStringList headerAnswer, QByteArray contentAnswer, int totalSize)
 {
-    if (range != 0)
-    {
-        // partial content requested (range is present in the header)
-        sendLine(client, http10 ? HTTP_206_OK_10 : HTTP_206_OK);
-
-        if (totalSize != -1) {
-            sendLine(client, QString("Content-Range: bytes %1-%2/%3").arg(range->getStartByte(totalSize)).arg(range->getEndByte(totalSize)).arg(totalSize));
-        }
-
+    if (client == 0) {
+        log->ERROR("Unable to send answer (client deleted).");
     } else {
-        if (soapaction.contains("X_GetFeatureList")) {
-            //  If we don't return a 500 error, Samsung 2012 TVs time out.
-            sendLine(client, HTTP_500);
-        } else {
-            sendLine(client, http10 ? HTTP_200_OK_10 : HTTP_200_OK);
-        }
+        if (range != 0)
+        {
+            // partial content requested (range is present in the header)
+            sendLine(client, http10 ? HTTP_206_OK_10 : HTTP_206_OK);
 
-        if (totalSize != -1) {
-            sendLine(client, "Content-Length: " + QString("%1").arg(totalSize));
-        } else if (!contentAnswer.isNull()) {
-            sendLine(client, "Content-Length: " + QString("%1").arg(contentAnswer.size()));
-        }
-    }
-
-    // send the header
-    foreach (QString line, headerAnswer) {
-        sendLine(client, line.toUtf8());
-    }
-
-    sendLine(client, "");
-
-    // HEAD requests only require headers to be set, no need to set contents.
-    if (method != "HEAD" && !contentAnswer.isNull()) {
-        // send the content
-        stringAnswer.append(QString("content size: %1%2").arg(contentAnswer.size()).arg(CRLF));
-        stringAnswer.append(contentAnswer);
-        if (client->write(contentAnswer) == -1) {
-
-            log->ERROR("HTTP request: Unable to send content.");
+            if (totalSize != -1) {
+                sendLine(client, QString("Content-Range: bytes %1-%2/%3").arg(range->getStartByte(totalSize)).arg(range->getEndByte(totalSize)).arg(totalSize));
+            }
 
         } else {
-            log->DEBUG(QString("Send content (%1 bytes).").arg(contentAnswer.size()));
-            log->TRACE("Wrote on socket content: " + contentAnswer);
+            if (soapaction.contains("X_GetFeatureList")) {
+                //  If we don't return a 500 error, Samsung 2012 TVs time out.
+                sendLine(client, HTTP_500);
+            } else {
+                sendLine(client, http10 ? HTTP_200_OK_10 : HTTP_200_OK);
+            }
 
+            if (totalSize != -1) {
+                sendLine(client, "Content-Length: " + QString("%1").arg(totalSize));
+            } else if (!contentAnswer.isNull()) {
+                sendLine(client, "Content-Length: " + QString("%1").arg(contentAnswer.size()));
+            }
         }
-    }
 
-    closeClient();
+        // send the header
+        foreach (QString line, headerAnswer) {
+            sendLine(client, line.toUtf8());
+        }
+
+        sendLine(client, "");
+
+        // HEAD requests only require headers to be set, no need to set contents.
+        if (method != "HEAD" && !contentAnswer.isNull()) {
+            // send the content
+            stringAnswer.append(QString("content size: %1%2").arg(contentAnswer.size()).arg(CRLF));
+            stringAnswer.append(contentAnswer);
+            if (client->write(contentAnswer) == -1) {
+
+                log->ERROR("HTTP request: Unable to send content.");
+
+            } else {
+                log->DEBUG(QString("Send content (%1 bytes).").arg(contentAnswer.size()));
+                log->TRACE("Wrote on socket content: " + contentAnswer);
+
+            }
+        }
+
+        closeClient();
+    }
 }
 
 void Request::run() {
@@ -740,10 +756,11 @@ void Request::run() {
         answerHeader << "Timeout: Second-1800";
         answerHeader << "";
 
+        keepSocketOpened = true;
         emit answerReady(method, answerHeader);
-        client->flush();
-
-        QString answerContent;
+        if (client != 0) {
+            client->flush();
+        }
 
         QString cb = soapaction.replace("<", "").replace(">", "");
 
@@ -769,6 +786,9 @@ void Request::run() {
         }
 
         sock.close();
+
+        QString answerContent;
+        keepSocketOpened = false;
 
         if (argument.contains("connection_manager")) {
             QStringList answerHeader;
@@ -796,6 +816,9 @@ void Request::run() {
 
             emit answerReady(method, answerHeader, answerContent.toUtf8());
 
+            setStatus("OK");
+        } else {
+            closeClient();
             setStatus("OK");
         }
     }
@@ -897,8 +920,13 @@ void Request::receivedTranscodedData() {
         transcodedBytes.append(bytes);
         if (client != 0) {
             // send data to client
-            client->write(bytes);
+            if (client->write(bytes) == -1) {
+                log->ERROR("Unable to send transcoded data to client.");
+            }
+
             client->flush();
+        } else {
+            log->ERROR("Unable to send transcoded data to client (client deleted).");
         }
     }
 }
@@ -975,11 +1003,26 @@ void Request::readSocket() {
     }
 }
 
+void Request::disconnectedSocket() {
+    setNetworkStatus("disconnected");
+}
+
+void Request::errorSocket(QAbstractSocket::SocketError error) {
+    log->ERROR("Error occurs with network interface of a request: " + client->errorString());
+}
+
 void Request::closeClient() {
-    if (transcodeProcess == 0) {
+    if (!keepSocketOpened && (transcodeProcess == 0)) {
         // No transcoding in progress
         log->TRACE("Close connection");
-        client->close();
+        if (client != 0) {
+            client->close();
+            if (!client->isOpen()) {
+                setNetworkStatus("closed");
+            }
+        } else {
+            log->ERROR("Unable to close client (client deleted).");
+        }
 
         setDuration(QString("%1 ms").arg(clock.elapsed()));
     }

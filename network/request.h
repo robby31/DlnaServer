@@ -40,6 +40,8 @@ public:
 
     QString getStatus() const { return status; }
 
+    QString getNetworkStatus() const { return networkStatus; }
+
     QString getDuration() const { return duration; }
 
     QString getDate() const { return date; }
@@ -86,6 +88,8 @@ signals:
 private slots:
     // slots for incoming data
     void readSocket();
+    void disconnectedSocket();
+    void errorSocket(QAbstractSocket::SocketError error);
 
     // slots for transcoding
     void runTranscoding(DlnaResource* dlna, QStringList answerHeader);
@@ -127,13 +131,15 @@ private:
     Logger* log;
 
     QTcpSocket* client;
+    bool keepSocketOpened;  // flag to not close automatically the client socket when answer is sent
     QElapsedTimer clock;  // clock to measure time taken to answer to the request
 
     QProcess* transcodeProcess;
     QElapsedTimer transcodeClock;
     QByteArray transcodedBytes;
 
-    QString status;
+    QString status;  // status of the request
+    QString networkStatus;  // status of network (interface client)
     QString duration;  // duration taken to answer to the request
     QString date;      // date when the request has been received
     DlnaRootFolder *rootFolder;
@@ -175,6 +181,8 @@ private:
     void setHttp10(bool http10) { this->http10 = http10; }
 
     void setStatus(QString status) { this->status = status; emit dataChanged(); }
+
+    void setNetworkStatus(QString status) { this->networkStatus = status; emit dataChanged(); }
 
     void setDuration(QString duration) { this->duration = duration; emit dataChanged(); }
 
