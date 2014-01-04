@@ -1012,6 +1012,9 @@ void Request::readSocket() {
 
 void Request::disconnectedSocket() {
     setNetworkStatus("disconnected");
+
+    client->deleteLater();
+    client = 0;
 }
 
 void Request::errorSocket(QAbstractSocket::SocketError error) {
