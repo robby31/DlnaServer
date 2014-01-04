@@ -911,6 +911,9 @@ void Request::errorTrancodedData(QProcess::ProcessError error) {
         // an error occured
         log->ERROR(QString("Transcoding failed (%1).").arg(transcodeProcess->errorString()));
     }
+
+    // trancoding failed
+    transcodedBytes = QByteArray();
 }
 
 void Request::receivedTranscodedData() {
@@ -932,9 +935,14 @@ void Request::receivedTranscodedData() {
 }
 
 void Request::finishedTranscodeData(int exitCode) {
-    log->DEBUG(QString("TRANSCODE FINISHED with exitCode %2 (%1)").arg(transcodeProcess->arguments().join(",")).arg(exitCode));
-    log->DEBUG(QString("TRANSCODE size = %1 bytes").arg(transcodedBytes.size()));
-    log->INFO(QString("TRANCODING done in %1 ms").arg(transcodeClock.elapsed()));
+    if (transcodeProcess != 0) {
+        log->DEBUG(QString("TRANSCODE FINISHED with exitCode %2 (%1)").arg(transcodeProcess->arguments().join(",")).arg(exitCode));
+        log->DEBUG(QString("TRANSCODE size = %1 bytes").arg(transcodedBytes.size()));
+        log->INFO(QString("TRANCODING done in %1 ms").arg(transcodeClock.elapsed()));
+
+        transcodeProcess->deleteLater();
+        transcodeProcess = 0;
+    }
 
     if (exitCode != 0) {
         // trancoding failed
@@ -943,9 +951,6 @@ void Request::finishedTranscodeData(int exitCode) {
     } else {
         setStatus("OK");
     }
-
-    transcodeProcess->deleteLater();
-    transcodeProcess = 0;
 
     closeClient();
 }
