@@ -53,7 +53,7 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     connect(client, SIGNAL(disconnected()), this, SLOT(disconnectedSocket()));
     connect(client, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorSocket(QAbstractSocket::SocketError)));
 
-    connect(this, SIGNAL(answerReady(QString,QStringList,QByteArray,int)), this, SLOT(sendAnswer(QString,QStringList,QByteArray,int)));
+    connect(this, SIGNAL(answerReady(QStringList,QByteArray,int)), this, SLOT(sendAnswer(QStringList,QByteArray,int)));
 
     connect(this, SIGNAL(startTranscoding(DlnaResource*, QStringList)), this, SLOT(runTranscoding(DlnaResource*, QStringList)));
 
@@ -249,7 +249,7 @@ void Request::sendLine(QTcpSocket *client, QString msg)
     }
 }
 
-void Request::sendAnswer(QString method, QStringList headerAnswer, QByteArray contentAnswer, int totalSize)
+void Request::sendAnswer(QStringList headerAnswer, QByteArray contentAnswer, int totalSize)
 {
     if (client == 0) {
         log->ERROR("Unable to send answer (client deleted).");
@@ -338,7 +338,7 @@ void Request::run() {
             log->ERROR("Unable to read PMS.xml for description/fetch answer.");
         }
 
-        emit answerReady(method, answerHeader, answerContent.toUtf8());
+        emit answerReady(answerHeader, answerContent.toUtf8());
 
         setStatus("OK");
     }
@@ -359,7 +359,7 @@ void Request::run() {
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            emit answerReady(method, answerHeader, answerContent.toUtf8());
+            emit answerReady(answerHeader, answerContent.toUtf8());
 
             setStatus("OK");
         }
@@ -385,7 +385,7 @@ void Request::run() {
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            emit answerReady(method, answerHeader, answerContent.toUtf8());
+            emit answerReady(answerHeader, answerContent.toUtf8());
 
             setStatus("OK");
 
@@ -399,7 +399,7 @@ void Request::run() {
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            emit answerReady(method, answerHeader, answerContent.toUtf8());
+            emit answerReady(answerHeader, answerContent.toUtf8());
 
             setStatus("OK");
 
@@ -414,7 +414,7 @@ void Request::run() {
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            emit answerReady(method, answerHeader, answerContent.toUtf8());
+            emit answerReady(answerHeader, answerContent.toUtf8());
 
             setStatus("OK");
 
@@ -428,7 +428,7 @@ void Request::run() {
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            emit answerReady(method, answerHeader, answerContent.toUtf8());
+            emit answerReady(answerHeader, answerContent.toUtf8());
 
             setStatus("OK");
 
@@ -626,7 +626,7 @@ void Request::run() {
             }
 
             //send the answer to client
-            emit answerReady(method, answerHeader, xml.toString(-1).toUtf8());
+            emit answerReady(answerHeader, xml.toString(-1).toUtf8());
 
             setStatus("OK");
         } else {
@@ -676,7 +676,7 @@ void Request::run() {
                     log->ERROR("Unable to get thumbnail: " + dlna->getDisplayName());
                     setStatus("KO");
                 } else {
-                    emit answerReady(method, answerHeader, answerContent);
+                    emit answerReady(answerHeader, answerContent);
                     setStatus("OK");
                 }
 
@@ -719,7 +719,7 @@ void Request::run() {
                 answerHeader << "Server: " + servername;
 
                 if (method == "HEAD") {
-                    emit answerReady(method, answerHeader, QByteArray(""), dlna->size());
+                    emit answerReady(answerHeader, QByteArray(""), dlna->size());
                     setStatus("OK");
 
                 } else {
@@ -734,7 +734,7 @@ void Request::run() {
                             log->ERROR("There is no inputstream to return for " + dlna->getDisplayName());
                             setStatus("KO");
                         } else {
-                            emit answerReady(method, answerHeader, stream, dlna->size());
+                            emit answerReady(answerHeader, stream, dlna->size());
                             log->INFO("Serving " + dlna->getDisplayName());
                             setStatus("OK");
                         }
@@ -757,7 +757,7 @@ void Request::run() {
         answerHeader << "";
 
         keepSocketOpened = true;
-        emit answerReady(method, answerHeader);
+        emit answerReady(answerHeader);
         if (client != 0) {
             client->flush();
         }
@@ -800,7 +800,7 @@ void Request::run() {
             answerContent.append(EVENT_Prop.arg("CurrentConnectionIDs").arg(""));
             answerContent.append(EVENT_FOOTER);
 
-            emit answerReady(method, answerHeader, answerContent.toUtf8());
+            emit answerReady(answerHeader, answerContent.toUtf8());
 
             setStatus("OK");
 
@@ -814,12 +814,12 @@ void Request::run() {
             answerContent.append(EVENT_Prop.arg("SystemUpdateID").arg(1));
             answerContent.append(EVENT_FOOTER);
 
-            emit answerReady(method, answerHeader, answerContent.toUtf8());
+            emit answerReady(answerHeader, answerContent.toUtf8());
 
             setStatus("OK");
         } else {
             closeClient();
-            setStatus("OK");
+            setStatus("Unknown argument");
         }
     }
     else if ((method == "GET" || method == "HEAD") && (argument.toLower().endsWith(".png") || argument.toLower().endsWith(".jpg") || argument.toLower().endsWith(".jpeg"))) {
@@ -849,7 +849,7 @@ void Request::run() {
             log->ERROR(QString("Unable to read %1 for %2 answer.").arg(argument).arg(method));
         }
 
-        emit answerReady(method, answerHeader, answerContent);
+        emit answerReady(answerHeader, answerContent);
 
         setStatus("OK");
     }
@@ -870,7 +870,7 @@ void Request::runTranscoding(DlnaResource* dlna, QStringList answerHeader) {
 
         } else {
             // send header answer
-            emit answerReady(method, answerHeader, QByteArray(), dlna->size());
+            emit answerReady(answerHeader, QByteArray(), dlna->size());
 
             log->INFO(QString("Start transcoding (%1)").arg(dlna->getDisplayName()));
             transcodedBytes.clear();
