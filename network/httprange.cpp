@@ -5,6 +5,7 @@ HttpRange::HttpRange(QObject *parent) :
     null(true),
     lowRange(0),
     highRange(0),
+    size(-1),
     rxRange("range:\\s+(\\w+)=(\\d*)-(\\d*)", Qt::CaseInsensitive)
 {
 }
@@ -14,6 +15,7 @@ HttpRange::HttpRange(QString range, QObject *parent) :
     null(true),
     lowRange(0),
     highRange(0),
+    size(-1),
     rxRange("range:\\s+(\\w+)=(\\d*)-(\\d*)", Qt::CaseInsensitive)
 {
     if (rxRange.indexIn(range) != -1) {
@@ -43,10 +45,10 @@ HttpRange::HttpRange(QString range, QObject *parent) :
     }
 }
 
-long HttpRange::getStartByte(int size) const {
+long HttpRange::getStartByte() const {
 
     if (!isNull() && (size > 0)) {
-        if ((lowRange >= 0) && (lowRange <= size)) {
+        if ((lowRange >= 0) && (lowRange < size)) {
             return lowRange;
         }
 
@@ -62,7 +64,7 @@ long HttpRange::getStartByte(int size) const {
     return -1;
 }
 
-long HttpRange::getEndByte(int size) const {
+long HttpRange::getEndByte() const {
 
     if (!isNull() && (size > 0)) {
         if (highRange == -1)  {
@@ -73,7 +75,7 @@ long HttpRange::getEndByte(int size) const {
             return size - 1;
         }
 
-        if (highRange <= size) {
+        if (highRange < size) {
             return highRange;
         } else {
             return size - 1;
@@ -83,10 +85,10 @@ long HttpRange::getEndByte(int size) const {
     return -1;
 }
 
-long HttpRange::getLength(int size) const {
-    int start = getStartByte(size);
+long HttpRange::getLength() const {
+    int start = getStartByte();
     if (start != -1) {
-        int end = getEndByte(size);
+        int end = getEndByte();
         if (end != -1) {
             return end - start + 1;
         }
