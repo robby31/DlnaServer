@@ -882,6 +882,7 @@ void Request::runTranscoding(DlnaResource* dlna, QStringList answerHeader) {
             log->INFO(QString("Start transcoding (%1)").arg(dlna->getDisplayName()));
 
             connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+            connect(transcodeProcess, SIGNAL(readyReadStandardError()), this, SLOT(receivedTranscodingLogMessage()));
             connect(transcodeProcess, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorTrancodedData(QProcess::ProcessError)));
             connect(transcodeProcess, SIGNAL(finished(int)), this, SLOT(finishedTranscodeData(int)));
 
@@ -894,7 +895,7 @@ void Request::runTranscoding(DlnaResource* dlna, QStringList answerHeader) {
             } else {
                 // transcoding process started
                 log->INFO("Serving " + dlna->getDisplayName());
-                setStatus("Transcoding");
+                setStatus("Transcoding started");
             }
         }
     } else {
@@ -907,6 +908,14 @@ void Request::waitTranscodingFinished() {
     if (transcodeProcess != 0) {
         // wait until process is finished
         transcodeProcess->waitForFinished(-1);
+    }
+}
+
+void Request::receivedTranscodingLogMessage() {
+    if (transcodeProcess != 0) {
+        // error output occurs
+        QString msg = transcodeProcess->readAllStandardError();
+        log->INFO(QString("Transcoding output: %1").arg(msg));
     }
 }
 

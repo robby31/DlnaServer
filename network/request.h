@@ -99,6 +99,7 @@ private slots:
     void runTranscoding(DlnaResource* dlna, QStringList answerHeader);
     void receivedTranscodedData();
     void errorTrancodedData(QProcess::ProcessError error);
+    void receivedTranscodingLogMessage();
     void finishedTranscodeData(int exitCode);
 
     // slot to send data to client
