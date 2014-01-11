@@ -43,6 +43,12 @@ bool DlnaFolder::discoverChildren() {
         else if (mimeDb.mimeTypeForFile(new_file).name().startsWith("audio/")) {
             child = new DlnaMusicTrack(getLog(), new_file.absoluteFilePath(), host, port);
         }
+        else if (mimeDb.mimeTypeForFile(new_file).name().startsWith("video/")) {
+            child = new DlnaVideoItem(getLog(), new_file.absoluteFilePath(), host, port);
+        }
+        else {
+            getLog()->WARNING(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath()));
+        }
 
         if (child != 0) {
             addChild(child);
