@@ -16,6 +16,10 @@ DlnaVideoItem::DlnaVideoItem(Logger *log, QString filename, QString host, int po
     updateDLNAOrgPn();
 }
 
+QString DlnaVideoItem::getDisplayName() {
+    return fileinfo.completeBaseName();
+}
+
 /*
 * Returns XML (DIDL) representation of the DLNA node. It gives a
 * complete representation of the item, with as many tags as available.

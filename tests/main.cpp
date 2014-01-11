@@ -7,17 +7,17 @@
 
 int main(int argc, char *argv[])
 {
-//    tst_httprange test1;
-//    QTest::qExec(&test1, argc, argv);
+    tst_httprange test1;
+    QTest::qExec(&test1, argc, argv);
 
-//    tst_dlnarootfolder test2;
-//    QTest::qExec(&test2, argc, argv);
+    tst_dlnarootfolder test2;
+    QTest::qExec(&test2, argc, argv);
 
-//    tst_dlnafolder test3;
-//    QTest::qExec(&test3, argc, argv);
+    tst_dlnafolder test3;
+    QTest::qExec(&test3, argc, argv);
 
-//    tst_dlnamusictrack test4;
-//    QTest::qExec(&test4, argc, argv);
+    tst_dlnamusictrack test4;
+    QTest::qExec(&test4, argc, argv);
 
     tst_dlnavideoitem test5;
     QTest::qExec(&test5, argc, argv);

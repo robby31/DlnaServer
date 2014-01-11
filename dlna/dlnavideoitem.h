@@ -10,6 +10,9 @@ class DlnaVideoItem : public DlnaMusicTrack
 public:
     DlnaVideoItem(Logger* log, QString filename, QString host, int port);
 
+    // Returns the DisplayName that is shown to the Renderer.
+    virtual QString getDisplayName();
+
     // Returns the XML (DIDL) representation of the DLNA node.
     virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
 
