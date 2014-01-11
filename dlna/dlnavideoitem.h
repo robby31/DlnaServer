@@ -19,6 +19,9 @@ public:
     // Returns the mimeType for this DLNA node.
     virtual QString mimeType();
 
+    // returns the bitrate of the movie
+    virtual int bitrate();
+
     // return true if the track shall be transcoded
     virtual bool toTranscode() const { return true; }
 

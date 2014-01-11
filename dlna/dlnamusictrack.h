@@ -60,7 +60,7 @@ public:
     virtual int getLengthInMilliSeconds();
 
     // returns the bitrate of the audio track
-    int bitrate();
+    virtual int bitrate();
 
     // returns the samplerate of the audio track
     int samplerate();

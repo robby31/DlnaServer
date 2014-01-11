@@ -134,6 +134,21 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
     return xml_obj;
 }
 
+int DlnaVideoItem::bitrate() {
+    // returns bitrate in bits/sec
+    if (toTranscode()) {
+        if (transcodeFormat == MPEG2_AC3) {
+            return 320000;
+
+        } else {
+            // invalid transcode format
+            return 0;
+        }
+    } else {
+        return mediaTag.getParameter("OverallBitRate").toInt();
+    }
+}
+
 QProcess* DlnaVideoItem::getTranscodeProcess(HttpRange *range) {
     qWarning() << "MOVIE" << mediaTag.getVideoCodec(0) << mediaTag.getAudioFormat(0);
     if (!toTranscode()) {
