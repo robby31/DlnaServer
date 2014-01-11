@@ -91,7 +91,7 @@ signals:
 private slots:
     // slots for incoming data
     void readSocket();
-    void disconnectedSocket();
+    void stateChanged(QAbstractSocket::SocketState state);
     void errorSocket(QAbstractSocket::SocketError error);
     void bytesSent(qint64 size);
 

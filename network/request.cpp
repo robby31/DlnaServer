@@ -51,7 +51,7 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
 
     connect(client, SIGNAL(readyRead()), this, SLOT(readSocket()));
-    connect(client, SIGNAL(disconnected()), this, SLOT(disconnectedSocket()));
+    connect(client, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(stateChanged(QAbstractSocket::SocketState)));
     connect(client, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorSocket(QAbstractSocket::SocketError)));
     connect(client, SIGNAL(bytesWritten(qint64)), this, SLOT(bytesSent(qint64)));
 
@@ -63,6 +63,8 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
 
     if (client->isOpen()) {
         setNetworkStatus("opened");
+    } else {
+        setNetworkStatus("not connected");
     }
 }
 
@@ -1098,16 +1100,22 @@ void Request::bytesSent(qint64 size) {
     }
 }
 
-void Request::disconnectedSocket() {
-    if (streamContent != 0) {
-        setStatus("Streaming aborted.");
-        delete streamContent;
-        streamContent = 0;
-    }
+void Request::stateChanged(QAbstractSocket::SocketState state) {
+    if (state == QAbstractSocket::UnconnectedState) {
+        setNetworkStatus("disconnected");
 
-    setNetworkStatus("disconnected");
-    client->deleteLater();
-    client = 0;
+        if (streamContent != 0) {
+            setStatus("Streaming aborted.");
+            delete streamContent;
+            streamContent = 0;
+        }
+
+        client->deleteLater();
+        client = 0;
+
+    } else if (state == QAbstractSocket::ClosingState) {
+        setNetworkStatus("closed");
+    }
 }
 
 void Request::errorSocket(QAbstractSocket::SocketError error) {
@@ -1126,7 +1134,6 @@ void Request::closeClient() {
         // No transcoding in progress
         log->TRACE("Close connection");
         if (client != 0) {
-            setNetworkStatus("closed");
             client->close();
         } else {
             log->ERROR("Unable to close client (client deleted).");
