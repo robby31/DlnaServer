@@ -38,7 +38,7 @@ public:
     virtual int getLengthInMilliSeconds() { return -1; }
 
     // Returns an InputStream of this DLNA node, no stream for a folder.
-    virtual QByteArray getStream(HttpRange* range) { Q_UNUSED(range); return QByteArray(); }
+    virtual QIODevice* getStream() { return 0; }
 
     // Returns the process for transcoding, no transcoding for a folder.
     virtual QProcess* getTranscodeProcess(HttpRange* range) { Q_UNUSED(range); return 0; }
@@ -47,7 +47,7 @@ public:
     virtual bool toTranscode() const { return false; }
 
     // Returns the mimeType for this DLNA node.
-    virtual QString mimeType() const { return ""; }
+    virtual QString mimeType() { return ""; }
 
     virtual QImage getAlbumArt();
 

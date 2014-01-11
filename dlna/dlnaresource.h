@@ -89,7 +89,7 @@ public:
     virtual int getLengthInMilliSeconds() = 0;
 
     // Returns the stream of this DLNA node.
-    virtual QByteArray getStream(HttpRange* range) = 0;
+    virtual QIODevice* getStream() = 0;
 
     // Returns the process for transcoding
     virtual QProcess* getTranscodeProcess(HttpRange* range) = 0;
@@ -98,11 +98,11 @@ public:
     virtual bool toTranscode() const = 0;
 
     // Returns the mimeType for this DLNA node.
-    virtual QString mimeType() const = 0;
+    virtual QString mimeType() = 0;
 
     QString getDlnaContentFeatures() const;
 
-    QString getProtocolInfo() const;
+    QString getProtocolInfo();
 
     QString getdlnaOrgOpFlags() const { return dlnaOrgOpFlags; }
     void setdlnaOrgOpFlags (QString arg) { dlnaOrgOpFlags=arg; }

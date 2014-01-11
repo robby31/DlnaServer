@@ -70,7 +70,6 @@ DlnaResource* DlnaResource::search(QString searchId, QString searchStr) {
 
 QList<DlnaResource*> DlnaResource::getDLNAResources(QString objectId, bool returnChildren, int start, int count, QString searchStr) {
     QList<DlnaResource*> resources;
-
     DlnaResource* dlna = search(objectId, searchStr);
 
     if (dlna != 0) {
@@ -138,7 +137,7 @@ QString DlnaResource::getDlnaContentFeatures() const {
     return result.join(";");
 }
 
-QString DlnaResource::getProtocolInfo() const {
+QString DlnaResource::getProtocolInfo() {
     QStringList result;
 
     if (!getdlnaOrgPN().isNull()) {
