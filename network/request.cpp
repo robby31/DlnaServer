@@ -29,6 +29,7 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     log(log),
     client(client),
     keepSocketOpened(false),
+    streamContent(0),
     transcodeProcess(0),
     status("init"),
     networkStatus("connected"),
@@ -52,12 +53,13 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     connect(client, SIGNAL(readyRead()), this, SLOT(readSocket()));
     connect(client, SIGNAL(disconnected()), this, SLOT(disconnectedSocket()));
     connect(client, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorSocket(QAbstractSocket::SocketError)));
+    connect(client, SIGNAL(bytesWritten(qint64)), this, SLOT(bytesSent(qint64)));
 
     connect(this, SIGNAL(answerReady(QStringList,QByteArray,int)), this, SLOT(sendAnswer(QStringList,QByteArray,int)));
 
     connect(this, SIGNAL(startTranscoding(DlnaResource*, QStringList)), this, SLOT(runTranscoding(DlnaResource*, QStringList)));
 
-    log->TRACE("HTTP server: receiving a request from " + peerAddress);
+    log->TRACE("Request: receiving a request from " + peerAddress);
 
     if (client->isOpen()) {
         setNetworkStatus("opened");
@@ -260,7 +262,7 @@ void Request::sendAnswer(QStringList headerAnswer, QByteArray contentAnswer, int
             sendLine(client, http10 ? HTTP_206_OK_10 : HTTP_206_OK);
 
             if (totalSize != -1) {
-                sendLine(client, QString("Content-Range: bytes %1-%2/%3").arg(range->getStartByte(totalSize)).arg(range->getEndByte(totalSize)).arg(totalSize));
+                sendLine(client, QString("Content-Range: bytes %1-%2/%3").arg(range->getStartByte()).arg(range->getEndByte()).arg(totalSize));
             }
 
         } else {
@@ -663,6 +665,11 @@ void Request::run() {
             // DLNAresource was found.
             DlnaResource* dlna = files.at(0);
 
+            if (range != 0) {
+                // update range with size of dlna object
+                range->setSize(dlna->size());
+            }
+
             if (fileName.startsWith("thumbnail0000")) {
                 // This is a request for a thumbnail file.
                 answerHeader << "Content-Type: image/jpeg";
@@ -709,7 +716,7 @@ void Request::run() {
                 }
 
                 if (!mediaInfoSec.isNull()) {
-                    answerHeader << QString("MediaInfo.sec: SEC_Duration=%1").arg(dlna->getLengthInSeconds());
+//                    answerHeader << QString("MediaInfo.sec: SEC_Duration=%1").arg(dlna->getLengthInSeconds());
                 }
 
                 answerHeader << "Accept-Ranges: bytes";
@@ -726,17 +733,15 @@ void Request::run() {
 
                     if (!dlna->toTranscode()) {
                         // get stream file
-                        QByteArray stream;
-                        stream = dlna->getStream(range);
+                        streamContent = dlna->getStream();
 
-                        if (stream.isNull()) {
+                        if (streamContent == 0) {
                             // No inputStream indicates that transcoding / remuxing probably crashed.
                             log->ERROR("There is no inputstream to return for " + dlna->getDisplayName());
                             setStatus("KO");
                         } else {
-                            emit answerReady(answerHeader, stream, dlna->size());
+                            emit answerReady(answerHeader, QByteArray(), dlna->size());
                             log->INFO("Serving " + dlna->getDisplayName());
-                            setStatus("OK");
                         }
 
                     } else {
@@ -873,7 +878,6 @@ void Request::runTranscoding(DlnaResource* dlna, QStringList answerHeader) {
             emit answerReady(answerHeader, QByteArray(), dlna->size());
 
             log->INFO(QString("Start transcoding (%1)").arg(dlna->getDisplayName()));
-            transcodedBytes.clear();
 
             connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
             connect(transcodeProcess, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorTrancodedData(QProcess::ProcessError)));
@@ -907,20 +911,17 @@ void Request::waitTranscodingFinished() {
 void Request::errorTrancodedData(QProcess::ProcessError error) {
     Q_UNUSED(error);
 
+    // trancoding failed
     if (transcodeProcess != 0) {
         // an error occured
         log->ERROR(QString("Transcoding failed (%1).").arg(transcodeProcess->errorString()));
     }
-
-    // trancoding failed
-    transcodedBytes = QByteArray();
 }
 
 void Request::receivedTranscodedData() {
     if (transcodeProcess != 0) {
         // read transcoded data
         QByteArray bytes = transcodeProcess->readAllStandardOutput();
-        transcodedBytes.append(bytes);
         if (client != 0) {
             // send data to client
             if (client->write(bytes) == -1) {
@@ -937,7 +938,6 @@ void Request::receivedTranscodedData() {
 void Request::finishedTranscodeData(int exitCode) {
     if (transcodeProcess != 0) {
         log->DEBUG(QString("TRANSCODE FINISHED with exitCode %2 (%1)").arg(transcodeProcess->arguments().join(",")).arg(exitCode));
-        log->DEBUG(QString("TRANSCODE size = %1 bytes").arg(transcodedBytes.size()));
         log->INFO(QString("TRANCODING done in %1 ms").arg(transcodeClock.elapsed()));
 
         transcodeProcess->deleteLater();
@@ -946,7 +946,6 @@ void Request::finishedTranscodeData(int exitCode) {
 
     if (exitCode != 0) {
         // trancoding failed
-        transcodedBytes = QByteArray();
         setStatus("Transcoding failed.");
     } else {
         setStatus("OK");
@@ -967,7 +966,7 @@ void Request::readSocket() {
             // read the header
             foreach (QString headerLine, client->readAll().split('\n')) {
                 if (flagHeaderReading && !headerLine.isEmpty() && headerLine != "\r") {
-                    log->TRACE("HTTP server: Received on socket: " + headerLine);
+                    log->TRACE("Request: Received on socket: " + headerLine);
                     appendHeader(headerLine);
                 } else {
                     if (flagHeaderReading) {
@@ -1010,9 +1009,103 @@ void Request::readSocket() {
     }
 }
 
-void Request::disconnectedSocket() {
-    setNetworkStatus("disconnected");
+void Request::bytesSent(qint64 size) {
+    Q_UNUSED(size)
 
+    if (streamContent != 0) {
+
+        if (range != 0 && streamContent->pos() == 0) {
+            if (range->getStartByte() > 0) {
+                streamContent->seek(range->getStartByte());
+            }
+        }
+
+        if (streamContent->size()-streamContent->pos() > 0) {
+
+            setStatus(QString("Streaming (%1%)").arg(int(100.0*double(streamContent->pos())/double(streamContent->size()))));
+
+            if (client == 0) {
+                log->ERROR("HTTP Request: Unable to send content (client deleted).");
+
+                delete streamContent;
+                streamContent = 0;
+
+                setStatus("KO");
+            } else {
+                if (client->bytesToWrite() == 0) {
+
+                    int maxBytesToRead = 1024;
+                    int bytesToRead = maxBytesToRead;
+                    if (range != 0 && range->getEndByte() > 0) {
+                        if (range->getEndByte() > streamContent->pos()) {
+                            bytesToRead = range->getEndByte() - streamContent->pos();
+                            if (bytesToRead > maxBytesToRead) {
+                                bytesToRead = maxBytesToRead;
+                            }
+                        } else {
+                            bytesToRead = 0;
+                        }
+                    }
+
+                    // read the stream
+                    char bytesToSend[bytesToRead];
+                    qint64 bytes = streamContent->read(bytesToSend, sizeof(bytesToSend));
+
+                    if (bytes == -1) {
+                        log->ERROR("HTTP Request: Unable to send content.");
+
+                        delete streamContent;
+                        streamContent = 0;
+
+                        setStatus("KO");
+
+                        closeClient();
+
+                    } else if (bytes == 0) {
+                        // stream ended
+
+                        delete streamContent;
+                        streamContent = 0;
+
+                        setStatus("OK");
+
+                        closeClient();
+
+                    } else {
+                        if (client->write(bytesToSend, sizeof(bytesToSend))== -1) {
+                            log->ERROR("HTTP Request: Unable to send content.");
+
+                            delete streamContent;
+                            streamContent = 0;
+
+                            setStatus("KO");
+
+                            closeClient();
+                        }
+                    }
+                }
+            }
+        } else {
+            // stream ended
+
+            delete streamContent;
+            streamContent = 0;
+
+            setStatus("OK");
+
+            closeClient();
+        }
+    }
+}
+
+void Request::disconnectedSocket() {
+    if (streamContent != 0) {
+        setStatus("Streaming aborted.");
+        delete streamContent;
+        streamContent = 0;
+    }
+
+    setNetworkStatus("disconnected");
     client->deleteLater();
     client = 0;
 }
@@ -1029,14 +1122,12 @@ void Request::errorSocket(QAbstractSocket::SocketError error) {
 }
 
 void Request::closeClient() {
-    if (!keepSocketOpened && (transcodeProcess == 0)) {
+    if (!keepSocketOpened && (transcodeProcess == 0) && (streamContent == 0)) {
         // No transcoding in progress
         log->TRACE("Close connection");
         if (client != 0) {
+            setNetworkStatus("closed");
             client->close();
-            if (!client->isOpen()) {
-                setNetworkStatus("closed");
-            }
         } else {
             log->ERROR("Unable to close client (client deleted).");
         }

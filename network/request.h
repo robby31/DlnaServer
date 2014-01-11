@@ -85,11 +85,15 @@ signals:
     // emit signal to start transcoding
     void startTranscoding(DlnaResource* dlna, QStringList answerHeader);
 
+    // emit signal to send data to client
+    void DataToSend(char* data);
+
 private slots:
     // slots for incoming data
     void readSocket();
     void disconnectedSocket();
     void errorSocket(QAbstractSocket::SocketError error);
+    void bytesSent(qint64 size);
 
     // slots for transcoding
     void runTranscoding(DlnaResource* dlna, QStringList answerHeader);
@@ -99,7 +103,6 @@ private slots:
 
     // slot to send data to client
     void sendAnswer(QStringList headerAnswer, QByteArray contentAnswer = QByteArray(), int totalSize = -1);
-
 
 private:
     static const QString CONTENT_TYPE_UTF8;
@@ -134,9 +137,10 @@ private:
     bool keepSocketOpened;  // flag to not close automatically the client socket when answer is sent
     QElapsedTimer clock;  // clock to measure time taken to answer to the request
 
+    QIODevice* streamContent;
+
     QProcess* transcodeProcess;
     QElapsedTimer transcodeClock;
-    QByteArray transcodedBytes;
 
     QString status;  // status of the request
     QString networkStatus;  // status of network (interface client)
