@@ -47,8 +47,13 @@ QString DlnaMusicTrack::getSystemName() const {
     return fileinfo.filePath();
 }
 
-QString DlnaMusicTrack::getDisplayName() const {
-    return fileinfo.completeBaseName();
+QString DlnaMusicTrack::getDisplayName() {
+    QString title = mediaTag.getParameter("Title");
+    if (title.isEmpty()) {
+        return fileinfo.completeBaseName();
+    } else {
+        return title;
+    }
 }
 
 int DlnaMusicTrack::bitrate() {
@@ -123,11 +128,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
     xml_obj.setAttribute("parentID", getParentId());
 
     QDomElement dcTitle = xml->createElement("dc:title");
-    QString title = mediaTag.getParameter("Title");
-    if (title.isEmpty()) {
-        title = getDisplayName();
-    }
-    dcTitle.appendChild(xml->createTextNode(title));
+    dcTitle.appendChild(xml->createTextNode(getDisplayName()));
     xml_obj.appendChild(dcTitle);
 
     QDomElement upnpClass = xml->createElement("upnp:class");

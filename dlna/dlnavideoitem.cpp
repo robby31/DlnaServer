@@ -12,6 +12,7 @@ const QString DlnaVideoItem::VIDEO_TRANSCODE = "video/transcode";
 DlnaVideoItem::DlnaVideoItem(Logger *log, QString filename, QString host, int port):
     DlnaMusicTrack(log, filename, host, port)
 {
+    transcodeFormat = MPEG2_AC3;  // default transcode format
     updateDLNAOrgPn();
 }
 

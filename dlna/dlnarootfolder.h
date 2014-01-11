@@ -20,7 +20,7 @@ public:
     virtual QString getSystemName() const;
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName() const;
+    virtual QString getDisplayName();
 
     virtual bool isFolder() const { return true; }
 

@@ -20,7 +20,7 @@ QString DlnaFolder::getSystemName() const {
     return fileinfo.absoluteFilePath();
 }
 
-QString DlnaFolder::getDisplayName() const {
+QString DlnaFolder::getDisplayName() {
     return fileinfo.completeBaseName();
 }
 

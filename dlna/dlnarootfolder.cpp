@@ -26,7 +26,7 @@ QString DlnaRootFolder::getSystemName() const {
     return getName();
 }
 
-QString DlnaRootFolder::getDisplayName() const {
+QString DlnaRootFolder::getDisplayName() {
     return getName();
 }
 

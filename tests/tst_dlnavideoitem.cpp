@@ -9,7 +9,6 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
 
     Logger log;
     DlnaVideoItem movie(&log, "/Users/doudou/Movies/Films/PLAYTIME (restored version 2002)_[Jacques_Tati]-1967.avi", "host", 600);
-    movie.setTranscodeFormat(MP3);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/PLAYTIME (restored version 2002)_[Jacques_Tati]-1967.avi");
 
     QStringList properties;
@@ -86,7 +85,6 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
 
     Logger log;
     DlnaVideoItem movie(&log, "/Users/doudou/Movies/Films/District.9.2009.720p.BrRip.YIFY.mkv", "host", 600);
-    movie.setTranscodeFormat(MP3);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/District.9.2009.720p.BrRip.YIFY.mkv");
 
     QStringList properties;
@@ -107,7 +105,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
     QVERIFY(node.attributes().namedItem("parentID").nodeValue() == "-1");
     QVERIFY(node.attributes().namedItem("restricted").nodeValue() == "true");
     QVERIFY(xml_res.elementsByTagName("dc:title").size() == 1);
-    QVERIFY(xml_res.elementsByTagName("dc:title").at(0).firstChild().nodeValue() == "District 9 - YIFY");
+    QVERIFY(xml_res.elementsByTagName("dc:title").at(0).firstChild().nodeValue() == "District.9.2009.720p.BrRip.YIFY");
     QVERIFY(xml_res.elementsByTagName("upnp:genre").size() == 1);
     QVERIFY(xml_res.elementsByTagName("upnp:genre").at(0).firstChild().nodeValue() == "");
     QVERIFY(xml_res.elementsByTagName("upnp:class").size() == 1);

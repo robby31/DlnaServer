@@ -10,7 +10,7 @@
 #include "metadata.h"
 
 // Format available for transcoding
-enum TranscodeFormatAvailable {MP3, LPCM};
+enum TranscodeFormatAvailable {MP3, LPCM, MPEG2_AC3};
 
 class DlnaMusicTrack : public DlnaResource
 {
@@ -29,7 +29,7 @@ public:
     virtual QString getSystemName() const;
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName() const;
+    virtual QString getDisplayName();
 
     virtual bool isFolder() const { return false; }
 
