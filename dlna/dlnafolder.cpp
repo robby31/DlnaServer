@@ -24,7 +24,8 @@ QString DlnaFolder::getDisplayName() const {
     return fileinfo.completeBaseName();
 }
 
-bool DlnaFolder::discoverChildren() {
+QList<QFileInfo> DlnaFolder::getChildrenFileInfo() {
+    QList<QFileInfo> l_children;
 
     QDir folder(fileinfo.absoluteFilePath());
     QStringList filter;
@@ -33,6 +34,30 @@ bool DlnaFolder::discoverChildren() {
                                           QDir::Dirs | QDir::Files | QDir::NoDotAndDotDot | QDir::Readable,
                                           QDir::DirsFirst | QDir::Name)) {
         QFileInfo new_file(folder, fd);
+
+        QMimeDatabase mimeDb;
+
+        if (new_file.isDir()) {
+            l_children.append(new_file);
+        }
+        else if (mimeDb.mimeTypeForFile(new_file).name().startsWith("audio/")) {
+            l_children.append(new_file);
+        }
+        else if (mimeDb.mimeTypeForFile(new_file).name().startsWith("video/")) {
+            l_children.append(new_file);
+        }
+        else {
+            getLog()->WARNING(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath()));
+        }
+    }
+
+    return l_children;
+}
+
+bool DlnaFolder::discoverChildren() {
+
+    foreach (QFileInfo new_file, getChildrenFileInfo()) {
+
         DlnaResource* child = 0;
 
         QMimeDatabase mimeDb;
@@ -86,7 +111,7 @@ QDomElement DlnaFolder::getXmlContentDirectory(QDomDocument *xml, QStringList pr
     xml_obj.setAttribute("restricted", "true");
 
     if (properties.contains("@childCount")) {
-        xml_obj.setAttribute("childCount", QString("%1").arg(getChildren().size()));
+        xml_obj.setAttribute("childCount", QString("%1").arg(getChildrenFileInfo().size()));
     }
 
     return xml_obj;

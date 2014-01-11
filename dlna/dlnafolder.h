@@ -15,6 +15,9 @@ public:
 
     virtual bool discoverChildren();
 
+    // returns the file path of children
+    QList<QFileInfo> getChildrenFileInfo();
+
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
     virtual QString getName() const;
