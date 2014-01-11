@@ -7,7 +7,7 @@
 #include "logger.h"
 #include "dlnaresource.h"
 
-#include "MediaInfoDLL/MediaInfoDLL.h"
+#include "metadata.h"
 
 // Format available for transcoding
 enum TranscodeFormatAvailable {MP3, LPCM};
@@ -37,13 +37,13 @@ public:
     virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
 
     // Returns an InputStream of this DLNA node.
-    virtual QByteArray getStream(HttpRange* range);
+    virtual QIODevice* getStream();
 
     // Returns the process for transcoding
     virtual QProcess* getTranscodeProcess(HttpRange* range);
 
     // Returns the mimeType for this DLNA node.
-    virtual QString mimeType() const;
+    virtual QString mimeType();
 
     QFileInfo getFileInfo() const { return fileinfo; }
 
@@ -70,11 +70,20 @@ public:
 
     virtual QImage getAlbumArt();
 
+    static const QString UNKNOWN_AUDIO_TYPEMIME;
+    static const QString AUDIO_MP3_TYPEMIME;
+    static const QString AUDIO_MP4_TYPEMIME;
+    static const QString AUDIO_WAV_TYPEMIME;
+    static const QString AUDIO_WMA_TYPEMIME;
+    static const QString AUDIO_FLAC_TYPEMIME;
+    static const QString AUDIO_OGG_TYPEMIME;
+    static const QString AUDIO_LPCM_TYPEMIME;
+    static const QString AUDIO_TRANSCODE;
 
-private:
+protected:
     QFileInfo fileinfo;
 
-    MediaInfoDLL::MediaInfo MI;
+    MetaData mediaTag;
 
     QMimeType mime_type;
     QString host;
@@ -82,7 +91,7 @@ private:
 
     TranscodeFormatAvailable transcodeFormat;
 
-    void updateDLNAOrgPn();
+    virtual void updateDLNAOrgPn();
 };
 
 #endif // DLNAMUSICTRACK_H

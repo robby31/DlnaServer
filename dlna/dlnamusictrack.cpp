@@ -1,14 +1,23 @@
 #include "dlnamusictrack.h"
 
+const QString DlnaMusicTrack::UNKNOWN_AUDIO_TYPEMIME = "audio/mpeg";
+const QString DlnaMusicTrack::AUDIO_MP3_TYPEMIME = "audio/mpeg";
+const QString DlnaMusicTrack::AUDIO_MP4_TYPEMIME = "audio/x-m4a";
+const QString DlnaMusicTrack::AUDIO_WAV_TYPEMIME = "audio/wav";
+const QString DlnaMusicTrack::AUDIO_WMA_TYPEMIME = "audio/x-ms-wma";
+const QString DlnaMusicTrack::AUDIO_FLAC_TYPEMIME = "audio/x-flac";
+const QString DlnaMusicTrack::AUDIO_OGG_TYPEMIME = "audio/x-ogg";
+const QString DlnaMusicTrack::AUDIO_LPCM_TYPEMIME = "audio/L16";
+const QString DlnaMusicTrack::AUDIO_TRANSCODE = "audio/transcode";
+
 DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString filename, QString host, int port):
     DlnaResource(log),
     fileinfo(QFileInfo(filename)),
+    mediaTag(filename),
     host(host),
     port(port),
     transcodeFormat(MP3)   // default transcode format
 {    
-    MI.Open(__T(filename.toStdString()));
-
     setDiscovered(true);
 
     QMimeDatabase db;
@@ -18,7 +27,6 @@ DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString filename, QString host, int 
 }
 
 DlnaMusicTrack::~DlnaMusicTrack() {
-    MI.Close();
 }
 
 void DlnaMusicTrack::updateDLNAOrgPn() {
@@ -61,7 +69,7 @@ int DlnaMusicTrack::bitrate() {
 
         return 0;
     } else {
-        return QString(MI.Get(MediaInfoDLL::Stream_General, 0, __T("OverallBitRate")).c_str()).toInt();
+        return mediaTag.getParameter("OverallBitRate").toInt();
     }
 }
 
@@ -74,17 +82,17 @@ int DlnaMusicTrack::size() {
 }
 
 int DlnaMusicTrack::channelCount() {
-    int audioStreamCount = MI.Count_Get(MediaInfoDLL::Stream_Audio);
+    int audioStreamCount = mediaTag.getAudioStreamCount();
     if (audioStreamCount == 1) {
-        return QString::fromStdString(MI.Get(MediaInfoDLL::Stream_Audio, 0, __T("Channel(s)"))).toInt();
+        return mediaTag.getChannelCount(0);
     }
     return 0;
 }
 
 int DlnaMusicTrack::samplerate() {
-    int audioStreamCount = MI.Count_Get(MediaInfoDLL::Stream_Audio);
+    int audioStreamCount = mediaTag.getAudioStreamCount();
     if (audioStreamCount == 1) {
-        return QString::fromStdString(MI.Get(MediaInfoDLL::Stream_Audio, 0, __T("SamplingRate"))).toInt();
+        return mediaTag.getSamplingRate(0);
     }
     return 0;
 }
@@ -94,7 +102,7 @@ int DlnaMusicTrack::getLengthInSeconds() {
 }
 
 int DlnaMusicTrack::getLengthInMilliSeconds() {
-    return QString(MI.Get(MediaInfoDLL::Stream_General, 0, __T("Duration")).c_str()).toInt();
+    return mediaTag.getParameter("Duration").toInt();
 }
 
 /*
@@ -115,7 +123,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
     xml_obj.setAttribute("parentID", getParentId());
 
     QDomElement dcTitle = xml->createElement("dc:title");
-    QString title = MI.Get(MediaInfoDLL::Stream_General, 0, __T("Title")).c_str();
+    QString title = mediaTag.getParameter("Title");
     if (title.isEmpty()) {
         title = getDisplayName();
     }
@@ -132,7 +140,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
     if (properties.contains("upnp:genre")) {
         QDomElement upnpGenre = xml->createElement("upnp:genre");
-        upnpGenre.appendChild(xml->createTextNode(MI.Get(MediaInfoDLL::Stream_General, 0, __T("Genre")).c_str()));
+        upnpGenre.appendChild(xml->createTextNode(mediaTag.getParameter("Genre")));
         xml_obj.appendChild(upnpGenre);
     }
 
@@ -164,19 +172,19 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
     if (properties.contains("upnp:artist")) {
         QDomElement upnpArtist = xml->createElement("upnp:artist");
-        upnpArtist.appendChild(xml->createTextNode(MI.Get(MediaInfoDLL::Stream_General, 0, __T("Performer")).c_str()));
+        upnpArtist.appendChild(xml->createTextNode(mediaTag.getParameter("Performer")));
         xml_obj.appendChild(upnpArtist);
     }
 
     if (properties.contains("upnp:album")) {
         QDomElement upnpAlbum = xml->createElement("upnp:album");
-        upnpAlbum.appendChild(xml->createTextNode(MI.Get(MediaInfoDLL::Stream_General, 0, __T("Album")).c_str()));
+        upnpAlbum.appendChild(xml->createTextNode(mediaTag.getParameter("Album")));
         xml_obj.appendChild(upnpAlbum);
     }
 
     if (properties.contains("upnp:originalTrackNumber")) {
         QDomElement upnpTrackNumber = xml->createElement("upnp:originalTrackNumber");
-        upnpTrackNumber.appendChild(xml->createTextNode(MI.Get(MediaInfoDLL::Stream_General, 0, __T("Track/Position")).c_str()));
+        upnpTrackNumber.appendChild(xml->createTextNode(mediaTag.getParameter("Track/Position")));
         xml_obj.appendChild(upnpTrackNumber);
     }
 
@@ -190,7 +198,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
     if (properties.contains("dc:contributor")) {
         QDomElement upnpCreator = xml->createElement("dc:contributor");
-        upnpCreator.appendChild(xml->createTextNode(MI.Get(MediaInfoDLL::Stream_General, 0, __T("Performer")).c_str()));
+        upnpCreator.appendChild(xml->createTextNode(mediaTag.getParameter("Performer")));
         xml_obj.appendChild(upnpCreator);
     }
 
@@ -273,8 +281,8 @@ QProcess* DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
         QStringList arguments;
         if (range != 0 && !range->isNull()) {
 
-            if (range->getStartByte(size()) > 0) {
-                int start_position = float(range->getStartByte(size()))/size()*getLengthInSeconds();
+            if (range->getStartByte() > 0) {
+                int start_position = float(range->getStartByte())/size()*getLengthInSeconds();
                 arguments << "-ss" << QString("%1").arg(start_position);
             }
         }
@@ -293,8 +301,8 @@ QProcess* DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
 
         if (range != 0 && !range->isNull()) {
 
-            if (range->getLength(size()) > 0) {
-                arguments << "-fs" << QString("%1").arg(range->getLength(size()));
+            if (range->getLength() > 0) {
+                arguments << "-fs" << QString("%1").arg(range->getLength());
             } else {
                 // invalid length
                 arguments << "-fs 0";
@@ -312,56 +320,53 @@ QProcess* DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
     }
 }
 
-QByteArray DlnaMusicTrack::getStream(HttpRange* range) {
+QIODevice* DlnaMusicTrack::getStream() {
 
     if (toTranscode()) {
 
         // DLNA node shall be transcoded
-        return QByteArray();
+        return 0;
 
     } else {
 
-        QFile tmp(fileinfo.absoluteFilePath());
+        QFile* tmp = new QFile(fileinfo.absoluteFilePath());
 
-        if (!tmp.open(QIODevice::ReadOnly)) {
-            return QByteArray();
+        if (!tmp->open(QIODevice::ReadOnly)) {
+            return 0;
         }
         else {
-            if (range == 0) {
-                // no range requested
-                return tmp.readAll();
-            } else if (range->isNull()) {
-                // invalid range
-                return tmp.readAll();
-            } else {
-                // range is valid
-                if (range->getStartByte(size()) > 0) {
-                    if (!tmp.seek(range->getStartByte(size()))) {
-                        getLog()->ERROR(QString("Unable to set position %1 on stream").arg(range->getStartByte(size())));
-                    }
-                }
-                return tmp.read(range->getLength(size()));
-            }
+            return tmp;
         }
     }
 }
 
-QString DlnaMusicTrack::mimeType() const {
+QString DlnaMusicTrack::mimeType() {
     if (toTranscode()) {
         // Trancode music track
         if (transcodeFormat == MP3) {
-            return "audio/mpeg";
+            return AUDIO_MP3_TYPEMIME;
         } else if (transcodeFormat == LPCM) {
-            return "audio/L16";
+            return AUDIO_LPCM_TYPEMIME;
+        } else {
+            getLog()->ERROR("Unable to define mimeType of DlnaVideoItem Transcoding: " + getSystemName());
+        }
+    } else {
+        QString format = mediaTag.getParameter("Format");
+        if (format == "MPEG Audio") {
+            return AUDIO_MP3_TYPEMIME;
+        } else {
+            getLog()->ERROR("Unable to define mimeType of DlnaVideoItem: " + getSystemName());
         }
     }
-    return mime_type.name();
+
+    // returns unknown mimeType
+    return UNKNOWN_AUDIO_TYPEMIME;
 }
 
 QImage DlnaMusicTrack::getAlbumArt() {
     QImage picture;
 
-    QByteArray bytesPicture =  QByteArray::fromBase64(MI.Get(MediaInfoDLL::Stream_General, 0, __T("Cover_Data")).c_str());
+    QByteArray bytesPicture =  QByteArray::fromBase64(mediaTag.getCoverData().c_str());
 
     if (picture.loadFromData((const uchar *) bytesPicture.data(), bytesPicture.size())) {
         return picture;
