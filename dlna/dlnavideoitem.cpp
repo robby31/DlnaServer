@@ -157,12 +157,17 @@ QProcess* DlnaVideoItem::getTranscodeProcess(HttpRange *range) {
         arguments << fileinfo.absoluteFilePath();
         arguments << "-msglevel" <<  "statusline=2";
 
-        arguments << "-oac" << "lavc";
-        arguments << "-of" << "mpeg";
-        arguments << "-mpegopts" << "format=mpeg2:muxrate=500000:vbuf_size=1194:abuf_size=64";
-        arguments << "-ovc" <<  "lavc";
-        arguments << "-lavcopts" << "autoaspect=1:vcodec=mpeg2video:acodec=ac3:abitrate=448:threads=4:keyint=5:vqscale=1:vqmin=2:vqmax=3:vrc_maxrate=499000:vrc_buf_size=1835";
-        arguments << "-lavdopts" <<  "fast";
+        if (transcodeFormat == MPEG2_AC3) {
+            arguments << "-oac" << "lavc";
+            arguments << "-of" << "mpeg";
+            arguments << "-mpegopts" << "format=mpeg2:muxrate=500000:vbuf_size=1194:abuf_size=64";
+            arguments << "-ovc" <<  "lavc";
+            arguments << "-lavcopts" << "autoaspect=1:vcodec=mpeg2video:acodec=ac3:abitrate=448:threads=4:keyint=5:vqscale=1:vqmin=2:vqmax=3:vrc_maxrate=499000:vrc_buf_size=1835";
+            arguments << "-lavdopts" <<  "fast";
+        } else {
+            // invalid transcode format
+            return 0;
+        }
 
         arguments << "-o" << "-";
         arguments << "-really-quiet";

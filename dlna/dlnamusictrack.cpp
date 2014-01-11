@@ -298,6 +298,9 @@ QProcess* DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
 
         } else if (transcodeFormat == LPCM) {
             arguments << "-f" << "s16be";
+        } else {
+            // invalid transcode format
+            return 0;
         }
 
         if (range != 0 && !range->isNull()) {
