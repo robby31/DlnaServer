@@ -24,13 +24,13 @@ HttpRange::HttpRange(QString range, QObject *parent) :
         if (rxRange.cap(2).isEmpty()) {
             lowRange = -1;
         } else {
-            lowRange = rxRange.cap(2).toInt();
+            lowRange = rxRange.cap(2).toLong();
         }
 
         if (rxRange.cap(3).isEmpty()) {
             highRange = -1;
         } else {
-            highRange = rxRange.cap(3).toInt();
+            highRange = rxRange.cap(3).toLong();
         }
 
 
@@ -86,9 +86,9 @@ long HttpRange::getEndByte() const {
 }
 
 long HttpRange::getLength() const {
-    int start = getStartByte();
+    long start = getStartByte();
     if (start != -1) {
-        int end = getEndByte();
+        long end = getEndByte();
         if (end != -1) {
             return end - start + 1;
         }
