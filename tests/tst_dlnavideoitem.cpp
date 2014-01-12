@@ -40,18 +40,20 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 8);
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:video/avi:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=01");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "1816807032");
+//    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "1816807032");  // original size
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "4869967200");    // transcoded size
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "01:59:11");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "254056");
+//    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "254056");   // original bitrate
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "681000");    // transcoded bitrate
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue() == "720x384");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "2");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
     xml_res.clear();
 
-    QVERIFY(movie.toTranscode() == false);
+    QVERIFY(movie.toTranscode() == true);
     QVERIFY(movie.mimeType() == "video/avi");
-    QVERIFY(movie.size() == 1816807032);
-    QVERIFY(movie.bitrate() == 2032450);
+    QVERIFY(movie.size() == 4869967200);
+    QVERIFY(movie.bitrate() == 5448000);
     QVERIFY(movie.getLengthInSeconds() == 7151);
     QVERIFY(movie.getLengthInMilliSeconds() == 7151200);
     QVERIFY(movie.samplerate() == 48000);
@@ -62,11 +64,12 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
     range = new HttpRange("RANGE: BYTES=0-");
     range->setSize(movie.size());
     QIODevice* stream = movie.getStream();
-    QVERIFY(stream != 0);
-    QVERIFY(stream->isOpen() == true);
-    QVERIFY(stream->size() == 1816807032);
+    QVERIFY(stream == 0);
+//    QVERIFY(stream != 0);
+//    QVERIFY(stream->isOpen() == true);
+//    QVERIFY(stream->size() == 1816807032);
     QProcess* transcodeProcess = movie.getTranscodeProcess(range);
-    QVERIFY(transcodeProcess == 0);
+    QVERIFY(transcodeProcess != 0);
     delete range;
     range = 0;
     delete stream;
@@ -116,18 +119,20 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 8);
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:video/x-matroska:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=01");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "733723671");
+    //QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "733723671");   // original size
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "4587100230");     // transcoded size
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "01:52:16");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "108929");
+    //QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "108929");   // original bitrate
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "681000");     // transcoded bitrate
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue() == "1280x688");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "2");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
     xml_res.clear();
 
-    QVERIFY(movie.toTranscode() == false);
+    QVERIFY(movie.toTranscode() == true);
     QVERIFY(movie.mimeType() == "video/x-matroska");
-    QVERIFY(movie.size() == 733723671);
-    QVERIFY(movie.bitrate() == 871428);
+    QVERIFY(movie.size() == 4587100230);
+    QVERIFY(movie.bitrate() == 5448000);
     QVERIFY(movie.getLengthInSeconds() == 6736);
     QVERIFY(movie.getLengthInMilliSeconds() == 6735830);
     QVERIFY(movie.samplerate() == 48000);
@@ -138,11 +143,12 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
     range = new HttpRange("RANGE: BYTES=0-");
     range->setSize(movie.size());
     QIODevice* stream = movie.getStream();
-    QVERIFY(stream != 0);
-    QVERIFY(stream->isOpen() == true);
-    QVERIFY(stream->size() == 733723671);
+    QVERIFY(stream == 0);
+//    QVERIFY(stream != 0);
+//    QVERIFY(stream->isOpen() == true);
+//    QVERIFY(stream->size() == 733723671);
     QProcess* transcodeProcess = movie.getTranscodeProcess(range);
-    QVERIFY(transcodeProcess == 0);
+    QVERIFY(transcodeProcess != 0);
     delete range;
     range = 0;
     delete stream;

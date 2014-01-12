@@ -138,7 +138,7 @@ int DlnaVideoItem::bitrate() {
     // returns bitrate in bits/sec
     if (toTranscode()) {
         if (transcodeFormat == MPEG2_AC3) {
-            return 320000;
+            return 5448000;
 
         } else {
             // invalid transcode format
@@ -169,28 +169,29 @@ QProcess* DlnaVideoItem::getTranscodeProcess(HttpRange *range) {
             }
         }
 
-        //  -channels 6 -lavdopts debug=0:threads=4
-        // -ass -ass-color ffffff00 -ass-border-color 00000000 -ass-font-scale 1.4 -font /System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home/lib/fonts/LucidaSansRegular.ttf -ass-force-style FontName=/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home/lib/fonts/LucidaSansRegular.ttf,Outline=1,Shadow=1,MarginV=10 -noautosub -sid 0 -ofps 24000/1001
-        // -af lavcresample=48000 -srate 48000
-
         arguments << fileinfo.absoluteFilePath();
-        arguments << "-msglevel" <<  "statusline=2";
 
         if (transcodeFormat == MPEG2_AC3) {
             arguments << "-oac" << "lavc";
             arguments << "-of" << "mpeg";
             arguments << "-mpegopts" << "format=mpeg2:muxrate=500000:vbuf_size=1194:abuf_size=64";
             arguments << "-ovc" <<  "lavc";
-            arguments << "-lavcopts" << "autoaspect=1:vcodec=mpeg2video:acodec=ac3:abitrate=448:threads=4:keyint=5:vqscale=1:vqmin=2:vqmax=3:vrc_maxrate=499000:vrc_buf_size=1835";
+            arguments << "-channels" << "6";
+            //arguments << "-lavdopts" << "debug=0:threads=4";
+            arguments << "-lavcopts" << "autoaspect=1:vcodec=mpeg2video:acodec=ac3:abitrate=448:keyint=15:vrc_maxrate=9800:vrc_buf_size=1835:vbitrate=5000";
+            // -ass -ass-color ffffff00 -ass-border-color 00000000 -ass-font-scale 1.4 -font /System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home/lib/fonts/LucidaSansRegular.ttf -ass-force-style FontName=/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home/lib/fonts/LucidaSansRegular.ttf,Outline=1,Shadow=1,MarginV=10
+            // -noautosub -sid 0 -ofps 24000/1001
             arguments << "-lavdopts" <<  "fast";
+            //arguments << "-af" << "lavcresample=48000";
+            //arguments << "-srate" << "48000";
         } else {
             // invalid transcode format
             return 0;
         }
 
         arguments << "-o" << "-";
-        arguments << "-really-quiet";
-        arguments << "-msglevel" << "statusline=2";
+//        arguments << "-really-quiet";
+//        arguments << "-msglevel" << "statusline=2";
 
         QProcess* transcodeProcess = new QProcess();
         transcodeProcess->setProgram(program);
