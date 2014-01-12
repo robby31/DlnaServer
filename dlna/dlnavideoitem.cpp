@@ -162,10 +162,9 @@ QProcess* DlnaVideoItem::getTranscodeProcess(HttpRange *range) {
 
         QStringList arguments;
         if (range != 0 && !range->isNull()) {
-
             if (range->getStartByte() > 0) {
-                int start_position = float(range->getStartByte())/size()*getLengthInSeconds();
-                arguments << "-ss" << QString("%1").arg(start_position);
+                double start_position = double(range->getStartByte())/double(size())*double(getLengthInSeconds());
+                arguments << "-ss" << QString("%1").arg(long(start_position));
             }
         }
 
@@ -180,13 +179,28 @@ QProcess* DlnaVideoItem::getTranscodeProcess(HttpRange *range) {
             //arguments << "-lavdopts" << "debug=0:threads=4";
             arguments << "-lavcopts" << "autoaspect=1:vcodec=mpeg2video:acodec=ac3:abitrate=448:keyint=15:vrc_maxrate=9800:vrc_buf_size=1835:vbitrate=5000";
             // -ass -ass-color ffffff00 -ass-border-color 00000000 -ass-font-scale 1.4 -font /System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home/lib/fonts/LucidaSansRegular.ttf -ass-force-style FontName=/System/Library/Frameworks/JavaVM.framework/Versions/1.5.0/Home/lib/fonts/LucidaSansRegular.ttf,Outline=1,Shadow=1,MarginV=10
-            // -noautosub -sid 0 -ofps 24000/1001
+            // -noautosub -sid 0
+            // -ofps 24000/1001
             arguments << "-lavdopts" <<  "fast";
             //arguments << "-af" << "lavcresample=48000";
             //arguments << "-srate" << "48000";
         } else {
             // invalid transcode format
             return 0;
+        }
+
+        if (range != 0 && !range->isNull()) {
+            if (range->getLength() > 0) {
+                if (range->getHighRange() >= 0) {
+                    // calculate the endpos in seconds
+                    double endpos = double(range->getLength())/double(size())*double(getLengthInSeconds());
+                    arguments << "-endpos" << QString("%1").arg(long(endpos));
+                }
+            } else {
+                // invalid length
+                arguments << "-endpos 0";
+            }
+
         }
 
         arguments << "-o" << "-";
@@ -196,6 +210,7 @@ QProcess* DlnaVideoItem::getTranscodeProcess(HttpRange *range) {
         QProcess* transcodeProcess = new QProcess();
         transcodeProcess->setProgram(program);
         transcodeProcess->setArguments(arguments);
+        getLog()->DEBUG(QString("Video Transcoding process %1 %2").arg(program).arg(arguments.join(' ')));
 
         return transcodeProcess;
     }

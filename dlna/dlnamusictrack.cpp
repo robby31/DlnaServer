@@ -282,10 +282,9 @@ QProcess* DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
 
         QStringList arguments;
         if (range != 0 && !range->isNull()) {
-
             if (range->getStartByte() > 0) {
-                int start_position = float(range->getStartByte())/size()*getLengthInSeconds();
-                arguments << "-ss" << QString("%1").arg(start_position);
+                double start_position = double(range->getStartByte())/double(size())*double(getLengthInSeconds());
+                arguments << "-ss" << QString("%1").arg(long(start_position));
             }
         }
 
@@ -305,9 +304,10 @@ QProcess* DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
         }
 
         if (range != 0 && !range->isNull()) {
-
             if (range->getLength() > 0) {
-                arguments << "-fs" << QString("%1").arg(range->getLength());
+                if (range->getHighRange() >= 0) {
+                    arguments << "-fs" << QString("%1").arg(range->getLength());
+                }
             } else {
                 // invalid length
                 arguments << "-fs 0";
@@ -320,6 +320,7 @@ QProcess* DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
         QProcess* transcodeProcess = new QProcess();
         transcodeProcess->setProgram(program);
         transcodeProcess->setArguments(arguments);
+        getLog()->DEBUG(QString("Audio Transcoding process %1 %2").arg(program).arg(arguments.join(' ')));
 
         return transcodeProcess;
     }
