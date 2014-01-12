@@ -395,7 +395,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     transcodeProcess->start();
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodedBytes.size() == 10002274);
+    QVERIFY(transcodedBytes.size() == 10026274);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -565,7 +565,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     transcodeProcess->start();
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodedBytes.size() == 92782592);
+    QVERIFY(transcodedBytes.size() == 92856320);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
