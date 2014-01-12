@@ -31,7 +31,7 @@ public:
     virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
 
     // return the size of the DLNA node, no size for a folder.
-    virtual int size() { return -1; }
+    virtual long size() { return -1; }
 
     // return the length in seconds of the media
     virtual int getLengthInSeconds() { return -1; }

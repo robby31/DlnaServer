@@ -79,7 +79,7 @@ int DlnaMusicTrack::bitrate() {
     }
 }
 
-int DlnaMusicTrack::size() {
+long DlnaMusicTrack::size() {
     if (toTranscode()) {
         return double(bitrate())*double(getLengthInMilliSeconds())/8000.0;
     } else {

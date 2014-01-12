@@ -55,7 +55,7 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     connect(client, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(errorSocket(QAbstractSocket::SocketError)));
     connect(client, SIGNAL(bytesWritten(qint64)), this, SLOT(bytesSent(qint64)));
 
-    connect(this, SIGNAL(answerReady(QStringList,QByteArray,int)), this, SLOT(sendAnswer(QStringList,QByteArray,int)));
+    connect(this, SIGNAL(answerReady(QStringList,QByteArray,long)), this, SLOT(sendAnswer(QStringList,QByteArray,long)));
 
     connect(this, SIGNAL(startTranscoding(DlnaResource*, QStringList)), this, SLOT(runTranscoding(DlnaResource*, QStringList)));
 
@@ -253,7 +253,7 @@ void Request::sendLine(QTcpSocket *client, QString msg)
     }
 }
 
-void Request::sendAnswer(QStringList headerAnswer, QByteArray contentAnswer, int totalSize)
+void Request::sendAnswer(QStringList headerAnswer, QByteArray contentAnswer, long totalSize)
 {
     if (client == 0) {
         log->ERROR("Unable to send answer (client deleted).");

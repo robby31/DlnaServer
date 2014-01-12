@@ -53,7 +53,7 @@ public:
     virtual bool toTranscode() const { return mime_type.name() != "audio/mpeg"; }
 
     // return the size of the audio track
-    virtual int size();
+    virtual long size();
 
     // return the length in seconds of the media
     virtual int getLengthInSeconds();

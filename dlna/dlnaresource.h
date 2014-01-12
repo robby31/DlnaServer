@@ -82,7 +82,7 @@ public:
     QList<DlnaResource*> getDLNAResources(QString objectId, bool returnChildren, int start, int count, QString searchStr);
 
     // return the size of the media
-    virtual int size() = 0;
+    virtual long size() = 0;
 
     // return the length in seconds of the media
     virtual int getLengthInSeconds() = 0;
