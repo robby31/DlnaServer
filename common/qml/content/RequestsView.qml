@@ -19,6 +19,7 @@ Item {
             objectName: "RequestsTableView"
             Layout.fillHeight: true
             Layout.fillWidth: true
+            anchors.margins: Qt.platform.os === "osx" ? 12 : 6
             model: requestsModel
 
             TableViewColumn {
@@ -69,31 +70,65 @@ Item {
                 width: 200
             }
 
-            onCurrentRowChanged: {
-                header.text = requestsModel.get(currentRow, 5);
-                content.text = requestsModel.get(currentRow, 6);
-                answer.text = requestsModel.get(currentRow, 9);
-            }
-
-
+            onCurrentRowChanged: tabviewAnswer.updateContent(currentRow)
         }
 
-        RowLayout
-        {
-            TextArea {
-                id: header
-                Layout.fillWidth: true
-            }
-
-            TextArea {
-                id: content
-                Layout.fillWidth: true
-            }
-        }
-
-        TextArea {
-            id: answer
+        TabView {
+            id: tabviewAnswer
+            Layout.fillHeight: true
             Layout.fillWidth: true
+            anchors.margins: Qt.platform.os === "osx" ? 12 : 6
+            property int currentModelRow: -1;
+
+            function updateContent(currentRow) {
+                currentModelRow = currentRow
+                if (currentModelRow != -1) {
+                    if (currentIndex == 0)
+                    {
+                        tabHeader.item.text = requestsModel.get(currentRow, 5)
+                    } else if (currentIndex == 1) {
+                        tabAnswer.item.text = requestsModel.get(currentRow, 6)
+                    } else if (currentIndex == 2) {
+                        tabContent.item.text = requestsModel.get(currentRow, 9)
+                    } else if (currentIndex == 3) {
+                        tabTranscodeLog.item.text = requestsModel.get(currentRow, 11)
+                    }
+                }
+            }
+
+            onCurrentIndexChanged: updateContent(currentModelRow)
+
+            Tab {
+                id: tabHeader
+                title: "HEADER"
+                TextArea {
+                    Layout.fillWidth: true
+                }
+            }
+
+            Tab {
+                id: tabAnswer
+                title: "ANSWER"
+                TextArea {
+                    Layout.fillWidth: true
+                }
+            }
+
+            Tab {
+                id: tabContent
+                title: "CONTENT"
+                TextArea {
+                    Layout.fillWidth: true
+                }
+            }
+
+            Tab {
+                id: tabTranscodeLog
+                title: "TRANSCODING"
+                TextArea {
+                    Layout.fillWidth: true
+                }
+            }
         }
     }
 }

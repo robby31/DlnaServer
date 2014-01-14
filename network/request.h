@@ -68,6 +68,8 @@ public:
 
     QString getTextAnswer() const { return stringAnswer.join(""); }
 
+    QString getTranscodeLog() const { return transcodeLog; }
+
     bool appendHeader(QString headerLine);
 
     // Construct a proper HTTP response to a received request
@@ -142,6 +144,7 @@ private:
 
     QProcess* transcodeProcess;
     QElapsedTimer transcodeClock;
+    QString transcodeLog;
 
     QString status;  // status of the request
     QString networkStatus;  // status of network (interface client)

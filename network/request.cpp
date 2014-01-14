@@ -913,9 +913,9 @@ void Request::waitTranscodingFinished() {
 
 void Request::receivedTranscodingLogMessage() {
     if (transcodeProcess != 0) {
-        // error output occurs
-        QString msg = transcodeProcess->readAllStandardError();
-        log->INFO(QString("Transcoding output: %1").arg(msg));
+        // incoming log message
+        transcodeLog.append(transcodeProcess->readAllStandardError());
+        emit dataChanged();
     }
 }
 
@@ -924,6 +924,7 @@ void Request::errorTrancodedData(QProcess::ProcessError error) {
 
     // trancoding failed
     if (transcodeProcess != 0) {
+        qWarning() << "networkstatus" << getNetworkStatus() << client;
         // an error occured
         log->ERROR(QString("Transcoding failed (%1).").arg(transcodeProcess->errorString()));
     }
