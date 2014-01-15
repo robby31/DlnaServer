@@ -145,6 +145,7 @@ private:
     QProcess* transcodeProcess;
     QElapsedTimer transcodeClock;
     QString transcodeLog;
+    bool killTranscodeProcess;  // true if the application aborts the transcoding
 
     QString status;  // status of the request
     QString networkStatus;  // status of network (interface client)
