@@ -87,9 +87,9 @@ Item {
                     {
                         tabHeader.item.text = requestsModel.get(currentRow, 5)
                     } else if (currentIndex == 1) {
-                        tabAnswer.item.text = requestsModel.get(currentRow, 6)
+                        tabContent.item.text = requestsModel.get(currentRow, 6)
                     } else if (currentIndex == 2) {
-                        tabContent.item.text = requestsModel.get(currentRow, 9)
+                        tabAnswer.item.text = requestsModel.get(currentRow, 9)
                     } else if (currentIndex == 3) {
                         tabTranscodeLog.item.text = requestsModel.get(currentRow, 11)
                     }
@@ -107,16 +107,16 @@ Item {
             }
 
             Tab {
-                id: tabAnswer
-                title: "ANSWER"
+                id: tabContent
+                title: "CONTENT"
                 TextArea {
                     Layout.fillWidth: true
                 }
             }
 
             Tab {
-                id: tabContent
-                title: "CONTENT"
+                id: tabAnswer
+                title: "ANSWER"
                 TextArea {
                     Layout.fillWidth: true
                 }
