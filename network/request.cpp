@@ -1122,7 +1122,7 @@ void Request::bytesSent(qint64 size) {
     if (transcodeProcess != 0) {
         if (client != 0) {
 
-            if (client->bytesToWrite() > 10240) {
+            if (client->bytesToWrite() > 104857600) {
                 // pause transcoding process
                 QStringList arguments;
                 arguments << "-STOP" << QString("%1").arg(transcodeProcess->pid());
@@ -1135,7 +1135,7 @@ void Request::bytesSent(qint64 size) {
                 }
             }
 
-            if (client->bytesToWrite() == 0) {
+            if (client->bytesToWrite() < 10485760) {
                 // restart transcoding process
                 QStringList arguments;
                 arguments << "-CONT" << QString("%1").arg(transcodeProcess->pid());
