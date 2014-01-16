@@ -1,8 +1,16 @@
 #include "tst_dlnavideoitem.h"
 
 tst_dlnavideoitem::tst_dlnavideoitem(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    transcodeProcess(0)
 {
+}
+
+void tst_dlnavideoitem::receivedTranscodedData() {
+    if (transcodeProcess != 0) {
+        QByteArray bytes = transcodeProcess->readAllStandardOutput();
+        transcodedSize += bytes.size();
+    }
 }
 
 void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
@@ -59,6 +67,8 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
     QVERIFY(movie.samplerate() == 48000);
     QVERIFY(movie.channelCount() == 2);
     QVERIFY(movie.resolution() == "720x384");
+    QVERIFY(movie.audioLanguages() == QStringList() << "");
+    QVERIFY(movie.subtitleLanguages() == QStringList());
 
     HttpRange* range = 0;
     range = new HttpRange("RANGE: BYTES=0-");
@@ -68,12 +78,21 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
 //    QVERIFY(stream != 0);
 //    QVERIFY(stream->isOpen() == true);
 //    QVERIFY(stream->size() == 1816807032);
-    QProcess* transcodeProcess = movie.getTranscodeProcess(range);
-    QVERIFY(transcodeProcess != 0);
-    delete range;
-    range = 0;
     delete stream;
     stream = 0;
+    transcodeProcess = movie.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedSize = 0;
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    qWarning() << "transcoded size" << transcodedSize;
+    QVERIFY(transcodedSize <= movie.size());
+    delete transcodeProcess;
+    transcodeProcess = 0;
+    delete range;
+    range = 0;
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "01");
     QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
@@ -129,6 +148,14 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
     xml_res.clear();
 
+    QVERIFY(movie.getdlnaOrgOpFlags() == "01");
+    QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
+    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+    QVERIFY(movie.getProtocolInfo() == "http-get:*:video/x-matroska:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=01");
+
+    QVERIFY(movie.getAlbumArt().isNull() == true);
+    QVERIFY(movie.getByteAlbumArt().isNull() == true);
+
     QVERIFY(movie.toTranscode() == true);
     QVERIFY(movie.mimeType() == "video/x-matroska");
     QVERIFY(movie.size() == 4587100230);
@@ -138,28 +165,58 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
     QVERIFY(movie.samplerate() == 48000);
     QVERIFY(movie.channelCount() == 2);
     QVERIFY(movie.resolution() == "1280x688");
+    QVERIFY(movie.audioLanguages() == QStringList() << "");
+    QVERIFY(movie.subtitleLanguages() == QStringList() << "English");
 
     HttpRange* range = 0;
-    range = new HttpRange("RANGE: BYTES=0-");
+    QIODevice* stream;
+
+    // test partial transcoding (10 seconds)
+    range = new HttpRange("RANGE: BYTES=0-6810000");
     range->setSize(movie.size());
-    QIODevice* stream = movie.getStream();
+    stream = movie.getStream();
     QVERIFY(stream == 0);
 //    QVERIFY(stream != 0);
 //    QVERIFY(stream->isOpen() == true);
 //    QVERIFY(stream->size() == 733723671);
-    QProcess* transcodeProcess = movie.getTranscodeProcess(range);
-    QVERIFY(transcodeProcess != 0);
-    delete range;
-    range = 0;
     delete stream;
     stream = 0;
+    transcodeProcess = movie.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedSize = 0;
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    qWarning() << "transcoded size" << transcodedSize;
+    QVERIFY(transcodedSize <= 3000000);
+    delete transcodeProcess;
+    transcodeProcess = 0;
+    delete range;
+    range = 0;
 
-    QVERIFY(movie.getdlnaOrgOpFlags() == "01");
-    QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
-    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
-    QVERIFY(movie.getProtocolInfo() == "http-get:*:video/x-matroska:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=01");
-
-    QVERIFY(movie.getAlbumArt().isNull() == true);
-    QVERIFY(movie.getByteAlbumArt().isNull() == true);
+    // test full transcoding
+    range = new HttpRange("RANGE: BYTES=0-");
+    range->setSize(movie.size());
+    stream = movie.getStream();
+    QVERIFY(stream == 0);
+//    QVERIFY(stream != 0);
+//    QVERIFY(stream->isOpen() == true);
+//    QVERIFY(stream->size() == 733723671);
+    delete stream;
+    stream = 0;
+    transcodeProcess = movie.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedSize = 0;
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    qWarning() << "transcoded size" << transcodedSize << transcodeProcess->readAllStandardOutput().size();
+    QVERIFY(transcodedSize <= movie.size());
+    delete transcodeProcess;
+    transcodeProcess = 0;
+    delete range;
+    range = 0;
 }
 

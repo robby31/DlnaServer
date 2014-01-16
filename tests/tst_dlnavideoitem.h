@@ -15,10 +15,15 @@ public:
 signals:
 
 public slots:
+    void receivedTranscodedData();
 
 private Q_SLOTS:
     void testCase_DlnaVideoItem_AVI();
     void testCase_DlnaVideoItem_MKV();
+
+private:
+    QProcess* transcodeProcess;
+    long transcodedSize;
 };
 
 #endif // TST_DLNAVIDEOITEM_H
