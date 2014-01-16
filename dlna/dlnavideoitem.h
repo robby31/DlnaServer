@@ -30,6 +30,9 @@ public:
 
     QString resolution();
 
+    QStringList subtitleLanguages();
+    QStringList audioLanguages();
+
     static const QString UNKNOWN_VIDEO_TYPEMIME;
     static const QString MPEG_TYPEMIME;
     static const QString MP4_TYPEMIME;

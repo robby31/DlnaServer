@@ -39,8 +39,20 @@ int MetaData::getAudioStreamCount() {
     return MI.Count_Get(MediaInfoDLL::Stream_Audio);
 }
 
+QStringList MetaData::getAudioLanguages() {
+    QStringList languages;
+    for (int audioStreamId = 0; audioStreamId < getAudioStreamCount(); audioStreamId++) {
+        languages.append(getParameter("Language/String", MediaInfoDLL::Stream_Audio, audioStreamId));
+    }
+    return languages;
+}
+
 int MetaData::getVideoStreamCount() {
     return MI.Count_Get(MediaInfoDLL::Stream_Video);
+}
+
+int MetaData::getSubtitleStreamCount() {
+    return MI.Count_Get(MediaInfoDLL::Stream_Text);
 }
 
 QString MetaData::getVideoCodec(int videoStreamId) {
@@ -53,4 +65,12 @@ QString MetaData::getResolution(int videoStreamId) {
 
 MediaInfoDLL::String MetaData::getCoverData() {
     return MI.Get(MediaInfoDLL::Stream_General, 0, __T("Cover_Data"));
+}
+
+QStringList MetaData::getSubtitleLanguages() {
+    QStringList languages;
+    for (int subtitleStreamId = 0; subtitleStreamId < getSubtitleStreamCount(); subtitleStreamId++) {
+        languages.append(getParameter("Language/String", MediaInfoDLL::Stream_Text, subtitleStreamId));
+    }
+    return languages;
 }

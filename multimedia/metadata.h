@@ -22,10 +22,14 @@ public:
     QString getAudioFormat(int audioStreamId);
     int getChannelCount(int audioStreamId);
     int getSamplingRate(int audioStreamId);
+    QStringList getAudioLanguages();
 
     int getVideoStreamCount();
     QString getVideoCodec(int videoStreamId);
     QString getResolution(int videoStreamId);
+
+    int getSubtitleStreamCount();
+    QStringList getSubtitleLanguages();
 
     MediaInfoDLL::String getCoverData();
 
