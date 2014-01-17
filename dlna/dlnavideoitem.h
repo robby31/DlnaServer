@@ -32,6 +32,7 @@ public:
 
     QStringList subtitleLanguages();
     QStringList audioLanguages();
+    QString framerate();
 
     static const QString UNKNOWN_VIDEO_TYPEMIME;
     static const QString MPEG_TYPEMIME;

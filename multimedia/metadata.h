@@ -27,6 +27,7 @@ public:
     int getVideoStreamCount();
     QString getVideoCodec(int videoStreamId);
     QString getResolution(int videoStreamId);
+    QString getVideoFrameRate();
 
     int getSubtitleStreamCount();
     QStringList getSubtitleLanguages();

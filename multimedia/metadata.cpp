@@ -59,6 +59,15 @@ QString MetaData::getVideoCodec(int videoStreamId) {
     return getParameter("Codec/String", MediaInfoDLL::Stream_Video, videoStreamId);
 }
 
+QString MetaData::getVideoFrameRate() {
+    QString framerate = getParameter("FrameRate", MediaInfoDLL::Stream_Video, 0);
+    if (!framerate.isEmpty()) {
+        return framerate;
+    }
+
+    return getParameter("FrameRate_Original", MediaInfoDLL::Stream_Video, 0);
+}
+
 QString MetaData::getResolution(int videoStreamId) {
     return QString("%1x%2").arg(getParameter("Width", MediaInfoDLL::Stream_Video, videoStreamId)).arg(getParameter("Height", MediaInfoDLL::Stream_Video, videoStreamId));
 }

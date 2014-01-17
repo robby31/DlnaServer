@@ -185,9 +185,8 @@ QProcess* DlnaVideoItem::getTranscodeProcess(HttpRange *range) {
 
             // set video options
             arguments << "-ovc" <<  "lavc";
-            arguments << "-lavdopts" <<  "fast";
-//            arguments << "-lavdopts" << "debug=0:threads=4";
-            arguments << "-lavcopts" << "autoaspect=1:vcodec=mpeg2video:acodec=ac3:abitrate=448:keyint=5:vqscale=1:vqmin=2:vqmax=3:vrc_maxrate=9800:vrc_buf_size=1835:vbitrate=5000";
+            arguments << "-lavdopts" <<  "fast:debug=0";
+            arguments << "-lavcopts" << "autoaspect=1:vcodec=mpeg2video:acodec=ac3:abitrate=448:keyint=25:vrc_maxrate=9800:vrc_buf_size=1835:vbitrate=5000";
 
             // set font file
             arguments << "-font" << fontFile;
@@ -208,7 +207,16 @@ QProcess* DlnaVideoItem::getTranscodeProcess(HttpRange *range) {
             }
 
             // set frame rate
-            arguments << "-ofps" << "24000/1001";
+            if (!framerate().isEmpty()) {
+                if (framerate() == "23.976") {
+                    arguments << "-ofps" << "24000/1001";
+                } else if (framerate() == "29.97") {
+                    arguments << "-ofps" << "30000/1001";
+                } else {
+                    arguments << "-ofps" << framerate();
+                }
+            }
+
         } else {
             // invalid transcode format
             return 0;
@@ -278,4 +286,8 @@ QStringList DlnaVideoItem::audioLanguages() {
 
 QStringList DlnaVideoItem::subtitleLanguages() {
     return mediaTag.getSubtitleLanguages();
+}
+
+QString DlnaVideoItem::framerate() {
+    return mediaTag.getVideoFrameRate();
 }
