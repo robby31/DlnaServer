@@ -12,7 +12,7 @@ class HttpServer : public QObject
     Q_OBJECT
 
 public:
-    HttpServer(Logger* log, RequestListModel* requestsModel);
+    HttpServer(Logger* log, RequestListModel* requestsModel, QObject *parent = 0);
     ~HttpServer();
 
     QHostAddress getHost() const { return hostaddress; }

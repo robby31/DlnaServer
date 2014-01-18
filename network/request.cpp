@@ -1152,7 +1152,7 @@ void Request::errorSocket(QAbstractSocket::SocketError error) {
 void Request::closeClient() {
     if (!keepSocketOpened && (transcodeProcess == 0) && (streamContent == 0)) {
         // No transcoding in progress
-        log->TRACE("Close connection");
+        log->TRACE("Close client connection in request");
         if (client != 0) {
             client->close();
         } else {

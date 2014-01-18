@@ -12,7 +12,8 @@ const int UPNPHelper::UPNP_PORT = 1900;
 const QString UPNPHelper::BYEBYE = "ssdp:byebye";
 
 
-UPNPHelper::UPNPHelper(Logger* log, HttpServer *server):
+UPNPHelper::UPNPHelper(Logger* log, HttpServer *server, QObject *parent):
+    QObject(parent),
     log(log),
     server(server)
 {

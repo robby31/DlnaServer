@@ -9,7 +9,8 @@ const QString HttpServer::UUID = "cdc79bcf-6985-4baf-b974-e83846efd903";
 
 const QString HttpServer::SERVERNAME = "QT Media Server";
 
-HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel):
+HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel, QObject *parent):
+    QObject(parent),
     requestsModel(requestsModel),
     log(log),
     serverport(5002),

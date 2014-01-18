@@ -14,7 +14,7 @@ class UPNPHelper : public QObject
     Q_OBJECT
 
 public:
-    UPNPHelper(Logger* log, HttpServer *server);
+    UPNPHelper(Logger* log, HttpServer *server, QObject *parent = 0);
     ~UPNPHelper();
 
 private slots:

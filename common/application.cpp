@@ -7,8 +7,8 @@ Application::Application(QQmlApplicationEngine *engine):
     engine(engine),
     topLevel(engine->rootObjects().value(0))
 {
-    server = new HttpServer(&log, &requestsModel);
-    upnp = new UPNPHelper(&log, server);
+    server = new HttpServer(&log, &requestsModel, this);
+    upnp = new UPNPHelper(&log, server, this);
 
     log.setLevel(INF);
 }
@@ -38,7 +38,4 @@ int Application::load(QUrl url)
 void Application::quit()
 {
     log.TRACE("Quit Application.");
-
-    delete upnp;
-    delete server;
 }
