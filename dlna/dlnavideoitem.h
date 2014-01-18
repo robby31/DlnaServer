@@ -2,8 +2,9 @@
 #define DLNAVIDEOITEM_H
 
 #include "dlnamusictrack.h"
+#include "ffmpegtranscoding.h"
 
-class DlnaVideoItem : public DlnaMusicTrack
+class DlnaVideoItem : public DlnaItem
 {
     Q_OBJECT
 
@@ -26,7 +27,16 @@ public:
     virtual bool toTranscode() const { return true; }
 
     // Returns the process for transcoding
-    virtual QProcess* getTranscodeProcess(HttpRange* range);
+    virtual FfmpegTranscoding* getTranscodeProcess(HttpRange* range);
+
+    // Returns album art in jpeg format
+    virtual QImage getAlbumArt() { return QImage(); }
+
+    // returns the samplerate of the audio track
+    int samplerate();
+
+    //returns the channel number of the audio track
+    int channelCount();
 
     QString resolution();
 

@@ -14,6 +14,7 @@
 #include "dlnarootfolder.h"
 #include "dlnaresource.h"
 #include "httprange.h"
+#include "transcodeprocess.h"
 
 class Request: public QThread
 {
@@ -68,7 +69,7 @@ public:
 
     QString getTextAnswer() const { return stringAnswer.join(""); }
 
-    QString getTranscodeLog() const { return transcodeLog; }
+    QString getTranscodeLog() const { if (transcodeProcess != 0) return transcodeProcess->getTranscodeLog(); else return QString(); }
 
     bool appendHeader(QString headerLine);
 
@@ -100,7 +101,6 @@ private slots:
     // slots for transcoding
     void runTranscoding(DlnaResource* dlna, QStringList answerHeader);
     void receivedTranscodedData();
-    void errorTrancodedData(QProcess::ProcessError error);
     void receivedTranscodingLogMessage();
     void finishedTranscodeData(int exitCode);
 
@@ -142,10 +142,7 @@ private:
 
     QIODevice* streamContent;
 
-    QProcess* transcodeProcess;
-    QElapsedTimer transcodeClock;
-    QString transcodeLog;
-    bool killTranscodeProcess;  // true if the application aborts the transcoding
+    TranscodeProcess* transcodeProcess;
 
     QString status;  // status of the request
     QString networkStatus;  // status of network (interface client)

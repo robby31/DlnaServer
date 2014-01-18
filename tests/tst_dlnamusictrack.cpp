@@ -337,6 +337,11 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     QVERIFY(track.samplerate() == 48000);
     QVERIFY(track.channelCount() == 2);
 
+    QVERIFY(track.getdlnaOrgOpFlags() == "01");
+    QVERIFY(track.getdlnaOrgPN() == "MP3");
+    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
+
     // Test getStream and getTranscodeProcess
     HttpRange* range = 0;
     QVERIFY(track.getStream() == 0);  // returns null because it shall be transcoded
@@ -432,11 +437,6 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     transcodeProcess = 0;
     delete range;
     range = 0;
-
-    QVERIFY(track.getdlnaOrgOpFlags() == "01");
-    QVERIFY(track.getdlnaOrgPN() == "MP3");
-    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
-    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
@@ -506,6 +506,11 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     QVERIFY(track.getLengthInMilliSeconds() == 544626);
     QVERIFY(track.samplerate() == 48000);
     QVERIFY(track.channelCount() == 2);
+
+    QVERIFY(track.getdlnaOrgOpFlags() == "01");
+    QVERIFY(track.getdlnaOrgPN() == "LPCM");
+    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=LPCM;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/L16:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=01");
 
     // Test getStream and getTranscodeProcess
     HttpRange* range = 0;
@@ -602,9 +607,4 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     transcodeProcess = 0;
     delete range;
     range = 0;
-
-    QVERIFY(track.getdlnaOrgOpFlags() == "01");
-    QVERIFY(track.getdlnaOrgPN() == "LPCM");
-    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=LPCM;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
-    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/L16:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=01");
 }

@@ -31,7 +31,6 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     keepSocketOpened(false),
     streamContent(0),
     transcodeProcess(0),
-    killTranscodeProcess(false),
     status("init"),
     networkStatus("connected"),
     rootFolder(rootFolder),
@@ -881,17 +880,12 @@ void Request::runTranscoding(DlnaResource* dlna, QStringList answerHeader) {
             emit answerReady(answerHeader, QByteArray(), dlna->size());
 
             log->INFO(QString("Start transcoding (%1)").arg(dlna->getDisplayName()));
-            transcodeLog.append(transcodeProcess->program()+' ');
-            transcodeLog.append(transcodeProcess->arguments().join(' ')+CRLF);
 
             connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
             connect(transcodeProcess, SIGNAL(readyReadStandardError()), this, SLOT(receivedTranscodingLogMessage()));
-            connect(transcodeProcess, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorTrancodedData(QProcess::ProcessError)));
             connect(transcodeProcess, SIGNAL(finished(int)), this, SLOT(finishedTranscodeData(int)));
 
-            transcodeClock.start();
-
-            transcodeProcess->start();
+            transcodeProcess->launch();
             if (!transcodeProcess->waitForStarted()) {
                 log->ERROR(transcodeProcess->errorString());
                 setStatus("KO");
@@ -916,19 +910,7 @@ void Request::waitTranscodingFinished() {
 
 void Request::receivedTranscodingLogMessage() {
     if (transcodeProcess != 0) {
-        // incoming log message
-        transcodeLog.append(transcodeProcess->readAllStandardError());
         emit dataChanged();
-    }
-}
-
-void Request::errorTrancodedData(QProcess::ProcessError error) {
-    Q_UNUSED(error);
-
-    // trancoding failed
-    if (killTranscodeProcess == false && transcodeProcess != 0) {
-        // an error occured
-        transcodeLog.append(QString("ERROR Transcoding: %1."+CRLF).arg(transcodeProcess->errorString()));
     }
 }
 
@@ -951,13 +933,7 @@ void Request::receivedTranscodedData() {
 
 void Request::finishedTranscodeData(int exitCode) {
     if (transcodeProcess != 0) {
-        transcodeLog.append(QString("TRANSCODE FINISHED with exitCode %1."+CRLF).arg(exitCode));
-        transcodeLog.append(QString("TRANCODING done in %1 ms."+CRLF).arg(transcodeClock.elapsed()));
-
-        transcodeProcess->deleteLater();
-        transcodeProcess = 0;
-
-        if (killTranscodeProcess == false) {
+        if (transcodeProcess->isKilled() == false) {
             if (exitCode != 0) {
                 // trancoding failed
                 setStatus("Transcoding failed.");
@@ -1124,26 +1100,14 @@ void Request::bytesSent(qint64 size) {
 
             if (client->bytesToWrite() > 104857600) {
                 // pause transcoding process
-                QStringList arguments;
-                arguments << "-STOP" << QString("%1").arg(transcodeProcess->pid());
-                QProcess pauseTrancodeProcess;
-                pauseTrancodeProcess.setProgram("kill");
-                pauseTrancodeProcess.setArguments(arguments);
-                pauseTrancodeProcess.start();
-                if (pauseTrancodeProcess.waitForFinished() == false) {
+                if (transcodeProcess->pause() == false) {
                     log->ERROR(QString("Unable to pause transcoding: pid=%1").arg(transcodeProcess->pid()));
                 }
             }
 
             if (client->bytesToWrite() < 10485760) {
                 // restart transcoding process
-                QStringList arguments;
-                arguments << "-CONT" << QString("%1").arg(transcodeProcess->pid());
-                QProcess continueTrancodeProcess;
-                continueTrancodeProcess.setProgram("kill");
-                continueTrancodeProcess.setArguments(arguments);
-                continueTrancodeProcess.start();
-                if (continueTrancodeProcess.waitForFinished() == false) {
+                if (transcodeProcess->resume() == false) {
                     log->ERROR(QString("Unable to restart transcoding: pid=%1").arg(transcodeProcess->pid()));
                 }
             }
@@ -1180,9 +1144,7 @@ void Request::errorSocket(QAbstractSocket::SocketError error) {
     if (error == QAbstractSocket::RemoteHostClosedError) {
         if (transcodeProcess != 0) {
             // network socket close, transcoding is aborted
-            transcodeLog.append(CRLF+"KILL transcoding process."+CRLF);
-            killTranscodeProcess = true;
-            transcodeProcess->kill();
+            transcodeProcess->killProcess();
         }
     }
 }

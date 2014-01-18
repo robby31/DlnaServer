@@ -18,6 +18,8 @@ public slots:
     void receivedTranscodedData();
 
 private Q_SLOTS:
+    void testCase_DlnaVideoItem_AVI_Starwars();
+    void testCase_DlnaVideoItem_MKV_Looper();
     void testCase_DlnaVideoItem_AVI();
     void testCase_DlnaVideoItem_MKV();
 

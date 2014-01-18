@@ -6,6 +6,7 @@
 
 #include "logger.h"
 #include "httprange.h"
+#include "transcodeprocess.h"
 
 /*
  * Represents any item which can be browsed via the UPNP ContentDirectory service.
@@ -17,7 +18,7 @@ class DlnaResource: public QObject
     Q_OBJECT
 
 public:
-    DlnaResource(Logger* log);
+    DlnaResource(Logger* log, QObject *parent = 0);
     ~DlnaResource();
 
     Logger* getLog() const { return log; }
@@ -92,7 +93,7 @@ public:
     virtual QIODevice* getStream() = 0;
 
     // Returns the process for transcoding
-    virtual QProcess* getTranscodeProcess(HttpRange* range) = 0;
+    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range) = 0;
 
     // return true if the track shall be transcoded
     virtual bool toTranscode() const = 0;

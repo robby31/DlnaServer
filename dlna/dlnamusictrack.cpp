@@ -11,22 +11,9 @@ const QString DlnaMusicTrack::AUDIO_LPCM_TYPEMIME = "audio/L16";
 const QString DlnaMusicTrack::AUDIO_TRANSCODE = "audio/transcode";
 
 DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString filename, QString host, int port):
-    DlnaResource(log),
-    fileinfo(QFileInfo(filename)),
-    mediaTag(filename),
-    host(host),
-    port(port),
-    transcodeFormat(MP3)   // default transcode format
-{    
-    setDiscovered(true);
-
-    QMimeDatabase db;
-    mime_type = db.mimeTypeForFile(fileinfo);
-
-    updateDLNAOrgPn();
-}
-
-DlnaMusicTrack::~DlnaMusicTrack() {
+    DlnaItem(log, filename, host, port)
+{
+    setTranscodeFormat(MP3);  // default transcode format
 }
 
 void DlnaMusicTrack::updateDLNAOrgPn() {
@@ -36,23 +23,6 @@ void DlnaMusicTrack::updateDLNAOrgPn() {
         setdlnaOrgPN("AAC_ISO");
     } else if (mimeType().contains("audio/L16")) {
         setdlnaOrgPN("LPCM");
-    }
-}
-
-QString DlnaMusicTrack::getName() const {
-    return fileinfo.fileName();
-}
-
-QString DlnaMusicTrack::getSystemName() const {
-    return fileinfo.filePath();
-}
-
-QString DlnaMusicTrack::getDisplayName() {
-    QString title = mediaTag.getParameter("Title");
-    if (title.isEmpty()) {
-        return fileinfo.completeBaseName();
-    } else {
-        return title;
     }
 }
 
@@ -79,14 +49,6 @@ int DlnaMusicTrack::bitrate() {
     }
 }
 
-long DlnaMusicTrack::size() {
-    if (toTranscode()) {
-        return double(bitrate())*double(getLengthInMilliSeconds())/8000.0;
-    } else {
-        return fileinfo.size();
-    }
-}
-
 int DlnaMusicTrack::channelCount() {
     int audioStreamCount = mediaTag.getAudioStreamCount();
     if (audioStreamCount == 1) {
@@ -101,14 +63,6 @@ int DlnaMusicTrack::samplerate() {
         return mediaTag.getSamplingRate(0);
     }
     return 0;
-}
-
-int DlnaMusicTrack::getLengthInSeconds() {
-    return qRound(double(getLengthInMilliSeconds())/1000.0);
-}
-
-int DlnaMusicTrack::getLengthInMilliSeconds() {
-    return mediaTag.getParameter("Duration").toInt();
 }
 
 /*
@@ -262,14 +216,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
     return xml_obj;
 }
 
-void DlnaMusicTrack::setTranscodeFormat(TranscodeFormatAvailable format) {
-    if (transcodeFormat != format) {
-        transcodeFormat = format;
-        updateDLNAOrgPn();
-    }
-}
-
-QProcess* DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
+MencoderTranscoding *DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
 
     if (!toTranscode()) {
 
@@ -278,70 +225,17 @@ QProcess* DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
 
     } else {
 
-        QString program = "/Users/doudou/workspace/DLNA_server/exe/ffmpeg";
+        MencoderTranscoding* transcodeProcess = new MencoderTranscoding();
 
-        QStringList arguments;
-        if (range != 0 && !range->isNull()) {
-            if (range->getStartByte() > 0) {
-                double start_position = double(range->getStartByte())/double(size())*double(getLengthInSeconds());
-                arguments << "-ss" << QString("%1").arg(long(start_position));
-            }
-        }
+        if (transcodeProcess->initialize(range, fileinfo.filePath(), getLengthInSeconds(), transcodeFormat, bitrate())) {
 
-        arguments << "-i" << fileinfo.absoluteFilePath();
-        arguments << "-map" <<  "0:a";
+            getLog()->DEBUG(QString("Audio Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
+            return transcodeProcess;
 
-        if (transcodeFormat == MP3) {
-            arguments << "-f" << "mp3";
-            arguments << "-map_metadata" << "-1";
-            arguments << "-ab" << QString("%1").arg(bitrate());
-
-        } else if (transcodeFormat == LPCM) {
-            arguments << "-f" << "s16be";
         } else {
-            // invalid transcode format
+
             return 0;
-        }
 
-        if (range != 0 && !range->isNull()) {
-            if (range->getLength() > 0) {
-                if (range->getHighRange() >= 0) {
-                    arguments << "-fs" << QString("%1").arg(range->getLength());
-                }
-            } else {
-                // invalid length
-                arguments << "-fs 0";
-            }
-
-        }
-
-        arguments << "pipe:";
-
-        QProcess* transcodeProcess = new QProcess();
-        transcodeProcess->setProgram(program);
-        transcodeProcess->setArguments(arguments);
-        getLog()->DEBUG(QString("Audio Transcoding process %1 %2").arg(program).arg(arguments.join(' ')));
-
-        return transcodeProcess;
-    }
-}
-
-QIODevice* DlnaMusicTrack::getStream() {
-
-    if (toTranscode()) {
-
-        // DLNA node shall be transcoded
-        return 0;
-
-    } else {
-
-        QFile* tmp = new QFile(fileinfo.absoluteFilePath());
-
-        if (!tmp->open(QIODevice::ReadOnly)) {
-            return 0;
-        }
-        else {
-            return tmp;
         }
     }
 }

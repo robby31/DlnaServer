@@ -10,6 +10,7 @@
 class MetaData : public QObject
 {
     Q_OBJECT
+
 public:
     explicit MetaData(QString filename, QObject *parent = 0);
     ~MetaData();

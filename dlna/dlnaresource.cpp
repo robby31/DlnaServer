@@ -1,6 +1,7 @@
 #include "dlnaresource.h"
 
-DlnaResource::DlnaResource(Logger *log):
+DlnaResource::DlnaResource(Logger *log, QObject *parent):
+    QObject(parent),
     log(log),
     parent(0),
     discovered(false),

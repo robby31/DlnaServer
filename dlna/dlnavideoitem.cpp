@@ -10,10 +10,9 @@ const QString DlnaVideoItem::MATROSKA_TYPEMIME = "video/x-matroska";
 const QString DlnaVideoItem::VIDEO_TRANSCODE = "video/transcode";
 
 DlnaVideoItem::DlnaVideoItem(Logger *log, QString filename, QString host, int port):
-    DlnaMusicTrack(log, filename, host, port)
+    DlnaItem(log, filename, host, port)
 {
-    transcodeFormat = MPEG2_AC3;  // default transcode format
-    updateDLNAOrgPn();
+    setTranscodeFormat(MPEG2_AC3);   // default transcode format
 }
 
 QString DlnaVideoItem::getDisplayName() {
@@ -149,7 +148,7 @@ int DlnaVideoItem::bitrate() {
     }
 }
 
-QProcess* DlnaVideoItem::getTranscodeProcess(HttpRange *range) {
+FfmpegTranscoding *DlnaVideoItem::getTranscodeProcess(HttpRange *range) {
     qWarning() << "MOVIE" << mediaTag.getVideoCodec(0) << mediaTag.getAudioFormat(0);
     if (!toTranscode()) {
 
@@ -158,97 +157,18 @@ QProcess* DlnaVideoItem::getTranscodeProcess(HttpRange *range) {
 
     } else {
 
-        QString program = "/Users/doudou/workspace/DLNA_server/exe/mencoder";
-        QString fontFile = "/Users/doudou/workspace/DLNA_server/exe/LucidaSansRegular.ttf";
+        FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
 
-        QStringList arguments;
-        if (range != 0 && !range->isNull()) {
-            if (range->getStartByte() > 0) {
-                double start_position = double(range->getStartByte())/double(size())*double(getLengthInSeconds());
-                arguments << "-ss" << QString("%1").arg(long(start_position));
-            }
-        }
+        if (transcodeProcess->initialize(range, fileinfo.filePath(), getLengthInSeconds(), transcodeFormat, bitrate(), audioLanguages(), subtitleLanguages(), framerate())) {
 
-        arguments << fileinfo.absoluteFilePath();
-
-        if (transcodeFormat == MPEG2_AC3) {
-
-            // set container format to MPEG
-            arguments << "-of" << "mpeg";
-            arguments << "-mpegopts" << "format=mpeg2:muxrate=500000:vbuf_size=1194:abuf_size=64";
-
-            // set audio options
-            arguments << "-oac" << "lavc";
-            arguments << "-channels" << "6";
-            arguments << "-af" << "lavcresample=48000";
-            arguments << "-srate" << "48000";
-
-            // set video options
-            arguments << "-ovc" <<  "lavc";
-            arguments << "-lavdopts" <<  "fast:debug=0";
-            arguments << "-lavcopts" << "autoaspect=1:vcodec=mpeg2video:acodec=ac3:abitrate=448:keyint=25:vrc_maxrate=9800:vrc_buf_size=1835:vbitrate=5000";
-
-            // set font file
-            arguments << "-font" << fontFile;
-
-            // set subtitles options
-            arguments << "-ass" << "-ass-color" << "ffffff00" << "-ass-border-color" << "00000000" << "-ass-font-scale" << "1.4";
-            arguments << "-ass-force-style" << QString("FontName=%1,Outline=1,Shadow=1,MarginV=10").arg(fontFile);
-
-            // choose audio and subtitle language
-            if (audioLanguages().contains("French")) {
-                arguments << "-aid" << QString("%1").arg(audioLanguages().indexOf("French"));
-            } else {
-                if (subtitleLanguages().contains("French")) {
-                    arguments << "-noautosub" << "-sid" << QString("%1").arg(subtitleLanguages().indexOf("French"));
-                } else if (subtitleLanguages().contains("English")) {
-                    arguments << "-noautosub" << "-sid" << QString("%1").arg(subtitleLanguages().indexOf("English"));
-                }
-            }
-
-            // set frame rate
-            if (!framerate().isEmpty()) {
-                if (framerate() == "23.976") {
-                    arguments << "-ofps" << "24000/1001";
-                } else if (framerate() == "29.97") {
-                    arguments << "-ofps" << "30000/1001";
-                } else {
-                    arguments << "-ofps" << framerate();
-                }
-            }
+            getLog()->DEBUG(QString("Video Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
+            return transcodeProcess;
 
         } else {
-            // invalid transcode format
+
             return 0;
-        }
-
-        if (range != 0 && !range->isNull()) {
-            if (range->getLength() > 0) {
-                if (range->getHighRange() >= 0) {
-                    // calculate the endpos in seconds
-                    double endpos = double(range->getLength())/double(size())*double(getLengthInSeconds());
-                    arguments << "-endpos" << QString("%1").arg(long(endpos));
-                }
-            } else {
-                // invalid length
-                arguments << "-endpos 0";
-            }
 
         }
-
-        // set output = pipe
-        arguments << "-o" << "-";
-
-        // set option on loglevel
-//        arguments << "-really-quiet";
-//        arguments << "-msglevel" << "statusline=2";
-
-        QProcess* transcodeProcess = new QProcess();
-        transcodeProcess->setProgram(program);
-        transcodeProcess->setArguments(arguments);
-        getLog()->DEBUG(QString("Video Transcoding process %1 %2").arg(program).arg(arguments.join(' ')));
-
-        return transcodeProcess;
     }
 }
 
@@ -270,6 +190,22 @@ QString DlnaVideoItem::mimeType() {
 
 void DlnaVideoItem::updateDLNAOrgPn() {
     setdlnaOrgPN("MPEG_PS_PAL");
+}
+
+int DlnaVideoItem::channelCount() {
+    int audioStreamCount = mediaTag.getAudioStreamCount();
+    if (audioStreamCount == 1) {
+        return mediaTag.getChannelCount(0);
+    }
+    return 0;
+}
+
+int DlnaVideoItem::samplerate() {
+    int audioStreamCount = mediaTag.getAudioStreamCount();
+    if (audioStreamCount == 1) {
+        return mediaTag.getSamplingRate(0);
+    }
+    return 0;
 }
 
 QString DlnaVideoItem::resolution() {

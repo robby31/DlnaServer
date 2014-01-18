@@ -13,6 +13,88 @@ void tst_dlnavideoitem::receivedTranscodedData() {
     }
 }
 
+void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars() {
+
+    Logger log;
+    DlnaVideoItem movie(&log, "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi", "host", 600);
+    QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi");
+
+    QVERIFY(movie.framerate() == "23.976");
+
+    HttpRange* range = 0;
+    range = new HttpRange("RANGE: BYTES=0-");
+    range->setSize(movie.size());
+    QIODevice* stream = movie.getStream();
+    QVERIFY(stream == 0);
+//    QVERIFY(stream != 0);
+//    QVERIFY(stream->isOpen() == true);
+//    QVERIFY(stream->size() == 1816807032);
+    delete stream;
+    stream = 0;
+    transcodeProcess = movie.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedSize = 0;
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    qWarning() << "transcoded size" << transcodedSize;
+    QVERIFY(transcodedSize <= movie.size());
+    delete transcodeProcess;
+    transcodeProcess = 0;
+    delete range;
+    range = 0;
+
+    QVERIFY(movie.getdlnaOrgOpFlags() == "01");
+    QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
+    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+    QVERIFY(movie.getProtocolInfo() == "http-get:*:video/avi:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=01");
+
+    QVERIFY(movie.getAlbumArt().isNull() == true);
+    QVERIFY(movie.getByteAlbumArt().isNull() == true);
+}
+
+void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper() {
+
+    Logger log;
+    DlnaVideoItem movie(&log, "/Users/doudou/Movies/Films/Action/Looper.2012.DVDRip.XviD-PTpOWeR.mkv", "host", 600);
+    QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/Action/Looper.2012.DVDRip.XviD-PTpOWeR.mkv");
+
+    QVERIFY(movie.framerate() == "25.000");
+
+    HttpRange* range = 0;
+    range = new HttpRange("RANGE: BYTES=0-");
+    range->setSize(movie.size());
+    QIODevice* stream = movie.getStream();
+    QVERIFY(stream == 0);
+//    QVERIFY(stream != 0);
+//    QVERIFY(stream->isOpen() == true);
+//    QVERIFY(stream->size() == 1816807032);
+    delete stream;
+    stream = 0;
+    transcodeProcess = movie.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess != 0);
+    transcodedSize = 0;
+    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+    transcodeProcess->start();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    qWarning() << "transcoded size" << transcodedSize;
+    QVERIFY(transcodedSize <= movie.size());
+    delete transcodeProcess;
+    transcodeProcess = 0;
+    delete range;
+    range = 0;
+
+    QVERIFY(movie.getdlnaOrgOpFlags() == "01");
+    QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
+    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+    QVERIFY(movie.getProtocolInfo() == "http-get:*:video/x-matroska:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=01");
+
+    QVERIFY(movie.getAlbumArt().isNull() == true);
+    QVERIFY(movie.getByteAlbumArt().isNull() == true);
+}
+
 void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
 
     Logger log;
@@ -69,6 +151,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
     QVERIFY(movie.resolution() == "720x384");
     QVERIFY(movie.audioLanguages() == QStringList() << "");
     QVERIFY(movie.subtitleLanguages() == QStringList());
+    QVERIFY(movie.framerate() == "25.000");
 
     HttpRange* range = 0;
     range = new HttpRange("RANGE: BYTES=0-");
@@ -167,6 +250,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
     QVERIFY(movie.resolution() == "1280x688");
     QVERIFY(movie.audioLanguages() == QStringList() << "");
     QVERIFY(movie.subtitleLanguages() == QStringList() << "English");
+    QVERIFY(movie.framerate() == "23.976");
 
     HttpRange* range = 0;
     QIODevice* stream;
