@@ -24,7 +24,8 @@ public:
     Request(Logger* log,
             QTcpSocket* client, QString uuid,
             QString servername, QString host, int port,
-            DlnaRootFolder *rootFolder);
+            DlnaRootFolder *rootFolder,
+            QObject *parent = 0);
      ~Request();
 
     bool isHttp10() const { return http10; }

@@ -9,7 +9,7 @@ class DlnaVideoItem : public DlnaItem
     Q_OBJECT
 
 public:
-    DlnaVideoItem(Logger* log, QString filename, QString host, int port);
+    DlnaVideoItem(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
 
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName();

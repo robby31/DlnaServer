@@ -1,7 +1,7 @@
 #include "dlnafolder.h"
 
-DlnaFolder::DlnaFolder(Logger* log, QString filename, QString host, int port):
-    DlnaResource(log),
+DlnaFolder::DlnaFolder(Logger* log, QString filename, QString host, int port, QObject *parent):
+    DlnaResource(log, parent),
     fileinfo(QFileInfo(filename)),
     host(host),
     port(port)
@@ -63,12 +63,15 @@ bool DlnaFolder::discoverChildren() {
         QMimeDatabase mimeDb;
 
         if (new_file.isDir()) {
+            // TODO: set the parent of the QObject
             child = new DlnaFolder(getLog(), new_file.absoluteFilePath(), host, port);
         }
         else if (mimeDb.mimeTypeForFile(new_file).name().startsWith("audio/")) {
+            // TODO: set the parent of the QObject
             child = new DlnaMusicTrack(getLog(), new_file.absoluteFilePath(), host, port);
         }
         else if (mimeDb.mimeTypeForFile(new_file).name().startsWith("video/")) {
+            // TODO: set the parent of the QObject
             child = new DlnaVideoItem(getLog(), new_file.absoluteFilePath(), host, port);
         }
         else {

@@ -5,10 +5,12 @@
 
 enum LogLevel {TRA, DEBG, INF, WAR, ERR};
 
-class Logger
+class Logger: public QObject
 {
+    Q_OBJECT
+
 public:
-    Logger();
+    Logger(QObject *parent = 0);
 
     void setLevel(LogLevel level);
 

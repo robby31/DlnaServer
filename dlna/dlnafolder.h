@@ -10,7 +10,7 @@
 class DlnaFolder : public DlnaResource
 {
 public:
-    DlnaFolder(Logger* log, QString filename, QString host, int port);
+    DlnaFolder(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
     ~DlnaFolder();
 
     virtual bool discoverChildren();

@@ -188,7 +188,7 @@ void tst_httprange::testCase_httprange() {
     delete range;
 
     // from 110 to 5000
-    range = new HttpRange("RANGE: BYTES=110-5000");
+    range = new HttpRange("RANGE: BYTES=110-5000", this);
     QVERIFY(range->isNull() == false);
     QVERIFY(range->getUnit() == "BYTES");
     QVERIFY(range->getLowRange() == 110);

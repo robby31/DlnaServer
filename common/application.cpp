@@ -3,7 +3,8 @@
 #include <QtQuick/QQuickView>
 
 
-Application::Application(QQmlApplicationEngine *engine):
+Application::Application(QQmlApplicationEngine *engine, QObject *parent):
+    QObject(parent),
     engine(engine),
     topLevel(engine->rootObjects().value(0))
 {

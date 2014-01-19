@@ -10,8 +10,8 @@ const QString DlnaMusicTrack::AUDIO_OGG_TYPEMIME = "audio/x-ogg";
 const QString DlnaMusicTrack::AUDIO_LPCM_TYPEMIME = "audio/L16";
 const QString DlnaMusicTrack::AUDIO_TRANSCODE = "audio/transcode";
 
-DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString filename, QString host, int port):
-    DlnaItem(log, filename, host, port)
+DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString filename, QString host, int port, QObject *parent):
+    DlnaItem(log, filename, host, port, parent)
 {
     setTranscodeFormat(MP3);  // default transcode format
 }

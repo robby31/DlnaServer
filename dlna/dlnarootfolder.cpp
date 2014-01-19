@@ -1,7 +1,7 @@
 #include "dlnarootfolder.h"
 
-DlnaRootFolder::DlnaRootFolder(Logger* log, QString host, int port):
-    DlnaResource(log),
+DlnaRootFolder::DlnaRootFolder(Logger* log, QString host, int port, QObject *parent):
+    DlnaResource(log, parent),
     host(host),
     port(port)
 {
@@ -33,7 +33,7 @@ QString DlnaRootFolder::getDisplayName() {
 bool DlnaRootFolder::addFolder(QString folder) {
 
     if (QFileInfo(folder).isDir()) {
-        DlnaFolder* child = new DlnaFolder(getLog(), folder, host, port);
+        DlnaFolder* child = new DlnaFolder(getLog(), folder, host, port, this);
         this->addChild(child);
         return true;
     }

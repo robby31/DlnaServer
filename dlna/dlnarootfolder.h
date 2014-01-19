@@ -8,7 +8,7 @@
 class DlnaRootFolder : public DlnaResource
 {
 public:
-    DlnaRootFolder(Logger* log, QString host, int port);
+    DlnaRootFolder(Logger* log, QString host, int port, QObject *parent = 0);
     ~DlnaRootFolder();
 
     virtual bool discoverChildren() { return true; }

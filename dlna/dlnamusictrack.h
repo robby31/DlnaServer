@@ -9,7 +9,7 @@ class DlnaMusicTrack : public DlnaItem
     Q_OBJECT
 
 public:
-    DlnaMusicTrack(Logger* log, QString filename, QString host, int port);
+    DlnaMusicTrack(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
 
     // returns the samplerate of the audio track
     int samplerate();

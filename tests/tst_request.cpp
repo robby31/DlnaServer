@@ -86,10 +86,10 @@ void TestRequest::testCase_request()
 //void TestRequest::testCase_DlnaMusicTrack_MP3_streaming() {
 //    server = new Server();
 
-//    Logger* log = new Logger();
+//    Logger* log = new Logger(this);
 //    Request* request;
 
-//    DlnaRootFolder* rootFolder = new DlnaRootFolder(log, "host", 400);
+//    DlnaRootFolder* rootFolder = new DlnaRootFolder(log, "host", 400, this);
 //    QVERIFY(rootFolder->addFolder("/Users/doudou/workspace/DLNA_server/tests/AUDIO") == true);
 //    rootFolder->getDLNAResources("0$1$3", false, 0, 0, "");
 
@@ -98,7 +98,7 @@ void TestRequest::testCase_request()
 //    QVERIFY(client->waitForConnected(-1) == true);
 
 //    // read all media
-//    request = new Request(log, client, "uuid", "server name", "host", 400, rootFolder);
+//    request = new Request(log, client, "uuid", "server name", "host", 400, rootFolder, this);
 //    request->appendHeader("GET /get/0$1$3/07+On_Off.mp3 HTTP/1.0");
 //    request->appendHeader("RANGE: BYTES=0-");
 //    //request->start();

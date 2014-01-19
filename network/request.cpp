@@ -25,7 +25,8 @@ const QString Request::EVENT_Header = "<e:propertyset xmlns:e=\"urn:schemas-upnp
 const QString Request::EVENT_Prop = "<e:property><%1>%2</%1></e:property>";
 const QString Request::EVENT_FOOTER = "</e:propertyset>";
 
-Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString servername, QString host, int port, DlnaRootFolder *rootFolder):
+Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString servername, QString host, int port, DlnaRootFolder *rootFolder, QObject *parent):
+    QThread(parent),
     log(log),
     client(client),
     keepSocketOpened(false),
@@ -153,7 +154,7 @@ bool Request::appendHeader(QString headerLine)
                 // range already read, ignore it
                 log->ERROR("A range has already been read in the request");
             } else {
-                range = new HttpRange(headerLine);
+                range = new HttpRange(headerLine, this);
                 if (range->isNull()) {
                     // invalid range, ignore it
                     delete range;
@@ -1010,6 +1011,8 @@ void Request::readSocket() {
 void Request::bytesSent(qint64 size) {
     Q_UNUSED(size)
 
+    int maxBufferSize = 0;
+
     if (streamContent != 0) {
 
         if (range != 0 && streamContent->pos() == 0) {
@@ -1032,13 +1035,13 @@ void Request::bytesSent(qint64 size) {
             } else {
                 if (client->bytesToWrite() == 0) {
 
-                    int maxBytesToRead = 1024;
-                    int bytesToRead = maxBytesToRead;
+                    maxBufferSize = 1024;
+                    int bytesToRead = maxBufferSize;
                     if (range != 0 && range->getEndByte() > 0) {
                         if (range->getEndByte() > streamContent->pos()) {
                             bytesToRead = range->getEndByte() - streamContent->pos();
-                            if (bytesToRead > maxBytesToRead) {
-                                bytesToRead = maxBytesToRead;
+                            if (bytesToRead > maxBufferSize) {
+                                bytesToRead = maxBufferSize;
                             }
                         } else {
                             bytesToRead = 0;
@@ -1097,15 +1100,16 @@ void Request::bytesSent(qint64 size) {
 
     if (transcodeProcess != 0) {
         if (client != 0) {
+            maxBufferSize = 1024*1024*100;  // 100 MBytes
 
-            if (client->bytesToWrite() > 104857600) {
+            if (client->bytesToWrite() > maxBufferSize) {
                 // pause transcoding process
                 if (transcodeProcess->pause() == false) {
                     log->ERROR(QString("Unable to pause transcoding: pid=%1").arg(transcodeProcess->pid()));
                 }
             }
 
-            if (client->bytesToWrite() < 10485760) {
+            if (client->bytesToWrite() < (maxBufferSize/10)) {
                 // restart transcoding process
                 if (transcodeProcess->resume() == false) {
                     log->ERROR(QString("Unable to restart transcoding: pid=%1").arg(transcodeProcess->pid()));
@@ -1114,9 +1118,9 @@ void Request::bytesSent(qint64 size) {
         }
     }
 
-    if (client != 0) {
+    if (client != 0 and maxBufferSize != 0) {
         // display the network buffer
-        setNetworkStatus(QString("Buffer (%1)").arg(client->bytesToWrite()));
+        setNetworkStatus(QString("Buffer (%1%)").arg(int(100.0*double(client->bytesToWrite())/double(maxBufferSize))));
     }
 }
 

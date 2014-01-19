@@ -14,7 +14,7 @@ class Application : public QObject
     Q_OBJECT
 
 public:
-    Application(QQmlApplicationEngine *engine);
+    Application(QQmlApplicationEngine *engine, QObject *parent = 0);
 
     // load the qml file describing the HMI
     int load(QUrl url);
