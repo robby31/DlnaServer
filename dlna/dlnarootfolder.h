@@ -41,7 +41,7 @@ public:
     virtual QIODevice* getStream() { return 0; }
 
     // Returns the process for transcoding, no transcoding for a folder.
-    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range) { Q_UNUSED(range); return 0; }
+    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1) { Q_UNUSED(range); Q_UNUSED(timeseek_start); Q_UNUSED(timeseek_end); return 0; }
 
     // return true if the DLNA node shall be transcoded, no transcoding for a folder.
     virtual bool toTranscode() const { return false; }

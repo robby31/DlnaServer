@@ -2,7 +2,7 @@
 #define DLNAMUSICTRACK_H
 
 #include "dlnaitem.h"
-#include "mencodertranscoding.h"
+#include "ffmpegtranscoding.h"
 
 class DlnaMusicTrack : public DlnaItem
 {
@@ -30,7 +30,7 @@ public:
     virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
 
     // Returns the process for transcoding
-    virtual MencoderTranscoding* getTranscodeProcess(HttpRange* range);
+    virtual FfmpegTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1);
 
     // Returns album art in jpeg format
     virtual QImage getAlbumArt();

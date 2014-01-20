@@ -216,7 +216,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
     return xml_obj;
 }
 
-MencoderTranscoding *DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
+FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end) {
 
     if (!toTranscode()) {
 
@@ -225,9 +225,10 @@ MencoderTranscoding *DlnaMusicTrack::getTranscodeProcess(HttpRange *range) {
 
     } else {
 
-        MencoderTranscoding* transcodeProcess = new MencoderTranscoding();
+        // TODO: set the parent of the QObject
+        FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
 
-        if (transcodeProcess->initialize(range, fileinfo.filePath(), getLengthInSeconds(), transcodeFormat, bitrate())) {
+        if (transcodeProcess->initialize(range, timeseek_start, timeseek_end, fileinfo.filePath(), getLengthInSeconds(), transcodeFormat, bitrate())) {
 
             getLog()->DEBUG(QString("Audio Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
             return transcodeProcess;

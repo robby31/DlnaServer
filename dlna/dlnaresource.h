@@ -93,7 +93,7 @@ public:
     virtual QIODevice* getStream() = 0;
 
     // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range) = 0;
+    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1) = 0;
 
     // return true if the track shall be transcoded
     virtual bool toTranscode() const = 0;
