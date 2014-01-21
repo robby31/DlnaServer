@@ -90,9 +90,9 @@ bool MencoderTranscoding::initialize(HttpRange *range, long timeseek_start, long
     // set output = pipe
     arguments << "-o" << "-";
 
-    // set option on loglevel
-//        arguments << "-really-quiet";
-//        arguments << "-msglevel" << "statusline=2";
+    // set option on loglevel (required to use seek time mode, option -ss)
+    arguments << "-really-quiet";
+    arguments << "-msglevel" << "statusline=2";
 
     setProgram(program);
     setArguments(arguments);
