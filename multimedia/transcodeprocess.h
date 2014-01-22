@@ -21,6 +21,7 @@ public:
     bool resume();
 
     QString getTranscodeLog() const { return transcodeLog; }
+    void appendLog(QString msg) { transcodeLog.append(msg+CRLF); }
 
     bool isKilled() const { return killTranscodeProcess; }
     void killProcess();
