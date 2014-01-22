@@ -41,9 +41,11 @@ void TranscodeProcess::launch() {
 }
 
 void TranscodeProcess::killProcess() {
-    transcodeLog.append(CRLF+"KILL transcoding process."+CRLF);
-    killTranscodeProcess = true;
-    kill();
+    if (state() != QProcess::NotRunning) {
+        transcodeLog.append(CRLF+"KILL transcoding process."+CRLF);
+        killTranscodeProcess = true;
+        kill();
+    }
 }
 
 bool TranscodeProcess::pause() {
