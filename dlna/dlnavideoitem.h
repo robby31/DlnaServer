@@ -1,8 +1,8 @@
 #ifndef DLNAVIDEOITEM_H
 #define DLNAVIDEOITEM_H
 
-#include "dlnamusictrack.h"
-#include "ffmpegtranscoding.h"
+#include "dlnaitem.h"
+#include "mencodertranscoding.h"
 
 class DlnaVideoItem : public DlnaItem
 {
@@ -23,11 +23,14 @@ public:
     // returns the bitrate of the movie
     virtual int bitrate();
 
+    // return the size of the audio track
+    virtual long size();
+
     // return true if the track shall be transcoded
     virtual bool toTranscode() const { return true; }
 
     // Returns the process for transcoding
-    virtual FfmpegTranscoding* getTranscodeProcess(HttpRange* range);
+    virtual MencoderTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1);
 
     // Returns album art in jpeg format
     virtual QImage getAlbumArt() { return QImage(); }
