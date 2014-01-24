@@ -81,7 +81,7 @@ signals:
     void answerReady(QStringList headerAnswer, QByteArray contentAnswer = QByteArray(), long totalSize = -1);
 
     // emit signal to start transcoding
-    void startTranscoding(DlnaResource* dlna);
+    void startTranscoding(DlnaItem* dlna);
 
     // emit signal to send data to client
     void DataToSend(char* data);
@@ -94,7 +94,7 @@ private slots:
     void bytesSent(qint64 size);
 
     // slots for transcoding
-    void runTranscoding(DlnaResource* dlna);
+    void runTranscoding(DlnaItem *dlna);
     void receivedTranscodedData();
     void receivedTranscodingLogMessage();
     void finishedTranscodeData(int exitCode);

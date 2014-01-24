@@ -114,7 +114,7 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
     }
 
     if (properties.contains("res@duration")) {
-        res.setAttribute("duration", QString("%1").arg(duration.addMSecs(getLengthInMilliSeconds()).toString("hh:mm:ss,z")));
+        res.setAttribute("duration", QString("%1").arg(duration.addSecs(getLengthInSeconds()).toString("hh:mm:ss")));
     }
 
     if (properties.contains("res@sampleFrequency")) {
@@ -148,7 +148,6 @@ int DlnaVideoItem::bitrate() {
 }
 
 MencoderTranscoding *DlnaVideoItem::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end) {
-    qWarning() << "MOVIE" << mediaTag.getVideoCodec(0) << mediaTag.getAudioFormat(0);
     if (!toTranscode()) {
 
         // use getStream instead of transcoding

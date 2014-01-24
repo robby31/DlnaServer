@@ -5,8 +5,7 @@ DlnaResource::DlnaResource(Logger *log, QObject *parent):
     log(log),
     parent(0),
     discovered(false),
-    updateId(1),
-    dlnaOrgOpFlags("01") // seek by byte (exclusive)
+    updateId(1)
 {
 }
 
@@ -122,32 +121,6 @@ QString DlnaResource::getStringContentDirectory(QStringList properties) {
     strRes.remove(0, 8);
 
     return strRes;
-}
-
-QString DlnaResource::getDlnaContentFeatures() const {
-    QStringList result;
-
-    if (!getdlnaOrgPN().isNull()) {
-        result << QString("DLNA.ORG_PN=%1").arg(getdlnaOrgPN());
-    }
-
-    result << QString("DLNA.ORG_OP=%1").arg(getdlnaOrgOpFlags());
-    result << "DLNA.ORG_CI=0";
-    result << "DLNA.ORG_FLAGS=01700000000000000000000000000000";
-
-    return result.join(";");
-}
-
-QString DlnaResource::getProtocolInfo() {
-    QStringList result;
-
-    if (!getdlnaOrgPN().isNull()) {
-        result << QString("DLNA.ORG_PN=%1").arg(getdlnaOrgPN());
-    }
-
-    result << QString("DLNA.ORG_OP=%1").arg(getdlnaOrgOpFlags());
-
-    return QString("http-get:*:%1:").arg(mimeType()) + result.join(";");
 }
 
 QByteArray DlnaResource::getByteAlbumArt() {

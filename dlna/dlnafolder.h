@@ -32,25 +32,7 @@ public:
     // Returns the XML (DIDL) representation of the DLNA node.
     virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
 
-    // return the size of the DLNA node, no size for a folder.
-    virtual long size() { return -1; }
-
-    // return the length in seconds of the media
-    virtual int getLengthInSeconds() { return -1; }
-    virtual int getLengthInMilliSeconds() { return -1; }
-
-    // Returns an InputStream of this DLNA node, no stream for a folder.
-    virtual QIODevice* getStream() { return 0; }
-
-    // Returns the process for transcoding, no transcoding for a folder.
-    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1) { Q_UNUSED(range); Q_UNUSED(timeseek_start); Q_UNUSED(timeseek_end); return 0; }
-
-    // return true if the DLNA node shall be transcoded, no transcoding for a folder.
-    virtual bool toTranscode() const { return false; }
-
-    // Returns the mimeType for this DLNA node.
-    virtual QString mimeType() { return ""; }
-
+    // Returns album art in jpeg format
     virtual QImage getAlbumArt();
 
 private:

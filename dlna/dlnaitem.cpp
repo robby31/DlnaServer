@@ -6,7 +6,8 @@ DlnaItem::DlnaItem(Logger *log, QString filename, QString host, int port, QObjec
     mediaTag(filename),
     host(host),
     port(port),
-    transcodeFormat(UNKNOWN)  // default transcode format
+    transcodeFormat(UNKNOWN),  // default transcode format
+    dlnaOrgOpFlags("01") // seek by byte (exclusive)
 {
     setDiscovered(true);
 
@@ -77,4 +78,30 @@ QIODevice* DlnaItem::getStream() {
             return tmp;
         }
     }
+}
+
+QString DlnaItem::getProtocolInfo() {
+    QStringList result;
+
+    if (!getdlnaOrgPN().isNull()) {
+        result << QString("DLNA.ORG_PN=%1").arg(getdlnaOrgPN());
+    }
+
+    result << QString("DLNA.ORG_OP=%1").arg(getdlnaOrgOpFlags());
+
+    return QString("http-get:*:%1:").arg(mimeType()) + result.join(";");
+}
+
+QString DlnaItem::getDlnaContentFeatures() const {
+    QStringList result;
+
+    if (!getdlnaOrgPN().isNull()) {
+        result << QString("DLNA.ORG_PN=%1").arg(getdlnaOrgPN());
+    }
+
+    result << QString("DLNA.ORG_OP=%1").arg(getdlnaOrgOpFlags());
+    result << "DLNA.ORG_CI=0";
+    result << "DLNA.ORG_FLAGS=01700000000000000000000000000000";
+
+    return result.join(";");
 }

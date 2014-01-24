@@ -60,7 +60,7 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
 
     connect(this, SIGNAL(answerReady(QStringList,QByteArray,long)), this, SLOT(sendAnswer(QStringList,QByteArray,long)));
 
-    connect(this, SIGNAL(startTranscoding(DlnaResource*)), this, SLOT(runTranscoding(DlnaResource*)));
+    connect(this, SIGNAL(startTranscoding(DlnaItem*)), this, SLOT(runTranscoding(DlnaItem*)));
 
     log->TRACE("Request: receiving a request from " + peerAddress);
 
@@ -645,7 +645,7 @@ void Request::run() {
 
         if (files.size() == 1) {
             // DLNAresource was found.
-            DlnaResource* dlna = files.at(0);
+            DlnaItem* dlna = static_cast<DlnaItem*>(files.at(0));
 
             if (range != 0) {
                 // update range with size of dlna object
@@ -877,7 +877,7 @@ void Request::run() {
     }
 }
 
-void Request::runTranscoding(DlnaResource* dlna) {
+void Request::runTranscoding(DlnaItem* dlna) {
     if (transcodeProcess == 0) {
 
         transcodeProcess = dlna->getTranscodeProcess(range, timeSeekRangeStart, timeSeekRangeEnd);
@@ -1049,7 +1049,7 @@ void Request::bytesSent(qint64 size) {
             } else {
                 if (client->bytesToWrite() == 0) {
 
-                    maxBufferSize = 1024;
+                    maxBufferSize = 32*1024;
                     int bytesToRead = maxBufferSize;
                     if (range != 0 && range->getEndByte() > 0) {
                         if (range->getEndByte() > streamContent->pos()) {

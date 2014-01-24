@@ -82,35 +82,6 @@ public:
     // if returnChildren is true it returns all children of the objectID.
     QList<DlnaResource*> getDLNAResources(QString objectId, bool returnChildren, int start, int count, QString searchStr);
 
-    // return the size of the media
-    virtual long size() = 0;
-
-    // return the length in seconds of the media
-    virtual int getLengthInSeconds() = 0;
-    virtual int getLengthInMilliSeconds() = 0;
-
-    // Returns the stream of this DLNA node.
-    virtual QIODevice* getStream() = 0;
-
-    // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1) = 0;
-
-    // return true if the track shall be transcoded
-    virtual bool toTranscode() const = 0;
-
-    // Returns the mimeType for this DLNA node.
-    virtual QString mimeType() = 0;
-
-    QString getDlnaContentFeatures() const;
-
-    QString getProtocolInfo();
-
-    QString getdlnaOrgOpFlags() const { return dlnaOrgOpFlags; }
-    void setdlnaOrgOpFlags (QString arg) { dlnaOrgOpFlags=arg; }
-
-    QString getdlnaOrgPN() const { return dlnaOrgPN; }
-    void setdlnaOrgPN(QString arg) { dlnaOrgPN=arg; }
-
     // Returns album art in jpeg format
     virtual QImage getAlbumArt() = 0;
     QByteArray getByteAlbumArt();
@@ -134,41 +105,6 @@ private:
     // update counter for this resource.
     // When the resource needs to be refreshed, its counter should be updated.
     int updateId;
-
-    /*
-     * DLNA.ORG_OP flags
-     *
-     * Two booleans (binary digits) which determine what transport operations the renderer is allowed to
-     * perform (in the form of HTTP request headers): the first digit allows the renderer to send
-     * TimeSeekRange.DLNA.ORG (seek by time) headers; the second allows it to send RANGE (seek by byte)
-     * headers.
-     *
-     *    00 - no seeking (or even pausing) allowed
-     *    01 - seek by byte
-     *    10 - seek by time
-     *    11 - seek by both
-     *
-     * See here for an example of how these options can be mapped to keys on the renderer's controller:
-     * http://www.ps3mediaserver.org/forum/viewtopic.php?f=2&t=2908&p=12550#p12550
-     *
-     * Note that seek-by-byte is the preferred option for streamed files [1] and seek-by-time is the
-     * preferred option for transcoded files.
-     *
-     * [1] see http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=15841&p=76201#p76201
-     *
-     * seek-by-time requires a) support by the renderer (via the SeekByTime renderer conf option)
-     * and b) support by the transcode engine.
-     *
-     * The seek-by-byte fallback doesn't work well with transcoded files [2], but it's better than
-     * disabling seeking (and pausing) altogether.
-     *
-     * [2] http://www.ps3mediaserver.org/forum/viewtopic.php?f=6&t=3507&p=16567#p16567 (bottom post)
-     */
-    QString dlnaOrgOpFlags;
-
-    // DLNA.ORG_PN
-    QString dlnaOrgPN;
-
 };
 
 #endif // DLNARESOURCE_H
