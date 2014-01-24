@@ -748,6 +748,7 @@ void Request::run() {
                             log->ERROR("There is no inputstream to return for " + dlna->getDisplayName());
                             setStatus("KO");
                         } else {
+                            // TODO: header shall be sent with the first part of the content in the same time
                             emit answerReady(answerHeader, QByteArray(), dlna->size());
                             log->INFO("Serving " + dlna->getDisplayName());
                         }
