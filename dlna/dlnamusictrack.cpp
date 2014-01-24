@@ -42,7 +42,7 @@ int DlnaMusicTrack::bitrate() {
             }
         } else {
             // invalid transcode format
-            return 0;
+            return -1;
         }
     } else {
         return mediaTag.getParameter("OverallBitRate").toInt();
