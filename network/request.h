@@ -87,7 +87,7 @@ signals:
     void answerReady(QStringList headerAnswer, QByteArray contentAnswer = QByteArray(), long totalSize = -1);
 
     // emit signal to start transcoding
-    void startTranscoding(DlnaResource* dlna, QStringList answerHeader);
+    void startTranscoding(DlnaResource* dlna);
 
     // emit signal to send data to client
     void DataToSend(char* data);
@@ -100,7 +100,7 @@ private slots:
     void bytesSent(qint64 size);
 
     // slots for transcoding
-    void runTranscoding(DlnaResource* dlna, QStringList answerHeader);
+    void runTranscoding(DlnaResource* dlna);
     void receivedTranscodedData();
     void receivedTranscodingLogMessage();
     void finishedTranscodeData(int exitCode);
@@ -160,6 +160,7 @@ private:
     QStringList header;  // header of the request received
 
     QStringList stringAnswer;  // answer sent
+    QStringList headerAnswerToSend;  // answer header prepared but not yet sent
 
     QString method;
 
@@ -176,6 +177,8 @@ private:
 
     // range requested
     HttpRange* range;
+    long timeSeekRangeStart;
+    long timeSeekRangeEnd;
 
     QString transferMode;
     QString contentFeatures;

@@ -44,6 +44,8 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     content(""),
     receivedContentLength(-1),
     range(0),
+    timeSeekRangeStart(-1),
+    timeSeekRangeEnd(-1),
     http10(false)
 {
     // start clock to measure time taken to answer to the request
@@ -58,7 +60,7 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
 
     connect(this, SIGNAL(answerReady(QStringList,QByteArray,long)), this, SLOT(sendAnswer(QStringList,QByteArray,long)));
 
-    connect(this, SIGNAL(startTranscoding(DlnaResource*, QStringList)), this, SLOT(runTranscoding(DlnaResource*, QStringList)));
+    connect(this, SIGNAL(startTranscoding(DlnaResource*)), this, SLOT(runTranscoding(DlnaResource*)));
 
     log->TRACE("Request: receiving a request from " + peerAddress);
 
@@ -118,9 +120,10 @@ bool Request::appendHeader(QString headerLine)
     QRegExp rxIcyMetadata("Icy-Metadata:\\s*(\\w+)", Qt::CaseInsensitive);
     QRegExp rxRange("RANGE: BYTES=(\\d+)-(\\d*)", Qt::CaseInsensitive);
     QRegExp rxContentLength("CONTENT-LENGTH:\\s*(\\d+)", Qt::CaseInsensitive);
-    QRegExp rxTransferMode("transferMode.dlna.org:\\s*(\\w+)", Qt::CaseInsensitive);
-    QRegExp rxContentFeatures("getcontentFeatures.dlna.org:\\s*(\\w+)", Qt::CaseInsensitive);
-    QRegExp rxMediaInfoSec("getMediaInfo.sec:\\s*(\\w+)", Qt::CaseInsensitive);
+    QRegExp rxTransferMode("transferMode\\.dlna\\.org:\\s*(\\w+)", Qt::CaseInsensitive);
+    QRegExp rxContentFeatures("getcontentFeatures\\.dlna\\.org:\\s*(\\w+)", Qt::CaseInsensitive);
+    QRegExp rxMediaInfoSec("getMediaInfo\\.sec:\\s*(\\w+)", Qt::CaseInsensitive);
+    QRegExp rxTimeSeekRange("timeseekrange\\.dlna\\.org:\\s*npt\\s*=\\s*(\\d+)\\-?(\\d*)", Qt::CaseInsensitive);
 
     if (fields.length() > 0) {
 
@@ -205,28 +208,19 @@ bool Request::appendHeader(QString headerLine)
         else if (rxIcyMetadata.indexIn(headerLine) != -1) {
 
         }
+        else if (rxTimeSeekRange.indexIn(headerLine) != -1) {
+            if (!rxTimeSeekRange.cap(1).isEmpty()) {
+                timeSeekRangeStart = rxTimeSeekRange.cap(1).toLong();
+            }
+
+            if (!rxTimeSeekRange.cap(2).isEmpty()) {
+                timeSeekRangeEnd = rxTimeSeekRange.cap(2).toLong();
+            }
+        }
         else {
             log->ERROR("Unknown headerLine in request: <" + headerLine + ">");
             return false;
         }
-
-  /*else if (headerLine.toUpperCase().indexOf("TIMESEEKRANGE.DLNA.ORG: NPT=") > -1) { // firmware 2.50+
-        String timeseek = headerLine.substring(headerLine.toUpperCase().indexOf("TIMESEEKRANGE.DLNA.ORG: NPT=") + 28);
-        if (timeseek.endsWith("-")) {
-            timeseek = timeseek.substring(0, timeseek.length() - 1);
-        } else if (timeseek.indexOf("-") > -1) {
-            timeseek = timeseek.substring(0, timeseek.indexOf("-"));
-        }
-        request.setTimeseek(convertStringToTime(timeseek));
-    } else if (headerLine.toUpperCase().indexOf("TIMESEEKRANGE.DLNA.ORG : NPT=") > -1) { // firmware 2.40
-        String timeseek = headerLine.substring(headerLine.toUpperCase().indexOf("TIMESEEKRANGE.DLNA.ORG : NPT=") + 29);
-        if (timeseek.endsWith("-")) {
-            timeseek = timeseek.substring(0, timeseek.length() - 1);
-        } else if (timeseek.indexOf("-") > -1) {
-            timeseek = timeseek.substring(0, timeseek.indexOf("-"));
-        }
-        request.setTimeseek(convertStringToTime(timeseek));*/
-
     }
     else {
         log->ERROR("Unknown headerLine in request: <" + headerLine + ">");
@@ -662,6 +656,7 @@ void Request::run() {
 
         if (!transferMode.isNull()) {
             answerHeader << "TransferMode.DLNA.ORG: " + transferMode;
+            headerAnswerToSend << "TransferMode.DLNA.ORG: " + transferMode;
         }
 
         if (files.size() == 1) {
@@ -713,23 +708,49 @@ void Request::run() {
             } else {
                 // This is a request for a regular file.
                 answerHeader << "Content-Type: " + dlna->mimeType();
+                headerAnswerToSend << "Content-Type: " + dlna->mimeType();
 
                 if (!contentFeatures.isNull()) {
                     answerHeader << "ContentFeatures.DLNA.ORG: " + dlna->getDlnaContentFeatures();
+                    headerAnswerToSend << "ContentFeatures.DLNA.ORG: " + dlna->getDlnaContentFeatures();
                 }
 
                 if (!mediaInfoSec.isNull()) {
 //                    answerHeader << QString("MediaInfo.sec: SEC_Duration=%1").arg(dlna->getLengthInSeconds());
                 }
 
-                answerHeader << "Accept-Ranges: bytes";
+                if (dlna->getdlnaOrgOpFlags().at(1) == '1') {
+                    answerHeader << "Accept-Ranges: bytes";
+                    headerAnswerToSend << "Accept-Ranges: bytes";
+                }
 
                 answerHeader << "Connection: keep-alive";
+                headerAnswerToSend << "Connection: keep-alive";
 
                 answerHeader << "Server: " + servername;
+                headerAnswerToSend << "Server: " + servername;
+
+                if (timeSeekRangeStart >= 0) {
+                    QTime start_time(0, 0, 0);
+                    start_time = start_time.addSecs(timeSeekRangeStart);
+
+                    QTime end_time(0, 0, 0);
+                    if (timeSeekRangeEnd != -1) {
+                        end_time = end_time.addSecs(timeSeekRangeEnd);
+                    } else {
+                        end_time = end_time.addMSecs(dlna->getLengthInMilliSeconds());
+                    }
+
+                    QTime length_time(0, 0, 0);
+                    length_time = length_time.addMSecs(dlna->getLengthInMilliSeconds());
+
+                    headerAnswerToSend << QString("TimeSeekRange.dlna.org: npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z")).arg(end_time.toString("hh:mm:ss,z")).arg(length_time.toString("hh:mm:ss,z"));
+                    headerAnswerToSend << QString("X-Seek-Range: npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z")).arg(end_time.toString("hh:mm:ss,z")).arg(length_time.toString("hh:mm:ss,z"));
+                    headerAnswerToSend << QString("X-AvailableSeekRange: 1 npt=%1-%2").arg(0).arg(dlna->getLengthInSeconds());
+                }
 
                 if (method == "HEAD") {
-                    emit answerReady(answerHeader, QByteArray(""), dlna->size());
+                    emit answerReady(answerHeader, QByteArray(), dlna->size());
                     setStatus("OK");
 
                 } else {
@@ -748,8 +769,12 @@ void Request::run() {
                         }
 
                     } else {
+                        if (dlna->size() != -1) {
+                            headerAnswerToSend << "Content-Length: " + QString("%1").arg(dlna->size());
+                        }
+
                         // transcode file
-                        emit startTranscoding(dlna, answerHeader);
+                        emit startTranscoding(dlna);
                     }
                 }
             }
@@ -867,21 +892,16 @@ void Request::run() {
     }
 }
 
-void Request::runTranscoding(DlnaResource* dlna, QStringList answerHeader) {
+void Request::runTranscoding(DlnaResource* dlna) {
     if (transcodeProcess == 0) {
 
-        transcodeProcess = dlna->getTranscodeProcess(range);
+        transcodeProcess = dlna->getTranscodeProcess(range, timeSeekRangeStart, timeSeekRangeEnd);
 
         if (transcodeProcess == 0) {
             log->ERROR(QString("Cannot create transcoding process"));
             setStatus("KO");
 
         } else {
-            // send header answer
-            emit answerReady(answerHeader, QByteArray(), dlna->size());
-
-            log->INFO(QString("Start transcoding (%1)").arg(dlna->getDisplayName()));
-
             connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
             connect(transcodeProcess, SIGNAL(readyReadStandardError()), this, SLOT(receivedTranscodingLogMessage()));
             connect(transcodeProcess, SIGNAL(finished(int)), this, SLOT(finishedTranscodeData(int)));
@@ -917,17 +937,26 @@ void Request::receivedTranscodingLogMessage() {
 
 void Request::receivedTranscodedData() {
     if (transcodeProcess != 0) {
-        // read transcoded data
-        QByteArray bytes = transcodeProcess->readAllStandardOutput();
-        if (client != 0) {
-            // send data to client
-            if (client->write(bytes) == -1) {
-                log->ERROR("Unable to send transcoded data to client.");
-            }
+        if (transcodeProcess->bytesAvailable() > 32*1024) {
+            // read transcoded data
+            QByteArray bytes = transcodeProcess->readAllStandardOutput();
 
-            client->flush();
-        } else {
-            log->ERROR("Unable to send transcoded data to client (client deleted).");
+            if (client != 0) {
+                if (!headerAnswerToSend.isEmpty()) {
+                    // send the header
+                    sendAnswer(headerAnswerToSend);
+
+                    // header sent
+                    headerAnswerToSend.clear();
+                }
+
+                // send data to client
+                if (client->write(bytes) == -1) {
+                    log->ERROR("Unable to send transcoded data to client.");
+                }
+            } else {
+                log->ERROR("Unable to send transcoded data to client (client deleted).");
+            }
         }
     }
 }
@@ -945,11 +974,7 @@ void Request::finishedTranscodeData(int exitCode) {
             setStatus("Transcoding aborted.");
         }
 
-        if (client != 0) {
-            closeClient();
-        } else {
-            setDuration(QString("%1 ms").arg(clock.elapsed()));
-        }
+        closeClient();
     }
 }
 
@@ -1130,8 +1155,15 @@ void Request::stateChanged(QAbstractSocket::SocketState state) {
 
         if (streamContent != 0) {
             setStatus("Streaming aborted.");
+            setDuration(QString("%1 ms").arg(clock.elapsed()));
+
             delete streamContent;
             streamContent = 0;
+        }
+
+        if (transcodeProcess != 0) {
+            // network socket disconnected, transcoding is aborted
+            transcodeProcess->killProcess();
         }
 
         client->deleteLater();
@@ -1143,24 +1175,25 @@ void Request::stateChanged(QAbstractSocket::SocketState state) {
 }
 
 void Request::errorSocket(QAbstractSocket::SocketError error) {
-    log->ERROR("error occurs with network interface: " + client->errorString());
 
     if (error == QAbstractSocket::RemoteHostClosedError) {
         if (transcodeProcess != 0) {
             // network socket close, transcoding is aborted
             transcodeProcess->killProcess();
         }
+    } else {
+        log->ERROR("error occurs with network interface: " + client->errorString());
     }
 }
 
 void Request::closeClient() {
-    if (!keepSocketOpened && (transcodeProcess == 0) && (streamContent == 0)) {
+    if (!keepSocketOpened && (transcodeProcess == 0 or transcodeProcess->state() != QProcess::Running) && (streamContent == 0 or streamContent->atEnd())) {
         // No transcoding in progress
         log->TRACE("Close client connection in request");
         if (client != 0) {
             client->close();
         } else {
-            log->ERROR("Unable to close client (client deleted).");
+            log->DEBUG("Unable to close client (client deleted).");
         }
 
         setDuration(QString("%1 ms").arg(clock.elapsed()));
