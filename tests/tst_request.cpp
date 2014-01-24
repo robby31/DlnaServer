@@ -14,8 +14,6 @@ void TestRequest::testCase_request()
     QTcpSocket client;
     Request request(&log, &client, "uuid", "server name", "host IP", 56, &rootFolder);
 
-    QVERIFY(request.getHighRange() == -1);
-    QVERIFY(request.getLowRange() == -1);
     QVERIFY2(request.getHost() == "host IP", "Failure with function getHost()");
     QVERIFY(request.getArgument() == "");
     QVERIFY(request.getMethod() == "");
@@ -43,10 +41,6 @@ void TestRequest::testCase_request()
     QVERIFY(request.getMethod() == "GET");
     QVERIFY(request.getArgument() == "get/0$4$1$9$2$11/thumbnail00001-11+Tout+sauf+toi.mp3");
     QVERIFY(request.isHttp10() == true);
-
-    QVERIFY(request.appendHeader("RANGE: BYTES=10-500") == true);
-    QVERIFY(request.getLowRange() == 10);
-    QVERIFY(request.getHighRange() == 500);
 
     QVERIFY(request.appendHeader("User-Agent: DLNADOC/1.50") == true);
     QVERIFY(request.getUserAgent() == "DLNADOC/1.50");

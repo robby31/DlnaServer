@@ -85,22 +85,6 @@ void Request::setSoapaction(QString soapaction) {
     this->soapaction = soapaction;
 }
 
-long Request::getLowRange() const {
-    if (range == 0) {
-        return -1;
-    } else {
-        return range->getLowRange();
-    }
-}
-
-long Request::getHighRange() const {
-    if (range == 0) {
-        return -1;
-    } else {
-        return range->getHighRange();
-    }
-}
-
 bool Request::appendHeader(QString headerLine)
 {
     // add the line to header list
@@ -1008,7 +992,11 @@ void Request::readSocket() {
                 log->DEBUG("HTTP User-Agent: " + getUserAgent());
             }
 
-            log->DEBUG("HTTP: " + getMethod() + " " + getArgument() + " / " + QString("%1").arg(getLowRange()) + "-" + QString("%1").arg(getHighRange()));
+            if (range != 0) {
+                log->DEBUG("HTTP: " + getMethod() + " " + getArgument() + " / " + QString("%1").arg(range->getLowRange()) + "-" + QString("%1").arg(range->getHighRange()));
+            } else {
+                log->DEBUG("HTTP: " + getMethod() + " " + getArgument() + " / " + QString("No range"));
+            }
 
             if ((getReceivedContentLength() <= 0) || (content.size() == getReceivedContentLength())) {
                 // no content expected to received

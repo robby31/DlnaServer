@@ -48,12 +48,6 @@ public:
 
     QString getDate() const { return date; }
 
-    // When sending an input stream, the highRange indicates which byte to stop at.
-    long getHighRange() const;
-
-    // When sending an input stream, the lowRange indicates which byte to start from.
-    long getLowRange() const;
-
     QString getSoapaction() const { return soapaction; }
 
     QString getTextContent() const { return content; }
