@@ -13,6 +13,10 @@ DlnaVideoItem::DlnaVideoItem(Logger *log, QString filename, QString host, int po
     DlnaItem(log, filename, host, port, parent)
 {
     setTranscodeFormat(MPEG2_AC3);   // default transcode format
+
+    if (toTranscode()) {
+        setdlnaOrgOpFlags("10");         // seek by time (exclusive)
+    }
 }
 
 QString DlnaVideoItem::getDisplayName() {
@@ -100,7 +104,7 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
     res.setAttribute("protocolInfo", getProtocolInfo());
 
     // optional properties
-    if (properties.contains("res@bitrate")) {
+    if (properties.contains("res@bitrate") and bitrate() != -1) {
         // bitrate in bytes/sec
         res.setAttribute("bitrate", QString("%1").arg(qRound(double(bitrate())/8.0)));
     }
@@ -110,7 +114,7 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
     }
 
     if (properties.contains("res@duration")) {
-        res.setAttribute("duration", QString("%1").arg(duration.addSecs(getLengthInSeconds()).toString()));
+        res.setAttribute("duration", QString("%1").arg(duration.addMSecs(getLengthInMilliSeconds()).toString("hh:mm:ss,z")));
     }
 
     if (properties.contains("res@sampleFrequency")) {
@@ -121,7 +125,7 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
         res.setAttribute("nrAudioChannels", QString("%1").arg(channelCount()));
     }
 
-    if (properties.contains("res@size")) {
+    if (properties.contains("res@size") and size() != -1) {
         // size in bytes
         res.setAttribute("size", QString("%1").arg(size()));
     }
@@ -136,19 +140,14 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
 int DlnaVideoItem::bitrate() {
     // returns bitrate in bits/sec
     if (toTranscode()) {
-        if (transcodeFormat == MPEG2_AC3) {
-            return 5448000;
-
-        } else {
-            // invalid transcode format
-            return 0;
-        }
+        // variable bitrate
+        return -1;
     } else {
         return mediaTag.getParameter("OverallBitRate").toInt();
     }
 }
 
-FfmpegTranscoding *DlnaVideoItem::getTranscodeProcess(HttpRange *range) {
+MencoderTranscoding *DlnaVideoItem::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end) {
     qWarning() << "MOVIE" << mediaTag.getVideoCodec(0) << mediaTag.getAudioFormat(0);
     if (!toTranscode()) {
 
@@ -157,9 +156,10 @@ FfmpegTranscoding *DlnaVideoItem::getTranscodeProcess(HttpRange *range) {
 
     } else {
 
-        FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
+        // TODO: set the parent of the QObject
+        MencoderTranscoding* transcodeProcess = new MencoderTranscoding();
 
-        if (transcodeProcess->initialize(range, fileinfo.filePath(), getLengthInSeconds(), transcodeFormat, bitrate(), audioLanguages(), subtitleLanguages(), framerate())) {
+        if (transcodeProcess->initialize(range, timeseek_start, timeseek_end, fileinfo.filePath(), getLengthInSeconds(), transcodeFormat, bitrate(), audioLanguages(), subtitleLanguages(), framerate())) {
 
             getLog()->DEBUG(QString("Video Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
             return transcodeProcess;
@@ -173,18 +173,30 @@ FfmpegTranscoding *DlnaVideoItem::getTranscodeProcess(HttpRange *range) {
 }
 
 QString DlnaVideoItem::mimeType() {
-    QString format = mediaTag.getParameter("Format");
-    if (format == "AVI") {
-        return AVI_TYPEMIME;
+    if (toTranscode()) {
+        if (transcodeFormat == MPEG2_AC3) {
+            return MPEG_TYPEMIME;
 
-    } else if (format == "Matroska") {
-        return MATROSKA_TYPEMIME;
+        } else {
+            getLog()->ERROR("Unable to define mimeType of DlnaVideoItem: " + getSystemName());
 
+            // returns unknown mimeType
+            return UNKNOWN_VIDEO_TYPEMIME;
+        }
     } else {
-        getLog()->ERROR("Unable to define mimeType of DlnaVideoItem: " + format + " " + getSystemName());
+        QString format = mediaTag.getParameter("Format");
+        if (format == "AVI") {
+            return AVI_TYPEMIME;
 
-        // returns unknown mimeType
-        return UNKNOWN_VIDEO_TYPEMIME;
+        } else if (format == "Matroska") {
+            return MATROSKA_TYPEMIME;
+
+        } else {
+            getLog()->ERROR("Unable to define mimeType of DlnaVideoItem: " + format + " " + getSystemName());
+
+            // returns unknown mimeType
+            return UNKNOWN_VIDEO_TYPEMIME;
+        }
     }
 }
 

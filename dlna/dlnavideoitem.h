@@ -23,9 +23,6 @@ public:
     // returns the bitrate of the movie
     virtual int bitrate();
 
-    // return the size of the audio track
-    virtual long size();
-
     // return true if the track shall be transcoded
     virtual bool toTranscode() const { return true; }
 
