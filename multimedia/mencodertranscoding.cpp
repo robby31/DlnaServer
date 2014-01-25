@@ -48,6 +48,7 @@ bool MencoderTranscoding::initialize(HttpRange *range, long timeseek_start, long
         // choose audio and subtitle language
         if (audioLanguages.contains("French")) {
             arguments << "-aid" << QString("%1").arg(audioLanguages.indexOf("French"));
+            arguments << "-nosub";
         } else {
             if (subtitleLanguages.contains("French")) {
                 arguments << "-noautosub" << "-sid" << QString("%1").arg(subtitleLanguages.indexOf("French"));
