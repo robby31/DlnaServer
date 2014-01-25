@@ -14,6 +14,9 @@ public:
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName();
 
+    // Return upnp class
+    virtual QString getUpnpClass() const;
+
     // Returns the XML (DIDL) representation of the DLNA node.
     virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
 

@@ -136,3 +136,21 @@ QByteArray DlnaResource::getByteAlbumArt() {
     }
     return QByteArray();
 }
+
+void DlnaResource::updateXmlContentDirectory(QDomDocument *xml, QDomElement *xml_obj, QStringList properties) {
+    Q_UNUSED(properties);
+
+    xml_obj->setAttribute("id", getResourceId());
+
+    xml_obj->setAttribute("parentID", getParentId());
+
+    QDomElement dcTitle = xml->createElement("dc:title");
+    dcTitle.appendChild(xml->createTextNode(getDisplayName()));
+    xml_obj->appendChild(dcTitle);
+
+    QDomElement upnpClass = xml->createElement("upnp:class");
+    upnpClass.appendChild(xml->createTextNode(getUpnpClass()));
+    xml_obj->appendChild(upnpClass);
+
+    xml_obj->setAttribute("restricted", "true");
+}

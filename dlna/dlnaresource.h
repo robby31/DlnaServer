@@ -46,10 +46,14 @@ public:
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName() = 0;
 
+    // Return upnp class
+    virtual QString getUpnpClass() const = 0;
+
     virtual bool isFolder() const = 0;
 
     // Returns the XML (DIDL) representation of the DLNA node.
     virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) = 0;
+    virtual void updateXmlContentDirectory(QDomDocument *xml, QDomElement* xml_obj, QStringList properties);
     QString getStringContentDirectory(QStringList properties);
 
     // Counter for this resource.

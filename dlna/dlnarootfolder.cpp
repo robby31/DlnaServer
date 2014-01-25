@@ -30,6 +30,10 @@ QString DlnaRootFolder::getDisplayName() {
     return getName();
 }
 
+QString DlnaRootFolder::getUpnpClass() const {
+    return QString("object.container.storageFolder");
+}
+
 bool DlnaRootFolder::addFolder(QString folder) {
 
     if (QFileInfo(folder).isDir()) {
@@ -48,25 +52,9 @@ bool DlnaRootFolder::addFolder(QString folder) {
 * Reference: http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v1-Service.pdf
 */
 QDomElement DlnaRootFolder::getXmlContentDirectory(QDomDocument *xml, QStringList properties) {
-    QDomElement xml_obj;
+    QDomElement xml_obj = xml->createElement("container");
 
-    xml_obj = xml->createElement("container");
-
-    // mandatory properties are: id, parentID, title, class, restricted
-
-    xml_obj.setAttribute("id", getResourceId());
-
-    xml_obj.setAttribute("parentID", getParentId());
-
-    QDomElement dcTitle = xml->createElement("dc:title");
-    dcTitle.appendChild(xml->createTextNode(getDisplayName()));
-    xml_obj.appendChild(dcTitle);
-
-    QDomElement upnpClass = xml->createElement("upnp:class");
-    upnpClass.appendChild(xml->createTextNode("object.container.storageFolder"));
-    xml_obj.appendChild(upnpClass);
-
-    xml_obj.setAttribute("restricted", "true");
+    updateXmlContentDirectory(xml, &xml_obj, properties);
 
     if (properties.contains("@childCount")) {
         xml_obj.setAttribute("childCount", QString("%1").arg(getChildren().size()));

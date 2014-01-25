@@ -16,6 +16,10 @@ DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString filename, QString host, int 
     setTranscodeFormat(MP3);  // default transcode format
 }
 
+QString DlnaMusicTrack::getUpnpClass() const {
+    return QString("object.item.audioItem.musicTrack");
+}
+
 void DlnaMusicTrack::updateDLNAOrgPn() {
     if (mimeType() == "audio/mpeg") {
         setdlnaOrgPN("MP3");
@@ -72,25 +76,9 @@ int DlnaMusicTrack::samplerate() {
 * Reference: http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v1-Service.pdf
 */
 QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringList properties) {
-    QDomElement xml_obj;
+    QDomElement xml_obj = xml->createElement("item");
 
-    xml_obj = xml->createElement("item");
-
-    // mandatory properties are: id, parentID, title, class, restricted
-
-    xml_obj.setAttribute("id", getResourceId());
-
-    xml_obj.setAttribute("parentID", getParentId());
-
-    QDomElement dcTitle = xml->createElement("dc:title");
-    dcTitle.appendChild(xml->createTextNode(getDisplayName()));
-    xml_obj.appendChild(dcTitle);
-
-    QDomElement upnpClass = xml->createElement("upnp:class");
-    upnpClass.appendChild(xml->createTextNode("object.item.audioItem.musicTrack"));
-    xml_obj.appendChild(upnpClass);
-
-    xml_obj.setAttribute("restricted", "true");
+    updateXmlContentDirectory(xml, &xml_obj, properties);
 
     // properties optional of audioItem
 

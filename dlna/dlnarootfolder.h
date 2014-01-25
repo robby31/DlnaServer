@@ -22,6 +22,9 @@ public:
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName();
 
+    // Return upnp class
+    virtual QString getUpnpClass() const;
+
     virtual bool isFolder() const { return true; }
 
     // returns true if the folder is added to Root.

@@ -11,6 +11,9 @@ class DlnaMusicTrack : public DlnaItem
 public:
     DlnaMusicTrack(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
 
+    // Return upnp class
+    virtual QString getUpnpClass() const;
+
     // returns the samplerate of the audio track
     int samplerate();
 

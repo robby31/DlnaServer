@@ -27,6 +27,9 @@ public:
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName();
 
+    // Return upnp class
+    virtual QString getUpnpClass() const;
+
     virtual bool isFolder() const { return true; }
 
     // Returns the XML (DIDL) representation of the DLNA node.

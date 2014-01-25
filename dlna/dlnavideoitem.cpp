@@ -23,6 +23,10 @@ QString DlnaVideoItem::getDisplayName() {
     return fileinfo.completeBaseName();
 }
 
+QString DlnaVideoItem::getUpnpClass() const {
+    return QString("object.item.videoItem");
+}
+
 /*
 * Returns XML (DIDL) representation of the DLNA node. It gives a
 * complete representation of the item, with as many tags as available.
@@ -30,25 +34,9 @@ QString DlnaVideoItem::getDisplayName() {
 * Reference: http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v1-Service.pdf
 */
 QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList properties) {
-    QDomElement xml_obj;
+    QDomElement xml_obj = xml->createElement("item");
 
-    xml_obj = xml->createElement("item");
-
-    // mandatory properties are: id, parentID, title, class, restricted
-
-    xml_obj.setAttribute("id", getResourceId());
-
-    xml_obj.setAttribute("parentID", getParentId());
-
-    QDomElement dcTitle = xml->createElement("dc:title");
-    dcTitle.appendChild(xml->createTextNode(getDisplayName()));
-    xml_obj.appendChild(dcTitle);
-
-    QDomElement upnpClass = xml->createElement("upnp:class");
-    upnpClass.appendChild(xml->createTextNode("object.item.videoItem"));
-    xml_obj.appendChild(upnpClass);
-
-    xml_obj.setAttribute("restricted", "true");
+    updateXmlContentDirectory(xml, &xml_obj, properties);
 
     // properties optional of videoItem
 
