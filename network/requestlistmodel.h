@@ -21,7 +21,7 @@ public:
     Request* addRequest(Logger* log,
                         QTcpSocket* client, QString uuid,
                         QString servername, QString host, int port,
-                        DlnaRootFolder *rootFolder);
+                        DlnaRootFolder* rootFolder, MediaRendererModel *renderersModel);
 
     Q_INVOKABLE QVariant get(int index, int roleIndex);
 

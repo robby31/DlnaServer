@@ -8,7 +8,7 @@ Application::Application(QQmlApplicationEngine *engine, QObject *parent):
     engine(engine),
     topLevel(engine->rootObjects().value(0))
 {
-    server = new HttpServer(&log, &requestsModel, this);
+    server = new HttpServer(&log, &requestsModel, &renderersModel, this);
     upnp = new UPNPHelper(&log, server, this);
 
     log.setLevel(INF);
@@ -17,6 +17,7 @@ Application::Application(QQmlApplicationEngine *engine, QObject *parent):
 int Application::load(QUrl url)
 {
     engine->rootContext()->setContextProperty("requestsModel", &requestsModel);
+    engine->rootContext()->setContextProperty("renderersModel", &renderersModel);
 
     engine->load(url);
 

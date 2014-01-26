@@ -86,7 +86,7 @@ QHash<int, QByteArray> RequestListModel::roleNames() const
     return mRoles;
 }
 
-Request* RequestListModel::addRequest(Logger *log, QTcpSocket *client, QString uuid, QString servername, QString host, int port, DlnaRootFolder *rootFolder)
+Request* RequestListModel::addRequest(Logger *log, QTcpSocket *client, QString uuid, QString servername, QString host, int port, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel)
 {
     Request* request = 0;
 
@@ -95,7 +95,7 @@ Request* RequestListModel::addRequest(Logger *log, QTcpSocket *client, QString u
                               client,
                               uuid, servername,
                               host, port,
-                              rootFolder,
+                              rootFolder, renderersModel,
                               this);
 
         beginInsertRows(QModelIndex(), 0, 0);

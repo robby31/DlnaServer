@@ -9,9 +9,10 @@ const QString HttpServer::UUID = "cdc79bcf-6985-4baf-b974-e83846efd903";
 
 const QString HttpServer::SERVERNAME = "QT Media Server";
 
-HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel, QObject *parent):
+HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel, MediaRendererModel* renderersModel, QObject *parent):
     QObject(parent),
     requestsModel(requestsModel),
+    renderersModel(renderersModel),
     log(log),
     serverport(5002),
     rootFolder(0)
@@ -72,7 +73,7 @@ void HttpServer::acceptConnection()
                                   server.nextPendingConnection(),
                                   UUID, QString("%1 [%2]").arg(SERVERNAME).arg(QHostInfo::localHostName()),
                                   getHost().toString(), getPort(),
-                                  rootFolder);
+                                  rootFolder, renderersModel);
     }
 }
 

@@ -25,7 +25,7 @@ const QString Request::EVENT_Header = "<e:propertyset xmlns:e=\"urn:schemas-upnp
 const QString Request::EVENT_Prop = "<e:property><%1>%2</%1></e:property>";
 const QString Request::EVENT_FOOTER = "</e:propertyset>";
 
-Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString servername, QString host, int port, DlnaRootFolder *rootFolder, QObject *parent):
+Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString servername, QString host, int port, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel, QObject *parent):
     QThread(parent),
     log(log),
     client(client),
@@ -35,6 +35,7 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     status("init"),
     networkStatus("connected"),
     rootFolder(rootFolder),
+    renderersModel(renderersModel),
     uuid(uuid),
     servername(servername),
     host(host),
@@ -61,6 +62,8 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     connect(this, SIGNAL(answerReady(QStringList,QByteArray,long)), this, SLOT(sendAnswer(QStringList,QByteArray,long)));
 
     connect(this, SIGNAL(startTranscoding(DlnaItem*)), this, SLOT(runTranscoding(DlnaItem*)));
+
+    connect(this, SIGNAL(newRenderer(Logger*,QString,int,QString)), this, SLOT(createRenderer(Logger*,QString,int,QString)));
 
     log->TRACE("Request: receiving a request from " + peerAddress);
 
@@ -294,6 +297,11 @@ void Request::run() {
     log->TRACE("ANSWER: " + method + " " + argument);
 
     if ((method == "GET" || method == "HEAD") && (argument == "description/fetch" || argument.endsWith("1.0.xml"))) {
+        if (argument == "description/fetch") {
+            // new renderer is connecting to server
+            emit newRenderer(log, peerAddress, port, userAgentString);
+        }
+
         QStringList answerHeader;
 
         answerHeader << CONTENT_TYPE;
@@ -750,7 +758,7 @@ void Request::run() {
                         } else {
                             // TODO: header shall be sent with the first part of the content in the same time
                             emit answerReady(answerHeader, QByteArray(), dlna->size());
-                            log->INFO("Serving " + dlna->getDisplayName());
+                            renderersModel->serving(peerAddress, dlna->getDisplayName());
                         }
 
                     } else {
@@ -897,7 +905,7 @@ void Request::runTranscoding(DlnaItem* dlna) {
                 setStatus("KO");
             } else {
                 // transcoding process started
-                log->INFO("Serving " + dlna->getDisplayName());
+                renderersModel->serving(peerAddress, dlna->getDisplayName());
                 setStatus("Transcoding");
             }
         }
@@ -1142,6 +1150,8 @@ void Request::stateChanged(QAbstractSocket::SocketState state) {
     if (state == QAbstractSocket::UnconnectedState) {
         setNetworkStatus("disconnected");
 
+        renderersModel->stopServing(peerAddress);
+
         if (streamContent != 0) {
             setStatus("Streaming aborted.");
             setDuration(QString("%1 ms").arg(clock.elapsed()));
@@ -1187,4 +1197,8 @@ void Request::closeClient() {
 
         setDuration(QString("%1 ms").arg(clock.elapsed()));
     }
+}
+
+void Request::createRenderer(Logger *log, QString peerAddress, int port, QString userAgent) {
+    renderersModel->addRenderer(log, peerAddress, port, userAgent);
 }

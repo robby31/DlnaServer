@@ -15,6 +15,7 @@
 #include "dlnaresource.h"
 #include "httprange.h"
 #include "transcodeprocess.h"
+#include "mediarenderermodel.h"
 
 class Request: public QThread
 {
@@ -24,7 +25,7 @@ public:
     Request(Logger* log,
             QTcpSocket* client, QString uuid,
             QString servername, QString host, int port,
-            DlnaRootFolder *rootFolder,
+            DlnaRootFolder *rootFolder, MediaRendererModel* renderersModel,
             QObject *parent = 0);
      ~Request();
 
@@ -86,6 +87,9 @@ signals:
     // emit signal to send data to client
     void DataToSend(char* data);
 
+    // emit signal to add a new renderer
+    void newRenderer(Logger* log, QString peerAddress, int port, QString userAgent);
+
 private slots:
     // slots for incoming data
     void readSocket();
@@ -101,6 +105,9 @@ private slots:
 
     // slot to send data to client
     void sendAnswer(QStringList headerAnswer, QByteArray contentAnswer = QByteArray(), long totalSize = -1);
+
+    // slot to create new renderer
+    void createRenderer(Logger* log, QString peerAddress, int port, QString userAgent);
 
 private:
     static const QString CONTENT_TYPE_UTF8;
@@ -143,7 +150,8 @@ private:
     QString networkStatus;  // status of network (interface client)
     QString duration;  // duration taken to answer to the request
     QString date;      // date when the request has been received
-    DlnaRootFolder *rootFolder;
+    DlnaRootFolder* rootFolder;
+    MediaRendererModel* renderersModel;
 
     QString uuid;
     QString servername;

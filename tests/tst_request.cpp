@@ -11,8 +11,9 @@ void TestRequest::testCase_request()
 {
     Logger log;
     DlnaRootFolder rootFolder(&log, "host", 400);
+    MediaRendererModel renderersModel;
     QTcpSocket client;
-    Request request(&log, &client, "uuid", "server name", "host IP", 56, &rootFolder);
+    Request request(&log, &client, "uuid", "server name", "host IP", 56, &rootFolder, &renderersModel);
 
     QVERIFY2(request.getHost() == "host IP", "Failure with function getHost()");
     QVERIFY(request.getArgument() == "");

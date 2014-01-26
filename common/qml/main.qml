@@ -22,6 +22,11 @@ ApplicationWindow {
             RequestsView { }
         }
 
+        Tab {
+            title: "Renderers"
+            RenderersView { }
+        }
+
     }
 
 }

@@ -13,5 +13,6 @@
         <file>images/icon-256.png</file>
         <file>qml/main.qml</file>
         <file>qml/content/RequestsView.qml</file>
+        <file>qml/content/RenderersView.qml</file>
     </qresource>
 </RCC>

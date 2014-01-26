@@ -5,6 +5,7 @@
 
 #include "logger.h"
 #include "requestlistmodel.h"
+#include "mediarenderermodel.h"
 #include "dlnarootfolder.h"
 
 class HttpServer : public QObject
@@ -12,7 +13,7 @@ class HttpServer : public QObject
     Q_OBJECT
 
 public:
-    HttpServer(Logger* log, RequestListModel* requestsModel, QObject *parent = 0);
+    HttpServer(Logger* log, RequestListModel* requestsModel, MediaRendererModel* renderersModel, QObject *parent = 0);
     ~HttpServer();
 
     QHostAddress getHost() const { return hostaddress; }
@@ -36,6 +37,7 @@ private :
     QTcpServer server;
 
     RequestListModel* requestsModel;
+    MediaRendererModel* renderersModel;
 
     Logger* log;
 

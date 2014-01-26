@@ -8,6 +8,7 @@
 #include "upnphelper.h"
 #include "logger.h"
 #include "requestlistmodel.h"
+#include "mediarenderermodel.h"
 
 class Application : public QObject
 {
@@ -40,6 +41,8 @@ private:
     // list of requests received by server
     RequestListModel requestsModel;
 
+    // list of renderes connected to the server
+    MediaRendererModel renderersModel;
 };
 
 #endif // APPLICATION_H
