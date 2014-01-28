@@ -101,7 +101,7 @@ QDomElement DlnaFolder::getXmlContentDirectory(QDomDocument *xml, QStringList pr
 
     updateXmlContentDirectory(xml, &xml_obj, properties);
 
-    if (properties.contains("@childCount")) {
+    if (properties.contains("*") or properties.contains("@childCount")) {
         xml_obj.setAttribute("childCount", QString("%1").arg(getChildrenFileInfo().size()));
     }
 

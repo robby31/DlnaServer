@@ -82,71 +82,71 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
     // properties optional of audioItem
 
-    if (properties.contains("upnp:genre")) {
+    if (properties.contains("*") or properties.contains("upnp:genre")) {
         QDomElement upnpGenre = xml->createElement("upnp:genre");
         upnpGenre.appendChild(xml->createTextNode(mediaTag.getParameter("Genre")));
         xml_obj.appendChild(upnpGenre);
     }
 
-    if (properties.contains("dc:description")) {
+    if (properties.contains("*") or properties.contains("dc:description")) {
 
     }
 
-    if (properties.contains("upnp:longDescription")) {
+    if (properties.contains("*") or properties.contains("upnp:longDescription")) {
 
     }
 
-    if (properties.contains("dc:publisher")) {
+    if (properties.contains("*") or properties.contains("dc:publisher")) {
 
     }
 
-    if (properties.contains("dc:language")) {
+    if (properties.contains("*") or properties.contains("dc:language")) {
 
     }
 
-    if (properties.contains("dc:relation")) {
+    if (properties.contains("*") or properties.contains("dc:relation")) {
 
     }
 
-    if (properties.contains("dc:rights")) {
+    if (properties.contains("*") or properties.contains("dc:rights")) {
 
     }
 
     // properties optional of musicTrack
 
-    if (properties.contains("upnp:artist")) {
+    if (properties.contains("*") or properties.contains("upnp:artist")) {
         QDomElement upnpArtist = xml->createElement("upnp:artist");
         upnpArtist.appendChild(xml->createTextNode(mediaTag.getParameter("Performer")));
         xml_obj.appendChild(upnpArtist);
     }
 
-    if (properties.contains("upnp:album")) {
+    if (properties.contains("*") or properties.contains("upnp:album")) {
         QDomElement upnpAlbum = xml->createElement("upnp:album");
         upnpAlbum.appendChild(xml->createTextNode(mediaTag.getParameter("Album")));
         xml_obj.appendChild(upnpAlbum);
     }
 
-    if (properties.contains("upnp:originalTrackNumber")) {
+    if (properties.contains("*") or properties.contains("upnp:originalTrackNumber")) {
         QDomElement upnpTrackNumber = xml->createElement("upnp:originalTrackNumber");
         upnpTrackNumber.appendChild(xml->createTextNode(mediaTag.getParameter("Track/Position")));
         xml_obj.appendChild(upnpTrackNumber);
     }
 
-    if (properties.contains("upnp:playlist")) {
+    if (properties.contains("*") or properties.contains("upnp:playlist")) {
 
     }
 
-    if (properties.contains("upnp:storageMedium")) {
+    if (properties.contains("*") or properties.contains("upnp:storageMedium")) {
 
     }
 
-    if (properties.contains("dc:contributor")) {
+    if (properties.contains("*") or properties.contains("dc:contributor")) {
         QDomElement upnpCreator = xml->createElement("dc:contributor");
         upnpCreator.appendChild(xml->createTextNode(mediaTag.getParameter("Performer")));
         xml_obj.appendChild(upnpCreator);
     }
 
-    if (properties.contains("dc:date")) {
+    if (properties.contains("*") or properties.contains("dc:date")) {
         QDomElement upnpDate = xml->createElement("dc:date");
         upnpDate.appendChild(xml->createTextNode(fileinfo.lastModified().toString("yyyy-MM-dd")));
         xml_obj.appendChild(upnpDate);
@@ -154,7 +154,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
     // properties optional of musicAlbum
 
-    if (properties.contains("upnp:albumArtURI")) {
+    if (properties.contains("*") or properties.contains("upnp:albumArtURI")) {
         QImage picture = getAlbumArt();
         if (!picture.isNull()) {
             QDomElement upnpAlbumArtURI = xml->createElement("upnp:albumArtURI");
@@ -175,24 +175,24 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
     res.setAttribute("protocolInfo", getProtocolInfo());
 
     // optional properties
-    if (properties.contains("res@bitrate")) {
+    if (properties.contains("*") or properties.contains("res@bitrate")) {
         // bitrate in bytes/sec
         res.setAttribute("bitrate", QString("%1").arg(qRound(double(bitrate())/8.0)));
     }
 
-    if (properties.contains("res@duration")) {
+    if (properties.contains("*") or properties.contains("res@duration")) {
         res.setAttribute("duration", QString("%1").arg(duration.addSecs(getLengthInSeconds()).toString()));
     }
 
-    if (properties.contains("res@sampleFrequency")) {
+    if (properties.contains("*") or properties.contains("res@sampleFrequency")) {
         res.setAttribute("sampleFrequency", QString("%1").arg(samplerate()));
     }
 
-    if (properties.contains("res@nrAudioChannels")) {
+    if (properties.contains("*") or properties.contains("res@nrAudioChannels")) {
         res.setAttribute("nrAudioChannels", QString("%1").arg(channelCount()));
     }
 
-    if (properties.contains("res@size")) {
+    if (properties.contains("*") or properties.contains("res@size")) {
         // size in bytes
         res.setAttribute("size", QString("%1").arg(size()));
     }

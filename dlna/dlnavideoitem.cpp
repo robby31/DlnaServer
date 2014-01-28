@@ -40,45 +40,45 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
 
     // properties optional of videoItem
 
-    if (properties.contains("upnp:genre")) {
+    if (properties.contains("*") or properties.contains("upnp:genre")) {
         QDomElement upnpGenre = xml->createElement("upnp:genre");
         upnpGenre.appendChild(xml->createTextNode(mediaTag.getParameter("Genre")));
         xml_obj.appendChild(upnpGenre);
     }
 
-    if (properties.contains("upnp:longDescription")) {
+    if (properties.contains("*") or properties.contains("upnp:longDescription")) {
 
     }
 
-    if (properties.contains("upnp:producer")) {
+    if (properties.contains("*") or properties.contains("upnp:producer")) {
 
     }
 
-    if (properties.contains("upnp:rating")) {
+    if (properties.contains("*") or properties.contains("upnp:rating")) {
 
     }
 
-    if (properties.contains("upnp:actor")) {
+    if (properties.contains("*") or properties.contains("upnp:actor")) {
 
     }
 
-    if (properties.contains("upnp:director")) {
+    if (properties.contains("*") or properties.contains("upnp:director")) {
 
     }
 
-    if (properties.contains("dc:description")) {
+    if (properties.contains("*") or properties.contains("dc:description")) {
 
     }
 
-    if (properties.contains("dc:publisher")) {
+    if (properties.contains("*") or properties.contains("dc:publisher")) {
 
     }
 
-    if (properties.contains("dc:language")) {
+    if (properties.contains("*") or properties.contains("dc:language")) {
 
     }
 
-    if (properties.contains("dc:relation")) {
+    if (properties.contains("*") or properties.contains("dc:relation")) {
 
     }
 
@@ -92,28 +92,28 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
     res.setAttribute("protocolInfo", getProtocolInfo());
 
     // optional properties
-    if (properties.contains("res@bitrate") and bitrate() != -1) {
+    if ((properties.contains("*") or properties.contains("res@bitrate")) and bitrate() != -1) {
         // bitrate in bytes/sec
         res.setAttribute("bitrate", QString("%1").arg(qRound(double(bitrate())/8.0)));
     }
 
-    if (properties.contains("res@resolution")) {
+    if (properties.contains("*") or properties.contains("res@resolution")) {
         res.setAttribute("resolution", resolution());
     }
 
-    if (properties.contains("res@duration")) {
+    if (properties.contains("*") or properties.contains("res@duration")) {
         res.setAttribute("duration", QString("%1").arg(duration.addSecs(getLengthInSeconds()).toString("hh:mm:ss")));
     }
 
-    if (properties.contains("res@sampleFrequency")) {
+    if (properties.contains("*") or properties.contains("res@sampleFrequency")) {
         res.setAttribute("sampleFrequency", QString("%1").arg(samplerate()));
     }
 
-    if (properties.contains("res@nrAudioChannels")) {
+    if (properties.contains("*") or properties.contains("res@nrAudioChannels")) {
         res.setAttribute("nrAudioChannels", QString("%1").arg(channelCount()));
     }
 
-    if (properties.contains("res@size") and size() != -1) {
+    if ((properties.contains("*") or properties.contains("res@size")) and size() != -1) {
         // size in bytes
         res.setAttribute("size", QString("%1").arg(size()));
     }
