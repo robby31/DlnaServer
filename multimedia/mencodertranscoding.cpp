@@ -7,8 +7,8 @@ MencoderTranscoding::MencoderTranscoding(QObject *parent) :
 
 bool MencoderTranscoding::initialize(HttpRange *range, long timeseek_start, long timeseek_end, QString filePath, int lengthInSeconds, TranscodeFormatAvailable transcodeFormat, int bitrate, QStringList audioLanguages, QStringList subtitleLanguages, QString framerate) {
 
-    QString program = "/Users/doudou/workspace/DLNA_server/exe/mencoder";
-    QString fontFile = "/Users/doudou/workspace/DLNA_server/exe/LucidaSansRegular.ttf";
+    QString program = "/Users/doudou/workspaceQT/DLNA_server/exe/mencoder";
+    QString fontFile = "/Users/doudou/workspaceQT/DLNA_server/exe/LucidaSansRegular.ttf";
 
     QStringList arguments;
     if (range != 0 && !range->isNull()) {

@@ -6,7 +6,7 @@ FfmpegTranscoding::FfmpegTranscoding(QObject *parent) :
 }
 
 bool FfmpegTranscoding::initialize(HttpRange *range, long timeseek_start, long timeseek_end, QString filePath, int lengthInSeconds, TranscodeFormatAvailable transcodeFormat, int bitrate) {
-    QString program = "/Users/doudou/workspace/DLNA_server/exe/ffmpeg";
+    QString program = "/Users/doudou/workspaceQT/DLNA_server/exe/ffmpeg";
 
     QStringList arguments;
     if (range != 0 && !range->isNull()) {
