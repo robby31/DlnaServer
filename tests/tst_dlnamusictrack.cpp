@@ -16,8 +16,8 @@ void tst_dlnamusictrack::receivedTranscodedData() {
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
 
     Logger log;
-    DlnaMusicTrack track(&log, "/Users/doudou/workspace/DLNA_server/tests/AUDIO/07 On_Off.mp3", "host", 600);
-    QVERIFY(track.getSystemName() == "/Users/doudou/workspace/DLNA_server/tests/AUDIO/07 On_Off.mp3");
+    DlnaMusicTrack track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3", "host", 600);
+    QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3");
 
     QStringList properties;
     properties << "dc:title";
@@ -99,8 +99,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
 
     Logger log;
-    DlnaMusicTrack track(&log, "/Users/doudou/workspace/DLNA_server/tests/AUDIO/16 Funk Ad.mp3", "host", 600);
-    QVERIFY(track.getSystemName() == "/Users/doudou/workspace/DLNA_server/tests/AUDIO/16 Funk Ad.mp3");
+    DlnaMusicTrack track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/16 Funk Ad.mp3", "host", 600);
+    QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/16 Funk Ad.mp3");
 
     QStringList properties;
     properties << "dc:title";
@@ -181,12 +181,97 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
     range = 0;
 }
 
+void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
+
+    Logger log;
+    DlnaMusicTrack track(&log, "/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Mister Mystère/1-02 Phébus.mp3", "host", 600);
+    QVERIFY(track.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Mister Mystère/1-02 Phébus.mp3");
+
+    QStringList properties;
+    properties << "dc:title";
+    properties << "upnp:album";
+    properties << "upnp:artist";
+    properties << "dc:contributor";
+    properties << "upnp:genre";
+    properties << "upnp:originalTrackNumber";
+    properties << "dc:date";
+    properties << "res@size";
+    properties << "res@duration";
+    properties << "res@bitrate";
+
+    QDomDocument xml_res;
+    xml_res.appendChild(track.getXmlContentDirectory(&xml_res, properties));
+    QVERIFY(xml_res.childNodes().size() == 1);
+    QVERIFY(xml_res.elementsByTagName("item").size() == 1);
+    QDomNode node = xml_res.elementsByTagName("item").at(0);
+    QVERIFY(node.attributes().namedItem("id").nodeValue() == "");
+    QVERIFY(node.attributes().namedItem("parentID").nodeValue() == "-1");
+    QVERIFY(node.attributes().namedItem("restricted").nodeValue() == "true");
+    QVERIFY(xml_res.elementsByTagName("dc:title").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("dc:title").at(0).firstChild().nodeValue() == "Phébus");
+    QVERIFY(xml_res.elementsByTagName("upnp:album").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("upnp:album").at(0).firstChild().nodeValue() == "Mister Mystère");
+    QVERIFY(xml_res.elementsByTagName("upnp:artist").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("upnp:artist").at(0).firstChild().nodeValue() == "-M-");
+    QVERIFY(xml_res.elementsByTagName("dc:contributor").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("dc:contributor").at(0).firstChild().nodeValue() == "-M-");
+    QVERIFY(xml_res.elementsByTagName("upnp:genre").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("upnp:genre").at(0).firstChild().nodeValue() == "Rock  Français");
+    QVERIFY(xml_res.elementsByTagName("upnp:originalTrackNumber").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("upnp:originalTrackNumber").at(0).firstChild().nodeValue() == "2");
+    QVERIFY(xml_res.elementsByTagName("dc:date").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("dc:date").at(0).firstChild().nodeValue() == "2013-01-02");
+    QVERIFY(xml_res.elementsByTagName("upnp:class").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("upnp:class").at(0).firstChild().nodeValue() == "object.item.audioItem.musicTrack");
+    QVERIFY(xml_res.elementsByTagName("res").size() == 1);
+    QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
+    QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue() == "http://host:600/get//1-02+Phébus.mp3");
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 5);
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "3841064");
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:02:39");
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "23654");
+    xml_res.clear();
+
+    QVERIFY(track.mimeType() == "audio/mpeg");
+    QVERIFY(track.size() == 3841064);
+    QVERIFY(track.bitrate() == 189234);
+    QVERIFY(track.getLengthInSeconds() == 159);
+    QVERIFY(track.getLengthInMilliSeconds() == 159373);
+    QVERIFY(track.samplerate() == 44100);
+    QVERIFY(track.channelCount() == 2);
+
+    QVERIFY(track.getdlnaOrgOpFlags() == "01");
+    QVERIFY(track.getdlnaOrgPN() == "MP3");
+    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
+
+    QVERIFY(track.getAlbumArt().isNull() == false);
+    QVERIFY(track.getAlbumArt().size().width() == 500);
+    QVERIFY(track.getAlbumArt().size().height() == 500);
+    QVERIFY(track.getByteAlbumArt().size() == 14448);
+
+    QIODevice* stream = track.getStream();
+    QVERIFY(stream->isOpen() == true);
+    QVERIFY(stream->size() == 3841064);
+    delete stream;
+
+    HttpRange* range = 0;
+    range = new HttpRange("RANGE: BYTES=0-");
+    range->setSize(track.size());
+    QProcess* transcodeProcess = track.getTranscodeProcess(range);
+    QVERIFY(transcodeProcess == 0);
+    delete range;
+    range = 0;
+}
+
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
 
     Logger log;
-    DlnaMusicTrack track(&log, "/Users/doudou/workspace/DLNA_server/tests/AUDIO/01 Monde virtuel.m4a", "host", 600);
+    DlnaMusicTrack track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/01 Monde virtuel.m4a", "host", 600);
     track.setTranscodeFormat(MP3);
-    QVERIFY(track.getSystemName() == "/Users/doudou/workspace/DLNA_server/tests/AUDIO/01 Monde virtuel.m4a");
+    QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/01 Monde virtuel.m4a");
 
     QStringList properties;
     properties << "dc:title";
@@ -274,9 +359,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     Logger log;
-    DlnaMusicTrack track(&log, "/Users/doudou/workspace/DLNA_server/tests/AUDIO/test.wav", "host", 600);
+    DlnaMusicTrack track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
     track.setTranscodeFormat(MP3);
-    QVERIFY(track.getSystemName() == "/Users/doudou/workspace/DLNA_server/tests/AUDIO/test.wav");
+    QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
 
     QStringList properties;
     properties << "dc:title";
@@ -441,12 +526,12 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     Logger log;
-    DlnaMusicTrack track(&log, "/Users/doudou/workspace/DLNA_server/tests/AUDIO/test.wav", "host", 600);
+    DlnaMusicTrack track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
     track.setTranscodeFormat(MP3);
-    QVERIFY(track.getSystemName() == "/Users/doudou/workspace/DLNA_server/tests/AUDIO/test.wav");
+    QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
 
     track.setTranscodeFormat(LPCM);
-    QVERIFY(track.getSystemName() == "/Users/doudou/workspace/DLNA_server/tests/AUDIO/test.wav");
+    QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
 
     QStringList properties;
     properties << "dc:title";
