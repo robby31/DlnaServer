@@ -47,7 +47,7 @@ HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel, MediaRender
 
     // initialize the root folder
     rootFolder = new DlnaRootFolder(log, hostaddress.toString(), serverport, this);
-    rootFolder->addFolder("/Users/doudou/workspace/DLNA_server/tests/AUDIO");
+    rootFolder->addFolder("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO");
     rootFolder->addFolder("/Users/doudou/Music/iTunes/iTunes Media/Music");
     rootFolder->addFolder("/Users/doudou/Movies");
 }
