@@ -237,14 +237,14 @@ QString DlnaMusicTrack::mimeType() {
         } else if (transcodeFormat == LPCM) {
             return AUDIO_LPCM_TYPEMIME;
         } else {
-            getLog()->ERROR("Unable to define mimeType of DlnaVideoItem Transcoding: " + getSystemName());
+            getLog()->ERROR("Unable to define mimeType of DlnaMusicTrack Transcoding: " + getSystemName());
         }
     } else {
         QString format = mediaTag.getParameter("Format");
         if (format == "MPEG Audio") {
             return AUDIO_MP3_TYPEMIME;
         } else {
-            getLog()->ERROR("Unable to define mimeType of DlnaVideoItem: " + getSystemName());
+            getLog()->ERROR("Unable to define mimeType of DlnaMusicTrack: " + getSystemName());
         }
     }
 
