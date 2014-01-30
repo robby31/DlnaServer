@@ -4,8 +4,11 @@
 #include <QObject>
 #include <QDebug>
 #include <QStringList>
+#include <QTextCodec>
 
-#include "MediaInfoDLL/MediaInfoDLL.h"
+#include "MediaInfo/MediaInfo.h"
+#define MediaInfoNameSpace MediaInfoLib;
+using namespace MediaInfoNameSpace
 
 class MetaData : public QObject
 {
@@ -17,7 +20,7 @@ public:
 
     bool isOpened() { return flagOpened; }
 
-    QString getParameter(QString parameter, MediaInfoDLL::stream_t StreamKing = MediaInfoDLL::Stream_General, size_t StreamNumber = 0);
+    QString getParameter(QString parameter, stream_t StreamKing = Stream_General, size_t StreamNumber = 0);
 
     int getAudioStreamCount();
     QString getAudioFormat(int audioStreamId);
@@ -33,12 +36,11 @@ public:
     int getSubtitleStreamCount();
     QStringList getSubtitleLanguages();
 
-    MediaInfoDLL::String getCoverData();
+    String getCoverData();
 
 private:
-    MediaInfoDLL::MediaInfo MI;
+    MediaInfo MI;
     bool flagOpened;   // True if the MetaData is correctly opened
-
 };
 
 #endif // METADATA_H
