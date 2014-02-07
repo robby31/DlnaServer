@@ -17,6 +17,9 @@ UPNPHelper::UPNPHelper(Logger* log, HttpServer *server, QObject *parent):
     log(log),
     server(server)
 {
+    udpSocketBroadcast.setSocketOption(QAbstractSocket::MulticastTtlOption, 32);
+
+    udpSocketReceiver.setSocketOption(QAbstractSocket::MulticastTtlOption, 4);
     udpSocketReceiver.bind(QHostAddress::AnyIPv4, UPNP_PORT, QUdpSocket::ShareAddress);
     udpSocketReceiver.joinMulticastGroup(IPV4_UPNP_HOST);
 
