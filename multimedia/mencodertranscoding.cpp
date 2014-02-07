@@ -36,7 +36,7 @@ bool MencoderTranscoding::initialize(HttpRange *range, long timeseek_start, long
 
         // set video options
         arguments << "-ovc" <<  "lavc";
-        arguments << "-lavcopts" << "autoaspect=1:vcodec=mpeg2video:acodec=ac3:abitrate=448:keyint=25:vrc_maxrate=9800:vrc_buf_size=1835:vbitrate=5000";
+        arguments << "-lavcopts" << "autoaspect=1:vcodec=mpeg2video:acodec=ac3:abitrate=448:keyint=25:vrc_maxrate=9800:vrc_buf_size=1835";
 
         // set font file
         arguments << "-font" << fontFile;
