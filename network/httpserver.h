@@ -8,16 +8,16 @@
 #include "mediarenderermodel.h"
 #include "dlnarootfolder.h"
 
-class HttpServer : public QObject
+class HttpServer : public QTcpServer
 {
     Q_OBJECT
 
 public:
     HttpServer(Logger* log, RequestListModel* requestsModel, MediaRendererModel* renderersModel, QObject *parent = 0);
-    ~HttpServer();
+    virtual ~HttpServer();
 
     QHostAddress getHost() const { return hostaddress; }
-    int getPort() const { return server.serverPort(); }
+    int getPort() const { return serverPort(); }
     QString getURL() const;
 
     DlnaRootFolder* getRootFolder() const { return rootFolder; }
@@ -28,14 +28,15 @@ public:
     // Server name
     static const QString SERVERNAME;
 
+protected:
+    virtual void incomingConnection(qintptr socketDescriptor);
+
 private slots :
     void acceptConnection();                                      // new connection detected
     void newConnectionError(QAbstractSocket::SocketError error);  // error during new connection
 
 
 private :
-    QTcpServer server;
-
     RequestListModel* requestsModel;
     MediaRendererModel* renderersModel;
 
@@ -46,6 +47,8 @@ private :
 
     // root folder containing DLNA nodes
     DlnaRootFolder* rootFolder;
+
+    QHash<int, QTcpSocket*> l_socket;
 };
 
 #endif // HTTPSERVER_H
