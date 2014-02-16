@@ -6,7 +6,7 @@
 #include "logger.h"
 #include "requestlistmodel.h"
 #include "mediarenderermodel.h"
-#include "dlnarootfolder.h"
+#include "cached/dlnacachedrootfolder.h"
 
 class HttpServer : public QTcpServer
 {
@@ -21,6 +21,7 @@ public:
     QString getURL() const;
 
     DlnaRootFolder* getRootFolder() const { return rootFolder; }
+    bool addFolder(QString folder);
 
     // identifier of the render (unique)
     static const QString UUID;
@@ -46,7 +47,7 @@ private :
     int serverport;
 
     // root folder containing DLNA nodes
-    DlnaRootFolder* rootFolder;
+    DlnaCachedRootFolder* rootFolder;
 
     QHash<int, QTcpSocket*> l_socket;
 };

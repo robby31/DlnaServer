@@ -2,8 +2,7 @@
 
 DlnaItem::DlnaItem(Logger *log, QString filename, QString host, int port, QObject *parent) :
     DlnaResource(log, parent),
-    fileinfo(QFileInfo(filename)),
-    mediaTag(filename),
+    fileinfo(filename),
     host(host),
     port(port),
     transcodeFormat(UNKNOWN),  // default transcode format
@@ -24,7 +23,7 @@ QString DlnaItem::getSystemName() const {
 }
 
 QString DlnaItem::getDisplayName() {
-    QString title = mediaTag.getParameter("Title");
+    QString title = metaDataTitle();
     if (title.isEmpty()) {
         return fileinfo.completeBaseName();
     } else {
@@ -50,7 +49,7 @@ int DlnaItem::getLengthInSeconds() {
 }
 
 int DlnaItem::getLengthInMilliSeconds() {
-    return mediaTag.getParameter("Duration").toInt();
+    return metaDataDuration();
 }
 
 void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {

@@ -12,16 +12,7 @@ public:
     DlnaMusicTrack(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
 
     // Return upnp class
-    virtual QString getUpnpClass() const;
-
-    // returns the samplerate of the audio track
-    int samplerate();
-
-    //returns the channel number of the audio track
-    int channelCount();
-
-    // return true if the track shall be transcoded
-    virtual bool toTranscode() const { return mime_type.name() != "audio/mpeg"; }
+    virtual QString getUpnpClass() const { return QString("object.item.audioItem.musicTrack"); }
 
     // returns the bitrate of the audio track
     virtual int bitrate();
@@ -31,6 +22,9 @@ public:
 
     // Returns the XML (DIDL) representation of the DLNA node.
     virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
+
+    // return true if the track shall be transcoded
+    virtual bool toTranscode() const { return mime_type.name() != "audio/mpeg"; }
 
     // Returns the process for transcoding
     virtual FfmpegTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1);

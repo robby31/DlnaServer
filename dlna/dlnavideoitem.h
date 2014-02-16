@@ -12,10 +12,10 @@ public:
     DlnaVideoItem(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName();
+    virtual QString getDisplayName() { return fileinfo.completeBaseName(); }
 
     // Return upnp class
-    virtual QString getUpnpClass() const;
+    virtual QString getUpnpClass() const { return QString("object.item.videoItem"); }
 
     // Returns the XML (DIDL) representation of the DLNA node.
     virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
@@ -35,17 +35,11 @@ public:
     // Returns album art in jpeg format
     virtual QImage getAlbumArt() { return QImage(); }
 
-    // returns the samplerate of the audio track
-    int samplerate();
 
-    //returns the channel number of the audio track
-    int channelCount();
-
-    QString resolution();
-
-    QStringList subtitleLanguages();
-    QStringList audioLanguages();
-    QString framerate();
+    virtual QString resolution() = 0;
+    virtual QStringList subtitleLanguages() = 0;
+    virtual QStringList audioLanguages() = 0;
+    virtual QString framerate() = 0;
 
     static const QString UNKNOWN_VIDEO_TYPEMIME;
     static const QString MPEG_TYPEMIME;

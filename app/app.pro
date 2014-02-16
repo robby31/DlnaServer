@@ -1,4 +1,4 @@
-QT += qml quick widgets network xml
+QT += qml quick widgets network xml sql
 
 TARGET = QT_Media_Server
 TEMPLATE = app

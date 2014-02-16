@@ -1,31 +1,9 @@
 #include "dlnafolder.h"
 
 DlnaFolder::DlnaFolder(Logger* log, QString filename, QString host, int port, QObject *parent):
-    DlnaResource(log, parent),
-    fileinfo(QFileInfo(filename)),
-    host(host),
-    port(port)
+    DlnaStorageFolder(log, host, port, parent),
+    fileinfo(filename)
 {
-}
-
-DlnaFolder::~DlnaFolder() {
-
-}
-
-QString DlnaFolder::getName() const {
-    return fileinfo.fileName();
-}
-
-QString DlnaFolder::getSystemName() const {
-    return fileinfo.absoluteFilePath();
-}
-
-QString DlnaFolder::getDisplayName() {
-    return fileinfo.completeBaseName();
-}
-
-QString DlnaFolder::getUpnpClass() const {
-    return QString("object.container.storageFolder");
 }
 
 QList<QFileInfo> DlnaFolder::getChildrenFileInfo() {
@@ -51,7 +29,7 @@ QList<QFileInfo> DlnaFolder::getChildrenFileInfo() {
             l_children.append(new_file);
         }
         else {
-            getLog()->WARNING(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath()));
+            log->WARNING(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath()));
         }
     }
 
@@ -59,7 +37,6 @@ QList<QFileInfo> DlnaFolder::getChildrenFileInfo() {
 }
 
 bool DlnaFolder::discoverChildren() {
-
     foreach (QFileInfo new_file, getChildrenFileInfo()) {
 
         DlnaResource* child = 0;
@@ -68,18 +45,18 @@ bool DlnaFolder::discoverChildren() {
 
         if (new_file.isDir()) {
             // TODO: set the parent of the QObject
-            child = new DlnaFolder(getLog(), new_file.absoluteFilePath(), host, port);
+            child = new DlnaFolder(log, new_file.absoluteFilePath(), host, port);
         }
         else if (mimeDb.mimeTypeForFile(new_file).name().startsWith("audio/")) {
             // TODO: set the parent of the QObject
-            child = new DlnaMusicTrack(getLog(), new_file.absoluteFilePath(), host, port);
+            child = new DlnaMusicTrackFile(log, new_file.absoluteFilePath(), host, port);
         }
         else if (mimeDb.mimeTypeForFile(new_file).name().startsWith("video/")) {
             // TODO: set the parent of the QObject
-            child = new DlnaVideoItem(getLog(), new_file.absoluteFilePath(), host, port);
+            child = new DlnaVideoFile(log, new_file.absoluteFilePath(), host, port);
         }
         else {
-            getLog()->WARNING(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath()));
+            log->WARNING(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath()));
         }
 
         if (child != 0) {
@@ -88,26 +65,4 @@ bool DlnaFolder::discoverChildren() {
     }
 
     return true;
-}
-
-/*
-* Returns XML (DIDL) representation of the DLNA node. It gives a
-* complete representation of the item, with as many tags as available.
-*
-* Reference: http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v1-Service.pdf
-*/
-QDomElement DlnaFolder::getXmlContentDirectory(QDomDocument *xml, QStringList properties) {
-    QDomElement xml_obj = xml->createElement("container");
-
-    updateXmlContentDirectory(xml, &xml_obj, properties);
-
-    if (properties.contains("*") or properties.contains("@childCount")) {
-        xml_obj.setAttribute("childCount", QString("%1").arg(getChildrenFileInfo().size()));
-    }
-
-    return xml_obj;
-}
-
-QImage DlnaFolder::getAlbumArt() {
-    return QImage();
 }

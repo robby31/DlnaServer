@@ -16,7 +16,7 @@ void tst_dlnavideoitem::receivedTranscodedData() {
 void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars() {
 
     Logger log;
-    DlnaVideoItem movie(&log, "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi", "host", 600);
+    DlnaVideoFile movie(&log, "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi", "host", 600);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi");
 
     QVERIFY(movie.framerate() == "23.976");
@@ -51,7 +51,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars() {
 void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper() {
 
     Logger log;
-    DlnaVideoItem movie(&log, "/Users/doudou/Movies/Films/Action/Looper.2012.DVDRip.XviD-PTpOWeR.mkv", "host", 600);
+    DlnaVideoFile movie(&log, "/Users/doudou/Movies/Films/Action/Looper.2012.DVDRip.XviD-PTpOWeR.mkv", "host", 600);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/Action/Looper.2012.DVDRip.XviD-PTpOWeR.mkv");
 
     QVERIFY(movie.framerate() == "25.000");
@@ -86,7 +86,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper() {
 void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
 
     Logger log;
-    DlnaVideoItem movie(&log, "/Users/doudou/Movies/Films/PLAYTIME (restored version 2002)_[Jacques_Tati]-1967.avi", "host", 600);
+    DlnaVideoFile movie(&log, "/Users/doudou/Movies/Films/PLAYTIME (restored version 2002)_[Jacques_Tati]-1967.avi", "host", 600);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/PLAYTIME (restored version 2002)_[Jacques_Tati]-1967.avi");
 
     QStringList properties;
@@ -170,7 +170,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
 void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
 
     Logger log;
-    DlnaVideoItem movie(&log, "/Users/doudou/Movies/Films/District.9.2009.720p.BrRip.YIFY.mkv", "host", 600);
+    DlnaVideoFile movie(&log, "/Users/doudou/Movies/Films/District.9.2009.720p.BrRip.YIFY.mkv", "host", 600);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/District.9.2009.720p.BrRip.YIFY.mkv");
 
     QStringList properties;

@@ -16,7 +16,7 @@ void tst_dlnamusictrack::receivedTranscodedData() {
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
 
     Logger log;
-    DlnaMusicTrack track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3", "host", 600);
+    DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3", "host", 600);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3");
 
     QStringList properties;
@@ -99,7 +99,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
 
     Logger log;
-    DlnaMusicTrack track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/16 Funk Ad.mp3", "host", 600);
+    DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/16 Funk Ad.mp3", "host", 600);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/16 Funk Ad.mp3");
 
     QStringList properties;
@@ -184,7 +184,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
 
     Logger log;
-    DlnaMusicTrack track(&log, "/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Mister Mystère/1-02 Phébus.mp3", "host", 600);
+    DlnaMusicTrackFile track(&log, "/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Mister Mystère/1-02 Phébus.mp3", "host", 600);
     QVERIFY(track.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Mister Mystère/1-02 Phébus.mp3");
 
     QStringList properties;
@@ -269,7 +269,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
 
     Logger log;
-    DlnaMusicTrack track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/01 Monde virtuel.m4a", "host", 600);
+    DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/01 Monde virtuel.m4a", "host", 600);
     track.setTranscodeFormat(MP3);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/01 Monde virtuel.m4a");
 
@@ -359,7 +359,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     Logger log;
-    DlnaMusicTrack track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
+    DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
     track.setTranscodeFormat(MP3);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
 
@@ -526,7 +526,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     Logger log;
-    DlnaMusicTrack track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
+    DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
     track.setTranscodeFormat(MP3);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
 

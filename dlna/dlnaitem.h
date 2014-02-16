@@ -6,7 +6,11 @@
 
 #include "logger.h"
 #include "dlnaresource.h"
+
+#include "transcodeprocess.h"
+
 #include "metadata.h"
+#include <qmimedatabase.h>
 
 class DlnaItem : public DlnaResource
 {
@@ -50,8 +54,24 @@ public:
     int getLengthInSeconds();
     int getLengthInMilliSeconds();
 
+    // returns the samplerate of the audio track
+    virtual int samplerate() = 0;
+
+    //returns the channel number of the audio track
+    virtual int channelCount() = 0;
+
     // returns the bitrate of the audio track
     virtual int bitrate() = 0;
+
+    virtual int metaDataBitrate() = 0;
+    virtual int metaDataDuration() = 0;
+    virtual QString metaDataTitle() = 0;
+    virtual QString metaDataGenre() = 0;
+    virtual QString metaDataPerformer() = 0;
+    virtual QString metaDataAlbum() = 0;
+    virtual QString metaDataTrackPosition() = 0;
+    virtual QString metaDataFormat() = 0;
+    virtual QByteArray metaDataPicture() = 0;
 
     QString getProtocolInfo();
 
@@ -70,9 +90,8 @@ public slots:
 protected:
     QFileInfo fileinfo;
 
-    MetaData mediaTag;
-
     QMimeType mime_type;
+
     QString host;
     int port;
 

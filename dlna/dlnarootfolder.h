@@ -2,43 +2,27 @@
 #define DLNAROOTFOLDER_H
 
 #include <QFileInfo>
-#include "dlnaresource.h"
+#include "dlnastoragefolder.h"
 #include "dlnafolder.h"
 
-class DlnaRootFolder : public DlnaResource
+class DlnaRootFolder : public DlnaStorageFolder
 {
 public:
     DlnaRootFolder(Logger* log, QString host, int port, QObject *parent = 0);
-    ~DlnaRootFolder();
 
     virtual bool discoverChildren() { return true; }
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
-    virtual QString getName() const;
+    virtual QString getName() const { return QString("root"); }
 
-    virtual QString getSystemName() const;
+    virtual QString getSystemName() const { return getName(); }
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName();
-
-    // Return upnp class
-    virtual QString getUpnpClass() const;
-
-    virtual bool isFolder() const { return true; }
+    virtual QString getDisplayName() { return getName(); }
 
     // returns true if the folder is added to Root.
-    bool addFolder(QString folder);
-
-    // Returns the XML (DIDL) representation of the DLNA node.
-    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
-
-    // Returns album art in jpeg format
-    virtual QImage getAlbumArt();
-
-private:
-    QString host;
-    int port;
+    virtual bool addFolder(QString folder);
 };
 
 #endif // DLNAROOTFOLDER_H

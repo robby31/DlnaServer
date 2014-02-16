@@ -19,14 +19,6 @@ DlnaVideoItem::DlnaVideoItem(Logger *log, QString filename, QString host, int po
     }
 }
 
-QString DlnaVideoItem::getDisplayName() {
-    return fileinfo.completeBaseName();
-}
-
-QString DlnaVideoItem::getUpnpClass() const {
-    return QString("object.item.videoItem");
-}
-
 /*
 * Returns XML (DIDL) representation of the DLNA node. It gives a
 * complete representation of the item, with as many tags as available.
@@ -42,7 +34,7 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
 
     if (properties.contains("*") or properties.contains("upnp:genre")) {
         QDomElement upnpGenre = xml->createElement("upnp:genre");
-        upnpGenre.appendChild(xml->createTextNode(mediaTag.getParameter("Genre")));
+        upnpGenre.appendChild(xml->createTextNode(metaDataGenre()));
         xml_obj.appendChild(upnpGenre);
     }
 
@@ -131,7 +123,7 @@ int DlnaVideoItem::bitrate() {
         // variable bitrate
         return -1;
     } else {
-        return mediaTag.getParameter("OverallBitRate").toInt();
+        return metaDataBitrate();
     }
 }
 
@@ -148,7 +140,7 @@ MencoderTranscoding *DlnaVideoItem::getTranscodeProcess(HttpRange *range, long t
 
         if (transcodeProcess->initialize(range, timeseek_start, timeseek_end, fileinfo.filePath(), getLengthInSeconds(), transcodeFormat, bitrate(), audioLanguages(), subtitleLanguages(), framerate())) {
 
-            getLog()->DEBUG(QString("Video Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
+            log->DEBUG(QString("Video Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
             return transcodeProcess;
 
         } else {
@@ -165,13 +157,13 @@ QString DlnaVideoItem::mimeType() {
             return MPEG_TYPEMIME;
 
         } else {
-            getLog()->ERROR("Unable to define mimeType of DlnaVideoItem: " + getSystemName());
+            log->ERROR("Unable to define mimeType of DlnaVideoItem: " + getSystemName());
 
             // returns unknown mimeType
             return UNKNOWN_VIDEO_TYPEMIME;
         }
     } else {
-        QString format = mediaTag.getParameter("Format");
+        QString format = metaDataFormat();
         if (format == "AVI") {
             return AVI_TYPEMIME;
 
@@ -179,7 +171,7 @@ QString DlnaVideoItem::mimeType() {
             return MATROSKA_TYPEMIME;
 
         } else {
-            getLog()->ERROR("Unable to define mimeType of DlnaVideoItem: " + format + " " + getSystemName());
+            log->ERROR("Unable to define mimeType of DlnaVideoItem: " + format + " " + getSystemName());
 
             // returns unknown mimeType
             return UNKNOWN_VIDEO_TYPEMIME;
@@ -189,40 +181,4 @@ QString DlnaVideoItem::mimeType() {
 
 void DlnaVideoItem::updateDLNAOrgPn() {
     setdlnaOrgPN("MPEG_PS_PAL");
-}
-
-int DlnaVideoItem::channelCount() {
-    int audioStreamCount = mediaTag.getAudioStreamCount();
-    if (audioStreamCount == 1) {
-        return mediaTag.getChannelCount(0);
-    }
-    return 0;
-}
-
-int DlnaVideoItem::samplerate() {
-    int audioStreamCount = mediaTag.getAudioStreamCount();
-    if (audioStreamCount == 1) {
-        return mediaTag.getSamplingRate(0);
-    }
-    return 0;
-}
-
-QString DlnaVideoItem::resolution() {
-    int videoStreamCount = mediaTag.getVideoStreamCount();
-    if (videoStreamCount == 1) {
-        return mediaTag.getResolution(0);
-    }
-    return QString();
-}
-
-QStringList DlnaVideoItem::audioLanguages() {
-    return mediaTag.getAudioLanguages();
-}
-
-QStringList DlnaVideoItem::subtitleLanguages() {
-    return mediaTag.getSubtitleLanguages();
-}
-
-QString DlnaVideoItem::framerate() {
-    return mediaTag.getVideoFrameRate();
 }

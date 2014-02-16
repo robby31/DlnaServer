@@ -5,8 +5,6 @@
 #include <QImage>
 
 #include "logger.h"
-#include "httprange.h"
-#include "transcodeprocess.h"
 
 /*
  * Represents any item which can be browsed via the UPNP ContentDirectory service.
@@ -19,9 +17,6 @@ class DlnaResource: public QObject
 
 public:
     DlnaResource(Logger* log, QObject *parent = 0);
-    ~DlnaResource();
-
-    Logger* getLog() const { return log; }
 
     QString getId() const { return id; }
     void setId(QString id) { this->id = id; }
@@ -70,13 +65,16 @@ public:
      * Only useful if this object is of the container type.
      */
     void addChild(DlnaResource *child);
+    void clearChildren() { children.clear(); }
 
     QList<DlnaResource*> getChildren();
+    virtual int getChildrenSize() { return getChildren().size(); }
+
     // Parse children and return true if done
     virtual bool discoverChildren() = 0;
 
     // Returns true when the details of this resource have already been investigated.
-    bool isDiscovered() const;
+    bool isDiscovered() const { return discovered; }
     void setDiscovered(bool discovered) { this->discovered = discovered; }
 
     // Recursive function that searches for a given ID such as 0$2$13.
@@ -90,9 +88,10 @@ public:
     virtual QImage getAlbumArt() = 0;
     QByteArray getByteAlbumArt();
 
-private:
+protected:
     Logger* log;
 
+private:
     // id of this resource based on the index in its parent container.
     // Its main purpose is to be unique in the parent container.
     QString id;

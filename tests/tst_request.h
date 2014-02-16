@@ -10,8 +10,8 @@
 #include "request.h"
 #include "dlnarootfolder.h"
 #include "dlnafolder.h"
-#include "dlnamusictrack.h"
-#include "dlnavideoitem.h"
+#include "dlnamusictrackfile.h"
+#include "dlnavideofile.h"
 
 class TestRequest : public QObject
 {

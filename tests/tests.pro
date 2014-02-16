@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += testlib network widgets qml quick xml
+QT       += testlib network widgets qml quick xml sql
 
 QT       -= gui
 
@@ -20,7 +20,8 @@ SOURCES += tst_request.cpp \
     tst_dlnarootfolder.cpp \
     tst_dlnafolder.cpp \
     tst_dlnamusictrack.cpp \
-    tst_dlnavideoitem.cpp
+    tst_dlnavideoitem.cpp \
+    tst_dlnacachedresources.cpp
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 
@@ -33,4 +34,5 @@ HEADERS += \
     tst_dlnarootfolder.h \
     tst_dlnafolder.h \
     tst_dlnamusictrack.h \
-    tst_dlnavideoitem.h
+    tst_dlnavideoitem.h \
+    tst_dlnacachedresources.h

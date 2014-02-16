@@ -13,11 +13,8 @@ const QString DlnaMusicTrack::AUDIO_TRANSCODE = "audio/transcode";
 DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString filename, QString host, int port, QObject *parent):
     DlnaItem(log, filename, host, port, parent)
 {
-    setTranscodeFormat(MP3);  // default transcode format
-}
-
-QString DlnaMusicTrack::getUpnpClass() const {
-    return QString("object.item.audioItem.musicTrack");
+    transcodeFormat = MP3;   // default transcode format
+    setdlnaOrgPN("MP3");
 }
 
 void DlnaMusicTrack::updateDLNAOrgPn() {
@@ -49,24 +46,8 @@ int DlnaMusicTrack::bitrate() {
             return -1;
         }
     } else {
-        return mediaTag.getParameter("OverallBitRate").toInt();
+        return metaDataBitrate();
     }
-}
-
-int DlnaMusicTrack::channelCount() {
-    int audioStreamCount = mediaTag.getAudioStreamCount();
-    if (audioStreamCount == 1) {
-        return mediaTag.getChannelCount(0);
-    }
-    return 0;
-}
-
-int DlnaMusicTrack::samplerate() {
-    int audioStreamCount = mediaTag.getAudioStreamCount();
-    if (audioStreamCount == 1) {
-        return mediaTag.getSamplingRate(0);
-    }
-    return 0;
 }
 
 /*
@@ -84,7 +65,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
     if (properties.contains("*") or properties.contains("upnp:genre")) {
         QDomElement upnpGenre = xml->createElement("upnp:genre");
-        upnpGenre.appendChild(xml->createTextNode(mediaTag.getParameter("Genre")));
+        upnpGenre.appendChild(xml->createTextNode(metaDataGenre()));
         xml_obj.appendChild(upnpGenre);
     }
 
@@ -116,19 +97,19 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
     if (properties.contains("*") or properties.contains("upnp:artist")) {
         QDomElement upnpArtist = xml->createElement("upnp:artist");
-        upnpArtist.appendChild(xml->createTextNode(mediaTag.getParameter("Performer")));
+        upnpArtist.appendChild(xml->createTextNode(metaDataPerformer()));
         xml_obj.appendChild(upnpArtist);
     }
 
     if (properties.contains("*") or properties.contains("upnp:album")) {
         QDomElement upnpAlbum = xml->createElement("upnp:album");
-        upnpAlbum.appendChild(xml->createTextNode(mediaTag.getParameter("Album")));
+        upnpAlbum.appendChild(xml->createTextNode(metaDataAlbum()));
         xml_obj.appendChild(upnpAlbum);
     }
 
     if (properties.contains("*") or properties.contains("upnp:originalTrackNumber")) {
         QDomElement upnpTrackNumber = xml->createElement("upnp:originalTrackNumber");
-        upnpTrackNumber.appendChild(xml->createTextNode(mediaTag.getParameter("Track/Position")));
+        upnpTrackNumber.appendChild(xml->createTextNode(metaDataTrackPosition()));
         xml_obj.appendChild(upnpTrackNumber);
     }
 
@@ -142,7 +123,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
     if (properties.contains("*") or properties.contains("dc:contributor")) {
         QDomElement upnpCreator = xml->createElement("dc:contributor");
-        upnpCreator.appendChild(xml->createTextNode(mediaTag.getParameter("Performer")));
+        upnpCreator.appendChild(xml->createTextNode(metaDataPerformer()));
         xml_obj.appendChild(upnpCreator);
     }
 
@@ -218,7 +199,7 @@ FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess(HttpRange *range, long ti
 
         if (transcodeProcess->initialize(range, timeseek_start, timeseek_end, fileinfo.filePath(), getLengthInSeconds(), transcodeFormat, bitrate())) {
 
-            getLog()->DEBUG(QString("Audio Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
+            log->DEBUG(QString("Audio Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
             return transcodeProcess;
 
         } else {
@@ -237,14 +218,14 @@ QString DlnaMusicTrack::mimeType() {
         } else if (transcodeFormat == LPCM) {
             return AUDIO_LPCM_TYPEMIME;
         } else {
-            getLog()->ERROR("Unable to define mimeType of DlnaMusicTrack Transcoding: " + getSystemName());
+            log->ERROR("Unable to define mimeType of DlnaMusicTrack Transcoding: " + getSystemName());
         }
     } else {
-        QString format = mediaTag.getParameter("Format");
+        QString format = metaDataFormat();
         if (format == "MPEG Audio") {
             return AUDIO_MP3_TYPEMIME;
         } else {
-            getLog()->ERROR("Unable to define mimeType of DlnaMusicTrack: " + getSystemName());
+            log->ERROR("Unable to define mimeType of DlnaMusicTrack: " + getSystemName());
         }
     }
 
@@ -255,9 +236,8 @@ QString DlnaMusicTrack::mimeType() {
 QImage DlnaMusicTrack::getAlbumArt() {
     QImage picture;
 
-    QByteArray bytesPicture =  QByteArray::fromBase64(mediaTag.getCoverData().c_str());
-
-    if (picture.loadFromData((const uchar *) bytesPicture.data(), bytesPicture.size())) {
+    QByteArray bytesPicture =  metaDataPicture();
+    if (picture.loadFromData(bytesPicture)) {
         return picture;
     }
 

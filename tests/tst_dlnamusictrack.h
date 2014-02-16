@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QtTest>
 
-#include "dlnamusictrack.h"
+#include "dlnamusictrackfile.h"
 #include "request.h"
 
 class tst_dlnamusictrack : public QObject

@@ -4,6 +4,7 @@
 #include "tst_dlnamusictrack.h"
 #include "tst_dlnavideoitem.h"
 #include "tst_request.h"
+#include "tst_dlnacachedresources.h"
 
 int main(int argc, char *argv[])
 {
@@ -24,4 +25,7 @@ int main(int argc, char *argv[])
 
     TestRequest test6;
     QTest::qExec(&test6, argc, argv);
+
+    tst_dlnacachedresources test7;
+    QTest::qExec(&test7, argc, argv);
 }

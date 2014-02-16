@@ -9,9 +9,6 @@ DlnaResource::DlnaResource(Logger *log, QObject *parent):
 {
 }
 
-DlnaResource::~DlnaResource() {
-}
-
 QString DlnaResource::getResourceId() const {
     if (getId().isNull())
     {
@@ -34,7 +31,11 @@ void DlnaResource::addChild(DlnaResource *child) {
         log->ERROR(QString("Child is null, unable to append child to node %1").arg(getName()));
     } else {
         if (!child->getId().isNull()) {
-            log->ERROR(QString("Node %1 already has an ID %2, which is overridden now. The previous parent node was: %3").arg(child->getName()).arg(child->getResourceId()).arg(child->getParent()->getName()));
+            if (child->getParent() != 0) {
+                log->ERROR(QString("Node %1 already has an ID %2, which is overridden now. The previous parent node was: %3").arg(child->getName()).arg(child->getResourceId()).arg(child->getParent()->getName()));
+            } else {
+                log->ERROR(QString("Node %1 already has an ID %2, which is overridden now.").arg(child->getName()).arg(child->getResourceId()));
+            }
         }
 
         child->setId(QString("%1").arg(children.length()+1));
@@ -46,6 +47,7 @@ void DlnaResource::addChild(DlnaResource *child) {
 
 QList<DlnaResource*> DlnaResource::getChildren() {
     if (!isDiscovered()) {
+        clearChildren();
         setDiscovered(discoverChildren());
     }
 
@@ -71,7 +73,6 @@ DlnaResource* DlnaResource::search(QString searchId, QString searchStr) {
 QList<DlnaResource*> DlnaResource::getDLNAResources(QString objectId, bool returnChildren, int start, int count, QString searchStr) {
     QList<DlnaResource*> resources;
     DlnaResource* dlna = search(objectId, searchStr);
-
     if (dlna != 0) {
         if (!returnChildren) {
             resources.append(dlna);
@@ -88,10 +89,6 @@ QList<DlnaResource*> DlnaResource::getDLNAResources(QString objectId, bool retur
     }
 
     return resources;
-}
-
-bool DlnaResource::isDiscovered() const {
-    return discovered;
 }
 
 QString DlnaResource::getParentId() const {
