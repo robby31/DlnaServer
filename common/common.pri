@@ -23,7 +23,8 @@ OTHER_FILES += \
     $$PWD/images/icon-16.png \
     $$PWD/qml/main.qml \
     $$PWD/qml/content/RequestsView.qml \
-    ../common/qml/content/RenderersView.qml
+    ../common/qml/content/RenderersView.qml \
+    ../common/qml/content/SharedView.qml
 
 RESOURCES += \
     $$PWD/ressources.qrc

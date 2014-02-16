@@ -14,5 +14,6 @@
         <file>qml/main.qml</file>
         <file>qml/content/RequestsView.qml</file>
         <file>qml/content/RenderersView.qml</file>
+        <file>qml/content/SharedView.qml</file>
     </qresource>
 </RCC>

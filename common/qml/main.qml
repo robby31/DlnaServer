@@ -12,6 +12,7 @@ ApplicationWindow {
     minimumHeight: 400
     minimumWidth: 570
 
+
     TabView {
         id:frame
         anchors.fill: parent
@@ -25,6 +26,11 @@ ApplicationWindow {
         Tab {
             title: "Renderers"
             RenderersView { }
+        }
+
+        Tab {
+            title: "Shared"
+            SharedView { }
         }
 
     }

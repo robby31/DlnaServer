@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QtQml>
+#include <QtQuick/QQuickView>
+#include <QSettings>
 
 #include "httpserver.h"
 #include "upnphelper.h"
@@ -20,12 +22,17 @@ public:
     // load the qml file describing the HMI
     int load(QUrl url);
 
+    Q_INVOKABLE void addSharedFolder(QUrl folder);
+    Q_INVOKABLE void removeFolder(int index);
+
 public slots:
 
     // quit the application
     void quit();
 
 private:
+    QSettings* settings;
+    QStringList sharedFolderModel;
 
     QQmlApplicationEngine *engine;
 
@@ -43,6 +50,9 @@ private:
 
     // list of renderes connected to the server
     MediaRendererModel renderersModel;
+
+    bool loadSettings();
+    bool saveSettings();
 };
 
 #endif // APPLICATION_H
