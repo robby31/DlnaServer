@@ -14,6 +14,7 @@
 
 class DlnaCachedRootFolder : public DlnaRootFolder
 {
+
 public:
     DlnaCachedRootFolder(Logger* log, QString host, int port, QObject *parent = 0);
 
@@ -23,14 +24,16 @@ public:
     // Parse children and return true if done
     virtual bool discoverChildren();
 
-private:
-    void readDirectory(QDir folder);
+    DlnaRootFolder* getRootFolder() { return &rootFolder; }
 
     void addResource(QFileInfo fileinfo);
 
+private:
     MediaLibrary library;
     QMimeDatabase mimeDb;
     DlnaRootFolder rootFolder;
+
+    void readDirectory(QDir folder);
 };
 
 #endif // DLNACACHEDROOTFOLDER_H

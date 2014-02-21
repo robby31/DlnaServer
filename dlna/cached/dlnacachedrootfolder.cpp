@@ -49,21 +49,35 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
     QString mime_type = mimeDb.mimeTypeForFile(fileinfo).name();
 
     QSqlQuery query = library.getMedia(QString("filename=\"%1\"").arg(fileinfo.absoluteFilePath()));
-    bool new_resource = !query.next();
 
-    if (mime_type.startsWith("audio/")) {
+    if (query.next()) {
+        // media already stored in library
+        int fieldDate = query.record().indexOf("last_modified");
+        QDateTime lastModified = query.value(fieldDate).toDateTime();
 
-        if (new_resource) {
-            // new media
-            qWarning() << "add resource" << mime_type << fileinfo.absoluteFilePath();
+        if (lastModified < fileinfo.lastModified()) {
+            // update the media
+            qWarning() << "update resource" << mime_type << fileinfo.absoluteFilePath() << lastModified << fileinfo.lastModified();
 
-            DlnaMusicTrackFile track(log, fileinfo.absoluteFilePath(), host, port, this);
+            // TODO: update database
+        }
 
-            QHash<QString, QVariant> data;
+    } else {
+        // new media
 
-            data.insert("filename", fileinfo.absoluteFilePath());
-            data.insert("type", mime_type.split("/").at(0));
-            data.insert("mime_type", mime_type);
+        QHash<QString, QVariant> data;
+
+        data.insert("filename", fileinfo.absoluteFilePath());
+        data.insert("type", mime_type.split("/").at(0));
+        data.insert("mime_type", mime_type);
+        data.insert("last_modified", fileinfo.lastModified());
+
+        if (mime_type.startsWith("audio/")) {
+
+            log->DEBUG("add resource " + mime_type + " " + fileinfo.absoluteFilePath());
+
+            DlnaMusicTrackFile track(log, fileinfo.absoluteFilePath(), host, port);
+
             data.insert("title", track.metaDataTitle());
             data.insert("album", track.metaDataAlbum());
             data.insert("artist", track.metaDataPerformer());
@@ -79,23 +93,13 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
             if (!library.insert(data)) {
                 log->ERROR(QString("unable to add resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type));
             }
-        } else {
-            // update the media
-        }
 
-    } else if (mime_type.startsWith("video/")) {
+        } else if (mime_type.startsWith("video/")) {
 
-        if (new_resource) {
-            // new media
-            qWarning() << "add resource" << mime_type << fileinfo.absoluteFilePath();
+            log->DEBUG("add resource " + mime_type + " " + fileinfo.absoluteFilePath());
 
-            DlnaVideoFile movie(log, fileinfo.absoluteFilePath(), host, port, this);
+            DlnaVideoFile movie(log, fileinfo.absoluteFilePath(), host, port);
 
-            QHash<QString, QVariant> data;
-
-            data.insert("filename", fileinfo.absoluteFilePath());
-            data.insert("type", mime_type.split("/").at(0));
-            data.insert("mime_type", mime_type);
             data.insert("duration", movie.metaDataDuration());
             data.insert("resolution", movie.resolution());
             data.insert("samplerate", movie.samplerate());
@@ -110,7 +114,7 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
                 log->ERROR(QString("unable to add resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type));
             }
         } else {
-            // update the media
+            log->DEBUG("resource not added to library: " + mime_type + ", " + fileinfo.absoluteFilePath());
         }
     }
 }

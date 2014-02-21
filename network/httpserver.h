@@ -7,6 +7,7 @@
 #include "requestlistmodel.h"
 #include "mediarenderermodel.h"
 #include "cached/dlnacachedrootfolder.h"
+#include "cached/batchedrootfolder.h"
 
 class HttpServer : public QTcpServer
 {
@@ -29,6 +30,10 @@ public:
     // Server name
     static const QString SERVERNAME;
 
+signals:
+    void batched_addFolder(QString folder);
+    void progressUpdate(int value);
+
 protected:
     virtual void incomingConnection(qintptr socketDescriptor);
 
@@ -48,6 +53,8 @@ private :
 
     // root folder containing DLNA nodes
     DlnaCachedRootFolder* rootFolder;
+    BatchedRootFolder* batch;
+    QThread* batchThread;
 
     QHash<int, QTcpSocket*> l_socket;
 };

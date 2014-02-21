@@ -19,6 +19,9 @@ public:
     // Returns album art in jpeg format
     virtual QImage getAlbumArt() { return QImage(); }
 
+    QString getHost() { return host; }
+    int getPort() { return port; }
+
 protected:
     QString host;
     int port;

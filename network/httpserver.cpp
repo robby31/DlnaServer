@@ -47,13 +47,25 @@ HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel, MediaRender
 
     // initialize the root folder
     rootFolder = new DlnaCachedRootFolder(log, hostaddress.toString(), serverport, this);
+
+    batchThread = new QThread(this);
+    batch = new BatchedRootFolder(rootFolder);
+    batch->moveToThread(batchThread);
+    connect(batchThread, SIGNAL(finished()), batch, SLOT(deleteLater()));
+    connect(this, SIGNAL(batched_addFolder(QString)), batch, SLOT(addFolder(QString)));
+    connect(batch, SIGNAL(progress(int)), this, SIGNAL(progressUpdate(int)));
+    batchThread->start();
 }
 
 HttpServer::~HttpServer()
 {
+    // stop batch processes
+    batchThread->quit();
+    batch->quit();
+    batchThread->wait();
+
     log->TRACE("Close HTTP server.");
     close();
-    delete rootFolder;
 }
 
 QString HttpServer::getURL() const {
@@ -93,5 +105,10 @@ void HttpServer::newConnectionError(QAbstractSocket::SocketError error) {
 }
 
 bool HttpServer::addFolder(QString folder) {
-    return rootFolder->addFolder(folder);
+    if (QFileInfo(folder).isDir()) {
+        emit batched_addFolder(folder);
+        rootFolder->getRootFolder()->addFolder(folder);
+        return true;
+    }
+    return false;
 }

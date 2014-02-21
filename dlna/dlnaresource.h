@@ -88,6 +88,8 @@ public:
     virtual QImage getAlbumArt() = 0;
     QByteArray getByteAlbumArt();
 
+    Logger* getLog() { return log; }
+
 protected:
     Logger* log;
 
