@@ -15,7 +15,7 @@ class UPNPHelper : public QObject
 
 public:
     UPNPHelper(Logger* log, HttpServer *server, QObject *parent = 0);
-    ~UPNPHelper();
+    virtual ~UPNPHelper();
 
 private slots:
     // Send Alive for broadcasting
