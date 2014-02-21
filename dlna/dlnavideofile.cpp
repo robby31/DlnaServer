@@ -40,7 +40,7 @@ int DlnaVideoFile::metaDataDuration() {
 }
 
 int DlnaVideoFile::metaDataBitrate() {
-    mediaTag.getParameter("OverallBitRate").toInt();
+    return mediaTag.getParameter("OverallBitRate").toInt();
 }
 
 int DlnaVideoFile::channelCount() {
