@@ -25,6 +25,8 @@ MediaLibrary::MediaLibrary(Logger* log, QString pathname, QObject *parent) :
                    "format varchar, "
                    "type integer, "
                    "mime_type integer, "
+                   "last_modified DATETIME, "
+                   "last_played DATETIME, "
                    "FOREIGN KEY(type) REFERENCES type(id), "
                    "FOREIGN KEY(mime_type) REFERENCES mime_type(id), "
                    "FOREIGN KEY(artist) REFERENCES artist(id), "
@@ -69,7 +71,10 @@ MediaLibrary::MediaLibrary(Logger* log, QString pathname, QObject *parent) :
         foreach(QString tableName, db.tables()) {
             query.exec(QString("pragma foreign_key_list(%1);").arg(tableName));
             while (query.next()) {
-                foreignKeys << query.value("from").toString();
+                QHash<QString, QString> tmp;
+                tmp["table"] = query.value("table").toString();
+                tmp["to"] = query.value("to").toString();
+                foreignKeys[tableName][query.value("from").toString()] = tmp;
             }
         }
     }
@@ -83,8 +88,10 @@ MediaLibrary::~MediaLibrary() {
 QVariant MediaLibrary::getmetaData(QString tagName, int idMedia) {
 
     QSqlQuery query;
-    if (foreignKeys.contains(tagName)) {
-        query.exec(QString("SELECT %1.name FROM media LEFT OUTER JOIN %1 ON media.%1=%1.id WHERE media.id=%2").arg(tagName).arg(idMedia));
+    if (foreignKeys["media"].contains(tagName)) {
+        QString foreignTable = foreignKeys["media"][tagName]["table"];
+        QString foreignTo = foreignKeys["media"][tagName]["to"];
+        query.exec(QString("SELECT %3.name FROM media LEFT OUTER JOIN %3 ON media.%2=%3.%4 WHERE media.id=%1").arg(idMedia).arg(tagName).arg(foreignTable).arg(foreignTo));
     } else {
         query.exec(QString("SELECT %1 FROM media WHERE id=%2").arg(tagName).arg(idMedia));
     }
@@ -134,9 +141,11 @@ bool MediaLibrary::insert(QHash<QString, QVariant> data) {
 
     query.prepare(QString("INSERT INTO media (%1) VALUES (%2)").arg(parameters).arg(values));
     foreach(QString elt, data.keys()) {
-        if (foreignKeys.contains(elt)) {
+        if (foreignKeys["media"].contains(elt)) {
+            QString foreignTable = foreignKeys["media"][elt]["table"];
+
             // replace the value of the foreign key by its id
-            int index = insertForeignKey(elt, "name", data[elt]);
+            int index = insertForeignKey(foreignTable, "name", data[elt]);
             query.bindValue(QString(":%1").arg(elt), index);
             if (index == -1) {
                 log->ERROR("unable to bind " + elt);
