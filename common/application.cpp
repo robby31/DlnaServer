@@ -35,6 +35,7 @@ int Application::load(QUrl url) {
         }
         window->show();
         connect(window, SIGNAL(closing(QQuickCloseEvent*)), this, SLOT(quit()));
+        connect(server, SIGNAL(progressUpdate(int)), window, SIGNAL(progressUpdate(int)));
     }
 
     return 0;
@@ -92,3 +93,4 @@ bool Application::saveSettings() {
 
     return true;
 }
+

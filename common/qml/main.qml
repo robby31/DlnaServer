@@ -12,27 +12,49 @@ ApplicationWindow {
     minimumHeight: 400
     minimumWidth: 570
 
+    signal progressUpdate(int value)
+    onProgressUpdate: {
+        pb1.value = value
+        pb1.visible = value < 100
+    }
 
-    TabView {
-        id:frame
+    ColumnLayout {
+        id: mainLayout
         anchors.fill: parent
-        anchors.margins: Qt.platform.os === "osx" ? 12 : 6
+        spacing: 4
 
-        Tab {
-            title: "Request"
-            RequestsView { }
+        TabView {
+            id:frame
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+            anchors.margins: Qt.platform.os === "osx" ? 12 : 6
+
+            Tab {
+                title: "Request"
+                RequestsView { }
+            }
+
+            Tab {
+                title: "Renderers"
+                RenderersView { }
+            }
+
+            Tab {
+                title: "Shared"
+                SharedView { }
+            }
+
         }
 
-        Tab {
-            title: "Renderers"
-            RenderersView { }
+        // Progress bar defined
+        ProgressBar {
+            id: pb1
+            Layout.fillWidth: true
+            anchors.margins: Qt.platform.os === "osx" ? 12 : 6
+            minimumValue: 0
+            maximumValue: 100
+            value: 0
         }
-
-        Tab {
-            title: "Shared"
-            SharedView { }
-        }
-
     }
 
 }
