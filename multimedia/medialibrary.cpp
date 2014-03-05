@@ -67,6 +67,22 @@ MediaLibrary::MediaLibrary(Logger* log, QString pathname, QObject *parent) :
             log->ERROR("unable to create table picture in MediaLibrary " + query.lastError().text());
         }
 
+        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_idmedia ON media(id)")) {
+            log->ERROR("unable to create index in MediaLibrary " + query.lastError().text());
+        }
+
+        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_artistmedia ON media(artist)")) {
+            log->ERROR("unable to create index in MediaLibrary " + query.lastError().text());
+        }
+
+        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_albummedia ON media(album)")) {
+            log->ERROR("unable to create index in MediaLibrary " + query.lastError().text());
+        }
+
+        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_genremedia ON media(genre)")) {
+            log->ERROR("unable to create index in MediaLibrary " + query.lastError().text());
+        }
+
         // update foreign keys
         foreach(QString tableName, db.tables()) {
             query.exec(QString("pragma foreign_key_list(%1);").arg(tableName));
@@ -110,8 +126,30 @@ QVariant MediaLibrary::getmetaData(QString tagName, int idMedia) {
     }
 }
 
-int MediaLibrary::countAllMetaData(QString tagName) {
-    QSqlQuery query(QString("SELECT count(DISTINCT name) FROM %1").arg(tagName));
+QSqlQuery MediaLibrary::getDistinctMetaData(int typeMedia, QString tagName) {
+
+    QSqlQuery query;
+    if (foreignKeys["media"].contains(tagName)) {
+        QString foreignTable = foreignKeys["media"][tagName]["table"];
+        QString foreignTo = foreignKeys["media"][tagName]["to"];
+        query.exec(QString("SELECT DISTINCT %2.id, %2.name FROM media LEFT OUTER JOIN %2 ON media.%1=%2.%3 WHERE media.type=%4 ORDER BY %2.name").arg(tagName).arg(foreignTable).arg(foreignTo).arg(typeMedia));
+    } else {
+        query.exec(QString("SELECT DISTINCT %1 FROM media WHERE type=%2 ORDER by %1").arg(tagName).arg(typeMedia));
+    }
+
+    return query;
+}
+
+int MediaLibrary::countDistinctMetaData(int typeMedia, QString tagName) {
+    QSqlQuery query;
+    if (foreignKeys["media"].contains(tagName)) {
+        QString foreignTable = foreignKeys["media"][tagName]["table"];
+        QString foreignTo = foreignKeys["media"][tagName]["to"];
+        query.exec(QString("SELECT count(DISTINCT %2.name) FROM media LEFT OUTER JOIN %2 ON media.%1=%2.%3 WHERE media.type=%4").arg(tagName).arg(foreignTable).arg(foreignTo).arg(typeMedia));
+    } else {
+        query.exec(QString("SELECT count(DISTINCT %1) FROM media WHERE type=%2").arg(tagName).arg(typeMedia));
+    }
+
     if (query.next()) {
         return query.value(0).toInt();
     } else {
@@ -131,12 +169,15 @@ int MediaLibrary::countMedia(QString where) {
 bool MediaLibrary::insert(QHash<QString, QVariant> data) {
     QSqlQuery query;
 
-    QString parameters = QStringList(data.keys()).join(",");
-
+    QStringList l_parameters;
     QStringList l_values;
     foreach(QString elt, data.keys()) {
-        l_values << QString(":%1").arg(elt);
+        if (!data[elt].isNull()) {
+            l_parameters << elt;
+            l_values << QString(":%1").arg(elt);
+        }
     }
+    QString parameters = l_parameters.join(",");
     QString values = l_values.join(",");
 
     query.prepare(QString("INSERT INTO media (%1) VALUES (%2)").arg(parameters).arg(values));

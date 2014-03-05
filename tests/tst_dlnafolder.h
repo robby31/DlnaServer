@@ -18,6 +18,12 @@ public slots:
 
 private Q_SLOTS:
     void testCase_DlnaFolder();
+    void testCase_PerformanceAllArtists();
+    void testCase_PerformanceAllAlbums();
+    void testCase_PerformanceAllTracks();
+
+private:
+    int parseFolder(QString resourceId, DlnaResource* resource);
 
 };
 

@@ -337,3 +337,154 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     delete transcodeProcess;
     transcodeProcess = 0;
 }
+
+int tst_dlnacachedresources::parseFolder(QString resourceId, DlnaResource *resource) {
+    QElapsedTimer timer;
+    int elapsed = 0;
+
+    QList<DlnaResource*> l_child;
+    for (int i = 0; i<3; i++) {
+
+        timer.restart();
+        l_child = resource->getDLNAResources(resourceId, true, 0, 608, "");
+        foreach(DlnaResource* child, l_child) {
+            child->getStringContentDirectory(QStringList("*"));
+        }
+        int tmp = timer.elapsed();
+        if (tmp > elapsed) {
+            elapsed = tmp;
+        }
+    }
+    return elapsed;
+}
+
+void tst_dlnacachedresources::testCase_PerformanceAllArtists() {
+    Logger log;
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+
+    int res = rootFolder.addFolder("/Users/doudou/Music/iTunes/iTunes Media/Music");
+    QVERIFY(res == true);
+    QVERIFY(rootFolder.getChildren().size() == 3);
+
+    DlnaCachedFolder* folder = static_cast<DlnaCachedFolder*>(rootFolder.getChildren().at(0));
+    QVERIFY(folder->getSystemName() == "Music");
+
+    DlnaCachedFolder* allArtists = static_cast<DlnaCachedFolder*>(folder->getChildren().at(0));
+    QVERIFY(allArtists->isDiscovered() == false);
+
+    int duration = parseFolder(allArtists->getResourceId(), allArtists);
+    QVERIFY(allArtists->isDiscovered() == true);
+    QVERIFY(allArtists->getSystemName() == "Artist");
+    QVERIFY(allArtists->getChildren().size() >= 1000);
+    qWarning() << "PERFO" << duration << allArtists->getSystemName() << allArtists->getChildrenSize() << "children";
+    QVERIFY2(duration < 200, QString("Parse all artists in %1 ms").arg(duration).toUtf8());
+}
+
+void tst_dlnacachedresources::testCase_PerformanceAllTracksByArtist() {
+    Logger log;
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+
+    DlnaCachedFolder* folder = static_cast<DlnaCachedFolder*>(rootFolder.getChildren().at(0));
+    QVERIFY(folder->getSystemName() == "Music");
+
+    DlnaCachedFolder* allArtists = static_cast<DlnaCachedFolder*>(folder->getChildren().at(0));
+    QVERIFY(allArtists->getSystemName() == "Artist");
+    QVERIFY(allArtists->getChildren().size() >= 1000);
+
+    int max = 0;
+    foreach(DlnaResource* artist, allArtists->getChildren()) {
+        int elapsed;
+        elapsed = parseFolder(artist->getResourceId(), allArtists);
+        if (elapsed > max) {
+            max = elapsed;
+            qWarning() << "PERFO" << elapsed << artist->getResourceId() << artist->getSystemName() << artist->getChildrenSize() << "children";
+        }
+    }
+    QVERIFY2(max < 310, QString("Parse all tracks by artist in %1 ms").arg(max).toUtf8());
+}
+
+void tst_dlnacachedresources::testCase_PerformanceAllAlbums() {
+    Logger log;
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+
+    DlnaCachedFolder* folder = static_cast<DlnaCachedFolder*>(rootFolder.getChildren().at(0));
+    QVERIFY(folder->getSystemName() == "Music");
+
+    DlnaCachedFolder* allAlbums = static_cast<DlnaCachedFolder*>(folder->getChildren().at(1));
+    QVERIFY(allAlbums->isDiscovered() == false);
+
+    int duration = parseFolder(allAlbums->getResourceId(), allAlbums);
+    QVERIFY(allAlbums->isDiscovered() == true);
+    QVERIFY(allAlbums->getSystemName() == "Album");
+    QVERIFY(allAlbums->getChildren().size() >= 1000);
+    qWarning() << "PERFO" << duration << allAlbums->getSystemName() << allAlbums->getChildrenSize() << "children";
+    QVERIFY2(duration < 200, QString("Parse all albums in %1 ms").arg(duration).toUtf8());
+}
+
+void tst_dlnacachedresources::testCase_PerformanceAllTracksByAlbum() {
+    Logger log;
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+
+    DlnaCachedFolder* folder = static_cast<DlnaCachedFolder*>(rootFolder.getChildren().at(0));
+    QVERIFY(folder->getSystemName() == "Music");
+
+    DlnaCachedFolder* allAlbums = static_cast<DlnaCachedFolder*>(folder->getChildren().at(1));
+    QVERIFY(allAlbums->getSystemName() == "Album");
+    QVERIFY(allAlbums->getChildren().size() >= 1000);
+
+    int max = 0;
+    foreach(DlnaResource* album, allAlbums->getChildren()) {
+        int elapsed;
+        elapsed = parseFolder(album->getResourceId(), allAlbums);
+        if (elapsed > max) {
+            max = elapsed;
+            qWarning() << "PERFO" << elapsed << album->getResourceId() << album->getSystemName() << album->getChildrenSize() << "children";
+        }
+    }
+    QVERIFY2(max < 310, QString("Parse all tracks by album in %1 ms").arg(max).toUtf8());
+}
+
+void tst_dlnacachedresources::testCase_PerformanceAllGenres() {
+    Logger log;
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+
+    DlnaCachedFolder* folder = static_cast<DlnaCachedFolder*>(rootFolder.getChildren().at(0));
+    QVERIFY(folder->getSystemName() == "Music");
+
+    DlnaCachedFolder* allGenres = static_cast<DlnaCachedFolder*>(folder->getChildren().at(2));
+    QVERIFY(allGenres->isDiscovered() == false);
+
+    int duration = parseFolder(allGenres->getResourceId(), allGenres);
+    QVERIFY(allGenres->isDiscovered() == true);
+    QVERIFY(allGenres->getSystemName() == "Genre");
+    QVERIFY(allGenres->getChildren().size() >= 100);
+    qWarning() << "PERFO" << duration << allGenres->getSystemName() << allGenres->getChildrenSize() << "children";
+    QVERIFY2(duration < 100, QString("Parse all genres in %1 ms").arg(duration).toUtf8());
+}
+
+void tst_dlnacachedresources::testCase_PerformanceAllTracksByGenre() {
+    Logger log;
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+
+    DlnaCachedFolder* folder = static_cast<DlnaCachedFolder*>(rootFolder.getChildren().at(0));
+    QVERIFY(folder->getSystemName() == "Music");
+
+    DlnaCachedFolder* allGenres = static_cast<DlnaCachedFolder*>(folder->getChildren().at(2));
+    QVERIFY(allGenres->getSystemName() == "Genre");
+    QVERIFY(allGenres->getChildren().size() >= 100);
+
+    int duration = parseFolder(allGenres->getResourceId(), allGenres);
+    qWarning() << "PERFO" << duration << allGenres->getSystemName() << allGenres->getChildrenSize() << "children";
+    QVERIFY2(duration < 200, QString("Parse all genres in %1 ms").arg(duration).toUtf8());
+
+    int max = 0;
+    foreach(DlnaResource* genre, allGenres->getChildren()) {
+        int elapsed;
+        elapsed = parseFolder(genre->getResourceId(), allGenres);
+        if (elapsed > max) {
+            max = elapsed;
+            qWarning() << "PERFO" << elapsed << genre->getResourceId() << genre->getSystemName() << genre->getChildrenSize() << "children";
+        }
+    }
+    QVERIFY2(max < 310, QString("Parse all tracks by genre in %1 ms").arg(max).toUtf8());
+}

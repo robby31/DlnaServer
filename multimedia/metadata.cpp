@@ -19,11 +19,14 @@ MetaData::~MetaData() {
 
 QString MetaData::getParameter(QString parameter, stream_t StreamKing, size_t StreamNumber) {
     String value = MI.Get(StreamKing, StreamNumber, parameter.toStdString());
+    if (value.empty()) {
+        return QString();
+    } else {
+        // detects encoding charset
+        QTextCodec *codec = QTextCodec::codecForUtfText(value.c_str());
 
-    // detects encoding charset
-    QTextCodec *codec = QTextCodec::codecForUtfText(value.c_str());
-
-    return codec->toUnicode(value.c_str());
+        return codec->toUnicode(value.c_str());
+    }
 }
 
 QString MetaData::getAudioFormat(int audioStreamId) {

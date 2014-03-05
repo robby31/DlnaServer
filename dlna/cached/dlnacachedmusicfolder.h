@@ -9,7 +9,7 @@
 class DlnaCachedMusicFolder : public DlnaStorageFolder
 {
 public:
-    DlnaCachedMusicFolder(Logger* log, MediaLibrary* library, QString host, int port, QObject *parent = 0);
+    DlnaCachedMusicFolder(Logger* log, MediaLibrary* library, QString host, int port, int idType, QObject *parent = 0);
 
     virtual bool discoverChildren();
 
@@ -24,6 +24,7 @@ public:
 
 private:
     MediaLibrary* library;
+    int idType;
 };
 
 #endif // DLNACACHEDMUSICFOLDER_H

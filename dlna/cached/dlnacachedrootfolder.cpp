@@ -18,7 +18,7 @@ bool DlnaCachedRootFolder::discoverChildren() {
 
         if (typeMedia == "audio") {
             // TODO: set the parent of the QObject
-            DlnaCachedMusicFolder* child = new DlnaCachedMusicFolder(log, &library, host, port);
+            DlnaCachedMusicFolder* child = new DlnaCachedMusicFolder(log, &library, host, port, id_type);
             this->addChild(child);
         } else {
             // TODO: set the parent of the QObject

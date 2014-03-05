@@ -19,8 +19,8 @@ public:
     QSqlQuery getMedia(QString where) { return QSqlQuery(QString("SELECT media.id, media.filename, type.name AS type_media, media.last_modified from media LEFT OUTER JOIN type ON media.type=type.id WHERE %1").arg(where)); }
     int countMedia(QString where);
 
-    QSqlQuery getAllMetaData(QString tagName) { return QSqlQuery(QString("SELECT DISTINCT id, name from %1 ORDER BY name").arg(tagName)); }
-    int countAllMetaData(QString tagName);
+    QSqlQuery getDistinctMetaData(int typeMedia, QString tagName);
+    int countDistinctMetaData(int typeMedia, QString tagName);
 
     QVariant getmetaData(QString tagName, int idMedia);
 

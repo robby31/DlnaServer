@@ -9,7 +9,7 @@
 class DlnaCachedFolderMetaData : public DlnaStorageFolder
 {
 public:
-    DlnaCachedFolderMetaData(Logger* log, MediaLibrary* library, QString metaData, QString name, QString host, int port, QObject *parent = 0);
+    DlnaCachedFolderMetaData(Logger* log, MediaLibrary* library, int typeMedia, QString metaData, QString name, QString host, int port, QObject *parent = 0);
 
     virtual bool discoverChildren();
 
@@ -28,6 +28,7 @@ private:
     MediaLibrary* library;
     QString metaData;
     QString name;
+    int typeMedia;
 };
 
 #endif // DLNACACHEDFOLDERMETADATA_H
