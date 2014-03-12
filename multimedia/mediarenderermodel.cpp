@@ -3,10 +3,10 @@
 MediaRendererModel::MediaRendererModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
-    mRoles[Qt::UserRole] = "status";
-    mRoles[Qt::UserRole+1] = "name";
-    mRoles[Qt::UserRole+2] = "networkAddress";
-    mRoles[Qt::UserRole+3] = "userAgent";
+    mRoles[statusRole] = "status";
+    mRoles[nameRole] = "name";
+    mRoles[networkAddressRole] = "networkAddress";
+    mRoles[userAgentRole] = "userAgent";
 }
 
 void MediaRendererModel::clearAll() {
@@ -36,19 +36,18 @@ QVariant MediaRendererModel::data(const QModelIndex &index, int role) const
     if ( mRecords.count() <= 0)
         return QVariant();
 
-    if ( role - Qt::UserRole >= 0)
-    {
-        if (role == Qt::UserRole)
-            return mRecords.at(index.row())->getStatus();
-        else if (role == Qt::UserRole+1)
-            return mRecords.at(index.row())->getName();
-        else if (role == Qt::UserRole+2)
-            return mRecords.at(index.row())->getNetworkAddress();
-        else if (role == Qt::UserRole+3)
-            return mRecords.at(index.row())->getUserAgent();
+    switch (role) {
+    case statusRole:
+        return mRecords.at(index.row())->getStatus();
+    case nameRole:
+        return mRecords.at(index.row())->getName();
+    case networkAddressRole:
+        return mRecords.at(index.row())->getNetworkAddress();
+    case userAgentRole:
+        return mRecords.at(index.row())->getUserAgent();
+    default:
+        return QVariant();
     }
-
-    return QVariant();
 }
 
 QHash<int, QByteArray> MediaRendererModel::roleNames() const

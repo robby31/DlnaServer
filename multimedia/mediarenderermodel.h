@@ -11,6 +11,13 @@ class MediaRendererModel : public QAbstractTableModel
 public:
     explicit MediaRendererModel(QObject *parent = 0);
 
+    enum Roles {
+        statusRole = Qt::UserRole+1,
+        nameRole,
+        networkAddressRole,
+        userAgentRole,
+    };
+
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role) const;

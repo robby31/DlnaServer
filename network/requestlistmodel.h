@@ -12,6 +12,21 @@ public:
     explicit RequestListModel(QObject *parent = 0);
     ~RequestListModel();
 
+    enum Roles {
+        methodRole = Qt::UserRole+1,
+        argumentRole,
+        hostRole,
+        peerAddressRole,
+        statusRole,
+        headerRole,
+        contentRole,
+        durationRole,
+        dateRole,
+        answerRole,
+        networkStatusRole,
+        transcodeLogRole
+    };
+
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role) const;

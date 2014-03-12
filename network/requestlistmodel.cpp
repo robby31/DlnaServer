@@ -4,18 +4,18 @@
 RequestListModel::RequestListModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
-    mRoles[Qt::UserRole] = "method";
-    mRoles[Qt::UserRole+1] = "argument";
-    mRoles[Qt::UserRole+2] = "host";
-    mRoles[Qt::UserRole+3] = "peerAddress";
-    mRoles[Qt::UserRole+4] = "status";
-    mRoles[Qt::UserRole+5] = "header";
-    mRoles[Qt::UserRole+6] = "content";
-    mRoles[Qt::UserRole+7] = "duration";
-    mRoles[Qt::UserRole+8] = "date";
-    mRoles[Qt::UserRole+9] = "answer";
-    mRoles[Qt::UserRole+10] = "network_status";
-    mRoles[Qt::UserRole+11] = "transcode_log";
+    mRoles[methodRole] = "method";
+    mRoles[argumentRole] = "argument";
+    mRoles[hostRole] = "host";
+    mRoles[peerAddressRole] = "peerAddress";
+    mRoles[statusRole] = "status";
+    mRoles[headerRole] = "header";
+    mRoles[contentRole] = "content";
+    mRoles[durationRole] = "duration";
+    mRoles[dateRole] = "date";
+    mRoles[answerRole] = "answer";
+    mRoles[networkStatusRole] = "network_status";
+    mRoles[transcodeLogRole] = "transcode_log";
 }
 
 RequestListModel::~RequestListModel() {
@@ -50,35 +50,34 @@ QVariant RequestListModel::data(const QModelIndex &index, int role) const
     if ( mRecords.count() <= 0)
         return QVariant();
 
-    if ( role - Qt::UserRole >= 0)
-    {
-        if (role == Qt::UserRole)
-            return mRecords.at(index.row())->getMethod();
-        else if (role == Qt::UserRole+1)
-            return mRecords.at(index.row())->getArgument();
-        else if (role == Qt::UserRole+2)
-            return mRecords.at(index.row())->getHost();
-        else if (role == Qt::UserRole+3)
-            return mRecords.at(index.row())->getpeerAddress();
-        else if (role == Qt::UserRole+4)
-            return mRecords.at(index.row())->getStatus();
-        else if (role == Qt::UserRole+5)
-            return mRecords.at(index.row())->getTextHeader();
-        else if (role == Qt::UserRole+6)
-            return mRecords.at(index.row())->getTextContent();
-        else if (role == Qt::UserRole+7)
-            return mRecords.at(index.row())->getDuration();
-        else if (role == Qt::UserRole+8)
-            return mRecords.at(index.row())->getDate();
-        else if (role == Qt::UserRole+9)
-            return mRecords.at(index.row())->getTextAnswer();
-        else if (role == Qt::UserRole+10)
-            return mRecords.at(index.row())->getNetworkStatus();
-        else if (role == Qt::UserRole+11)
-            return mRecords.at(index.row())->getTranscodeLog();
+    switch (role) {
+    case methodRole:
+        return mRecords.at(index.row())->getMethod();
+    case argumentRole:
+        return mRecords.at(index.row())->getArgument();
+    case hostRole:
+        mRecords.at(index.row())->getHost();
+    case peerAddressRole:
+        return mRecords.at(index.row())->getpeerAddress();
+    case statusRole:
+        return mRecords.at(index.row())->getStatus();
+    case headerRole:
+        return mRecords.at(index.row())->getTextHeader();
+    case contentRole:
+        return mRecords.at(index.row())->getTextContent();
+    case durationRole:
+        return mRecords.at(index.row())->getDuration();
+    case dateRole:
+        return mRecords.at(index.row())->getDate();
+    case answerRole:
+        return mRecords.at(index.row())->getTextAnswer();
+    case networkStatusRole:
+        return mRecords.at(index.row())->getNetworkStatus();
+    case transcodeLogRole:
+        return mRecords.at(index.row())->getTranscodeLog();
+    default:
+        return QVariant();
     }
-
-    return QVariant();
 }
 
 QHash<int, QByteArray> RequestListModel::roleNames() const
