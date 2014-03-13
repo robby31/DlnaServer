@@ -46,14 +46,14 @@ bool MencoderTranscoding::initialize(HttpRange *range, long timeseek_start, long
         arguments << "-ass-force-style" << QString("FontName=%1,Outline=1,Shadow=1,MarginV=10").arg(fontFile);
 
         // choose audio and subtitle language
-        if (audioLanguages.contains("French")) {
-            arguments << "-aid" << QString("%1").arg(audioLanguages.indexOf("French"));
+        if (audioLanguages.contains("fre")) {
+            arguments << "-aid" << QString("%1").arg(audioLanguages.indexOf("fre"));
             arguments << "-nosub";
         } else {
-            if (subtitleLanguages.contains("French")) {
-                arguments << "-noautosub" << "-sid" << QString("%1").arg(subtitleLanguages.indexOf("French"));
-            } else if (subtitleLanguages.contains("English")) {
-                arguments << "-noautosub" << "-sid" << QString("%1").arg(subtitleLanguages.indexOf("English"));
+            if (subtitleLanguages.contains("fre")) {
+                arguments << "-noautosub" << "-sid" << QString("%1").arg(subtitleLanguages.indexOf("fre"));
+            } else if (subtitleLanguages.contains("eng")) {
+                arguments << "-noautosub" << "-sid" << QString("%1").arg(subtitleLanguages.indexOf("eng"));
             }
         }
 

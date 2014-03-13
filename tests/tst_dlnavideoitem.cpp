@@ -19,7 +19,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars() {
     DlnaVideoFile movie(&log, "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi", "host", 600);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi");
 
-    QVERIFY(movie.framerate() == "23.976");
+    QVERIFY2(movie.framerate() == "23.976", movie.framerate().toUtf8());
 
     QIODevice* stream = movie.getStream();
     QVERIFY(stream == 0);
@@ -133,12 +133,12 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
     QVERIFY(movie.size() == -1);
     QVERIFY(movie.bitrate() == -1);
     QVERIFY(movie.getLengthInSeconds() == 7151);
-    QVERIFY(movie.getLengthInMilliSeconds() == 7151200);
+    QVERIFY2(movie.getLengthInMilliSeconds() == 7151200, QString("%1").arg(movie.getLengthInMilliSeconds()).toUtf8());
     QVERIFY(movie.samplerate() == 48000);
     QVERIFY(movie.channelCount() == 2);
     QVERIFY(movie.resolution() == "720x384");
-    QVERIFY(movie.audioLanguages() == QStringList() << "");
-    QVERIFY(movie.subtitleLanguages() == QStringList());
+    QVERIFY2(movie.audioLanguages() == QStringList() << "", movie.audioLanguages().join(',').toUtf8());
+    QVERIFY2(movie.subtitleLanguages() == QStringList(), movie.subtitleLanguages().join(',').toUtf8());
     QVERIFY(movie.framerate() == "25.000");
 
     QIODevice* stream = movie.getStream();
@@ -225,12 +225,12 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
     QVERIFY(movie.size() == -1);
     QVERIFY(movie.bitrate() == -1);
     QVERIFY(movie.getLengthInSeconds() == 6736);
-    QVERIFY(movie.getLengthInMilliSeconds() == 6735830);
+    QVERIFY2(movie.getLengthInMilliSeconds() == 6735830, QString("%1").arg(movie.getLengthInMilliSeconds()).toUtf8());
     QVERIFY(movie.samplerate() == 48000);
     QVERIFY(movie.channelCount() == 2);
     QVERIFY(movie.resolution() == "1280x688");
-    QVERIFY(movie.audioLanguages() == QStringList() << "");
-    QVERIFY(movie.subtitleLanguages() == QStringList() << "English");
+    QVERIFY2(movie.audioLanguages() == QStringList() << "", movie.audioLanguages().join(',').toUtf8());
+    QVERIFY2(movie.subtitleLanguages() == QStringList() << "eng", movie.subtitleLanguages().join(',').toUtf8());
     QVERIFY(movie.framerate() == "23.976");
 
     // test partial transcoding (10 seconds)

@@ -2,6 +2,7 @@
 #define DLNAMUSICTRACKFILE_H
 
 #include "dlnamusictrack.h"
+#include "qffmpeg.h"
 
 class DlnaMusicTrackFile : public DlnaMusicTrack
 {
@@ -25,7 +26,7 @@ public:
     virtual int channelCount();
 
 private:
-    MetaData mediaTag;
+    QFfmpeg ffmpeg;
 };
 
 #endif // DLNAMUSICTRACKFILE_H

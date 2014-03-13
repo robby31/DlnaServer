@@ -2,61 +2,52 @@
 
 DlnaMusicTrackFile::DlnaMusicTrackFile(Logger* log, QString filename, QString host, int port, QObject *parent):
     DlnaMusicTrack(log, filename, host, port, parent),
-    mediaTag(filename)
+    ffmpeg(filename, parent)
 {
-
 }
 
 QString DlnaMusicTrackFile::metaDataTitle() {
-    return mediaTag.getParameter("Title");
+    return ffmpeg.metaData("title");
 }
 
 QString DlnaMusicTrackFile::metaDataGenre() {
-    return mediaTag.getParameter("Genre");
+    return ffmpeg.metaData("genre");
 }
 
 QString DlnaMusicTrackFile::metaDataPerformer() {
-    return mediaTag.getParameter("Performer");
+    return ffmpeg.metaData("artist");
 }
 
 QString DlnaMusicTrackFile::metaDataAlbum() {
-    return mediaTag.getParameter("Album");
+    return ffmpeg.metaData("album");
 }
 
 QString DlnaMusicTrackFile::metaDataTrackPosition() {
-    return mediaTag.getParameter("Track/Position");
+    return ffmpeg.metaData("track").split('/').at(0);
 }
 
 QString DlnaMusicTrackFile::metaDataFormat() {
-    return mediaTag.getParameter("Format");
+    return ffmpeg.getAudioFormat();
 }
 
 QByteArray DlnaMusicTrackFile::metaDataPicture() {
-    return QByteArray::fromBase64(mediaTag.getCoverData().c_str());
+    return ffmpeg.getPicture();
 }
 
 int DlnaMusicTrackFile::metaDataDuration() {
-    return mediaTag.getParameter("Duration").toInt();
+    return ffmpeg.getDuration();
 }
 
 int DlnaMusicTrackFile::metaDataBitrate() {
-    return mediaTag.getParameter("OverallBitRate").toInt();
+    return ffmpeg.getAudioBitrate();
 }
 
 int DlnaMusicTrackFile::channelCount() {
-    int audioStreamCount = mediaTag.getAudioStreamCount();
-    if (audioStreamCount == 1) {
-        return mediaTag.getChannelCount(0);
-    }
-    return 0;
+    return ffmpeg.getAudioChannelCount();
 }
 
 int DlnaMusicTrackFile::samplerate() {
-    int audioStreamCount = mediaTag.getAudioStreamCount();
-    if (audioStreamCount == 1) {
-        return mediaTag.getSamplingRate(0);
-    }
-    return 0;
+    return ffmpeg.getAudioSamplerate();
 }
 
 

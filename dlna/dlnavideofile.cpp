@@ -2,79 +2,67 @@
 
 DlnaVideoFile::DlnaVideoFile(Logger *log, QString filename, QString host, int port, QObject *parent):
     DlnaVideoItem(log, filename, host, port, parent),
-    mediaTag(filename)
+    ffmpeg(filename, parent)
 {
 
 }
 
 QString DlnaVideoFile::metaDataTitle() {
-    return mediaTag.getParameter("Title");
+    return ffmpeg.metaData("title");
 }
 
 QString DlnaVideoFile::metaDataGenre() {
-    return mediaTag.getParameter("Genre");
+    return ffmpeg.metaData("genre");
 }
 
 QString DlnaVideoFile::metaDataPerformer() {
-    return mediaTag.getParameter("Performer");
+    return ffmpeg.metaData("artist");
 }
 
 QString DlnaVideoFile::metaDataAlbum() {
-    return mediaTag.getParameter("Album");
+    return ffmpeg.metaData("album");
 }
 
 QString DlnaVideoFile::metaDataTrackPosition() {
-    return mediaTag.getParameter("Track/Position");
+    return ffmpeg.metaData("track").split('/').at(0);
 }
 
 QString DlnaVideoFile::metaDataFormat() {
-    return mediaTag.getParameter("Format");
+    return ffmpeg.getFormat();
 }
 
 QByteArray DlnaVideoFile::metaDataPicture() {
-    return QByteArray::fromBase64(mediaTag.getCoverData().c_str());
+    return ffmpeg.getPicture();
 }
 
 int DlnaVideoFile::metaDataDuration() {
-    return mediaTag.getParameter("Duration").toInt();
+    return ffmpeg.getDuration();
 }
 
 int DlnaVideoFile::metaDataBitrate() {
-    return mediaTag.getParameter("OverallBitRate").toInt();
+    return ffmpeg.getBitrate();
 }
 
 int DlnaVideoFile::channelCount() {
-    int audioStreamCount = mediaTag.getAudioStreamCount();
-    if (audioStreamCount == 1) {
-        return mediaTag.getChannelCount(0);
-    }
-    return 0;
+    return ffmpeg.getAudioChannelCount();
 }
 
 int DlnaVideoFile::samplerate() {
-    int audioStreamCount = mediaTag.getAudioStreamCount();
-    if (audioStreamCount == 1) {
-        return mediaTag.getSamplingRate(0);
-    }
-    return 0;
+    return ffmpeg.getAudioSamplerate();
 }
 
 QString DlnaVideoFile::resolution() {
-    int videoStreamCount = mediaTag.getVideoStreamCount();
-    if (videoStreamCount == 1) {
-        return mediaTag.getResolution(0);
-    }
-    return QString();
+    return ffmpeg.getVideoResolution();
 }
 
 QStringList DlnaVideoFile::audioLanguages() {
-    return mediaTag.getAudioLanguages();
+    return ffmpeg.getAudioLanguages();
 }
 
 QStringList DlnaVideoFile::subtitleLanguages() {
-    return mediaTag.getSubtitleLanguages();
+    return ffmpeg.getSubtitleLanguages();
 }
 
 QString DlnaVideoFile::framerate() {
-    return mediaTag.getVideoFrameRate();
+    return QString().sprintf("%2.3f", ffmpeg.getVideoFrameRate());
 }

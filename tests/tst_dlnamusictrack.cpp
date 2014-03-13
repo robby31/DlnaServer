@@ -62,15 +62,15 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "376593");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:00:19");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "18729");
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:00:19", xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue().toUtf8());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "18751", xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue().toUtf8());
     xml_res.clear();
 
     QVERIFY(track.mimeType() == "audio/mpeg");
     QVERIFY(track.size() == 376593);
-    QVERIFY(track.bitrate() == 149832);
+    QVERIFY2(track.bitrate() == 150005, QString("%1").arg(track.bitrate()).toUtf8());
     QVERIFY(track.getLengthInSeconds() == 19);
-    QVERIFY(track.getLengthInMilliSeconds() == 19382);
+    QVERIFY2(track.getLengthInMilliSeconds() == 19382, QString("%1").arg(track.getLengthInMilliSeconds()).toUtf8());
     QVERIFY(track.samplerate() == 44100);
     QVERIFY(track.channelCount() == 2);
 
@@ -145,15 +145,15 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "845029");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:00:51");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "16000");
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:00:53", xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue().toUtf8());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "16000", xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue().toUtf8());
     xml_res.clear();
 
     QVERIFY(track.mimeType() == "audio/mpeg");
     QVERIFY(track.size() == 845029);
     QVERIFY(track.bitrate() == 128000);
-    QVERIFY(track.getLengthInSeconds() == 51);
-    QVERIFY(track.getLengthInMilliSeconds() == 51056);
+    QVERIFY2(track.getLengthInSeconds() == 53, QString("%1").arg(track.getLengthInSeconds()).toUtf8());
+    QVERIFY2(track.getLengthInMilliSeconds() == 52814, QString("%1").arg(track.getLengthInMilliSeconds()).toUtf8());
     QVERIFY(track.samplerate() == 44100);
     QVERIFY(track.channelCount() == 2);
 
@@ -163,9 +163,10 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
 
     QVERIFY(track.getAlbumArt().isNull() == false);
-    QVERIFY(track.getAlbumArt().size().width() == 306);
-    QVERIFY(track.getAlbumArt().size().height() == 300);
-    QVERIFY(track.getByteAlbumArt().size() == 22568);
+    QVERIFY(track.getAlbumArt().size().width() == 100);
+    QVERIFY(track.getAlbumArt().size().height() == 100);
+    int size = track.getByteAlbumArt().size();
+    QVERIFY2(size == 3587, QString("%1").arg(size).toUtf8());
 
     QIODevice* stream = track.getStream();
     QVERIFY(stream->isOpen() == true);
@@ -231,14 +232,14 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "3841064");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:02:39");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "23654");
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "23657", QString("%1").arg(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue()).toUtf8());
     xml_res.clear();
 
     QVERIFY(track.mimeType() == "audio/mpeg");
     QVERIFY(track.size() == 3841064);
-    QVERIFY(track.bitrate() == 189234);
+    QVERIFY2(track.bitrate() == 189255, QString("%1").arg(track.bitrate()).toUtf8());
     QVERIFY(track.getLengthInSeconds() == 159);
-    QVERIFY(track.getLengthInMilliSeconds() == 159373);
+    QVERIFY2(track.getLengthInMilliSeconds() == 159373, QString("%1").arg(track.getLengthInMilliSeconds()).toUtf8());
     QVERIFY(track.samplerate() == 44100);
     QVERIFY(track.channelCount() == 2);
 
@@ -248,9 +249,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
 
     QVERIFY(track.getAlbumArt().isNull() == false);
-    QVERIFY(track.getAlbumArt().size().width() == 500);
-    QVERIFY(track.getAlbumArt().size().height() == 500);
-    QVERIFY(track.getByteAlbumArt().size() == 14448);
+    QVERIFY(track.getAlbumArt().size().width() == 100);
+    QVERIFY(track.getAlbumArt().size().height() == 100);
+    QVERIFY2(track.getByteAlbumArt().size() == 1592, QString("%1").arg(track.getByteAlbumArt().size()).toUtf8());
 
     QIODevice* stream = track.getStream();
     QVERIFY(stream->isOpen() == true);
@@ -315,7 +316,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 5);
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "7559480");
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "7559480", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:03:09");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "40000");
     xml_res.clear();
@@ -324,7 +325,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
     QVERIFY(track.size() == 7559480);
     QVERIFY(track.bitrate() == 320000);
     QVERIFY(track.getLengthInSeconds() == 189);
-    QVERIFY(track.getLengthInMilliSeconds() == 188987);
+    QVERIFY2(track.getLengthInMilliSeconds() == 188987, QString("%1").arg(track.getLengthInMilliSeconds()).toUtf8());
     QVERIFY(track.samplerate() == 44100);
     QVERIFY(track.channelCount() == 2);
 
@@ -335,9 +336,10 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
 
     QVERIFY(track.getAlbumArt().isNull() == false);
     QVERIFY(track.getByteAlbumArt().isNull() == false);
-    QVERIFY(track.getAlbumArt().size().width() == 300);
-    QVERIFY(track.getAlbumArt().size().height() == 300);
-    QVERIFY(track.getByteAlbumArt().size() == 25089);
+    QVERIFY(track.getAlbumArt().size().width() == 100);
+    QVERIFY(track.getAlbumArt().size().height() == 100);
+    int size = track.getByteAlbumArt().size();
+    QVERIFY2(size == 4067, QString("%1").arg(size).toUtf8());
 
     HttpRange* range = 0;
     range = new HttpRange("RANGE: BYTES=0-");
@@ -407,7 +409,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 7);
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "21785040");
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "21785040", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:09:05");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "40000");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
@@ -418,7 +420,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     QVERIFY(track.size() == 21785040);
     QVERIFY(track.bitrate() == 320000);
     QVERIFY(track.getLengthInSeconds() == 545);
-    QVERIFY(track.getLengthInMilliSeconds() == 544626);
+    QVERIFY2(track.getLengthInMilliSeconds() == 544626, QString("%1").arg(track.getLengthInMilliSeconds()).toUtf8());
     QVERIFY(track.samplerate() == 48000);
     QVERIFY(track.channelCount() == 2);
 
@@ -577,7 +579,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 7);
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/L16:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=01");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "104568192");
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "104568192", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:09:05");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "192000");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
@@ -588,7 +590,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     QVERIFY(track.size() == 104568192);
     QVERIFY(track.bitrate() == 1536000);
     QVERIFY(track.getLengthInSeconds() == 545);
-    QVERIFY(track.getLengthInMilliSeconds() == 544626);
+    QVERIFY2(track.getLengthInMilliSeconds() == 544626, QString("%1").arg(track.getLengthInMilliSeconds()).toUtf8());
     QVERIFY(track.samplerate() == 48000);
     QVERIFY(track.channelCount() == 2);
 

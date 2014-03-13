@@ -127,6 +127,9 @@ void tst_dlnafolder::testCase_PerformanceAllAlbums() {
 }
 
 void tst_dlnafolder::testCase_PerformanceAllTracks() {
+    QElapsedTimer timer;
+    timer.start();
+
     Logger log;
     DlnaFolder music(&log, "/Users/doudou/Music/iTunes/iTunes Media/Music", "host", 300);
     QVERIFY(music.getId() == "");
@@ -143,6 +146,13 @@ void tst_dlnafolder::testCase_PerformanceAllTracks() {
     music.setId("0$1");
     QVERIFY(music.getId() == "0$1");
 
+    ANALYZER_RESET
+    DlnaResource *album = music.search("0$1$27$2", "");
+    int elapsed = parseFolder(album->getResourceId(), &music);
+    qWarning() << "PERFO" << album->getSystemName() << album->getChildrenSize() << QTime(0, 0).addMSecs(elapsed).toString("hh:mm:ss.zzz");
+    ANALYZER_DISPLAY_RESULTS
+
+    ANALYZER_RESET
     int max = 0;
     foreach(DlnaResource* artist, music.getChildren()) {
         foreach(DlnaResource* album, artist->getChildren()) {
@@ -150,9 +160,13 @@ void tst_dlnafolder::testCase_PerformanceAllTracks() {
             elapsed = parseFolder(album->getResourceId(), &music);
             if (elapsed > max) {
                 max = elapsed;
-                qWarning() << "PERFO" << elapsed << album->getResourceId() << album->getSystemName() << album->getChildrenSize() << "children";
+                qWarning() << "PERFO" << QTime(0, 0).addMSecs(elapsed).toString("hh:mm:ss.zzz") << album->getResourceId() << album->getSystemName() << album->getChildrenSize() << "children";
             }
         }
     }
+    ANALYZER_DISPLAY_RESULTS
+
+    qWarning() << "DURATION" << QTime(0, 0).addMSecs(timer.elapsed()).toString("hh:mm:ss.zzz");
+
     QVERIFY2(max < 6000, QString("Parse all tracks by album in %1 ms").arg(max).toUtf8());
 }

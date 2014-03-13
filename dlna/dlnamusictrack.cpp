@@ -222,10 +222,12 @@ QString DlnaMusicTrack::mimeType() {
         }
     } else {
         QString format = metaDataFormat();
-        if (format == "MPEG Audio") {
+        if (format == "mp3" or format == "mp2" or format == "mp1") {
             return AUDIO_MP3_TYPEMIME;
+        } else if (format == "aac") {
+            return AUDIO_MP4_TYPEMIME;
         } else {
-            log->ERROR("Unable to define mimeType of DlnaMusicTrack: " + getSystemName());
+            log->ERROR(QString("Unable to define mimeType of DlnaMusicTrack: %1 from format <%2>").arg(getSystemName()).arg(format));
         }
     }
 
@@ -236,7 +238,7 @@ QString DlnaMusicTrack::mimeType() {
 QImage DlnaMusicTrack::getAlbumArt() {
     QImage picture;
 
-    QByteArray bytesPicture =  metaDataPicture();
+    QByteArray bytesPicture = metaDataPicture();
     if (picture.loadFromData(bytesPicture)) {
         return picture;
     }

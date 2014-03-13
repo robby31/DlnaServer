@@ -9,7 +9,6 @@
 
 #include "transcodeprocess.h"
 
-#include "metadata.h"
 #include <qmimedatabase.h>
 
 class DlnaItem : public DlnaResource

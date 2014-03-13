@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QtTest>
+#include "../Analyzer/analyzer.h"
 
 #include "dlnafolder.h"
 

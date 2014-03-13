@@ -1,10 +1,9 @@
 INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
-include (../../mediainfolib/mediainfolib.pri)
+include (../../qffmpeg/library/qffmpeg.pri)
 
 HEADERS += \
-    ../multimedia/metadata.h \
     ../multimedia/transcodeprocess.h \
     ../multimedia/mencodertranscoding.h \
     ../multimedia/ffmpegtranscoding.h \
@@ -13,7 +12,6 @@ HEADERS += \
     ../multimedia/medialibrary.h
 
 SOURCES += \
-    ../multimedia/metadata.cpp \
     ../multimedia/transcodeprocess.cpp \
     ../multimedia/mencodertranscoding.cpp \
     ../multimedia/ffmpegtranscoding.cpp \

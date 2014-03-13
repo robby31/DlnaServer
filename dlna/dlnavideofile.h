@@ -2,6 +2,7 @@
 #define DLNAVIDEOFILE_H
 
 #include "dlnavideoitem.h"
+#include "qffmpeg.h"
 
 class DlnaVideoFile : public DlnaVideoItem
 {
@@ -30,7 +31,7 @@ public:
     virtual QString framerate();
 
 private:
-    MetaData mediaTag;
+    QFfmpeg ffmpeg;
 };
 
 #endif // DLNAVIDEOFILE_H

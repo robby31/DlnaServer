@@ -110,7 +110,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     xml_res.clear();
 
     QVERIFY(track->mimeType() == "audio/mpeg");
-    QVERIFY2(track->metaDataFormat() == "MPEG-4", track->metaDataFormat().toUtf8());
+    QVERIFY2(track->metaDataFormat() == "aac", track->metaDataFormat().toUtf8());
     QVERIFY(track->size() == 7559480);
     QVERIFY(track->bitrate() == 320000);
     QVERIFY(track->getLengthInSeconds() == 189);
@@ -125,9 +125,9 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
 
     QVERIFY(track->getAlbumArt().isNull() == false);
     QVERIFY(track->getByteAlbumArt().isNull() == false);
-    QVERIFY(track->getAlbumArt().size().width() == 300);
-    QVERIFY(track->getAlbumArt().size().height() == 300);
-    QVERIFY2(track->getByteAlbumArt().size() == 25089, QString("size=%1").arg(track->getByteAlbumArt().size()).toUtf8());
+    QVERIFY(track->getAlbumArt().size().width() == 100);
+    QVERIFY(track->getAlbumArt().size().height() == 100);
+    QVERIFY2(track->getByteAlbumArt().size() == 4067, QString("size=%1").arg(track->getByteAlbumArt().size()).toUtf8());
 
     HttpRange* range = 0;
     range = new HttpRange("RANGE: BYTES=0-");
@@ -149,7 +149,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY(folder->getChildren().size() > 2);
     track = static_cast<DlnaCachedMusicTrack*>(folder->getChildren().at(2));
     QVERIFY(track->getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3");
-    QVERIFY(track->bitrate() == 149832);
+    QVERIFY(track->bitrate() == 150005);
 
     QVERIFY(rootFolder.getChildren().size() > 0);
     DlnaResource* music_folder = rootFolder.getChildren().at(0);
@@ -166,7 +166,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
         artist_M = artist_folder->getChildren().at(artist_index);
         artist_index++;
     }
-    QVERIFY(artist_M->getSystemName() == "-M-");
+    QVERIFY2(artist_M->getSystemName() == "-M-", artist_M->getSystemName().toUtf8());
 
     QVERIFY(artist_M->getChildren().size() > 0);
     track = static_cast<DlnaCachedMusicTrack*>(artist_M->getChildren().at(0));
@@ -210,7 +210,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     xml_res.clear();
 
     QVERIFY(track->mimeType() == "audio/mpeg");
-    QVERIFY2(track->metaDataFormat() == "MPEG-4", track->metaDataFormat().toUtf8());
+    QVERIFY2(track->metaDataFormat() == "aac", track->metaDataFormat().toUtf8());
     QVERIFY(track->size() == 7559480);
     QVERIFY(track->bitrate() == 320000);
     QVERIFY(track->getLengthInSeconds() == 189);
@@ -225,9 +225,9 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
 
     QVERIFY(track->getAlbumArt().isNull() == false);
     QVERIFY(track->getByteAlbumArt().isNull() == false);
-    QVERIFY(track->getAlbumArt().size().width() == 300);
-    QVERIFY(track->getAlbumArt().size().height() == 300);
-    QVERIFY2(track->getByteAlbumArt().size() == 25081, QString("size=%1").arg(track->getByteAlbumArt().size()).toUtf8());
+    QVERIFY(track->getAlbumArt().size().width() == 100);
+    QVERIFY(track->getAlbumArt().size().height() == 100);
+    QVERIFY2(track->getByteAlbumArt().size() == 4068, QString("size=%1").arg(track->getByteAlbumArt().size()).toUtf8());
 
     range = 0;
     range = new HttpRange("RANGE: BYTES=0-");
@@ -318,7 +318,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     QVERIFY(movie->channelCount() == 2);
     QVERIFY(movie->resolution() == "1280x688");
     QVERIFY(movie->audioLanguages() == QStringList() << "");
-    QVERIFY(movie->subtitleLanguages() == QStringList() << "English");
+    QVERIFY2(movie->subtitleLanguages() == QStringList() << "eng", movie->subtitleLanguages().join(',').toUtf8());
     QVERIFY(movie->framerate() == "23.976");
 
     // test partial transcoding (10 seconds)
@@ -375,7 +375,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllArtists() {
     int duration = parseFolder(allArtists->getResourceId(), allArtists);
     QVERIFY(allArtists->isDiscovered() == true);
     QVERIFY(allArtists->getSystemName() == "Artist");
-    QVERIFY(allArtists->getChildren().size() >= 1000);
+    QVERIFY2(allArtists->getChildren().size() >= 1000, QString("%1").arg(allArtists->getChildren().size()).toUtf8());
     qWarning() << "PERFO" << duration << allArtists->getSystemName() << allArtists->getChildrenSize() << "children";
     QVERIFY2(duration < 200, QString("Parse all artists in %1 ms").arg(duration).toUtf8());
 }
