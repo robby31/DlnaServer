@@ -56,7 +56,7 @@ QVariant RequestListModel::data(const QModelIndex &index, int role) const
     case argumentRole:
         return mRecords.at(index.row())->getArgument();
     case hostRole:
-        mRecords.at(index.row())->getHost();
+        return QString("%1 (%2)").arg(mRecords.at(index.row())->getHost()).arg(mRecords.at(index.row())->socketDescriptor());
     case peerAddressRole:
         return mRecords.at(index.row())->getpeerAddress();
     case statusRole:
@@ -114,5 +114,5 @@ void RequestListModel::requestChanged() {
 
 QVariant RequestListModel::get(int index, int roleIndex)
 {
-    return data(this->index(index, 0), Qt::UserRole+roleIndex);
+    return data(this->index(index, 0), Qt::UserRole+1+roleIndex);
 }
