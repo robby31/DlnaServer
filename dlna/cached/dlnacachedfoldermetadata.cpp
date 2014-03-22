@@ -5,35 +5,42 @@ DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *li
     library(library),
     metaData(metaData),
     name(name),
-    typeMedia(typeMedia)
+    typeMedia(typeMedia),
+    query(library->getDistinctMetaData(typeMedia, metaData)),
+    nbChildren(-1)
 {
 }
 
-bool DlnaCachedFolderMetaData::discoverChildren() {
+DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent) {
 
-    // Add child when metaData is null
-    DlnaResource* child = 0;
-    child = new DlnaCachedFolder(log, library, QString("type=\"%2\" and %1 is null").arg(metaData).arg(typeMedia), QString("No %1").arg(metaData), host, port);
-    addChild(child);
+    DlnaResource *child = 0;
 
-    // Add child for each distinct value taken by metaData
-    QSqlQuery query = library->getDistinctMetaData(typeMedia, metaData);
-
-    while (query.next()) {
-        DlnaResource* child = 0;
-
-        child = new DlnaCachedFolder(log, library, QString("type=\"%3\" and %1=\"%2\"").arg(metaData).arg(query.value(0).toString()).arg(typeMedia), query.value(1).toString(), host, port);
-
-        addChild(child);
+    if (index == 0) {
+        // metaData is null
+        child = new DlnaCachedFolder(log, library,
+                                     QString("type=\"%2\" and %1 is null").arg(metaData).arg(typeMedia),
+                                     QString("No %1").arg(metaData),
+                                     host, port,
+                                     parent != 0 ? parent : this);
+    } else {
+        if (query.seek(index-1))
+            child = new DlnaCachedFolder(log, library,
+                                         QString("type=\"%3\" and %1=\"%2\"").arg(metaData).arg(query.value(0).toString()).arg(typeMedia),
+                                         query.value(1).toString(),
+                                         host, port,
+                                         parent != 0 ? parent : this);
     }
 
-    return true;
+    if (child != 0) {
+        child->setId(QString("%1").arg(index+1));
+        child->setDlnaParent(this);
+    }
+
+    return child;
 }
 
 int DlnaCachedFolderMetaData::getChildrenSize() {
-    if (!isDiscovered()) {
-        return library->countDistinctMetaData(typeMedia, metaData)+1;
-    } else {
-        return getChildren().size();
-    }
+    if (nbChildren == -1)
+        nbChildren = library->countDistinctMetaData(typeMedia, metaData)+1;
+    return nbChildren;
 }

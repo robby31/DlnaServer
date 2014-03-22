@@ -21,9 +21,6 @@ public:
     // returns true if the folder is added to Root.
     virtual bool addFolder(QString path);
 
-    // Parse children and return true if done
-    virtual bool discoverChildren();
-
     DlnaRootFolder* getRootFolder() { return &rootFolder; }
 
     void addResource(QFileInfo fileinfo);

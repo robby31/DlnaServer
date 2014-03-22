@@ -11,7 +11,8 @@ class DlnaCachedMusicFolder : public DlnaStorageFolder
 public:
     DlnaCachedMusicFolder(Logger* log, MediaLibrary* library, QString host, int port, int idType, QObject *parent = 0);
 
-    virtual bool discoverChildren();
+    virtual DlnaResource* getChild(int index, QObject *parent = 0) { Q_UNUSED(parent) return children.at(index); }
+    virtual int getChildrenSize() { return children.size(); }
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
@@ -23,8 +24,7 @@ public:
     virtual QString getDisplayName() { return "Music"; }
 
 private:
-    MediaLibrary* library;
-    int idType;
+    QList<DlnaResource*> children;
 };
 
 #endif // DLNACACHEDMUSICFOLDER_H

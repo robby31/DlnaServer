@@ -11,8 +11,7 @@ class DlnaCachedFolderMetaData : public DlnaStorageFolder
 public:
     DlnaCachedFolderMetaData(Logger* log, MediaLibrary* library, int typeMedia, QString metaData, QString name, QString host, int port, QObject *parent = 0);
 
-    virtual bool discoverChildren();
-
+    virtual DlnaResource* getChild(int index, QObject *parent = 0);
     virtual int getChildrenSize();
 
     // Any resource needs to represent the container or item with a String.
@@ -29,6 +28,8 @@ private:
     QString metaData;
     QString name;
     int typeMedia;
+    QSqlQuery query;
+    int nbChildren;
 };
 
 #endif // DLNACACHEDFOLDERMETADATA_H

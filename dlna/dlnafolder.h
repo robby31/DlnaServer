@@ -12,12 +12,11 @@ class DlnaFolder : public DlnaStorageFolder
 public:
     DlnaFolder(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
 
-    virtual bool discoverChildren();
-
-    virtual int getChildrenSize() { return getChildrenFileInfo().size(); }
+    virtual DlnaResource* getChild(int index, QObject *parent = 0);
+    virtual int getChildrenSize() { return children.size(); }
 
     // returns the file path of children
-    QList<QFileInfo> getChildrenFileInfo();
+    QList<QFileInfo> getChildrenFileInfo() { return children; }
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
@@ -30,6 +29,7 @@ public:
 
 private:
     QFileInfo fileinfo;
+    QList<QFileInfo> children;
 };
 
 #endif // DLNAFOLDER_H

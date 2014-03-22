@@ -5,11 +5,6 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QString host, int port, 
     library(log, "/Users/doudou/workspaceQT/DLNA_server/MEDIA.database"),
     rootFolder(log, host, port, this)
 {
-    setDiscovered(false);
-}
-
-bool DlnaCachedRootFolder::discoverChildren() {
-
     QSqlQuery query = library.getMediaType();
 
     while (query.next()) {
@@ -17,28 +12,46 @@ bool DlnaCachedRootFolder::discoverChildren() {
         QString typeMedia = query.value(1).toString();
 
         if (typeMedia == "audio") {
-            // TODO: set the parent of the QObject
-            DlnaCachedMusicFolder* child = new DlnaCachedMusicFolder(log, &library, host, port, id_type);
+            DlnaCachedMusicFolder* child = new DlnaCachedMusicFolder(log, &library, host, port, id_type, this);
             this->addChild(child);
         } else {
-            // TODO: set the parent of the QObject
             DlnaCachedFolder* child = new DlnaCachedFolder(log, &library,
                                                            QString("type='%1'").arg(id_type),
-                                                           typeMedia, host, port);
+                                                           typeMedia, host, port, this);
             this->addChild(child);
         }
     }
 
     this->addChild(&rootFolder);
-
-    return true;
 }
 
 bool DlnaCachedRootFolder::addFolder(QString path) {
     if (QFileInfo(path).isDir()) {
         readDirectory(QDir(path));
-        setDiscovered(false);
+
         rootFolder.addFolder(path);
+
+        clearChildren();
+
+        QSqlQuery query = library.getMediaType();
+
+        while (query.next()) {
+            int id_type = query.value(0).toInt();
+            QString typeMedia = query.value(1).toString();
+
+            if (typeMedia == "audio") {
+                DlnaCachedMusicFolder* child = new DlnaCachedMusicFolder(log, &library, host, port, id_type, this);
+                this->addChild(child);
+            } else {
+                DlnaCachedFolder* child = new DlnaCachedFolder(log, &library,
+                                                               QString("type='%1'").arg(id_type),
+                                                               typeMedia, host, port, this);
+                this->addChild(child);
+            }
+        }
+
+        this->addChild(&rootFolder);
+
         return true;
     }
 

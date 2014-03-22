@@ -17,26 +17,26 @@ class DlnaItem : public DlnaResource
 public:
     explicit DlnaItem(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
 
-    virtual bool discoverChildren() { return true; }
-
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
-    virtual QString getName() const;
+    virtual QString getName() const { return fileinfo.fileName(); }
 
-    virtual QString getSystemName() const;
+    virtual QString getSystemName() const { return fileinfo.filePath(); }
 
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName();
 
     virtual bool isFolder() const { return false; }
+    virtual DlnaResource* getChild(int index, QObject *parent = 0) { Q_UNUSED(index) Q_UNUSED(parent) return 0; }
+    virtual int getChildrenSize() { return 0; }
 
     QFileInfo getFileInfo() const { return fileinfo; }
 
     // Returns an InputStream of this DLNA node.
-    QIODevice* getStream();
+    QIODevice* getStream(QObject *parent = 0);
 
     // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1) = 0;
+    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0) = 0;
 
     // return true if the track shall be transcoded
     virtual bool toTranscode() const = 0;

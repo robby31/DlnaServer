@@ -4,49 +4,49 @@ DlnaCachedFolder::DlnaCachedFolder(Logger* log, MediaLibrary* library, QString w
     DlnaStorageFolder(log, host, port, parent),
     library(library),
     whereQuery(whereQuery),
-    name(name)
+    name(name),
+    query(library->getMedia(whereQuery)),
+    nbChildren(-1)
 {
 }
 
-bool DlnaCachedFolder::discoverChildren() {
+DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
+    DlnaResource* child = 0;
 
-    QSqlQuery query = library->getMedia(whereQuery);
+    if (query.seek(index)) {
 
-    int fieldId = query.record().indexOf("id");
-    int fieldFilename = query.record().indexOf("filename");
-    int fieldType = query.record().indexOf("type_media");
-
-    while (query.next()) {
-        DlnaResource* child = 0;
+        int fieldId = query.record().indexOf("id");
+        int fieldFilename = query.record().indexOf("filename");
+        int fieldType = query.record().indexOf("type_media");
 
         int id_media = query.value(fieldId).toInt();
         QString type_media = query.value(fieldType).toString();
         QString filename = query.value(fieldFilename).toString();
 
         if (type_media == "audio") {
-            // TODO: set the parent of the QObject
-            child = new DlnaCachedMusicTrack(log, filename, library, id_media, host, port);
+            child = new DlnaCachedMusicTrack(log, filename, library, id_media, host, port,
+                                             parent != 0 ? parent : this);
 
         } else if (type_media == "video") {
-            // TODO: set the parent of the QObject
-            child = new DlnaCachedVideo(log, filename, library, id_media, host, port);
+            child = new DlnaCachedVideo(log, filename, library, id_media, host, port,
+                                        parent != 0 ? parent : this);
 
         } else {
             log->WARNING(QString("Unkwown format %1: %2").arg(type_media).arg(filename));
         }
 
-        if (child != 0) {
-            addChild(child);
-        }
     }
 
-    return true;
+    if (child != 0) {
+        child->setId(QString("%1").arg(index+1));
+        child->setDlnaParent(this);
+    }
+
+    return child;
 }
 
 int DlnaCachedFolder::getChildrenSize() {
-    if (!isDiscovered()) {
-        return library->countMedia(whereQuery);
-    } else {
-        return getChildren().size();
-    }
+    if (nbChildren == -1)
+        nbChildren = library->countMedia(whereQuery);
+    return nbChildren;
 }

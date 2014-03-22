@@ -3,58 +3,23 @@
 DlnaResource::DlnaResource(Logger *log, QObject *parent):
     QObject(parent),
     log(log),
-    parent(0),
-    discovered(false),
+    id(),
+    dlnaParent(0),
     updateId(1)
 {
 }
 
 QString DlnaResource::getResourceId() const {
     if (getId().isNull())
-    {
         return QString();
-    }
 
-    if (getParent() != 0)
-    {
-        return getParent()->getResourceId() + '$' + getId();
-    }
+    if (getDlnaParent() != 0)
+        return getDlnaParent()->getResourceId() + '$' + getId();
     else
-    {
         return getId();
-    }
 }
 
-void DlnaResource::addChild(DlnaResource *child) {
-
-    if (child == 0) {
-        log->ERROR(QString("Child is null, unable to append child to node %1").arg(getName()));
-    } else {
-        if (!child->getId().isNull()) {
-            if (child->getParent() != 0) {
-                log->ERROR(QString("Node %1 already has an ID %2, which is overridden now. The previous parent node was: %3").arg(child->getName()).arg(child->getResourceId()).arg(child->getParent()->getName()));
-            } else {
-                log->ERROR(QString("Node %1 already has an ID %2, which is overridden now.").arg(child->getName()).arg(child->getResourceId()));
-            }
-        }
-
-        child->setId(QString("%1").arg(children.length()+1));
-        children.append(child);
-        child->setParent(this);
-    }
-
-}
-
-QList<DlnaResource*> DlnaResource::getChildren() {
-    if (!isDiscovered()) {
-        clearChildren();
-        setDiscovered(discoverChildren());
-    }
-
-    return children;
-}
-
-DlnaResource* DlnaResource::search(QString searchId, QString searchStr) {
+DlnaResource* DlnaResource::search(QString searchId, QString searchStr, QObject *parent) {
     if (getResourceId() == searchId) {
         return this;
     }
@@ -62,26 +27,30 @@ DlnaResource* DlnaResource::search(QString searchId, QString searchStr) {
 
         int child_index = searchId.split("$").at(getResourceId().split("$").length()).toInt()-1;
 
-        if ((child_index >= 0) && (child_index < getChildren().size())) {
-            return children.at(child_index)->search(searchId, searchStr);
+        if ((child_index >= 0) && (child_index < getChildrenSize())) {
+            DlnaResource *child = getChild(child_index, parent);
+            if (child != 0)
+                return child->search(searchId, searchStr, parent);
         }
     }
 
     return 0;
 }
 
-QList<DlnaResource*> DlnaResource::getDLNAResources(QString objectId, bool returnChildren, int start, int count, QString searchStr) {
+QList<DlnaResource*> DlnaResource::getDLNAResources(QString objectId, bool returnChildren, int start, int count, QString searchStr, QObject *parent) {
     QList<DlnaResource*> resources;
-    DlnaResource* dlna = search(objectId, searchStr);
+    DlnaResource* dlna = search(objectId, searchStr, parent);
     if (dlna != 0) {
         if (!returnChildren) {
             resources.append(dlna);
         } else {
             if (count > 0) {
+                int nbChildren = dlna->getChildrenSize();
                 for (int i = start; i < start + count; i++) {
-                    if (i < dlna->getChildren().size()) {
-                        DlnaResource* child = dlna->children.at(i);
-                        resources.append(child);
+                    if (i < nbChildren) {
+                        DlnaResource* child = dlna->getChild(i, parent);
+                        if (child != 0)
+                            resources.append(child);
                     }
                 }
             }
@@ -91,13 +60,11 @@ QList<DlnaResource*> DlnaResource::getDLNAResources(QString objectId, bool retur
     return resources;
 }
 
-QString DlnaResource::getParentId() const {
-    if (getParent() != 0) {
-        return getParent()->getResourceId();
-    } else {
+QString DlnaResource::getDlnaParentId() const {
+    if (getDlnaParent() != 0)
+        return getDlnaParent()->getResourceId();
+    else
         return "-1";
-    }
-
 }
 
 QString DlnaResource::getStringContentDirectory(QStringList properties) {
@@ -139,7 +106,7 @@ void DlnaResource::updateXmlContentDirectory(QDomDocument *xml, QDomElement *xml
 
     xml_obj->setAttribute("id", getResourceId());
 
-    xml_obj->setAttribute("parentID", getParentId());
+    xml_obj->setAttribute("parentID", getDlnaParentId());
 
     QDomElement dcTitle = xml->createElement("dc:title");
     dcTitle.appendChild(xml->createTextNode(getDisplayName()));

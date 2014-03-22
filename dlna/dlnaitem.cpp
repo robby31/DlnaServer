@@ -6,29 +6,19 @@ DlnaItem::DlnaItem(Logger *log, QString filename, QString host, int port, QObjec
     host(host),
     port(port),
     transcodeFormat(UNKNOWN),  // default transcode format
-    dlnaOrgOpFlags("01") // seek by byte (exclusive)
+    dlnaOrgOpFlags("01"),      // seek by byte (exclusive)
+    dlnaOrgPN()
 {
-    setDiscovered(true);
-
     QMimeDatabase db;
     mime_type = db.mimeTypeForFile(fileinfo);
 }
 
-QString DlnaItem::getName() const {
-    return fileinfo.fileName();
-}
-
-QString DlnaItem::getSystemName() const {
-    return fileinfo.filePath();
-}
-
 QString DlnaItem::getDisplayName() {
     QString title = metaDataTitle();
-    if (title.isEmpty()) {
+    if (title.isEmpty())
         return fileinfo.completeBaseName();
-    } else {
+    else
         return title;
-    }
 }
 
 long DlnaItem::size() {
@@ -59,7 +49,7 @@ void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
     }
 }
 
-QIODevice* DlnaItem::getStream() {
+QIODevice* DlnaItem::getStream(QObject *parent) {
 
     if (toTranscode()) {
 
@@ -68,7 +58,8 @@ QIODevice* DlnaItem::getStream() {
 
     } else {
 
-        QFile* tmp = new QFile(fileinfo.absoluteFilePath());
+        QFile* tmp = new QFile(fileinfo.absoluteFilePath(),
+                               parent != 0 ? parent : this);
 
         if (!tmp->open(QIODevice::ReadOnly)) {
             return 0;

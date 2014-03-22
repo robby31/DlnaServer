@@ -2,13 +2,9 @@
 
 DlnaFolder::DlnaFolder(Logger* log, QString filename, QString host, int port, QObject *parent):
     DlnaStorageFolder(log, host, port, parent),
-    fileinfo(filename)
+    fileinfo(filename),
+    children()
 {
-}
-
-QList<QFileInfo> DlnaFolder::getChildrenFileInfo() {
-    QList<QFileInfo> l_children;
-
     QDir folder(fileinfo.absoluteFilePath());
     QStringList filter;
     filter << "*";
@@ -20,49 +16,50 @@ QList<QFileInfo> DlnaFolder::getChildrenFileInfo() {
         QMimeDatabase mimeDb;
 
         if (new_file.isDir()) {
-            l_children.append(new_file);
+            children.append(new_file);
         }
         else if (mimeDb.mimeTypeForFile(new_file).name().startsWith("audio/")) {
-            l_children.append(new_file);
+            children.append(new_file);
         }
         else if (mimeDb.mimeTypeForFile(new_file).name().startsWith("video/")) {
-            l_children.append(new_file);
+            children.append(new_file);
         }
         else {
             log->WARNING(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath()));
         }
     }
-
-    return l_children;
 }
 
-bool DlnaFolder::discoverChildren() {
-    foreach (QFileInfo new_file, getChildrenFileInfo()) {
+DlnaResource *DlnaFolder::getChild(int index, QObject *parent) {
+    DlnaResource* child = 0;
 
-        DlnaResource* child = 0;
+    if (index >= 0 and index < children.size()) {
+        QFileInfo fileinfo = children.at(index);
 
         QMimeDatabase mimeDb;
 
-        if (new_file.isDir()) {
-            // TODO: set the parent of the QObject
-            child = new DlnaFolder(log, new_file.absoluteFilePath(), host, port);
+        if (fileinfo.isDir()) {
+            child = new DlnaFolder(log, fileinfo.absoluteFilePath(), host, port,
+                                   parent != 0 ? parent : this);
         }
-        else if (mimeDb.mimeTypeForFile(new_file).name().startsWith("audio/")) {
-            // TODO: set the parent of the QObject
-            child = new DlnaMusicTrackFile(log, new_file.absoluteFilePath(), host, port);
+        else if (mimeDb.mimeTypeForFile(fileinfo).name().startsWith("audio/")) {
+            child = new DlnaMusicTrackFile(log, fileinfo.absoluteFilePath(), host, port,
+                                           parent != 0 ? parent : this);
         }
-        else if (mimeDb.mimeTypeForFile(new_file).name().startsWith("video/")) {
-            // TODO: set the parent of the QObject
-            child = new DlnaVideoFile(log, new_file.absoluteFilePath(), host, port);
+        else if (mimeDb.mimeTypeForFile(fileinfo).name().startsWith("video/")) {
+            child = new DlnaVideoFile(log, fileinfo.absoluteFilePath(), host, port,
+                                      parent != 0 ? parent : this);
         }
         else {
-            log->WARNING(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath()));
-        }
-
-        if (child != 0) {
-            addChild(child);
+            log->WARNING(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(fileinfo).name()).arg(fileinfo.absoluteFilePath()));
         }
     }
 
-    return true;
+    if (child != 0) {
+        child->setId(QString("%1").arg(index+1));
+        child->setDlnaParent(this);
+    }
+
+    return child;
 }
+

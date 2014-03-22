@@ -56,33 +56,19 @@ public:
     int getUpdateId() const { return updateId; }
     void setUpdateId(int updateId) { this->updateId = updateId; }
 
-    DlnaResource *getParent() const { return parent; }
-    QString getParentId() const;
-    void setParent(DlnaResource *parent) { this->parent = parent; }
+    DlnaResource *getDlnaParent() const { return dlnaParent; }
+    QString getDlnaParentId() const;
+    void setDlnaParent(DlnaResource *dlna_parent) { dlnaParent = dlna_parent; }
 
-    /*
-     * Adds a new DLNAResource to the child list.
-     * Only useful if this object is of the container type.
-     */
-    void addChild(DlnaResource *child);
-    void clearChildren() { children.clear(); }
-
-    QList<DlnaResource*> getChildren();
-    virtual int getChildrenSize() { return getChildren().size(); }
-
-    // Parse children and return true if done
-    virtual bool discoverChildren() = 0;
-
-    // Returns true when the details of this resource have already been investigated.
-    bool isDiscovered() const { return discovered; }
-    void setDiscovered(bool discovered) { this->discovered = discovered; }
+    virtual DlnaResource* getChild(int index, QObject *parent = 0) = 0;
+    virtual int getChildrenSize() = 0;
 
     // Recursive function that searches for a given ID such as 0$2$13.
-    DlnaResource* search(QString searchId, QString searchStr);
+    DlnaResource* search(QString searchId, QString searchStr, QObject *parent = 0);
 
     // Search for an item matching the given objectID if returnChildren is false.
     // if returnChildren is true it returns all children of the objectID.
-    QList<DlnaResource*> getDLNAResources(QString objectId, bool returnChildren, int start, int count, QString searchStr);
+    QList<DlnaResource*> getDLNAResources(QString objectId, bool returnChildren, int start, int count, QString searchStr, QObject *parent = 0);
 
     // Returns album art in jpeg format
     virtual QImage getAlbumArt() = 0;
@@ -99,13 +85,7 @@ private:
     QString id;
 
     // parent of the DlnaResource
-    DlnaResource *parent;
-
-    // children of the DlnaResource
-    QList<DlnaResource*> children;
-
-    // flag to knwow if children have been parsed
-    bool discovered;
+    DlnaResource *dlnaParent;
 
     // update counter for this resource.
     // When the resource needs to be refreshed, its counter should be updated.
