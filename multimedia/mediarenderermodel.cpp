@@ -77,7 +77,7 @@ void MediaRendererModel::rendererChanged() {
 
 QVariant MediaRendererModel::get(int index, int roleIndex)
 {
-    return data(this->index(index, 0), Qt::UserRole+roleIndex);
+    return data(this->index(index, 0), Qt::UserRole+1+roleIndex);
 }
 
 MediaRenderer* MediaRendererModel::getFromIp(QString ip) {
