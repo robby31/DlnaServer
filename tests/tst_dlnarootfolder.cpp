@@ -13,13 +13,13 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QVERIFY(rootFolder.getName() == "root");
     QVERIFY(rootFolder.getSystemName() == "root");
     QVERIFY(rootFolder.getDisplayName() == "root");
-    QVERIFY(rootFolder.getParent() == 0);
-    QVERIFY(rootFolder.getParentId() == "-1");
+    QVERIFY(rootFolder.getDlnaParent() == 0);
+    QVERIFY(rootFolder.getDlnaParentId() == "-1");
     QVERIFY(rootFolder.getResourceId() == "0");
     QVERIFY(rootFolder.isFolder() == true);
-    QVERIFY(rootFolder.isDiscovered() == true);
     QVERIFY(rootFolder.getUpdateId() == 1);
-    QVERIFY(rootFolder.getChildren().isEmpty() == true);
+    QVERIFY(rootFolder.getChildrenSize() == 0);
+    QVERIFY(rootFolder.getChild(0) == 0);
 
     QStringList properties;
     properties << "dc:title";
@@ -61,11 +61,12 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QVERIFY(music.getId() == "1");
     QVERIFY(music.getName() == "Music");
     QVERIFY(music.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music");
-    QVERIFY(music.getParent()->getResourceId() == "0");
+    QVERIFY(music.getDlnaParent() != 0);
+    QVERIFY(music.getDlnaParent()->getResourceId() == "0");
     QVERIFY(music.getResourceId() == "0$1");
     QVERIFY(music.isFolder() == true);
-    QVERIFY(rootFolder.getChildren().isEmpty() == false);
-    QVERIFY(rootFolder.getChildren().size() == 1);
+    QVERIFY(rootFolder.getChild(0) != 0);
+    QVERIFY(rootFolder.getChildrenSize() == 1);
 
     xml_res.appendChild(music.getXmlContentDirectory(&xml_res, properties));
     QVERIFY(xml_res.childNodes().size() == 1);
@@ -85,7 +86,7 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QVERIFY(music.getId() == "2");
     QVERIFY(music.getName() == "Music");
     QVERIFY(music.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music");;
-    QVERIFY(music.getParent()->getResourceId() == "0");
+    QVERIFY(music.getDlnaParent()->getResourceId() == "0");
     QVERIFY(music.getResourceId() == "0$2");
     QVERIFY(music.isFolder() == true);
 
@@ -142,8 +143,8 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
 
     res = rootFolder.addFolder("/Users/doudou/Movies");
     QVERIFY(res == true);
-    QVERIFY(rootFolder.getChildren().isEmpty() == false);
-    QVERIFY(rootFolder.getChildren().size() == 3);
+    QVERIFY(rootFolder.getChild(0) != 0);
+    QVERIFY(rootFolder.getChildrenSize() == 3);
 
     found = rootFolder.search("0$3", "");
     QVERIFY(found != 0);

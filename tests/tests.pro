@@ -24,6 +24,7 @@ SOURCES += tst_request.cpp \
     tst_dlnacachedresources.cpp
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
+DEFINES += PROFILING
 
 include (../common/common.pri)
 include (../network/network.pri)
