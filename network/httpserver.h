@@ -52,6 +52,7 @@ private :
     int serverport;
 
     // root folder containing DLNA nodes
+    QSqlDatabase database;
     DlnaCachedRootFolder* rootFolder;
     BatchedRootFolder* batch;
     QThread* batchThread;

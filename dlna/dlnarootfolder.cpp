@@ -11,13 +11,13 @@ DlnaRootFolder::DlnaRootFolder(Logger* log, QString host, int port, QObject *par
 void DlnaRootFolder::addChild(DlnaResource *child) {
 
     if (child == 0) {
-        log->ERROR(QString("Child is null, unable to append child to node %1").arg(getName()));
+        log->Error(QString("Child is null, unable to append child to node %1").arg(getName()));
     } else {
         if (!child->getId().isNull()) {
             if (child->getDlnaParent() != 0) {
-                log->ERROR(QString("Node %1 already has an ID %2, which is overridden now. The previous parent node was: %3").arg(child->getName()).arg(child->getResourceId()).arg(child->getDlnaParent()->getName()));
+                log->Error(QString("Node %1 already has an ID %2, which is overridden now. The previous parent node was: %3").arg(child->getName()).arg(child->getResourceId()).arg(child->getDlnaParent()->getName()));
             } else {
-                log->ERROR(QString("Node %1 already has an ID %2, which is overridden now.").arg(child->getName()).arg(child->getResourceId()));
+                log->Error(QString("Node %1 already has an ID %2, which is overridden now.").arg(child->getName()).arg(child->getResourceId()));
             }
         }
 

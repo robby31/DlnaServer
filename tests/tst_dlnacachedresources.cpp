@@ -2,8 +2,10 @@
 
 tst_dlnacachedresources::tst_dlnacachedresources(QObject *parent) :
     QObject(parent),
-    transcodeProcess(0)
+    transcodeProcess(0),
+    db(QSqlDatabase::addDatabase("QSQLITE"))
 {
+    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
 }
 
 void tst_dlnacachedresources::receivedTranscodedData() {
@@ -16,7 +18,7 @@ void tst_dlnacachedresources::receivedTranscodedData() {
 void tst_dlnacachedresources::testCase_DlnaCachedRootFolder()
 {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, "host", 100, this);
+    DlnaCachedRootFolder rootFolder(&log, &db, "host", 100, this);
     QVERIFY(rootFolder.getId() == "0");
     QVERIFY(rootFolder.getName() == "root");
     QVERIFY(rootFolder.getSystemName() == "root");
@@ -44,7 +46,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedRootFolder()
 
 void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
 
     int res = rootFolder.addFolder("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO");
     QVERIFY(res == true);
@@ -248,7 +250,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
 
 void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
 
     int res = rootFolder.addFolder("/Users/doudou/Movies");
     QVERIFY(res == true);
@@ -359,7 +361,7 @@ int tst_dlnacachedresources::parseFolder(QString resourceId, DlnaResource *resou
 
 void tst_dlnacachedresources::testCase_PerformanceAllArtists() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
 
     int res = rootFolder.addFolder("/Users/doudou/Music/iTunes/iTunes Media/Music");
     QVERIFY(res == true);
@@ -379,7 +381,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllArtists() {
 
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByArtist() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
 
     DlnaCachedFolder* folder = static_cast<DlnaCachedFolder*>(rootFolder.getChild(0));
     QVERIFY(folder->getSystemName() == "Music");
@@ -403,7 +405,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllTracksByArtist() {
 
 void tst_dlnacachedresources::testCase_PerformanceAllAlbums() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
 
     DlnaCachedFolder* folder = static_cast<DlnaCachedFolder*>(rootFolder.getChild(0));
     QVERIFY(folder->getSystemName() == "Music");
@@ -419,7 +421,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllAlbums() {
 
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByAlbum() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
 
     DlnaCachedFolder* folder = static_cast<DlnaCachedFolder*>(rootFolder.getChild(0));
     QVERIFY(folder->getSystemName() == "Music");
@@ -443,7 +445,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllTracksByAlbum() {
 
 void tst_dlnacachedresources::testCase_PerformanceAllGenres() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
 
     DlnaCachedFolder* folder = static_cast<DlnaCachedFolder*>(rootFolder.getChild(0));
     QVERIFY(folder->getSystemName() == "Music");
@@ -459,7 +461,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllGenres() {
 
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByGenre() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
 
     DlnaCachedFolder* folder = static_cast<DlnaCachedFolder*>(rootFolder.getChild(0));
     QVERIFY(folder->getSystemName() == "Music");

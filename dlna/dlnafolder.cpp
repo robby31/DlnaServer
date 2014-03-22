@@ -25,7 +25,7 @@ DlnaFolder::DlnaFolder(Logger* log, QString filename, QString host, int port, QO
             children.append(new_file);
         }
         else {
-            log->WARNING(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath()));
+            log->Warning(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath()));
         }
     }
 }
@@ -51,7 +51,7 @@ DlnaResource *DlnaFolder::getChild(int index, QObject *parent) {
                                       parent != 0 ? parent : this);
         }
         else {
-            log->WARNING(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(fileinfo).name()).arg(fileinfo.absoluteFilePath()));
+            log->Warning(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(fileinfo).name()).arg(fileinfo.absoluteFilePath()));
         }
     }
 

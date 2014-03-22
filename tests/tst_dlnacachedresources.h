@@ -32,6 +32,7 @@ private Q_SLOTS:
 private:
     QProcess* transcodeProcess;
     long transcodedSize;
+    QSqlDatabase db;
 
     int parseFolder(QString resourceId, DlnaResource* resource);
 };

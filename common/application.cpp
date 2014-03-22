@@ -30,7 +30,7 @@ int Application::load(QUrl url) {
 
         QQuickWindow *window = qobject_cast<QQuickWindow *>(topLevel);
         if ( !window ) {
-            log.ERROR("Your root item has to be a Window.");
+            log.Error("Your root item has to be a Window.");
             return -1;
         }
         window->show();
@@ -60,7 +60,7 @@ void Application::removeFolder(int index) {
 }
 
 void Application::quit() {
-    log.TRACE("Quit Application.");
+    log.Trace("Quit Application.");
 
     // save the settings
     saveSettings();

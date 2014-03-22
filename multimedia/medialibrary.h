@@ -11,8 +11,10 @@ class MediaLibrary : public QObject
     Q_OBJECT
 
 public:
-    explicit MediaLibrary(Logger* log, QString pathname, QObject *parent = 0);
+    explicit MediaLibrary(Logger *log, QSqlDatabase *database, QObject *parent = 0);
     virtual ~MediaLibrary();
+
+    QSqlDatabase *getDatabase() const { return db; }
 
     QSqlQuery getMediaType() { return QSqlQuery("SELECT DISTINCT id, name FROM type"); }
 
@@ -32,7 +34,7 @@ public slots:
 
 private:
     Logger* log;
-    QSqlDatabase db;
+    QSqlDatabase *db;
 
     QHash<QString, QHash<QString, QHash<QString, QString> > > foreignKeys;
 

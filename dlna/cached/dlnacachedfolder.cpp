@@ -32,7 +32,7 @@ DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
                                         parent != 0 ? parent : this);
 
         } else {
-            log->WARNING(QString("Unkwown format %1: %2").arg(type_media).arg(filename));
+            log->Warning(QString("Unkwown format %1: %2").arg(type_media).arg(filename));
         }
 
     }

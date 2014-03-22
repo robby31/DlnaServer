@@ -12,13 +12,14 @@ class Logger: public QObject
 public:
     Logger(QObject *parent = 0);
 
-    void setLevel(LogLevel level);
+    void setLevel(LogLevel level) { m_level = level; }
+    bool isLevel(LogLevel level) const { return m_level <= level; }
 
-    void TRACE(QString message) const;
-    void DEBUG(QString message) const;
-    void INFO(QString message) const;
-    void ERROR(QString message) const;
-    void WARNING(QString message) const;
+    void Trace(QString message) const;
+    void Debug(QString message) const;
+    void Info(QString message) const;
+    void Error(QString message) const;
+    void Warning(QString message) const;
 
 private:
     // LOG level:
@@ -27,7 +28,7 @@ private:
     //    2: INFO
     //    3: WARNING
     //    4: ERROR
-    LogLevel level;
+    LogLevel m_level;
 };
 
 #endif // LOGGER_H

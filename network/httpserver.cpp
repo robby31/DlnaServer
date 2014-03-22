@@ -15,6 +15,7 @@ HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel, MediaRender
     renderersModel(renderersModel),
     log(log),
     serverport(5002),
+    database(QSqlDatabase::addDatabase("QSQLITE")),
     rootFolder(0)
 {
     // read the LocalIpAddress
@@ -34,19 +35,20 @@ HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel, MediaRender
     connect(this, SIGNAL(acceptError(QAbstractSocket::SocketError)), this, SLOT(newConnectionError(QAbstractSocket::SocketError)));
 
     if (hostaddress.isNull()) {
-        log->ERROR("HTTP server: unable to define host ip address.");
+        log->Error("HTTP server: unable to define host ip address.");
     }
     else {
         if (!listen(hostaddress, serverport)) {
-            log->ERROR("HTTP server: " + errorString());
+            log->Error("HTTP server: " + errorString());
         }
         else {
-            log->TRACE("HTTP server: listen " + getHost().toString() + ":" + QString("%1").arg(getPort()));
+            log->Trace("HTTP server: listen " + getHost().toString() + ":" + QString("%1").arg(getPort()));
         }
     }
 
     // initialize the root folder
-    rootFolder = new DlnaCachedRootFolder(log, hostaddress.toString(), serverport, this);
+    database.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+    rootFolder = new DlnaCachedRootFolder(log, &database, hostaddress.toString(), serverport, this);
 
     batchThread = new QThread(this);
     batch = new BatchedRootFolder(rootFolder);
@@ -64,7 +66,7 @@ HttpServer::~HttpServer()
     batch->quit();
     batchThread->wait();
 
-    log->TRACE("Close HTTP server.");
+    log->Trace("Close HTTP server.");
     close();
 }
 
@@ -81,7 +83,7 @@ void HttpServer::incomingConnection(qintptr socketDescriptor) {
 
     // put the socket in connected state
     if (!l_socket[socketDescriptor]->setSocketDescriptor(socketDescriptor)) {
-        log->ERROR(QString("Unable to create TcpSocket %1").arg(socketDescriptor));
+        log->Error(QString("Unable to create TcpSocket %1").arg(socketDescriptor));
     } else {
         addPendingConnection(l_socket[socketDescriptor]);
     }
@@ -90,7 +92,7 @@ void HttpServer::incomingConnection(qintptr socketDescriptor) {
 void HttpServer::acceptConnection()
 {
     while (hasPendingConnections()) {
-        log->TRACE("HTTP server: new connection");
+        log->Trace("HTTP server: new connection");
 
         requestsModel->addRequest(log,
                                   nextPendingConnection(),
@@ -101,7 +103,7 @@ void HttpServer::acceptConnection()
 }
 
 void HttpServer::newConnectionError(QAbstractSocket::SocketError error) {
-    log->ERROR("HTTP server: error at new connection.");
+    log->Error("HTTP server: error at new connection.");
 }
 
 bool HttpServer::addFolder(QString folder) {

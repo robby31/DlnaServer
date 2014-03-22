@@ -1,18 +1,17 @@
 #include "medialibrary.h"
 
-MediaLibrary::MediaLibrary(Logger* log, QString pathname, QObject *parent) :
+MediaLibrary::MediaLibrary(Logger* log, QSqlDatabase *database, QObject *parent) :
     QObject(parent),
     log(log),
-    db(QSqlDatabase::addDatabase("QSQLITE"))
+    db(database)
 {
-    db.setDatabaseName(pathname);
-    if (!db.open()) {
-        log->ERROR("unable to open database " + pathname);
+    if (!db->open()) {
+        log->Error("unable to open database " + database->databaseName());
     } else {
         QSqlQuery query;
 
         if (!query.exec("pragma foreign_keys = on;")) {
-            log->ERROR("unable to set FOREIGN KEYS in MediaLibrary " + query.lastError().text());
+            log->Error("unable to set FOREIGN KEYS in MediaLibrary " + query.lastError().text());
         }
 
         if (!query.exec("create table if not exists media ("
@@ -34,57 +33,57 @@ MediaLibrary::MediaLibrary(Logger* log, QString pathname, QObject *parent) :
                    "FOREIGN KEY(picture) REFERENCES picture(id), "
                    "FOREIGN KEY(genre) REFERENCES genre(id)"
                    ")")) {
-            log->ERROR("unable to create table media in MediaLibrary " + query.lastError().text());
+            log->Error("unable to create table media in MediaLibrary " + query.lastError().text());
         }
 
         if (!query.exec("create table if not exists type (id integer primary key, "
                                                          "name varchar unique)")) {
-            log->ERROR("unable to create table type in MediaLibrary " + query.lastError().text());
+            log->Error("unable to create table type in MediaLibrary " + query.lastError().text());
         }
 
         if (!query.exec("create table if not exists mime_type (id integer primary key, "
                                                               "name varchar unique)")) {
-            log->ERROR("unable to create table mime_type in MediaLibrary " + query.lastError().text());
+            log->Error("unable to create table mime_type in MediaLibrary " + query.lastError().text());
         }
 
         if (!query.exec("create table if not exists artist (id integer primary key, "
                                                            "name varchar unique)")) {
-            log->ERROR("unable to create table artist in MediaLibrary " + query.lastError().text());
+            log->Error("unable to create table artist in MediaLibrary " + query.lastError().text());
         }
 
         if (!query.exec("create table if not exists album (id integer primary key, "
                                                           "name varchar unique)")) {
-            log->ERROR("unable to create table album in MediaLibrary " + query.lastError().text());
+            log->Error("unable to create table album in MediaLibrary " + query.lastError().text());
         }
 
         if (!query.exec("create table if not exists genre (id integer primary key, "
                                                           "name varchar unique)")) {
-            log->ERROR("unable to create table genre in MediaLibrary " + query.lastError().text());
+            log->Error("unable to create table genre in MediaLibrary " + query.lastError().text());
         }
 
         if (!query.exec("create table if not exists picture (id integer primary key, "
                                                             "name varchar unique)")) {
-            log->ERROR("unable to create table picture in MediaLibrary " + query.lastError().text());
+            log->Error("unable to create table picture in MediaLibrary " + query.lastError().text());
         }
 
         if (!query.exec("CREATE INDEX IF NOT EXISTS idx_idmedia ON media(id)")) {
-            log->ERROR("unable to create index in MediaLibrary " + query.lastError().text());
+            log->Error("unable to create index in MediaLibrary " + query.lastError().text());
         }
 
         if (!query.exec("CREATE INDEX IF NOT EXISTS idx_artistmedia ON media(artist)")) {
-            log->ERROR("unable to create index in MediaLibrary " + query.lastError().text());
+            log->Error("unable to create index in MediaLibrary " + query.lastError().text());
         }
 
         if (!query.exec("CREATE INDEX IF NOT EXISTS idx_albummedia ON media(album)")) {
-            log->ERROR("unable to create index in MediaLibrary " + query.lastError().text());
+            log->Error("unable to create index in MediaLibrary " + query.lastError().text());
         }
 
         if (!query.exec("CREATE INDEX IF NOT EXISTS idx_genremedia ON media(genre)")) {
-            log->ERROR("unable to create index in MediaLibrary " + query.lastError().text());
+            log->Error("unable to create index in MediaLibrary " + query.lastError().text());
         }
 
         // update foreign keys
-        foreach(QString tableName, db.tables()) {
+        foreach(QString tableName, db->tables()) {
             query.exec(QString("pragma foreign_key_list(%1);").arg(tableName));
             while (query.next()) {
                 QHash<QString, QString> tmp;
@@ -97,8 +96,7 @@ MediaLibrary::MediaLibrary(Logger* log, QString pathname, QObject *parent) :
 }
 
 MediaLibrary::~MediaLibrary() {
-    db.close();
-    db.removeDatabase(db.connectionName());
+
 }
 
 QVariant MediaLibrary::getmetaData(QString tagName, int idMedia) {
@@ -189,7 +187,7 @@ bool MediaLibrary::insert(QHash<QString, QVariant> data) {
             int index = insertForeignKey(foreignTable, "name", data[elt]);
             query.bindValue(QString(":%1").arg(elt), index);
             if (index == -1) {
-                log->ERROR("unable to bind " + elt);
+                log->Error("unable to bind " + elt);
                 return false;
             }
         } else {
@@ -200,7 +198,7 @@ bool MediaLibrary::insert(QHash<QString, QVariant> data) {
     int res = query.exec();
 
     if (!res) {
-        log->ERROR("unable to update MediaLibrary " + query.lastError().text());
+        log->Error("unable to update MediaLibrary " + query.lastError().text());
     }
 
     return res;
@@ -214,12 +212,12 @@ int MediaLibrary::insertForeignKey(QString table, QString parameter, QVariant va
     QSqlQuery query;
 
     int index = -1;
-    query.exec(QString("SELECT id FROM %1 WHERE %2 = %3").arg(table).arg(parameter).arg(db.driver()->formatValue(field)));
+    query.exec(QString("SELECT id FROM %1 WHERE %2 = %3").arg(table).arg(parameter).arg(db->driver()->formatValue(field)));
     if (query.next()) {
         index = query.value(0).toInt();
     } else {
-        if (!query.exec(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(table).arg(parameter).arg(db.driver()->formatValue(field)))) {
-            log->ERROR("unable to update MediaLibrary " + query.lastError().text());
+        if (!query.exec(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(table).arg(parameter).arg(db->driver()->formatValue(field)))) {
+            log->Error("unable to update MediaLibrary " + query.lastError().text());
             return -1;
         } else {
             index = query.lastInsertId().toInt();

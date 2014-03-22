@@ -1,8 +1,8 @@
 #include "dlnacachedrootfolder.h"
 
-DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QString host, int port, QObject *parent):
+DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, QString host, int port, QObject *parent):
     DlnaRootFolder(log, host, port, parent),
-    library(log, "/Users/doudou/workspaceQT/DLNA_server/MEDIA.database"),
+    library(log, database),
     rootFolder(log, host, port, this)
 {
     QSqlQuery query = library.getMediaType();
@@ -87,7 +87,7 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
 
         if (mime_type.startsWith("audio/")) {
 
-            log->DEBUG("add resource " + mime_type + " " + fileinfo.absoluteFilePath());
+            log->Debug("add resource " + mime_type + " " + fileinfo.absoluteFilePath());
 
             DlnaMusicTrackFile track(log, fileinfo.absoluteFilePath(), host, port);
 
@@ -104,12 +104,12 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
             data.insert("bitrate", track.bitrate());
 
             if (!library.insert(data)) {
-                log->ERROR(QString("unable to add resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type));
+                log->Error(QString("unable to add resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type));
             }
 
         } else if (mime_type.startsWith("video/")) {
 
-            log->DEBUG("add resource " + mime_type + " " + fileinfo.absoluteFilePath());
+            log->Debug("add resource " + mime_type + " " + fileinfo.absoluteFilePath());
 
             DlnaVideoFile movie(log, fileinfo.absoluteFilePath(), host, port);
 
@@ -124,10 +124,10 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
             data.insert("format", movie.metaDataFormat());
 
             if (!library.insert(data)) {
-                log->ERROR(QString("unable to add resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type));
+                log->Error(QString("unable to add resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type));
             }
         } else {
-            log->DEBUG("resource not added to library: " + mime_type + ", " + fileinfo.absoluteFilePath());
+            log->Debug("resource not added to library: " + mime_type + ", " + fileinfo.absoluteFilePath());
         }
     }
 }

@@ -3,46 +3,31 @@
 Logger::Logger(QObject *parent):
     QObject(parent)
 {
-    level = TRA;
+    setLevel(TRA);
 }
 
-
-void Logger::setLevel(LogLevel level) {
-    this->level = level;
-}
-
-void Logger::TRACE(QString message) const {
-    if (level <= TRA)
-    {
+void Logger::Trace(QString message) const {
+    if (isLevel(TRA))
         qDebug() << "TRACE -" << message;
-    }
 }
 
-void Logger::DEBUG(QString message) const {
-    if (level <= DEBG)
-    {
+void Logger::Debug(QString message) const {
+    if (isLevel(DEBG))
         qDebug() << "DEBUG -" << message;
-    }
 }
 
-void Logger::INFO(QString message) const {
-    if (level <= INF)
-    {
+void Logger::Info(QString message) const {
+    if (isLevel(INF))
         qDebug() << "INFO  -" << message;
-    }
 }
 
-void Logger::WARNING(QString message) const {
-    if (level <= WAR)
-    {
+void Logger::Warning(QString message) const {
+    if (isLevel(WAR))
         qDebug() << "WAR   -" << message;
-    }
 }
 
-void Logger::ERROR(QString message) const {
-    if (level <= ERR)
-    {
+void Logger::Error(QString message) const {
+    if (isLevel(ERR))
         qDebug() << "ERROR -" << message;
-    }
 }
 

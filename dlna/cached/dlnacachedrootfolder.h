@@ -16,7 +16,7 @@ class DlnaCachedRootFolder : public DlnaRootFolder
 {
 
 public:
-    DlnaCachedRootFolder(Logger* log, QString host, int port, QObject *parent = 0);
+    DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, QString host, int port, QObject *parent = 0);
 
     // returns true if the folder is added to Root.
     virtual bool addFolder(QString path);
@@ -24,6 +24,8 @@ public:
     DlnaRootFolder* getRootFolder() { return &rootFolder; }
 
     void addResource(QFileInfo fileinfo);
+
+    QSqlDatabase *getDatabase() const { return library.getDatabase(); }
 
 private:
     MediaLibrary library;
