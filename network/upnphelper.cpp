@@ -27,7 +27,7 @@ UPNPHelper::UPNPHelper(Logger* log, HttpServer *server, QObject *parent):
 
     connect(&timerAlive, SIGNAL(timeout()), this, SLOT(sendAlive()));
 
-    log->TRACE("Starting UPNPHelper");
+    log->Trace("Starting UPNPHelper");
 
     // Start timer to broadcast UPnP ALIVE messages every 10 seconds
     timerAlive.start(10000);
@@ -36,7 +36,7 @@ UPNPHelper::UPNPHelper(Logger* log, HttpServer *server, QObject *parent):
 
 UPNPHelper::~UPNPHelper()
 {
-    log->TRACE("Close UPNPHelper.");
+    log->Trace("Close UPNPHelper.");
 
     timerAlive.stop();
     sendByeBye();
@@ -58,8 +58,8 @@ void UPNPHelper::processPendingDatagrams()
 
         if (message.startsWith("M-SEARCH"))
         {
-            log->TRACE("Receiving a M-SEARCH from [" + remoteAddr.toString() + ":" + QString("%1").arg(remotePort) + "] ");
-            log->TRACE("M-SEARCH message: " + message);
+            log->Trace("Receiving a M-SEARCH from [" + remoteAddr.toString() + ":" + QString("%1").arg(remotePort) + "] ");
+            log->Trace("M-SEARCH message: " + message);
 
             if (message.indexOf("urn:schemas-upnp-org:service:ContentDirectory:1") > 0) {
                 sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:service:ContentDirectory:1");
@@ -83,11 +83,11 @@ void UPNPHelper::processPendingDatagrams()
         }
         else if (message.startsWith("NOTIFY"))
         {
-            log->TRACE("Receiving a NOTIFY from [" + remoteAddr.toString() + ":" + QString("%1").arg(remotePort) + "]");
+            log->Trace("Receiving a NOTIFY from [" + remoteAddr.toString() + ":" + QString("%1").arg(remotePort) + "]");
         }
         else
         {
-            log->ERROR("Receiving an unknwon request from [" + remoteAddr.toString() + ":" + QString("%1").arg(remotePort) + "] " + message);
+            log->Error("Receiving an unknwon request from [" + remoteAddr.toString() + ":" + QString("%1").arg(remotePort) + "] " + message);
         }
     }
 }
@@ -140,10 +140,10 @@ void UPNPHelper::sendReply(QHostAddress host, int port, QByteArray msg) {
 
     QUdpSocket socket;
 
-    log->TRACE(QString("Sending this reply [%1:%2]: %3").arg(host.toString()).arg(port).arg(QString(msg).replace(CRLF, "<CRLF>")));
+    log->Trace(QString("Sending this reply [%1:%2]: %3").arg(host.toString()).arg(port).arg(QString(msg).replace(CRLF, "<CRLF>")));
 
     if (socket.writeDatagram(msg, host, port) == -1) {
-        log->ERROR("UPNPHELPER: Unable to send reply.");
+        log->Error("UPNPHELPER: Unable to send reply.");
     }
 
     socket.close();
@@ -201,14 +201,14 @@ void UPNPHelper::sendMessage(QString nt, QString message)
     QByteArray ssdpPacket = buildMsg(nt, message);
 
     if (udpSocketBroadcast.writeDatagram(ssdpPacket.data(), ssdpPacket.size(), IPV4_UPNP_HOST, UPNP_PORT) == -1) {
-        log->ERROR("UPNPHELPER: Unable to send message.");
+        log->Error("UPNPHELPER: Unable to send message.");
     }
 
 }
 
 void UPNPHelper::sendAlive() {
 
-    log->DEBUG("Sending Alive...");
+    log->Debug("Sending Alive...");
 
     sendMessage("upnp:rootdevice", ALIVE);
     sendMessage(QString("uuid:%1").arg(server->UUID), ALIVE);
@@ -219,7 +219,7 @@ void UPNPHelper::sendAlive() {
 
 void UPNPHelper::sendByeBye() {
 
-    log->INFO("Sending BYEBYE...");
+    log->Debug("Sending BYEBYE...");
 
     sendMessage("upnp:rootdevice", BYEBYE);
     sendMessage("urn:schemas-upnp-org:device:MediaServer:1", BYEBYE);
