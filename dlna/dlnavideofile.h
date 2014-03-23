@@ -6,8 +6,10 @@
 
 class DlnaVideoFile : public DlnaVideoItem
 {
+
 public:
-    DlnaVideoFile(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
+    explicit DlnaVideoFile(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
+    virtual ~DlnaVideoFile();
 
     virtual int metaDataBitrate();
     virtual int metaDataDuration();

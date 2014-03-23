@@ -19,6 +19,10 @@ DlnaVideoItem::DlnaVideoItem(Logger *log, QString filename, QString host, int po
     }
 }
 
+DlnaVideoItem::~DlnaVideoItem() {
+
+}
+
 /*
 * Returns XML (DIDL) representation of the DLNA node. It gives a
 * complete representation of the item, with as many tags as available.
@@ -127,7 +131,7 @@ int DlnaVideoItem::bitrate() {
     }
 }
 
-MencoderTranscoding *DlnaVideoItem::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end) {
+MencoderTranscoding *DlnaVideoItem::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent) {
     if (!toTranscode()) {
 
         // use getStream instead of transcoding
@@ -135,12 +139,11 @@ MencoderTranscoding *DlnaVideoItem::getTranscodeProcess(HttpRange *range, long t
 
     } else {
 
-        // TODO: set the parent of the QObject
-        MencoderTranscoding* transcodeProcess = new MencoderTranscoding();
+        MencoderTranscoding* transcodeProcess = new MencoderTranscoding(parent != 0 ? parent : this);
 
         if (transcodeProcess->initialize(range, timeseek_start, timeseek_end, fileinfo.filePath(), getLengthInSeconds(), transcodeFormat, bitrate(), audioLanguages(), subtitleLanguages(), framerate())) {
 
-            log->DEBUG(QString("Video Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
+            log->Debug(QString("Video Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
             return transcodeProcess;
 
         } else {
@@ -157,7 +160,7 @@ QString DlnaVideoItem::mimeType() {
             return MPEG_TYPEMIME;
 
         } else {
-            log->ERROR("Unable to define mimeType of DlnaVideoItem: " + getSystemName());
+            log->Error("Unable to define mimeType of DlnaVideoItem: " + getSystemName());
 
             // returns unknown mimeType
             return UNKNOWN_VIDEO_TYPEMIME;
@@ -171,7 +174,7 @@ QString DlnaVideoItem::mimeType() {
             return MATROSKA_TYPEMIME;
 
         } else {
-            log->ERROR("Unable to define mimeType of DlnaVideoItem: " + format + " " + getSystemName());
+            log->Error("Unable to define mimeType of DlnaVideoItem: " + format + " " + getSystemName());
 
             // returns unknown mimeType
             return UNKNOWN_VIDEO_TYPEMIME;

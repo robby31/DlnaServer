@@ -8,6 +8,10 @@ DlnaRootFolder::DlnaRootFolder(Logger* log, QString host, int port, QObject *par
     setId("0");
 }
 
+DlnaRootFolder::~DlnaRootFolder() {
+
+}
+
 void DlnaRootFolder::addChild(DlnaResource *child) {
 
     if (child == 0) {

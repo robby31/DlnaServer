@@ -9,6 +9,8 @@ DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *li
     query(library->getDistinctMetaData(typeMedia, metaData)),
     nbChildren(-1)
 {
+    query.last();
+    nbChildren = query.at()+1;
 }
 
 DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent) {
@@ -37,10 +39,4 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent) {
     }
 
     return child;
-}
-
-int DlnaCachedFolderMetaData::getChildrenSize() {
-    if (nbChildren == -1)
-        nbChildren = library->countDistinctMetaData(typeMedia, metaData)+1;
-    return nbChildren;
 }

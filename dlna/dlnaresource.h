@@ -1,6 +1,7 @@
 #ifndef DLNARESOURCE_H
 #define DLNARESOURCE_H
 
+#include <QObject>
 #include <QtXml>
 #include <QImage>
 
@@ -16,7 +17,8 @@ class DlnaResource: public QObject
     Q_OBJECT
 
 public:
-    DlnaResource(Logger* log, QObject *parent = 0);
+    explicit DlnaResource(Logger* log, QObject *parent = 0);
+    virtual ~DlnaResource();
 
     QString getId() const { return id; }
     void setId(QString id) { this->id = id; }

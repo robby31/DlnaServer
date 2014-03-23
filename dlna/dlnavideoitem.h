@@ -6,10 +6,10 @@
 
 class DlnaVideoItem : public DlnaItem
 {
-    Q_OBJECT
 
 public:
     DlnaVideoItem(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
+    virtual ~DlnaVideoItem();
 
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName() { return fileinfo.completeBaseName(); }
@@ -30,7 +30,7 @@ public:
     virtual bool toTranscode() const { return true; }
 
     // Returns the process for transcoding
-    virtual MencoderTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1);
+    virtual MencoderTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
 
     // Returns album art in jpeg format
     virtual QImage getAlbumArt() { return QImage(); }

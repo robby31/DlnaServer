@@ -13,6 +13,10 @@ DlnaItem::DlnaItem(Logger *log, QString filename, QString host, int port, QObjec
     mime_type = db.mimeTypeForFile(fileinfo);
 }
 
+DlnaItem::~DlnaItem() {
+
+}
+
 QString DlnaItem::getDisplayName() {
     QString title = metaDataTitle();
     if (title.isEmpty())

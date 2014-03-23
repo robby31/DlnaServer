@@ -7,6 +7,10 @@ DlnaVideoFile::DlnaVideoFile(Logger *log, QString filename, QString host, int po
 
 }
 
+DlnaVideoFile::~DlnaVideoFile() {
+
+}
+
 QString DlnaVideoFile::metaDataTitle() {
     return ffmpeg.metaData("title");
 }

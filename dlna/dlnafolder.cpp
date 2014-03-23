@@ -30,6 +30,10 @@ DlnaFolder::DlnaFolder(Logger* log, QString filename, QString host, int port, QO
     }
 }
 
+DlnaFolder::~DlnaFolder() {
+
+}
+
 DlnaResource *DlnaFolder::getChild(int index, QObject *parent) {
     DlnaResource* child = 0;
 

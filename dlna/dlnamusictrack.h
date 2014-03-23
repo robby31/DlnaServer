@@ -6,10 +6,10 @@
 
 class DlnaMusicTrack : public DlnaItem
 {
-    Q_OBJECT
 
 public:
     DlnaMusicTrack(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
+    virtual ~DlnaMusicTrack();
 
     // Return upnp class
     virtual QString getUpnpClass() const { return QString("object.item.audioItem.musicTrack"); }
@@ -27,7 +27,7 @@ public:
     virtual bool toTranscode() const { return mime_type.name() != "audio/mpeg"; }
 
     // Returns the process for transcoding
-    virtual FfmpegTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1);
+    virtual FfmpegTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
 
     // Returns album art in jpeg format
     virtual QImage getAlbumArt();

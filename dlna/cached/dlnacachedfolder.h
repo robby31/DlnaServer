@@ -11,8 +11,9 @@
 
 class DlnaCachedFolder : public DlnaStorageFolder
 {
+
 public:
-    DlnaCachedFolder(Logger* log, MediaLibrary* library, QString whereQuery, QString name, QString host, int port, QObject *parent = 0);
+    explicit DlnaCachedFolder(Logger* log, MediaLibrary* library, QString whereQuery, QString name, QString host, int port, QObject *parent = 0);
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0);
     virtual int getChildrenSize();

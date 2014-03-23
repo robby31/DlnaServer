@@ -16,7 +16,7 @@ class DlnaCachedRootFolder : public DlnaRootFolder
 {
 
 public:
-    DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, QString host, int port, QObject *parent = 0);
+    explicit DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, QString host, int port, QObject *parent = 0);
 
     // returns true if the folder is added to Root.
     virtual bool addFolder(QString path);

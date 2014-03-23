@@ -5,8 +5,10 @@
 
 class DlnaStorageFolder : public DlnaResource
 {
+
 public:
-    DlnaStorageFolder(Logger* log, QString host, int port, QObject *parent = 0);
+    explicit DlnaStorageFolder(Logger* log, QString host, int port, QObject *parent = 0);
+    virtual ~DlnaStorageFolder();
 
     // Return upnp class
     virtual QString getUpnpClass() const { return QString("object.container.storageFolder"); }

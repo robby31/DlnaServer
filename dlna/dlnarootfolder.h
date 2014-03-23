@@ -7,8 +7,10 @@
 
 class DlnaRootFolder : public DlnaStorageFolder
 {
+
 public:
-    DlnaRootFolder(Logger* log, QString host, int port, QObject *parent = 0);
+    explicit DlnaRootFolder(Logger* log, QString host, int port, QObject *parent = 0);
+    virtual ~DlnaRootFolder();
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.

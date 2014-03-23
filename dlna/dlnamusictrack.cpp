@@ -17,6 +17,10 @@ DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString filename, QString host, int 
     setdlnaOrgPN("MP3");
 }
 
+DlnaMusicTrack::~DlnaMusicTrack() {
+
+}
+
 void DlnaMusicTrack::updateDLNAOrgPn() {
     if (mimeType() == "audio/mpeg") {
         setdlnaOrgPN("MP3");
@@ -185,7 +189,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
     return xml_obj;
 }
 
-FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end) {
+FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent) {
 
     if (!toTranscode()) {
 
@@ -194,12 +198,11 @@ FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess(HttpRange *range, long ti
 
     } else {
 
-        // TODO: set the parent of the QObject
-        FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
+        FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(parent != 0 ? parent : this);
 
         if (transcodeProcess->initialize(range, timeseek_start, timeseek_end, fileinfo.filePath(), getLengthInSeconds(), transcodeFormat, bitrate())) {
 
-            log->DEBUG(QString("Audio Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
+            log->Debug(QString("Audio Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
             return transcodeProcess;
 
         } else {
@@ -218,7 +221,7 @@ QString DlnaMusicTrack::mimeType() {
         } else if (transcodeFormat == LPCM) {
             return AUDIO_LPCM_TYPEMIME;
         } else {
-            log->ERROR("Unable to define mimeType of DlnaMusicTrack Transcoding: " + getSystemName());
+            log->Error("Unable to define mimeType of DlnaMusicTrack Transcoding: " + getSystemName());
         }
     } else {
         QString format = metaDataFormat();
@@ -227,7 +230,7 @@ QString DlnaMusicTrack::mimeType() {
         } else if (format == "aac") {
             return AUDIO_MP4_TYPEMIME;
         } else {
-            log->ERROR(QString("Unable to define mimeType of DlnaMusicTrack: %1 from format <%2>").arg(getSystemName()).arg(format));
+            log->Error(QString("Unable to define mimeType of DlnaMusicTrack: %1 from format <%2>").arg(getSystemName()).arg(format));
         }
     }
 

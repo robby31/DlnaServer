@@ -6,8 +6,9 @@
 
 class DlnaMusicTrackFile : public DlnaMusicTrack
 {
+
 public:
-    DlnaMusicTrackFile(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
+    explicit DlnaMusicTrackFile(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
 
     virtual int metaDataBitrate();
     virtual int metaDataDuration();

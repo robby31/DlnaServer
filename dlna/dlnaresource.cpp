@@ -9,6 +9,10 @@ DlnaResource::DlnaResource(Logger *log, QObject *parent):
 {
 }
 
+DlnaResource::~DlnaResource() {
+
+}
+
 QString DlnaResource::getResourceId() const {
     if (getId().isNull())
         return QString();

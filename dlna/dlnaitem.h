@@ -13,9 +13,10 @@
 
 class DlnaItem : public DlnaResource
 {
-    Q_OBJECT
+
 public:
     explicit DlnaItem(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
+    virtual ~DlnaItem();
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
@@ -81,10 +82,6 @@ public:
 
     QString getdlnaOrgPN() const { return dlnaOrgPN; }
     void setdlnaOrgPN(QString arg) { dlnaOrgPN=arg; }
-
-signals:
-
-public slots:
 
 protected:
     QFileInfo fileinfo;

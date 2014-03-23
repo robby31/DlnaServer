@@ -9,8 +9,10 @@
 
 class DlnaFolder : public DlnaStorageFolder
 {
+
 public:
-    DlnaFolder(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
+    explicit DlnaFolder(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
+    virtual ~DlnaFolder();
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0);
     virtual int getChildrenSize() { return children.size(); }

@@ -8,8 +8,9 @@
 
 class DlnaCachedMusicFolder : public DlnaStorageFolder
 {
+
 public:
-    DlnaCachedMusicFolder(Logger* log, MediaLibrary* library, QString host, int port, int idType, QObject *parent = 0);
+    explicit DlnaCachedMusicFolder(Logger* log, MediaLibrary* library, QString host, int port, int idType, QObject *parent = 0);
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0) { Q_UNUSED(parent) return children.at(index); }
     virtual int getChildrenSize() { return children.size(); }
