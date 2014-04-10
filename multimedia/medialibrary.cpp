@@ -170,7 +170,7 @@ bool MediaLibrary::insert(QHash<QString, QVariant> data) {
     QStringList l_parameters;
     QStringList l_values;
     foreach(QString elt, data.keys()) {
-        if (!data[elt].isNull()) {
+        if (!data[elt].isNull() and !data[elt].toString().isEmpty()) {
             l_parameters << elt;
             l_values << QString(":%1").arg(elt);
         }
@@ -179,7 +179,7 @@ bool MediaLibrary::insert(QHash<QString, QVariant> data) {
     QString values = l_values.join(",");
 
     query.prepare(QString("INSERT INTO media (%1) VALUES (%2)").arg(parameters).arg(values));
-    foreach(QString elt, data.keys()) {
+    foreach(QString elt, l_parameters) {
         if (foreignKeys["media"].contains(elt)) {
             QString foreignTable = foreignKeys["media"][elt]["table"];
 
