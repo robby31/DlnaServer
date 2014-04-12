@@ -1,7 +1,9 @@
 #include "mediarenderermodel.h"
 
 MediaRendererModel::MediaRendererModel(QObject *parent) :
-    QAbstractTableModel(parent)
+    QAbstractTableModel(parent),
+    mRecords(),
+    mRoles()
 {
     mRoles[statusRole] = "status";
     mRoles[nameRole] = "name";
@@ -11,48 +13,49 @@ MediaRendererModel::MediaRendererModel(QObject *parent) :
 
 void MediaRendererModel::clearAll() {
     // remove all renderers
-    while (!mRecords.isEmpty()) {
-        MediaRenderer* renderer = mRecords.takeFirst();
-        delete renderer;
-    }
+    qDeleteAll(mRecords);
+    mRecords.clear();
 }
 
 int MediaRendererModel::rowCount(const QModelIndex &parent) const
 {
-    Q_UNUSED(parent);
-
-    return mRecords.count();
+    if (parent.isValid())
+        return 0;
+    else
+        return mRecords.count();
 }
 
 int MediaRendererModel::columnCount(const QModelIndex &parent) const
 {
-    Q_UNUSED(parent);
-
-    return mRoles.keys().length();
+    if (parent.isValid())
+        return 0;
+    else
+        return mRoles.keys().length();
 }
 
 QVariant MediaRendererModel::data(const QModelIndex &index, int role) const
 {
-    if ( mRecords.count() <= 0)
-        return QVariant();
+    MediaRenderer *item = 0;
 
-    switch (role) {
-    case statusRole:
-        return mRecords.at(index.row())->getStatus();
-    case nameRole:
-        return mRecords.at(index.row())->getName();
-    case networkAddressRole:
-        return mRecords.at(index.row())->getNetworkAddress();
-    case userAgentRole:
-        return mRecords.at(index.row())->getUserAgent();
-    default:
-        return QVariant();
+    if ( index.row() >= 0 and index.row() < mRecords.size() )
+        item = mRecords.at(index.row());
+
+    if (item != 0) {
+        switch (role) {
+        case statusRole:
+            return item->getStatus();
+        case nameRole:
+            return item->getName();
+        case networkAddressRole:
+            return item->getNetworkAddress();
+        case userAgentRole:
+            return item->getUserAgent();
+        default:
+            return QVariant::Invalid;
+        }
     }
-}
 
-QHash<int, QByteArray> MediaRendererModel::roleNames() const
-{
-    return mRoles;
+    return QVariant::Invalid;
 }
 
 MediaRenderer* MediaRendererModel::addRenderer(Logger *log, QString ip, int port, QString userAgent)
@@ -92,10 +95,12 @@ MediaRenderer* MediaRendererModel::getFromIp(QString ip) {
 
 void MediaRendererModel::serving(QString ip, QString mediaName) {
     MediaRenderer* renderer = getFromIp(ip);
-    renderer->setStatus(QString("Serving %1").arg(mediaName));
+    if (renderer != 0)
+        renderer->setStatus(QString("Serving %1").arg(mediaName));
 }
 
 void MediaRendererModel::stopServing(QString ip) {
     MediaRenderer* renderer = getFromIp(ip);
-    renderer->setStatus("standby");
+    if (renderer != 0)
+        renderer->setStatus("standby");
 }

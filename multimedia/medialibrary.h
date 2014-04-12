@@ -28,6 +28,9 @@ public:
 
     bool insert(QHash<QString, QVariant> data);
 
+private:
+    int insertForeignKey(QString table, QString parameter, QVariant value);
+
 signals:
 
 public slots:
@@ -37,9 +40,6 @@ private:
     QSqlDatabase *db;
 
     QHash<QString, QHash<QString, QHash<QString, QString> > > foreignKeys;
-
-    int insertForeignKey(QString table, QString parameter, QVariant value);
-
 };
 
 #endif // MEDIALIBRARY_H

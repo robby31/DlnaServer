@@ -25,6 +25,10 @@ public:
     Q_INVOKABLE void addSharedFolder(QUrl folder);
     Q_INVOKABLE void removeFolder(int index);
 
+private:
+    bool loadSettings();
+    bool saveSettings();
+
 public slots:
 
     // quit the application
@@ -50,9 +54,6 @@ private:
 
     // list of renderes connected to the server
     MediaRendererModel renderersModel;
-
-    bool loadSettings();
-    bool saveSettings();
 };
 
 #endif // APPLICATION_H

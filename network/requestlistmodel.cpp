@@ -1,7 +1,9 @@
 #include "requestlistmodel.h"
 
 RequestListModel::RequestListModel(QObject *parent) :
-    QAbstractTableModel(parent)
+    QAbstractTableModel(parent),
+    mRecords(),
+    mRoles()
 {
     mRoles[methodRole] = "method";
     mRoles[argumentRole] = "argument";

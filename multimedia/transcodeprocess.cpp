@@ -4,6 +4,8 @@ const QString TranscodeProcess::CRLF = "\r\n";
 
 TranscodeProcess::TranscodeProcess(QObject *parent) :
     QProcess(parent),
+    transcodeClock(),
+    transcodeLog(),
     killTranscodeProcess(false)
 {
     connect(this, SIGNAL(readyReadStandardError()), this, SLOT(receivedTranscodingLogMessage()));

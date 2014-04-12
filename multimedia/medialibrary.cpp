@@ -2,8 +2,9 @@
 
 MediaLibrary::MediaLibrary(Logger* log, QSqlDatabase *database, QObject *parent) :
     QObject(parent),
-    log(log),
-    db(database)
+    log(log != 0 ? log : new Logger(this)),
+    db(database),
+    foreignKeys()
 {
     if (!db->open()) {
         log->Error("unable to open database " + database->databaseName());

@@ -1,7 +1,8 @@
 #include "logger.h"
 
 Logger::Logger(QObject *parent):
-    QObject(parent)
+    QObject(parent),
+    m_level(TRA)
 {
     setLevel(TRA);
 }
