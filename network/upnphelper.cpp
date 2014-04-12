@@ -14,8 +14,11 @@ const QString UPNPHelper::BYEBYE = "ssdp:byebye";
 
 UPNPHelper::UPNPHelper(Logger* log, HttpServer *server, QObject *parent):
     QObject(parent),
-    log(log),
-    server(server)
+    log(log != 0 ? log : new Logger(this)),
+    server(server),
+    udpSocketBroadcast(this),
+    udpSocketReceiver(this),
+    timerAlive(this)
 {
     udpSocketBroadcast.setSocketOption(QAbstractSocket::MulticastTtlOption, 32);
 
@@ -23,9 +26,11 @@ UPNPHelper::UPNPHelper(Logger* log, HttpServer *server, QObject *parent):
     udpSocketReceiver.bind(QHostAddress::AnyIPv4, UPNP_PORT, QUdpSocket::ShareAddress);
     udpSocketReceiver.joinMulticastGroup(IPV4_UPNP_HOST);
 
-    connect(&udpSocketReceiver, SIGNAL(readyRead()), this, SLOT(processPendingDatagrams()));
+    connect(&udpSocketReceiver, SIGNAL(readyRead()),
+            this, SLOT(processPendingDatagrams()));
 
-    connect(&timerAlive, SIGNAL(timeout()), this, SLOT(sendAlive()));
+    connect(&timerAlive, SIGNAL(timeout()),
+            this, SLOT(sendAlive()));
 
     log->Trace("Starting UPNPHelper");
 
@@ -77,7 +82,7 @@ void UPNPHelper::processPendingDatagrams()
                 sendDiscover(remoteAddr, remotePort, "urn:schemas-upnp-org:device:MediaServer:1");
             }
 
-            if (message.indexOf(QString("uuid:%1").arg(server->UUID)) > 0) {
+            if (server != 0 and message.indexOf(QString("uuid:%1").arg(server->UUID)) > 0) {
                 sendDiscover(remoteAddr, remotePort, QString("uuid:%1").arg(server->UUID));
             }
         }
@@ -102,30 +107,34 @@ void UPNPHelper::processPendingDatagrams()
  * @throws IOException Signals that an I/O exception has occurred.
  */
 void UPNPHelper::sendDiscover(QHostAddress host, int port, QString st) {
-    QString usn = QString("uuid:%1").arg(server->UUID);
-    QString serverHost = server->getHost().toString();
-    int serverPort = server->getPort();
-    QDateTime sdf;
+    if (server != 0) {
+        QString usn = QString("uuid:%1").arg(server->UUID);
+        QString serverHost = server->getHost().toString();
+        int serverPort = server->getPort();
+        QDateTime sdf;
 
-    if (st == usn) {
-        usn = "";
+        if (st == usn) {
+            usn = "";
+        } else {
+            usn += "::";
+        }
+
+        QString discovery;
+
+        discovery.append(QString("HTTP/1.1 200 OK")).append(CRLF);
+        discovery.append(QString("CACHE-CONTROL: max-age=1200")).append(CRLF);
+        discovery.append(QString("DATE: ")).append(sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss")).append(QString(" GMT")).append(CRLF);
+        discovery.append(QString("LOCATION: http://%1:%2/description/fetch").arg(serverHost).arg(serverPort)).append(CRLF);
+        discovery.append(QString("SERVER: %1").arg(server->SERVERNAME)).append(CRLF);
+        discovery.append(QString("ST: %1").arg(st)).append(CRLF);
+        discovery.append(QString("EXT: ")).append(CRLF);
+        discovery.append(QString("USN: %1%2").arg(usn).arg(st)).append(CRLF);
+        discovery.append(QString("Content-Length: 0")).append(CRLF).append(CRLF);
+
+        sendReply(host, port, discovery.toUtf8());
     } else {
-        usn += "::";
+        log->Error("UPNP ERROR: unable to send message (server is null).");
     }
-
-    QString discovery;
-
-    discovery.append(QString("HTTP/1.1 200 OK")).append(CRLF);
-    discovery.append(QString("CACHE-CONTROL: max-age=1200")).append(CRLF);
-    discovery.append(QString("DATE: ")).append(sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss")).append(QString(" GMT")).append(CRLF);
-    discovery.append(QString("LOCATION: http://%1:%2/description/fetch").arg(serverHost).arg(serverPort)).append(CRLF);
-    discovery.append(QString("SERVER: %1").arg(server->SERVERNAME)).append(CRLF);
-    discovery.append(QString("ST: %1").arg(st)).append(CRLF);
-    discovery.append(QString("EXT: ")).append(CRLF);
-    discovery.append(QString("USN: %1%2").arg(usn).arg(st)).append(CRLF);
-    discovery.append(QString("Content-Length: 0")).append(CRLF).append(CRLF);
-
-    sendReply(host, port, discovery.toUtf8());
 }
 
 /**
@@ -159,34 +168,39 @@ void UPNPHelper::sendReply(QHostAddress host, int port, QByteArray msg) {
  */
 QByteArray UPNPHelper::buildMsg(QString nt, QString message)
 {
-    QString sb;
+    if (server != 0) {
+        QString sb;
 
-    sb.append(QString("NOTIFY * HTTP/1.1")).append(CRLF);
-    sb.append(QString("HOST: ")).append(IPV4_UPNP_HOST.toString()).append(QString(":")).append(QString("%1").arg(UPNP_PORT)).append(CRLF);
-    sb.append(QString("NT: ")).append(nt).append(CRLF);
-    sb.append(QString("NTS: ")).append(message).append(CRLF);
+        sb.append(QString("NOTIFY * HTTP/1.1")).append(CRLF);
+        sb.append(QString("HOST: ")).append(IPV4_UPNP_HOST.toString()).append(QString(":")).append(QString("%1").arg(UPNP_PORT)).append(CRLF);
+        sb.append(QString("NT: ")).append(nt).append(CRLF);
+        sb.append(QString("NTS: ")).append(message).append(CRLF);
 
-    if (message == ALIVE)
-    {
-        sb.append(QString("LOCATION: http://")).append(server->getHost().toString()).append(QString(":")).append(QString("%1").arg(server->getPort())).append(QString("/description/fetch")).append(CRLF);
+        if (message == ALIVE)
+        {
+            sb.append(QString("LOCATION: http://")).append(server->getHost().toString()).append(QString(":")).append(QString("%1").arg(server->getPort())).append(QString("/description/fetch")).append(CRLF);
+        }
+
+        sb.append(QString("USN: ")).append(QString("uuid:%1").arg(server->UUID));
+
+        if (nt != QString("uuid:%1").arg(server->UUID)) {
+            sb.append(QString("::")).append(nt);
+        }
+
+        sb.append(CRLF);
+
+        if (message == ALIVE) {
+            sb.append(QString("CACHE-CONTROL: max-age=1800")).append(CRLF);
+            sb.append(QString("SERVER: ")).append(server->SERVERNAME).append(CRLF);
+        }
+
+        sb.append(CRLF);
+
+        return sb.toUtf8();
+    } else {
+        log->Error("UPNP ERROR: unable to build message (server is null).");
+        return QByteArray();
     }
-
-    sb.append(QString("USN: ")).append(QString("uuid:%1").arg(server->UUID));
-
-    if (nt != QString("uuid:%1").arg(server->UUID)) {
-        sb.append(QString("::")).append(nt);
-    }
-
-    sb.append(CRLF);
-
-    if (message == ALIVE) {
-        sb.append(QString("CACHE-CONTROL: max-age=1800")).append(CRLF);
-        sb.append(QString("SERVER: ")).append(server->SERVERNAME).append(CRLF);
-    }
-
-    sb.append(CRLF);
-
-    return sb.toUtf8();
 }
 
 
@@ -208,13 +222,17 @@ void UPNPHelper::sendMessage(QString nt, QString message)
 
 void UPNPHelper::sendAlive() {
 
-    log->Debug("Sending Alive...");
+    if (server != 0) {
+        log->Debug("Sending Alive...");
 
-    sendMessage("upnp:rootdevice", ALIVE);
-    sendMessage(QString("uuid:%1").arg(server->UUID), ALIVE);
-    sendMessage("urn:schemas-upnp-org:device:MediaServer:1", ALIVE);
-    sendMessage("urn:schemas-upnp-org:service:ContentDirectory:1", ALIVE);
-    sendMessage("urn:schemas-upnp-org:service:ConnectionManager:1", ALIVE);
+        sendMessage("upnp:rootdevice", ALIVE);
+        sendMessage(QString("uuid:%1").arg(server->UUID), ALIVE);
+        sendMessage("urn:schemas-upnp-org:device:MediaServer:1", ALIVE);
+        sendMessage("urn:schemas-upnp-org:service:ContentDirectory:1", ALIVE);
+        sendMessage("urn:schemas-upnp-org:service:ConnectionManager:1", ALIVE);
+    } else {
+        log->Error("UPNP ERROR: unable to send Alive message (server is null)");
+    }
 }
 
 void UPNPHelper::sendByeBye() {

@@ -17,6 +17,22 @@ public:
     UPNPHelper(Logger* log, HttpServer *server, QObject *parent = 0);
     virtual ~UPNPHelper();
 
+private:
+    // Build a UPnP message string based on a message.
+    QByteArray buildMsg(QString nt, QString message);
+
+    // Send the provided message to the socket.
+    void sendMessage(QString nt, QString message);
+
+    // Send UPnP discovery search message to discover devices of interest on the network.
+    void sendDiscover(QHostAddress host, int port, QString st);
+
+    // Send reply.
+    void sendReply(QHostAddress host, int port, QByteArray msg);
+
+    // Send the UPnP BYEBYE message.
+    void sendByeBye();
+
 private slots:
     // Send Alive for broadcasting
     void sendAlive();
@@ -54,21 +70,6 @@ private:
 
     // The Constant BYEBYE.
     static const QString BYEBYE;
-
-    // Build a UPnP message string based on a message.
-    QByteArray buildMsg(QString nt, QString message);
-
-    // Send the provided message to the socket.
-    void sendMessage(QString nt, QString message);
-
-    // Send UPnP discovery search message to discover devices of interest on the network.
-    void sendDiscover(QHostAddress host, int port, QString st);
-
-    // Send reply.
-    void sendReply(QHostAddress host, int port, QByteArray msg);
-
-    // Send the UPnP BYEBYE message.
-    void sendByeBye();
 };
 
 #endif // UPNPHELPER_H

@@ -30,7 +30,7 @@ public:
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     QVariant data(const QModelIndex &index, int role) const;
-    virtual QHash<int,QByteArray> roleNames() const;
+    virtual QHash<int,QByteArray> roleNames() const { return mRoles; }
 
     // Create a new request and add it to the model
     Request* addRequest(Logger* log,

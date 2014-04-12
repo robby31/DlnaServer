@@ -1,6 +1,5 @@
 #include "requestlistmodel.h"
 
-
 RequestListModel::RequestListModel(QObject *parent) :
     QAbstractTableModel(parent)
 {
@@ -25,64 +24,66 @@ RequestListModel::~RequestListModel() {
 
 void RequestListModel::clearAll() {
     // remove all requests
-    while (!mRecords.isEmpty()) {
-        Request* request = mRecords.takeFirst();
-        delete request;
-    }
+    qDeleteAll(mRecords);
+    mRecords.clear();
 }
 
 int RequestListModel::rowCount(const QModelIndex &parent) const
 {
-    Q_UNUSED(parent);
-
-    return mRecords.count();
+    if (parent.isValid())
+        return 0;
+    else
+        return mRecords.count();
 }
 
 int RequestListModel::columnCount(const QModelIndex &parent) const
 {
-    Q_UNUSED(parent);
-
-    return mRoles.keys().length();
+    if (parent.isValid())
+        return 0;
+    else
+        return mRoles.keys().length();
 }
 
 QVariant RequestListModel::data(const QModelIndex &index, int role) const
 {
-    if ( mRecords.count() <= 0)
-        return QVariant();
+    Request *item = 0;
 
-    switch (role) {
-    case methodRole:
-        return mRecords.at(index.row())->getMethod();
-    case argumentRole:
-        return mRecords.at(index.row())->getArgument();
-    case hostRole:
-        return QString("%1 (%2)").arg(mRecords.at(index.row())->getHost()).arg(mRecords.at(index.row())->socketDescriptor());
-    case peerAddressRole:
-        return mRecords.at(index.row())->getpeerAddress();
-    case statusRole:
-        return mRecords.at(index.row())->getStatus();
-    case headerRole:
-        return mRecords.at(index.row())->getTextHeader();
-    case contentRole:
-        return mRecords.at(index.row())->getTextContent();
-    case durationRole:
-        return mRecords.at(index.row())->getDuration();
-    case dateRole:
-        return mRecords.at(index.row())->getDate();
-    case answerRole:
-        return mRecords.at(index.row())->getTextAnswer();
-    case networkStatusRole:
-        return mRecords.at(index.row())->getNetworkStatus();
-    case transcodeLogRole:
-        return mRecords.at(index.row())->getTranscodeLog();
-    default:
-        return QVariant();
+    if ( index.row() >= 0 and index.row() < mRecords.size() )
+        item = mRecords.at(index.row());
+
+    if (item != 0) {
+        switch (role) {
+        case methodRole:
+            return item->getMethod();
+        case argumentRole:
+            return item->getArgument();
+        case hostRole:
+            return QString("%1 (%2)").arg(item->getHost()).arg(item->socketDescriptor());
+        case peerAddressRole:
+            return item->getpeerAddress();
+        case statusRole:
+            return item->getStatus();
+        case headerRole:
+            return item->getTextHeader();
+        case contentRole:
+            return item->getTextContent();
+        case durationRole:
+            return item->getDuration();
+        case dateRole:
+            return item->getDate();
+        case answerRole:
+            return item->getTextAnswer();
+        case networkStatusRole:
+            return item->getNetworkStatus();
+        case transcodeLogRole:
+            return item->getTranscodeLog();
+        default:
+            return QVariant::Invalid;
+
+        }
     }
-}
 
-QHash<int, QByteArray> RequestListModel::roleNames() const
-{
-    return mRoles;
+    return QVariant::Invalid;
 }
 
 Request* RequestListModel::addRequest(Logger *log, QTcpSocket *client, QString uuid, QString servername, QString host, int port, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel)
