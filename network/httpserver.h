@@ -30,12 +30,12 @@ public:
     // Server name
     static const QString SERVERNAME;
 
+    // Server port
+    static const int SERVERPORT;
+
 signals:
     void batched_addFolder(QString folder);
     void progressUpdate(int value);
-
-protected:
-    virtual void incomingConnection(qintptr socketDescriptor);
 
 private slots :
     void acceptConnection();                                      // new connection detected
@@ -55,9 +55,7 @@ private :
     QSqlDatabase database;
     DlnaCachedRootFolder* rootFolder;
     BatchedRootFolder* batch;
-    QThread* batchThread;
-
-    QHash<int, QTcpSocket*> l_socket;
+    QThread batchThread;
 };
 
 #endif // HTTPSERVER_H
