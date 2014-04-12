@@ -10,22 +10,22 @@ DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *li
     nbChildren(-1)
 {
     query.last();
-    nbChildren = query.at()+1;
+    nbChildren = query.at();
 }
 
 DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent) {
 
     DlnaResource *child = 0;
 
-    if (index == 0) {
-        // metaData is null
-        child = new DlnaCachedFolder(log, library,
-                                     QString("type=\"%2\" and %1 is null").arg(metaData).arg(typeMedia),
-                                     QString("No %1").arg(metaData),
-                                     host, port,
-                                     parent != 0 ? parent : this);
-    } else {
-        if (query.seek(index-1))
+    if (query.seek(index)) {
+        // metaData is null ?
+        if (query.value(0).isNull())
+            child = new DlnaCachedFolder(log, library,
+                                         QString("type=\"%2\" and %1 is null").arg(metaData).arg(typeMedia),
+                                         QString("No %1").arg(metaData),
+                                         host, port,
+                                         parent != 0 ? parent : this);
+        else
             child = new DlnaCachedFolder(log, library,
                                          QString("type=\"%3\" and %1=\"%2\"").arg(metaData).arg(query.value(0).toString()).arg(typeMedia),
                                          query.value(1).toString(),
