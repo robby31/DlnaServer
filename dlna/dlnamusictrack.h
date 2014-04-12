@@ -42,8 +42,7 @@ public:
     static const QString AUDIO_LPCM_TYPEMIME;
     static const QString AUDIO_TRANSCODE;
 
-protected:
-
+private:
     virtual void updateDLNAOrgPn();
 };
 

@@ -83,6 +83,9 @@ public:
     QString getdlnaOrgPN() const { return dlnaOrgPN; }
     void setdlnaOrgPN(QString arg) { dlnaOrgPN=arg; }
 
+private:
+    virtual void updateDLNAOrgPn() = 0;
+
 protected:
     QFileInfo fileinfo;
 
@@ -126,8 +129,6 @@ protected:
 
     // DLNA.ORG_PN
     QString dlnaOrgPN;
-
-    virtual void updateDLNAOrgPn() = 0;
 };
 
 #endif // DLNAITEM_H

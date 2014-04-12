@@ -2,7 +2,7 @@
 
 DlnaVideoFile::DlnaVideoFile(Logger *log, QString filename, QString host, int port, QObject *parent):
     DlnaVideoItem(log, filename, host, port, parent),
-    ffmpeg(filename, parent)
+    ffmpeg(filename, this)
 {
 
 }

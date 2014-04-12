@@ -2,7 +2,7 @@
 
 DlnaMusicTrackFile::DlnaMusicTrackFile(Logger* log, QString filename, QString host, int port, QObject *parent):
     DlnaMusicTrack(log, filename, host, port, parent),
-    ffmpeg(filename, parent)
+    ffmpeg(filename, this)
 {
 }
 

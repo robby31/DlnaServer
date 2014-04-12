@@ -3,6 +3,7 @@
 DlnaItem::DlnaItem(Logger *log, QString filename, QString host, int port, QObject *parent) :
     DlnaResource(log, parent),
     fileinfo(filename),
+    mime_type(),
     host(host),
     port(port),
     transcodeFormat(UNKNOWN),  // default transcode format

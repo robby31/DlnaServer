@@ -36,7 +36,7 @@ bool DlnaRootFolder::addFolder(QString folder) {
 
     if (QFileInfo(folder).isDir()) {
         DlnaFolder* child = new DlnaFolder(log, folder, host, port, this);
-        this->addChild(child);
+        addChild(child);
         return true;
     }
 

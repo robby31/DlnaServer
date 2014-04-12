@@ -30,6 +30,9 @@ DlnaVideoItem::~DlnaVideoItem() {
 * Reference: http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v1-Service.pdf
 */
 QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList properties) {
+    if (!xml)
+        return QDomElement();
+
     QDomElement xml_obj = xml->createElement("item");
 
     updateXmlContentDirectory(xml, &xml_obj, properties);

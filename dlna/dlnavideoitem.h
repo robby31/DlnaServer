@@ -50,7 +50,7 @@ public:
     static const QString MATROSKA_TYPEMIME;
     static const QString VIDEO_TRANSCODE;
 
-protected:
+private:
     virtual void updateDLNAOrgPn();
 };
 
