@@ -2,7 +2,8 @@
 
 DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, QString host, int port, QObject *parent):
     DlnaRootFolder(log, host, port, parent),
-    library(log, database),
+    library(log, database, this),
+    mimeDb(),
     rootFolder(log, host, port, this)
 {
     QSqlQuery query = library.getMediaType();
@@ -13,16 +14,16 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
 
         if (typeMedia == "audio") {
             DlnaCachedMusicFolder* child = new DlnaCachedMusicFolder(log, &library, host, port, id_type, this);
-            this->addChild(child);
+            addChild(child);
         } else {
             DlnaCachedFolder* child = new DlnaCachedFolder(log, &library,
                                                            QString("type='%1'").arg(id_type),
                                                            typeMedia, host, port, this);
-            this->addChild(child);
+            addChild(child);
         }
     }
 
-    this->addChild(&rootFolder);
+    addChild(&rootFolder);
 }
 
 bool DlnaCachedRootFolder::addFolder(QString path) {
@@ -41,16 +42,16 @@ bool DlnaCachedRootFolder::addFolder(QString path) {
 
             if (typeMedia == "audio") {
                 DlnaCachedMusicFolder* child = new DlnaCachedMusicFolder(log, &library, host, port, id_type, this);
-                this->addChild(child);
+                addChild(child);
             } else {
                 DlnaCachedFolder* child = new DlnaCachedFolder(log, &library,
                                                                QString("type='%1'").arg(id_type),
                                                                typeMedia, host, port, this);
-                this->addChild(child);
+                addChild(child);
             }
         }
 
-        this->addChild(&rootFolder);
+        addChild(&rootFolder);
 
         return true;
     }

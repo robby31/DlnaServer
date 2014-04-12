@@ -28,11 +28,12 @@ public:
     QSqlDatabase *getDatabase() const { return library.getDatabase(); }
 
 private:
+    void readDirectory(QDir folder);
+
+private:
     MediaLibrary library;
     QMimeDatabase mimeDb;
     DlnaRootFolder rootFolder;
-
-    void readDirectory(QDir folder);
 };
 
 #endif // DLNACACHEDROOTFOLDER_H
