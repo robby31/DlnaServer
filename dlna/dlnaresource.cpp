@@ -2,7 +2,7 @@
 
 DlnaResource::DlnaResource(Logger *log, QObject *parent):
     QObject(parent),
-    log(log),
+    log(log != 0 ? log : new Logger(this)),
     id(),
     dlnaParent(0),
     updateId(1)
@@ -93,11 +93,13 @@ QString DlnaResource::getStringContentDirectory(QStringList properties) {
 
 QByteArray DlnaResource::getByteAlbumArt() {
     QImage picture = getAlbumArt();
+
     if (!picture.isNull()) {
         QByteArray result;
         QBuffer buffer(&result);
         if (buffer.open(QIODevice::WriteOnly)) {
             if (picture.save(&buffer, "JPEG")) {
+                buffer.close();
                 return result;
             }
         }
@@ -108,17 +110,19 @@ QByteArray DlnaResource::getByteAlbumArt() {
 void DlnaResource::updateXmlContentDirectory(QDomDocument *xml, QDomElement *xml_obj, QStringList properties) {
     Q_UNUSED(properties);
 
-    xml_obj->setAttribute("id", getResourceId());
+    if (xml and xml_obj) {
+        xml_obj->setAttribute("id", getResourceId());
 
-    xml_obj->setAttribute("parentID", getDlnaParentId());
+        xml_obj->setAttribute("parentID", getDlnaParentId());
 
-    QDomElement dcTitle = xml->createElement("dc:title");
-    dcTitle.appendChild(xml->createTextNode(getDisplayName()));
-    xml_obj->appendChild(dcTitle);
+        QDomElement dcTitle = xml->createElement("dc:title");
+        dcTitle.appendChild(xml->createTextNode(getDisplayName()));
+        xml_obj->appendChild(dcTitle);
 
-    QDomElement upnpClass = xml->createElement("upnp:class");
-    upnpClass.appendChild(xml->createTextNode(getUpnpClass()));
-    xml_obj->appendChild(upnpClass);
+        QDomElement upnpClass = xml->createElement("upnp:class");
+        upnpClass.appendChild(xml->createTextNode(getUpnpClass()));
+        xml_obj->appendChild(upnpClass);
 
-    xml_obj->setAttribute("restricted", "true");
+        xml_obj->setAttribute("restricted", "true");
+    }
 }
