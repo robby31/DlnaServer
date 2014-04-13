@@ -226,3 +226,83 @@ int MediaLibrary::insertForeignKey(QString table, QString parameter, QVariant va
     }
     return index;
 }
+
+bool MediaLibrary::update(int id, QHash<QString, QVariant> data)
+{
+    QSqlRecord record;
+    QSqlQuery query;
+    if (query.exec(QString("SELECT * from media where id=%1").arg(id)))
+        if (query.next())
+            record = query.record();
+
+    if (record.isEmpty())
+        return false;
+
+    foreach(QString elt, data.keys()) {
+        if (!data[elt].isNull() and !data[elt].toString().isEmpty()) {
+
+            if (foreignKeys["media"].contains(elt)) {
+                QString foreignTable = foreignKeys["media"][elt]["table"];
+
+                // replace the value of the foreign key by its id
+                int index = insertForeignKey(foreignTable, "name", data[elt]);
+
+                if (record.value(elt) != index) {
+                    log->Debug(QString("update %1, %2, index %3, %4").arg(elt).arg(record.value(elt).toString()).arg(index).arg(data[elt].toString()));
+                    QSqlQuery queryUpdate;
+                    if (!queryUpdate.exec(QString("UPDATE media SET %1=%2 WHERE id=%3").arg(elt).arg(index).arg(id)))
+                        return false;
+                }
+
+            } else {
+                if (record.value(elt) != data[elt]) {
+                    log->Debug(QString("update %1, %2, %3").arg(elt).arg(record.value(elt).toString()).arg(data[elt].toString()));
+                    QSqlQuery queryUpdate;
+                    QSqlField field = record.field(record.indexOf(elt));
+                    field.setValue(data[elt]);
+                    if (!queryUpdate.exec(QString("UPDATE media SET %1=%2 WHERE id=%3").arg(elt).arg(db->driver()->formatValue(field)).arg(id)))
+                        return false;
+                }
+            }
+        }
+    }
+
+    return true;
+}
+
+bool MediaLibrary::add_media(QHash<QString, QVariant> data)
+{
+    QSqlQuery query = getMedia(QString("filename=\"%1\"").arg(data["filename"].toString()));
+
+    if (query.next()) {
+        // media already stored in library
+        QDateTime lastModified = query.value("last_modified").toDateTime();
+
+        if (lastModified >= data["last_modified"].toDateTime()) {
+            // no need to update the media
+            return true;
+        } else {
+            // update the media
+            qWarning() << "update resource" << data["mime_type"].toString() << data["filename"].toString() << lastModified << data["last_modified"].toDateTime();
+            return update(query.value("id").toInt(), data);
+        }
+
+    } else {
+        // new media
+        log->Debug("add resource " + data["mime_type"].toString() + " " + data["filename"].toString());
+        return insert(data);
+    }
+}
+
+bool MediaLibrary::contains(QFileInfo fileinfo)
+{
+    QSqlQuery query = getMedia(QString("filename=\"%1\"").arg(fileinfo.absoluteFilePath()));
+    if (query.next()) {
+        // media already stored in library but maybe need to be updated
+        // function returns false if the media shall be updated
+        QDateTime lastModified = query.value("last_modified").toDateTime();
+        return lastModified >= fileinfo.lastModified();
+    } else {
+        return false;
+    }
+}

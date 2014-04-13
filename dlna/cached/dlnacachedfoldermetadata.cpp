@@ -11,8 +11,8 @@ DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *li
 {
     if (library) {
         query = library->getDistinctMetaData(typeMedia, metaData);
-        query.last();
-        nbChildren = query.at();
+        if (query.last())
+            nbChildren = query.at() + 1;
     }
 }
 

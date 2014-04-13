@@ -16,7 +16,7 @@ public:
     explicit DlnaCachedFolder(Logger* log, MediaLibrary* library, QString whereQuery, QString name, QString host, int port, QObject *parent = 0);
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0);
-    virtual int getChildrenSize();
+    virtual int getChildrenSize() { return nbChildren; }
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.

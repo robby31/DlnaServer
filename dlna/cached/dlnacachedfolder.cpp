@@ -8,8 +8,11 @@ DlnaCachedFolder::DlnaCachedFolder(Logger* log, MediaLibrary* library, QString w
     query(),
     nbChildren(-1)
 {
-    if (library)
+    if (library) {
         query = library->getMedia(whereQuery);
+        if (query.last())
+            nbChildren = query.at() + 1;
+    }
 }
 
 DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
@@ -47,8 +50,3 @@ DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
     return child;
 }
 
-int DlnaCachedFolder::getChildrenSize() {
-    if (nbChildren == -1 and library)
-        nbChildren = library->countMedia(whereQuery);
-    return nbChildren;
-}

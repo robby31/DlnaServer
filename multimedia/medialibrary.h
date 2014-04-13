@@ -26,10 +26,14 @@ public:
 
     QVariant getmetaData(QString tagName, int idMedia);
 
-    bool insert(QHash<QString, QVariant> data);
+    bool contains(QFileInfo fileinfo);
+    bool add_media(QHash<QString, QVariant> data);
 
 private:
     int insertForeignKey(QString table, QString parameter, QVariant value);
+
+    bool insert(QHash<QString, QVariant> data);
+    bool update(int id, QHash<QString, QVariant> data);
 
 signals:
 

@@ -60,24 +60,8 @@ bool DlnaCachedRootFolder::addFolder(QString path) {
 }
 
 void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
-    QString mime_type = mimeDb.mimeTypeForFile(fileinfo).name();
-
-    QSqlQuery query = library.getMedia(QString("filename=\"%1\"").arg(fileinfo.absoluteFilePath()));
-
-    if (query.next()) {
-        // media already stored in library
-        int fieldDate = query.record().indexOf("last_modified");
-        QDateTime lastModified = query.value(fieldDate).toDateTime();
-
-        if (lastModified < fileinfo.lastModified()) {
-            // update the media
-            qWarning() << "update resource" << mime_type << fileinfo.absoluteFilePath() << lastModified << fileinfo.lastModified();
-
-            // TODO: update database
-        }
-
-    } else {
-        // new media
+    if (!library.contains(fileinfo)) {
+        QString mime_type = mimeDb.mimeTypeForFile(fileinfo).name();
 
         QHash<QString, QVariant> data;
 
@@ -87,8 +71,6 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
         data.insert("last_modified", fileinfo.lastModified());
 
         if (mime_type.startsWith("audio/")) {
-
-            log->Debug("add resource " + mime_type + " " + fileinfo.absoluteFilePath());
 
             DlnaMusicTrackFile track(log, fileinfo.absoluteFilePath(), host, port);
 
@@ -104,13 +86,7 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
             data.insert("format", track.metaDataFormat());
             data.insert("bitrate", track.bitrate());
 
-            if (!library.insert(data)) {
-                log->Error(QString("unable to add resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type));
-            }
-
         } else if (mime_type.startsWith("video/")) {
-
-            log->Debug("add resource " + mime_type + " " + fileinfo.absoluteFilePath());
 
             DlnaVideoFile movie(log, fileinfo.absoluteFilePath(), host, port);
 
@@ -124,11 +100,15 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
             data.insert("bitrate", movie.bitrate());
             data.insert("format", movie.metaDataFormat());
 
-            if (!library.insert(data)) {
-                log->Error(QString("unable to add resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type));
-            }
         } else {
             log->Debug("resource not added to library: " + mime_type + ", " + fileinfo.absoluteFilePath());
+            data.clear();
+        }
+
+        if (!data.isEmpty()) {
+            if (!library.add_media(data)) {
+                log->Error(QString("unable to add or update resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type));
+            }
         }
     }
 }
