@@ -27,7 +27,7 @@ public:
             QString servername, QString host, int port,
             DlnaRootFolder *rootFolder, MediaRendererModel* renderersModel,
             QObject *parent = 0);
-     ~Request();
+    virtual ~Request();
 
     bool isHttp10() const { return http10; }
 
@@ -40,6 +40,7 @@ public:
 
     QString getHost() const { return host; }
     QString getpeerAddress() const { return peerAddress; }
+    qintptr socketDescriptor() const { return socket; }
 
     QString getStatus() const { return status; }
 
@@ -84,6 +85,9 @@ signals:
     // emit signal to start transcoding
     void startTranscoding(DlnaItem* dlna);
 
+    // emit signal to start streaming
+    void startStreaming(DlnaItem* dlna);
+
     // emit signal to send data to client
     void DataToSend(char* data);
 
@@ -96,6 +100,9 @@ private slots:
     void stateChanged(QAbstractSocket::SocketState state);
     void errorSocket(QAbstractSocket::SocketError error);
     void bytesSent(qint64 size);
+
+    // slots for streaming
+    void runStreaming(DlnaItem *dlna);
 
     // slots for transcoding
     void runTranscoding(DlnaItem *dlna);
@@ -143,8 +150,9 @@ private:
     QElapsedTimer clock;  // clock to measure time taken to answer to the request
 
     QIODevice* streamContent;
-
     TranscodeProcess* transcodeProcess;
+    QMutex mutex;
+    QWaitCondition servingStarted;
 
     QString status;  // status of the request
     QString networkStatus;  // status of network (interface client)
@@ -157,6 +165,7 @@ private:
     QString servername;
     QString host;
     int port;
+    qintptr socket;
     QString peerAddress;
 
     QStringList header;  // header of the request received
@@ -185,6 +194,7 @@ private:
     QString transferMode;
     QString contentFeatures;
     QString mediaInfoSec;
+    QString httpConnection;
     double timeseek;
     double timeRangeEnd;
 
@@ -211,6 +221,9 @@ private:
 
     // close the client
     void closeClient();
+
+    // close the request
+    void close();
 };
 
 #endif // REQUEST_H
