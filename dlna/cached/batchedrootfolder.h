@@ -11,6 +11,11 @@ class BatchedRootFolder : public QObject
 public:
     explicit BatchedRootFolder(DlnaCachedRootFolder* root, QObject *parent = 0);
 
+private:
+    int countDirectory(QDir folder);
+
+    void readDirectory(QDir folder, bool flag_root=true);
+
 public slots:
     void addFolder(QString folder);
 
@@ -22,11 +27,6 @@ signals:
 private:
     DlnaCachedRootFolder root;
     bool stop;   //boolean to stop the batch process
-
-    int countDirectory(QDir folder);
-
-    void readDirectory(QDir folder, bool flag_root=true);
-
 };
 
 #endif // BATCHEDROOTFOLDER_H

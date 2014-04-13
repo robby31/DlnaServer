@@ -2,14 +2,13 @@
 
 BatchedRootFolder::BatchedRootFolder(DlnaCachedRootFolder* root, QObject *parent) :
     QObject(parent),
-    root(root->getLog(), root->getHost(), root->getPort()),
+    root(root->getLog(), root->getDatabase(), root->getHost(), root->getPort(), this), //TODO: protect pointer null
     stop(false)
 {
 }
 
 void BatchedRootFolder::addFolder(QString folder) {
     readDirectory(QDir(folder));
-    root.setDiscovered(false);
 }
 
 void BatchedRootFolder::quit() {
@@ -22,14 +21,11 @@ int BatchedRootFolder::countDirectory(QDir folder) {
     foreach(const QFileInfo &fileinfo, files) {
         size ++;
 
-        if(fileinfo.isDir()) {
+        if (fileinfo.isDir())
             size += countDirectory(fileinfo.absoluteFilePath());
-        }
 
-        if (stop) {
+        if (stop)
             break;
-        }
-
     }
     return size;
 }
@@ -50,14 +46,12 @@ void BatchedRootFolder::readDirectory(QDir folder, bool flag_root) {
         emit progress(int(100.0*double(index)/double(size)));
 
         QString currentPath = fileinfo.absoluteFilePath();
-        if(fileinfo.isDir()) {
+        if(fileinfo.isDir())
             readDirectory(currentPath, false);
-        } else if (fileinfo.isFile()) {
+        else if (fileinfo.isFile())
             root.addResource(fileinfo);
-        }
 
-        if (stop) {
+        if (stop)
             break;
-        }
     }
 }
