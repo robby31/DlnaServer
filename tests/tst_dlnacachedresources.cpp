@@ -15,6 +15,168 @@ void tst_dlnacachedresources::receivedTranscodedData() {
     }
 }
 
+void tst_dlnacachedresources::testCase_Library_NbMedias()
+{
+    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+    db.open();
+    QSqlQuery query(db);
+
+    int nbMedias = 0;
+    if (query.exec("SELECT id from media")) {
+        if (query.last())
+            nbMedias = query.at() + 1;
+    }
+    QVERIFY2(nbMedias == 14542, QString("%1").arg(nbMedias).toUtf8().constData());
+    db.close();
+}
+
+void tst_dlnacachedresources::testCase_Library_NbAudios()
+{
+    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+    db.open();
+    QSqlQuery query(db);
+
+    int nbAudios = 0;
+    if (query.exec("SELECT id from media where type=1")) {
+        if (query.last())
+            nbAudios = query.at() + 1;
+    }
+    QVERIFY2(nbAudios == 13659, QString("%1").arg(nbAudios).toUtf8().constData());
+    db.close();
+}
+
+void tst_dlnacachedresources::testCase_Library_NbVideos()
+{
+    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+    db.open();
+    QSqlQuery query(db);
+
+    int nbVideos = 0;
+    if (query.exec("SELECT id from media where type=2")) {
+        if (query.last())
+            nbVideos = query.at() + 1;
+    }
+    QVERIFY2(nbVideos == 883, QString("%1").arg(nbVideos).toUtf8().constData());
+    db.close();
+}
+
+void tst_dlnacachedresources::testCase_Library_NbAlbums()
+{
+    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+    db.open();
+    QSqlQuery query(db);
+
+    int nbAlbums = 0;
+    if (query.exec("SELECT DISTINCT album from media WHERE album is not null")) {
+        if (query.last())
+            nbAlbums = query.at() + 1;
+    }
+    QVERIFY2(nbAlbums == 1242, QString("%1").arg(nbAlbums).toUtf8().constData());
+    db.close();
+}
+
+void tst_dlnacachedresources::testCase_Library_NbAlbumPictures()
+{
+    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+    db.open();
+    QSqlQuery query(db);
+
+    int nbAlbumPictures = 0;
+    if (query.exec("SELECT DISTINCT id from picture")) {
+        if (query.last())
+            nbAlbumPictures = query.at() + 1;
+    }
+    QVERIFY2(nbAlbumPictures == 791, QString("%1").arg(nbAlbumPictures).toUtf8().constData());
+    db.close();
+}
+
+void tst_dlnacachedresources::testCase_Library_NbTracksWithAlbum()
+{
+    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+    db.open();
+    QSqlQuery query(db);
+
+    int nbTracksWithAlbum = 0;
+    if (query.exec("SELECT album from media where album is not null")) {
+        if (query.last())
+            nbTracksWithAlbum = query.at() + 1;
+    }
+    QVERIFY2(nbTracksWithAlbum == 13429, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
+    db.close();
+}
+
+void tst_dlnacachedresources::testCase_Library_NbTracksWithPicture()
+{
+    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+    db.open();
+    QSqlQuery query(db);
+
+    int nbTracksWithPicture = 0;
+    if (query.exec("SELECT picture from media where picture is not null")) {
+        if (query.last())
+            nbTracksWithPicture = query.at() + 1;
+    }
+    QVERIFY2(nbTracksWithPicture == 9369, QString("%1").arg(nbTracksWithPicture).toUtf8().constData());
+    db.close();
+}
+
+void tst_dlnacachedresources::testCase_Library_NbAlbumsWithSeveralPicture()
+{
+    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+    db.open();
+    QSqlQuery query(db);
+
+    // search album with several pictures
+    int nb = 0;
+    query.exec("SELECT TBL_ALBUM.name, count(DISTINCT picture), TBL_ARTIST.name from media "
+               "LEFT OUTER JOIN album AS TBL_ALBUM ON media.album=TBL_ALBUM.id "
+               "LEFT OUTER JOIN artist AS TBL_ARTIST ON media.artist=TBL_ARTIST.id "
+               "GROUP BY TBL_ALBUM.name "
+               "ORDER BY TBL_ALBUM.name");
+    while (query.next())
+        if (query.value(1).toInt()>1) {
+            nb++;
+            qWarning() << "ALBUM" << query.value(0).toString() << query.value(1).toInt() << "pictures" << query.value(2).toString();
+        }
+    QVERIFY2(nb==0, QString("%1 albums with several pictures").arg(nb).toUtf8().constData());
+    db.close();
+}
+
+void tst_dlnacachedresources::testCase_Library_NbPictureNotUsed()
+{
+    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+    db.open();
+    QSqlQuery query(db);
+
+    // search picture not used
+    int nb = 0;
+    query.exec("SELECT picture.id, count(media.filename), picture.name from picture LEFT OUTER JOIN media ON picture.id=media.picture GROUP BY picture.id");
+    while (query.next())
+        if (query.value(1).toInt()==0) {
+            nb++;
+            qWarning() << query.value(0).toInt() << query.value(1).toInt() << query.value(2).toByteArray().size();
+        }
+    QVERIFY2(nb==0, QString("%1").arg(nb).toUtf8().constData());
+    db.close();
+}
+
+void tst_dlnacachedresources::testCase_Library_NbPictureWithNoAlbum()
+{
+    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+    db.open();
+    QSqlQuery query(db);
+
+    // search picture with no album
+    int nb = 0;
+    query.exec("SELECT filename, picture from media where album is null and picture is not null");
+    while (query.next())
+        qWarning() << query.value(0).toString() << query.value(1).toInt();
+    if (query.last())
+        nb = query.at() + 1;
+    QVERIFY2(nb==0, QString("%1 pictures with no album").arg(nb).toUtf8().constData());
+    db.close();
+}
+
 void tst_dlnacachedresources::testCase_DlnaCachedRootFolder()
 {
     Logger log;
@@ -128,7 +290,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY(track->getByteAlbumArt().isNull() == false);
     QVERIFY(track->getAlbumArt().size().width() == 100);
     QVERIFY(track->getAlbumArt().size().height() == 100);
-    QVERIFY2(track->getByteAlbumArt().size() == 4067, QString("size=%1").arg(track->getByteAlbumArt().size()).toUtf8());
+    QVERIFY2(track->getByteAlbumArt().size() == 4039, QString("size=%1").arg(track->getByteAlbumArt().size()).toUtf8());
 
     HttpRange* range = 0;
     range = new HttpRange("RANGE: BYTES=0-");
@@ -228,7 +390,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY(track->getByteAlbumArt().isNull() == false);
     QVERIFY(track->getAlbumArt().size().width() == 100);
     QVERIFY(track->getAlbumArt().size().height() == 100);
-    QVERIFY2(track->getByteAlbumArt().size() == 4068, QString("size=%1").arg(track->getByteAlbumArt().size()).toUtf8());
+    QVERIFY2(track->getByteAlbumArt().size() == 4016, QString("size=%1").arg(track->getByteAlbumArt().size()).toUtf8());
 
     range = 0;
     range = new HttpRange("RANGE: BYTES=0-");

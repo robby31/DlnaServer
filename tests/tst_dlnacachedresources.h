@@ -29,6 +29,17 @@ private Q_SLOTS:
     void testCase_PerformanceAllTracksByAlbum();
     void testCase_PerformanceAllTracksByGenre();
 
+    void testCase_Library_NbMedias();
+    void testCase_Library_NbAudios();
+    void testCase_Library_NbVideos();
+    void testCase_Library_NbAlbums();
+    void testCase_Library_NbTracksWithAlbum();
+    void testCase_Library_NbAlbumPictures();
+    void testCase_Library_NbTracksWithPicture();
+    void testCase_Library_NbAlbumsWithSeveralPicture();
+    void testCase_Library_NbPictureNotUsed();
+    void testCase_Library_NbPictureWithNoAlbum();
+
 private:
     QProcess* transcodeProcess;
     long transcodedSize;
