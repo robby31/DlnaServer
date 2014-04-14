@@ -86,7 +86,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbumPictures()
         if (query.last())
             nbAlbumPictures = query.at() + 1;
     }
-    QVERIFY2(nbAlbumPictures == 791, QString("%1").arg(nbAlbumPictures).toUtf8().constData());
+    QVERIFY2(nbAlbumPictures == 790, QString("%1").arg(nbAlbumPictures).toUtf8().constData());
     db.close();
 }
 
@@ -116,7 +116,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithPicture()
         if (query.last())
             nbTracksWithPicture = query.at() + 1;
     }
-    QVERIFY2(nbTracksWithPicture == 9369, QString("%1").arg(nbTracksWithPicture).toUtf8().constData());
+    QVERIFY2(nbTracksWithPicture == 9371, QString("%1").arg(nbTracksWithPicture).toUtf8().constData());
     db.close();
 }
 
@@ -128,7 +128,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbumsWithSeveralPicture()
 
     // search album with several pictures
     int nb = 0;
-    query.exec("SELECT TBL_ALBUM.name, count(DISTINCT picture), TBL_ARTIST.name from media "
+    query.exec("SELECT TBL_ALBUM.name, count(DISTINCT picture), TBL_ARTIST.name, media.album from media "
                "LEFT OUTER JOIN album AS TBL_ALBUM ON media.album=TBL_ALBUM.id "
                "LEFT OUTER JOIN artist AS TBL_ARTIST ON media.artist=TBL_ARTIST.id "
                "GROUP BY TBL_ALBUM.name "
@@ -136,7 +136,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbumsWithSeveralPicture()
     while (query.next())
         if (query.value(1).toInt()>1) {
             nb++;
-            qWarning() << "ALBUM" << query.value(0).toString() << query.value(1).toInt() << "pictures" << query.value(2).toString();
+            qWarning() << "ALBUM" << query.value(0).toString() << query.value(1).toInt() << "pictures" << query.value(2).toString() << "idAlbum" << query.value(3).toInt();
         }
     QVERIFY2(nb==0, QString("%1 albums with several pictures").arg(nb).toUtf8().constData());
     db.close();
