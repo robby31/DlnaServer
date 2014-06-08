@@ -29,6 +29,7 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     QThread(parent),
     log(log),
     client(client),
+    networkBytesSent(0),
     keepSocketOpened(false),
     streamContent(0),
     transcodeProcess(0),
@@ -47,7 +48,8 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     range(0),
     timeSeekRangeStart(-1),
     timeSeekRangeEnd(-1),
-    http10(false)
+    http10(false),
+    mediaFilename()
 {
     if (client != 0) {
         peerAddress = client->peerAddress().toString();
@@ -56,6 +58,9 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
 
     // start clock to measure time taken to answer to the request
     clock.start();
+
+    // invalidate clock used to measure time taken to stream or transcode
+    clockSending.invalidate();
 
     setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
 
@@ -86,6 +91,15 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
 Request::~Request() {
     if (range != 0)
         delete range;
+
+    if (transcodeProcess != 0)
+        delete transcodeProcess;
+
+    if (streamContent != 0)
+        delete streamContent;
+
+    if (client != 0)
+        client->deleteLater();
 }
 
 void Request::setSoapaction(QString soapaction) {
@@ -756,6 +770,13 @@ void Request::run() {
                     setStatus("OK");
 
                 } else {
+                    qWarning() << dlna->size() << "bytes to send," << QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz") << "ms to send.";
+
+                    mediaFilename = dlna->getFileInfo().absoluteFilePath();
+                    emit serving(mediaFilename, 0);
+
+                    // start clock to measure time taken to stream or transcode
+                    clockSending.start();
 
                     if (!dlna->toTranscode()) {
 
@@ -999,14 +1020,11 @@ void Request::finishedTranscodeData(int exitCode) {
                 // trancoding failed
                 setStatus("Transcoding failed.");
             } else {
-                setStatus("OK");
+                setStatus("Transcoding finished.");
             }
         } else {
             setStatus("Transcoding aborted.");
         }
-
-        // TODO: serving is not finished when the transcoding is done
-        renderersModel->stopServing(peerAddress);
 
         closeClient();
     }
@@ -1074,6 +1092,11 @@ void Request::readSocket() {
 void Request::bytesSent(qint64 size) {
     Q_UNUSED(size)
 
+    networkBytesSent += size;
+
+    if (!mediaFilename.isNull())
+        emit serving(mediaFilename, clockSending.elapsed());
+
     if (log->isLevel(DEBG) and transcodeProcess != 0) {
         if (client != 0)
             transcodeProcess->appendLog(QString("%2: bytes sent %3 (%1)").arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
@@ -1092,15 +1115,10 @@ void Request::bytesSent(qint64 size) {
 
         if (streamContent->size()-streamContent->pos() > 0) {
 
-            setStatus(QString("Streaming (%1%)").arg(int(100.0*double(streamContent->pos())/double(streamContent->size()))));
-
             if (client == 0) {
                 log->Error("HTTP Request: Unable to send content (client deleted).");
 
-                delete streamContent;
-                streamContent = 0;
-
-                renderersModel->stopServing(peerAddress);
+                close();
 
                 setStatus("KO");
             } else {
@@ -1109,8 +1127,8 @@ void Request::bytesSent(qint64 size) {
                     maxBufferSize = 32*1024;
                     int bytesToRead = maxBufferSize;
                     if (range != 0 && range->getEndByte() > 0) {
-                        if (range->getEndByte() > streamContent->pos()) {
-                            bytesToRead = range->getEndByte() - streamContent->pos();
+                        if (range->getEndByte() >= streamContent->pos()) {
+                            bytesToRead = range->getEndByte() - streamContent->pos() + 1;
                             if (bytesToRead > maxBufferSize) {
                                 bytesToRead = maxBufferSize;
                             }
@@ -1125,54 +1143,29 @@ void Request::bytesSent(qint64 size) {
                     if (bytes == -1) {
                         log->Error("HTTP Request: Unable to send content.");
 
-                        delete streamContent;
-                        streamContent = 0;
-
-                        renderersModel->stopServing(peerAddress);
+                        close();
 
                         setStatus("KO");
 
-                        closeClient();
-
                     } else if (bytes == 0) {
                         // stream ended
-
-                        delete streamContent;
-                        streamContent = 0;
-
-                        renderersModel->stopServing(peerAddress);
-
-                        setStatus("OK");
-
-                        closeClient();
 
                     } else {
                         if (client->write(bytesToSend, sizeof(bytesToSend))== -1) {
                             log->Error("HTTP Request: Unable to send content.");
 
-                            delete streamContent;
-                            streamContent = 0;
-
-                            renderersModel->stopServing(peerAddress);
+                            close();
 
                             setStatus("KO");
 
-                            closeClient();
+                        } else {
+                            setStatus(QString("Streaming (%1%)").arg(int(100.0*double(streamContent->pos())/double(streamContent->size()))));
                         }
                     }
                 }
             }
         } else {
             // stream ended
-
-            delete streamContent;
-            streamContent = 0;
-
-            renderersModel->stopServing(peerAddress);
-
-            setStatus("OK");
-
-            closeClient();
         }
     }
 
@@ -1186,7 +1179,7 @@ void Request::bytesSent(qint64 size) {
                     log->Error(QString("Unable to pause transcoding: pid=%1").arg(transcodeProcess->pid()));
             }
 
-            if (client->bytesToWrite() < (maxBufferSize/10)) {
+            if (client->bytesToWrite() < (maxBufferSize/5)) {
                 // restart transcoding process
                 if (transcodeProcess->resume() == false)
                     log->Error(QString("Unable to restart transcoding: pid=%1").arg(transcodeProcess->pid()));
@@ -1242,7 +1235,7 @@ void Request::closeClient() {
         transcodeProcess->appendLog(QString("%3: closeclient, state transcodeprocess %1, client valid? %2").arg(transcodeProcess->state()).arg(client != 0).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
     if (!keepSocketOpened and (transcodeProcess == 0 or transcodeProcess->state() != QProcess::Running) and (streamContent == 0 or streamContent->atEnd())) {
-        // No transcoding in progress
+        // No streaming or transcoding in progress
         log->Trace("Close client connection in request");
         if (client != 0) {
             if (log->isLevel(DEBG) and transcodeProcess != 0)
@@ -1257,30 +1250,46 @@ void Request::closeClient() {
 }
 
 void Request::close() {
+    if (clockSending.isValid())
+        qWarning() << "REQUEST CLOSED" << networkBytesSent << "bytes sent," << QTime(0, 0).addMSecs(clockSending.elapsed()).toString("hh:mm:ss.zzz") << "ms taken to send data.";
+
     if (client != 0) {
+        if (clockSending.isValid())
+            qWarning() << "remaining data to send" << client->bytesToWrite();
         client->disconnect(this);
         client = 0;
     }
 
     if (streamContent != 0) {
-        setStatus("Streaming aborted.");
+        if (streamContent->atEnd()) {
+            setStatus("Streaming finished.");
+            emit servingFinished(mediaFilename);
+        } else {
+            setStatus("Streaming aborted.");
+        }
+
         setDuration(QString("%1 ms").arg(clock.elapsed()));
 
         delete streamContent;
         streamContent = 0;
 
-        renderersModel->stopServing(peerAddress);
+        renderersModel->stopServing(peerAddress); 
     }
 
     if (transcodeProcess != 0) {
         if (transcodeProcess->state() != QProcess::NotRunning) {
             setStatus("Transcoding aborted.");
-            setDuration(QString("%1 ms").arg(clock.elapsed()));
             transcodeProcess->killProcess();
-            renderersModel->stopServing(peerAddress);
         }
 
+        if (!transcodeProcess->isKilled())
+            emit servingFinished(mediaFilename);
+
+        setDuration(QString("%1 ms").arg(clock.elapsed()));
+
         transcodeProcess->disconnect(this);
+
+        renderersModel->stopServing(peerAddress);
     }
 }
 

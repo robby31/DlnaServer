@@ -94,6 +94,12 @@ signals:
     // emit signal to add a new renderer
     void newRenderer(Logger* log, QString peerAddress, int port, QString userAgent);
 
+    // emit signal to provide progress on serving media
+    void serving(QString filename, int playedDurationInMs);
+
+    // emit signal when serving is finished
+    void servingFinished(QString filename);
+
 private slots:
     // slots for incoming data
     void readSocket();
@@ -146,8 +152,10 @@ private:
     Logger* log;
 
     QTcpSocket* client;
+    int networkBytesSent;
     bool keepSocketOpened;  // flag to not close automatically the client socket when answer is sent
     QElapsedTimer clock;  // clock to measure time taken to answer to the request
+    QElapsedTimer clockSending; // clock to mesure time taken to send streamed or transcoded data.
 
     QIODevice* streamContent;
     TranscodeProcess* transcodeProcess;
@@ -199,6 +207,8 @@ private:
     double timeRangeEnd;
 
     bool http10;
+
+    QString mediaFilename;
 
     void setHttp10(bool http10) { this->http10 = http10; }
 

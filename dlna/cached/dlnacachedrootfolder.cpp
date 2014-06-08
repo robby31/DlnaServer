@@ -4,10 +4,33 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
     DlnaRootFolder(log, host, port, parent),
     library(log, database, this),
     mimeDb(),
-    rootFolder(log, host, port, this)
+    rootFolder(log, host, port, this),
+    recentlyPlayedChild(0),
+    resumeChild(0),
+    favoritesChild(0)
 {
-    QSqlQuery query = library.getMediaType();
+    recentlyPlayedChild = new DlnaCachedFolder(log, &library,
+                                               QString("last_played is not null"),
+                                               QString("last_played"),
+                                               QString("DESC"),
+                                               "Recently Played", host, port, true, this);
+    addChild(recentlyPlayedChild);
 
+    resumeChild = new DlnaCachedFolder(log, &library,
+                                       QString("progress_played>0"),
+                                       QString("last_played"),
+                                       QString("DESC"),
+                                       "Resume", host, port, true, this);
+    addChild(resumeChild);
+
+    favoritesChild = new DlnaCachedFolder(log, &library,
+                                          QString("counter_played>0"),
+                                          QString("counter_played"),
+                                          QString("DESC"),
+                                          "Favorites", host, port, true, this);
+    addChild(favoritesChild);
+
+    QSqlQuery query = library.getMediaType();
     while (query.next()) {
         int id_type = query.value(0).toInt();
         QString typeMedia = query.value(1).toString();
@@ -18,7 +41,9 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
         } else {
             DlnaCachedFolder* child = new DlnaCachedFolder(log, &library,
                                                            QString("type='%1'").arg(id_type),
-                                                           typeMedia, host, port, this);
+                                                           QString("title"),
+                                                           QString("ASC"),
+                                                           typeMedia, host, port, false, this);
             addChild(child);
         }
     }
@@ -46,6 +71,8 @@ bool DlnaCachedRootFolder::addFolder(QString path) {
             } else {
                 DlnaCachedFolder* child = new DlnaCachedFolder(log, &library,
                                                                QString("type='%1'").arg(id_type),
+                                                               QString("title"),
+                                                               QString("ASC"),
                                                                typeMedia, host, port, this);
                 addChild(child);
             }
@@ -60,6 +87,9 @@ bool DlnaCachedRootFolder::addFolder(QString path) {
 }
 
 void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
+//    // check meta data
+//    library.checkMetaData(fileinfo);
+
     if (!library.contains(fileinfo)) {
         QString mime_type = mimeDb.mimeTypeForFile(fileinfo).name();
 
@@ -126,4 +156,22 @@ void DlnaCachedRootFolder::readDirectory(QDir folder) {
             addResource(fileinfo);
         }
     }
+}
+
+bool DlnaCachedRootFolder::updateLibrary(const QString &filename, const QHash<QString, QVariant> &data)
+{
+    bool ret = library.updateFromFilename(filename, data);
+    recentlyPlayedChild->needRefresh();
+    resumeChild->needRefresh();
+    favoritesChild->needRefresh();
+    return ret;
+}
+
+bool DlnaCachedRootFolder::incrementCounterPlayed(const QString &filename)
+{
+    bool ret = library.incrementCounterPlayed(filename);
+    recentlyPlayedChild->needRefresh();
+    resumeChild->needRefresh();
+    favoritesChild->needRefresh();
+    return ret;
 }

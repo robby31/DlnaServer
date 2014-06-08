@@ -5,6 +5,7 @@ DlnaResource::DlnaResource(Logger *log, QObject *parent):
     log(log != 0 ? log : new Logger(this)),
     id(),
     dlnaParent(0),
+    m_needRefresh(false),
     updateId(1)
 {
 }
@@ -49,6 +50,12 @@ QList<DlnaResource*> DlnaResource::getDLNAResources(QString objectId, bool retur
             resources.append(dlna);
         } else {
             if (count > 0) {
+                if (dlna->m_needRefresh) {
+                    dlna->refreshContent();
+                    ++dlna->updateId;
+                    dlna->m_needRefresh = false;
+                }
+
                 int nbChildren = dlna->getChildrenSize();
                 for (int i = start; i < start + count; i++) {
                     if (i < nbChildren) {

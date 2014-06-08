@@ -4,7 +4,8 @@ MediaLibrary::MediaLibrary(Logger* log, QSqlDatabase *database, QObject *parent)
     QObject(parent),
     log(log != 0 ? log : new Logger(this)),
     db(database),
-    foreignKeys()
+    foreignKeys(),
+    m_acoustId(this)
 {
     if (!db->open()) {
         log->Error("unable to open database " + database->databaseName());
@@ -25,8 +26,13 @@ MediaLibrary::MediaLibrary(Logger* log, QSqlDatabase *database, QObject *parent)
                    "format varchar, "
                    "type integer, "
                    "mime_type integer, "
+                   "rating integer, "
                    "last_modified DATETIME, "
                    "last_played DATETIME, "
+                   "progress_played integer, "
+                   "counter_played integer DEFAULT 0, "
+                   "acoustid varchar, "
+                   "mbid varchar, "
                    "FOREIGN KEY(type) REFERENCES type(id), "
                    "FOREIGN KEY(mime_type) REFERENCES mime_type(id), "
                    "FOREIGN KEY(artist) REFERENCES artist(id), "
@@ -270,6 +276,30 @@ bool MediaLibrary::update(int id, QHash<QString, QVariant> data)
     return true;
 }
 
+bool MediaLibrary::updateFromFilename(QString filename, QHash<QString, QVariant> data)
+{
+    QSqlQuery query = getMedia(QString("filename=\"%1\"").arg(filename));
+    if (query.next()) {
+        return update(query.value("id").toInt(), data);
+    }
+
+    return false;
+}
+
+bool MediaLibrary::incrementCounterPlayed(const QString &filename)
+{
+    QSqlQuery query = getMedia(QString("filename=\"%1\"").arg(filename));
+    QHash<QString, QVariant> data;
+    data["progress_played"] = 0;
+    if (query.next()) {
+        data["counter_played"] = query.value("counter_played").toInt()+1;
+        qWarning() << "INCREMENT COUNTER" << query.value("id").toInt() << query.value("counter_played").toInt();
+        return update(query.value("id").toInt(), data);
+    }
+
+    return false;
+}
+
 bool MediaLibrary::add_media(QHash<QString, QVariant> data)
 {
     QSqlQuery query = getMedia(QString("filename=\"%1\"").arg(data["filename"].toString()));
@@ -304,5 +334,22 @@ bool MediaLibrary::contains(QFileInfo fileinfo)
         return lastModified >= fileinfo.lastModified();
     } else {
         return false;
+    }
+}
+
+void MediaLibrary::checkMetaData(QFileInfo fileinfo)
+{
+    QSqlQuery query = getMedia(QString("filename=\"%1\"").arg(fileinfo.absoluteFilePath()));
+    if (query.next()) {
+        if (query.value("type_media") == "audio" && fileinfo.absoluteFilePath().contains("Daft")) {
+            qWarning() << "CHECK" << fileinfo.absoluteFilePath();
+            AcoustIdAnswer *answer = m_acoustId.requestId(fileinfo);
+            if (answer) {
+                if (answer->title() != getmetaData("title", query.value("id").toInt()))
+                    qWarning() << "    title differs:" << answer->title() << getmetaData("title", query.value("id").toInt()).toString();
+            } else {
+                qWarning() << "No acoustid found";
+            }
+        }
     }
 }

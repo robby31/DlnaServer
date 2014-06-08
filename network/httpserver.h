@@ -41,6 +41,9 @@ private slots :
     void acceptConnection();                                      // new connection detected
     void newConnectionError(QAbstractSocket::SocketError error);  // error during new connection
 
+    void servingProgress(QString filename, int playedDurationInMs);
+    void servingFinished(QString filename);
+
 
 private :
     RequestListModel* requestsModel;

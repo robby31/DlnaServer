@@ -53,10 +53,12 @@ public:
     virtual void updateXmlContentDirectory(QDomDocument *xml, QDomElement* xml_obj, QStringList properties);
     QString getStringContentDirectory(QStringList properties);
 
+    // ressource shall be refreshed
+    void needRefresh() { m_needRefresh = true; }
+
     // Counter for this resource.
     // When the resource needs to be refreshed, its counter is incremented.
     int getUpdateId() const { return updateId; }
-    void setUpdateId(int updateId) { this->updateId = updateId; }
 
     DlnaResource *getDlnaParent() const { return dlnaParent; }
     QString getDlnaParentId() const;
@@ -78,6 +80,9 @@ public:
 
     Logger* getLog() { return log; }
 
+private:
+    virtual void refreshContent() { qWarning() << "Resource" << getName() << "shall be refreshed, please define function refreshContent() herited from DlnaResource to do it."; }
+
 protected:
     Logger* log;
 
@@ -88,6 +93,9 @@ private:
 
     // parent of the DlnaResource
     DlnaResource *dlnaParent;
+
+    // flag to know if content of the ressource shall be refreshed
+    bool m_needRefresh;
 
     // update counter for this resource.
     // When the resource needs to be refreshed, its counter should be updated.

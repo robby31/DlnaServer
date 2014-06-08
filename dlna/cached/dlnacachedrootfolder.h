@@ -26,6 +26,8 @@ public:
     void addResource(QFileInfo fileinfo);
 
     QSqlDatabase *getDatabase() const { return library.getDatabase(); }
+    bool updateLibrary(const QString &filename, const QHash<QString, QVariant> &data);
+    bool incrementCounterPlayed(const QString &filename);
 
 private:
     void readDirectory(QDir folder);
@@ -34,6 +36,9 @@ private:
     MediaLibrary library;
     QMimeDatabase mimeDb;
     DlnaRootFolder rootFolder;
+    DlnaCachedFolder *recentlyPlayedChild;
+    DlnaCachedFolder *resumeChild;
+    DlnaCachedFolder *favoritesChild;
 };
 
 #endif // DLNACACHEDROOTFOLDER_H

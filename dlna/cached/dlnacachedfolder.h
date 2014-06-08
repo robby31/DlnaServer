@@ -13,7 +13,7 @@ class DlnaCachedFolder : public DlnaStorageFolder
 {
 
 public:
-    explicit DlnaCachedFolder(Logger* log, MediaLibrary* library, QString whereQuery, QString name, QString host, int port, QObject *parent = 0);
+    explicit DlnaCachedFolder(Logger* log, MediaLibrary* library, QString whereQuery, QString orderedParam, QString sortOption, QString name, QString host, int port, bool cacheEnabled = false, QObject *parent = 0);
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0);
     virtual int getChildrenSize() { return nbChildren; }
@@ -28,11 +28,18 @@ public:
     virtual QString getDisplayName() { return name; }
 
 private:
+    virtual void refreshContent();
+
+private:
     MediaLibrary* library;
     QString whereQuery;
+    QString orderedParam;
+    QString sortOption;
     QString name;
     QSqlQuery query;
     int nbChildren;
+    bool cacheEnabled;
+    QList<int> cache;
 };
 
 #endif // DLNACACHEDFOLDER_H

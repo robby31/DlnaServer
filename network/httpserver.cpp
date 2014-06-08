@@ -85,12 +85,15 @@ void HttpServer::acceptConnection()
     while (hasPendingConnections()) {
         log->Trace("HTTP server: new connection");
 
-        if (requestsModel != 0)
-            requestsModel->addRequest(log,
-                                      nextPendingConnection(),
-                                      UUID, QString("%1").arg(SERVERNAME),
-                                      getHost().toString(), getPort(),
-                                      rootFolder, renderersModel);
+        if (requestsModel != 0) {
+            Request *request = requestsModel->addRequest(log,
+                                                         nextPendingConnection(),
+                                                         UUID, QString("%1").arg(SERVERNAME),
+                                                         getHost().toString(), getPort(),
+                                                         rootFolder, renderersModel);
+            connect(request, SIGNAL(serving(QString,int)), this, SLOT(servingProgress(QString,int)));
+            connect(request, SIGNAL(servingFinished(QString)), this, SLOT(servingFinished(QString)));
+        }
         else
             log->Error("Unable to add new request (requestsModel is null).");
     }
@@ -111,4 +114,19 @@ bool HttpServer::addFolder(QString folder) {
         }
     }
     return false;
+}
+
+void HttpServer::servingProgress(QString filename, int playedDurationInMs)
+{
+    QHash<QString, QVariant> data;
+    data.insert("last_played", QDateTime::currentDateTime());
+    data.insert("progress_played", playedDurationInMs);
+    if (!rootFolder->updateLibrary(filename, data))
+        log->Error(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
+}
+
+void HttpServer::servingFinished(QString filename)
+{
+    if (!rootFolder->incrementCounterPlayed(filename))
+        log->Error(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
 }
