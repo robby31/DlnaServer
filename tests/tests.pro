@@ -4,6 +4,8 @@
 #
 #-------------------------------------------------
 
+macx:QMAKE_MAC_SDK=macosx10.9
+
 QT       += testlib network widgets qml quick xml sql
 
 QT       -= gui
