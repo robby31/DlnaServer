@@ -27,8 +27,8 @@ public:
     virtual int channelCount() { if (library != 0) return library->getmetaData("channelcount", idMedia).toInt(); else return -1; }
 
     virtual QString resolution() { if (library != 0) return library->getmetaData("resolution", idMedia).toString(); else return QString(); }
-    virtual QStringList subtitleLanguages() { if (library != 0) return library->getmetaData("subtitlelanguages", idMedia).toStringList(); else return QStringList(); }
-    virtual QStringList audioLanguages() { if (library != 0) return library->getmetaData("audiolanguages", idMedia).toStringList(); else return QStringList(); }
+    virtual QStringList subtitleLanguages() { if (library != 0) return library->getmetaData("subtitlelanguages", idMedia).toString().split(","); else return QStringList(); }
+    virtual QStringList audioLanguages() { if (library != 0) return library->getmetaData("audiolanguages", idMedia).toString().split(","); else return QStringList(); }
     virtual QString framerate() { if (library != 0) return library->getmetaData("framerate", idMedia).toString(); else return QString(); }
 
 private:

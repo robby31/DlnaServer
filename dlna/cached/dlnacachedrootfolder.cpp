@@ -124,8 +124,8 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
             data.insert("resolution", movie.resolution());
             data.insert("samplerate", movie.samplerate());
             data.insert("channelcount", movie.channelCount());
-            data.insert("audiolanguages", movie.audioLanguages());
-            data.insert("subtitlelanguages", movie.subtitleLanguages());
+            data.insert("audiolanguages", movie.audioLanguages().join(","));
+            data.insert("subtitlelanguages", movie.subtitleLanguages().join(","));
             data.insert("framerate", movie.framerate());
             data.insert("bitrate", movie.bitrate());
             data.insert("format", movie.metaDataFormat());
