@@ -1,7 +1,6 @@
 #ifndef BATCHEDROOTFOLDER_H
 #define BATCHEDROOTFOLDER_H
 
-#include <QThread>
 #include "dlnacachedrootfolder.h"
 
 class BatchedRootFolder : public QObject
