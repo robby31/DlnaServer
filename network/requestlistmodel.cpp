@@ -97,8 +97,7 @@ Request* RequestListModel::addRequest(Logger *log, QTcpSocket *client, QString u
                               client,
                               uuid, servername,
                               host, port,
-                              rootFolder, renderersModel,
-                              this);
+                              rootFolder, renderersModel);
 
         beginInsertRows(QModelIndex(), 0, 0);
         mRecords.prepend(request);

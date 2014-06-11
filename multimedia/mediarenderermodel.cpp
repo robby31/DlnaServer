@@ -11,6 +11,11 @@ MediaRendererModel::MediaRendererModel(QObject *parent) :
     mRoles[userAgentRole] = "userAgent";
 }
 
+MediaRendererModel::~MediaRendererModel()
+{
+    clearAll();
+}
+
 void MediaRendererModel::clearAll() {
     // remove all renderers
     qDeleteAll(mRecords);
@@ -62,7 +67,7 @@ MediaRenderer* MediaRendererModel::addRenderer(Logger *log, QString ip, int port
 {
     MediaRenderer* renderer = 0;
 
-    renderer = new MediaRenderer(log, ip, port, userAgent, this);
+    renderer = new MediaRenderer(log, ip, port, userAgent);
 
     beginInsertRows(QModelIndex(), rowCount(), rowCount());
     mRecords.append(renderer);
