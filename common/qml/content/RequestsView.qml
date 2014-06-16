@@ -20,7 +20,7 @@ Item {
             Layout.fillHeight: true
             Layout.fillWidth: true
             anchors.margins: Qt.platform.os === "osx" ? 12 : 6
-            model: requestsModel
+            model: _app.requestsModel
 
             TableViewColumn {
                 role: "date"
@@ -85,13 +85,13 @@ Item {
                 if (currentModelRow != -1) {
                     if (currentIndex == 0)
                     {
-                        tabHeader.item.text = requestsModel.get(currentRow, 5)
+                        tabHeader.item.text = _app.requestsModel.get(currentRow, 5)
                     } else if (currentIndex == 1) {
-                        tabContent.item.text = requestsModel.get(currentRow, 6)
+                        tabContent.item.text = _app.requestsModel.get(currentRow, 6)
                     } else if (currentIndex == 2) {
-                        tabAnswer.item.text = requestsModel.get(currentRow, 9)
+                        tabAnswer.item.text = _app.requestsModel.get(currentRow, 9)
                     } else if (currentIndex == 3) {
-                        tabTranscodeLog.item.text = requestsModel.get(currentRow, 11)
+                        tabTranscodeLog.item.text = _app.requestsModel.get(currentRow, 11)
                     }
                 }
             }

@@ -10,6 +10,8 @@ class BatchedRootFolder : public QObject
 public:
     explicit BatchedRootFolder(DlnaCachedRootFolder* root, QObject *parent = 0);
 
+    bool resetLibrary() { return root.resetLibrary(); }
+
 private:
     int countDirectory(QDir folder);
 

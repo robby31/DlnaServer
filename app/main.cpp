@@ -2,12 +2,14 @@
 #include <QtQml>
 
 #include "application.h"
-#include "requestlistmodel.h"
 
 int main(int argc, char** argv)
 {
     QGuiApplication app(argc, argv);
     QQmlApplicationEngine engine;
+
+    qmlRegisterType<RequestListModel>("myTypes", 1, 0, "RequestListModel");
+    qmlRegisterType<MediaRendererModel>("myTypes", 1, 0, "MediaRendererModel");
 
     // initialisation of the application where HMI is defined in QML
     Application c_application(&engine);

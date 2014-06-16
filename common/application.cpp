@@ -3,32 +3,35 @@
 Application::Application(QQmlApplicationEngine *engine, QObject *parent):
     QObject(parent),
     settings(0),
-    sharedFolderModel(),
+    m_sharedFolderModel(),
     engine(engine),
     topLevel(engine != 0 ? engine->rootObjects().value(0) : 0),
     log(this),
     server(0),
     upnp(0),
-    requestsModel(this),
-    renderersModel(this)
+    m_requestsModel(0),
+    m_renderersModel(0)
 {
+    setRequestsModel(new RequestListModel(this));
+    setRenderersModel(new MediaRendererModel(this));
+
     settings = new QSettings("HOME", "QMS", this);
 
-    server = new HttpServer(&log, &requestsModel, &renderersModel, this);
+    server = new HttpServer(&log, m_requestsModel, m_renderersModel, this);
     upnp = new UPNPHelper(&log, server, this);
 
     log.setLevel(INF);
 
     // load the settings
     loadSettings();
+
+//    if (!reloadLibrary())
+//        loadSettings();
 }
 
 int Application::load(QUrl url) {
     if (engine != 0) {
         engine->rootContext()->setContextProperty("_app",  this);
-        engine->rootContext()->setContextProperty("sharedFolderModel", QVariant::fromValue(sharedFolderModel));
-        engine->rootContext()->setContextProperty("requestsModel", &requestsModel);
-        engine->rootContext()->setContextProperty("renderersModel", &renderersModel);
 
         engine->load(url);
 
@@ -54,24 +57,18 @@ int Application::load(QUrl url) {
 }
 
 void Application::addSharedFolder(QUrl folder) {
-    if (folder.isLocalFile() and server != 0 and server->addFolder(folder.toLocalFile())) {
-        sharedFolderModel.append(folder.toLocalFile());
+    if (folder.isLocalFile() && server != 0 && server->addFolder(folder.toLocalFile())) {
+        m_sharedFolderModel.append(folder.toLocalFile());
 
-        if (engine) {
-            // notifiy the change
-            engine->rootContext()->setContextProperty("sharedFolderModel", QVariant::fromValue(sharedFolderModel));
-        }
+        emit sharedFolderModelChanged();
     }
 }
 
 void Application::removeFolder(int index) {
-    if (index >=0 and index < sharedFolderModel.size()) {
-        sharedFolderModel.removeAt(index);
+    if (index >=0 && index < m_sharedFolderModel.size()) {
+        m_sharedFolderModel.removeAt(index);
 
-        if (engine) {
-            // notifiy the change
-            engine->rootContext()->setContextProperty("sharedFolderModel", QVariant::fromValue(sharedFolderModel));
-        }
+        emit sharedFolderModelChanged();
     }
 }
 
@@ -90,7 +87,8 @@ bool Application::loadSettings() {
             settings->setArrayIndex(i);
             QString folder = settings->value("folder").toString();
             if (server->addFolder(folder)) {
-                sharedFolderModel.append(folder);
+                m_sharedFolderModel.append(folder);
+                emit sharedFolderModelChanged();
             }
         }
         settings->endArray();
@@ -106,7 +104,7 @@ bool Application::saveSettings() {
         // save the settings
         settings->beginWriteArray("sharedFolder");
         int i = 0;
-        foreach(QString folder, sharedFolderModel) {
+        foreach(QString folder, m_sharedFolderModel) {
             settings->setArrayIndex(i++);
             settings->setValue("folder", folder);
         }
@@ -118,3 +116,13 @@ bool Application::saveSettings() {
     return false;
 }
 
+bool Application::reloadLibrary()
+{
+    if (server->resetLibrary()) {
+        loadSettings();
+        return true;
+    } else {
+        log.Error("Unable to reload library");
+        return false;
+    }
+}

@@ -86,7 +86,7 @@ Item {
             Layout.fillHeight: true
             Layout.fillWidth: true
             clip: true
-            model: sharedFolderModel
+            model: _app.sharedFolderModel
             delegate: folderDelegate
             preferredHighlightEnd: 150
             preferredHighlightBegin: 50

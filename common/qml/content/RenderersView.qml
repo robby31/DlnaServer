@@ -20,7 +20,7 @@ Item {
             Layout.fillHeight: true
             Layout.fillWidth: true
             anchors.margins: Qt.platform.os === "osx" ? 12 : 6
-            model: renderersModel
+            model: _app.renderersModel
 
             TableViewColumn {
                 role: "networkAddress"
