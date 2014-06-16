@@ -23,6 +23,10 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent) {
     DlnaResource *child = 0;
 
     if (query.seek(index)) {
+        QString name = query.value(0).toString();
+        if (query.record().count()==2)
+            name = query.value(1).toString();
+
         // metaData is null ?
         if (query.value(0).isNull())
             child = new DlnaCachedFolder(log, library,
@@ -38,7 +42,7 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent) {
                                          QString("type=\"%3\" and %1=\"%2\"").arg(metaData).arg(query.value(0).toString()).arg(typeMedia),
                                          QString("album"),
                                          QString("ASC"),
-                                         query.value(1).toString(),
+                                         name,
                                          host, port,
                                          false,
                                          parent != 0 ? parent : this);
