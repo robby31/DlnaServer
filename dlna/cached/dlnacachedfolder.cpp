@@ -10,7 +10,8 @@ DlnaCachedFolder::DlnaCachedFolder(Logger* log, MediaLibrary* library, QString w
     query(),
     nbChildren(-1),
     cacheEnabled(cacheEnabled),
-    cache()
+    cache(),
+    limitSizeMax(-1)
 {
     refreshContent();
 }
@@ -27,12 +28,16 @@ void DlnaCachedFolder::refreshContent()
             while (query.next()) {
                 ++nbChildren;
                 cache.append(query.value("id").toInt());
+                if (nbChildren==limitSizeMax)
+                    break;
             }
         } else {
             if (query.last())
                 nbChildren = query.at() + 1;
             else
                 nbChildren = 0;
+            if (limitSizeMax>0 && nbChildren>limitSizeMax)
+                nbChildren = limitSizeMax;
         }
     }
 }
