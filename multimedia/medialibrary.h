@@ -11,9 +11,13 @@ class MediaLibrary : public QObject
 {
     Q_OBJECT
 
+    typedef QHash<QString, QHash<QString, QVariant> > StateType;
+
 public:
     explicit MediaLibrary(Logger *log, QSqlDatabase *database, QObject *parent = 0);
     virtual ~MediaLibrary();
+
+    bool open();
 
     QSqlDatabase *getDatabase() const { return db; }
 
@@ -34,11 +38,16 @@ public:
     bool updateFromFilename(QString filename, QHash<QString, QVariant> data);
     bool incrementCounterPlayed(const QString &filename);
 
+    bool resetLibrary(QString pathname);
+
 private:
     int insertForeignKey(QString table, QString parameter, QVariant value);
 
     bool insert(QHash<QString, QVariant> data);
     bool update(int id, QHash<QString, QVariant> data);
+
+    // export attributes not stored in media file such as last_played, counter_played, progress_played.
+    StateType *exportMediaState();
 
 signals:
 
@@ -49,6 +58,7 @@ private:
     QSqlDatabase *db;
 
     QHash<QString, QHash<QString, QHash<QString, QString> > > foreignKeys;
+    StateType *libraryState;
 
     Acoustid m_acoustId;
 };

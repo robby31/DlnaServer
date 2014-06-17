@@ -24,6 +24,8 @@ public:
     DlnaRootFolder* getRootFolder() const { return rootFolder; }
     bool addFolder(QString folder);
 
+    bool resetLibrary() { return batch->resetLibrary(); }
+
     // identifier of the render (unique)
     static const QString UUID;
 
@@ -42,7 +44,7 @@ private slots :
     void newConnectionError(QAbstractSocket::SocketError error);  // error during new connection
 
     void servingProgress(QString filename, int playedDurationInMs);
-    void servingFinished(QString filename);
+    void servingFinished(QString filename, int status);
 
 
 private :

@@ -98,7 +98,9 @@ signals:
     void serving(QString filename, int playedDurationInMs);
 
     // emit signal when serving is finished
-    void servingFinished(QString filename);
+    //   status = 0 if serving finished successfully
+    //   status = 1 if error occurs
+    void servingFinished(QString filename, int status);
 
 private slots:
     // slots for incoming data

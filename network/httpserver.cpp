@@ -92,7 +92,7 @@ void HttpServer::acceptConnection()
                                                          getHost().toString(), getPort(),
                                                          rootFolder, renderersModel);
             connect(request, SIGNAL(serving(QString,int)), this, SLOT(servingProgress(QString,int)));
-            connect(request, SIGNAL(servingFinished(QString)), this, SLOT(servingFinished(QString)));
+            connect(request, SIGNAL(servingFinished(QString, int)), this, SLOT(servingFinished(QString, int)));
         }
         else
             log->Error("Unable to add new request (requestsModel is null).");
@@ -125,8 +125,10 @@ void HttpServer::servingProgress(QString filename, int playedDurationInMs)
         log->Error(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
 }
 
-void HttpServer::servingFinished(QString filename)
+void HttpServer::servingFinished(QString filename, int status)
 {
-    if (!rootFolder->incrementCounterPlayed(filename))
-        log->Error(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
+    if (status==0) {
+        if (!rootFolder->incrementCounterPlayed(filename))
+            log->Error(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
+    }
 }

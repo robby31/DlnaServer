@@ -5,88 +5,110 @@ MediaLibrary::MediaLibrary(Logger* log, QSqlDatabase *database, QObject *parent)
     log(log != 0 ? log : new Logger(this)),
     db(database),
     foreignKeys(),
+    libraryState(0),
     m_acoustId(this)
 {
+    open();
+}
+
+bool MediaLibrary::open()
+{
+    qWarning() << "Open" << db->databaseName();
+
     if (!db->open()) {
-        log->Error("unable to open database " + database->databaseName());
+        log->Error("unable to open database " + db->databaseName());
+        return false;
     } else {
         QSqlQuery query;
 
         if (!query.exec("pragma foreign_keys = on;")) {
             log->Error("unable to set FOREIGN KEYS in MediaLibrary " + query.lastError().text());
+            return false;
         }
 
         if (!query.exec("create table if not exists media ("
-                   "id integer primary key, "
-                   "filename varchar unique, "
-                   "title varchar, album integer, artist integer, genre integer, trackposition varchar, "
-                   "duration integer, samplerate integer, channelcount integer, bitrate integer, resolution varchar, framerate varchar, "
-                   "picture integer, "
-                   "audiolanguages varchar, subtitlelanguages varchar, "
-                   "format varchar, "
-                   "type integer, "
-                   "mime_type integer, "
-                   "rating integer, "
-                   "last_modified DATETIME, "
-                   "last_played DATETIME, "
-                   "progress_played integer, "
-                   "counter_played integer DEFAULT 0, "
-                   "acoustid varchar, "
-                   "mbid varchar, "
-                   "FOREIGN KEY(type) REFERENCES type(id), "
-                   "FOREIGN KEY(mime_type) REFERENCES mime_type(id), "
-                   "FOREIGN KEY(artist) REFERENCES artist(id), "
-                   "FOREIGN KEY(album) REFERENCES album(id), "
-                   "FOREIGN KEY(picture) REFERENCES picture(id), "
-                   "FOREIGN KEY(genre) REFERENCES genre(id)"
-                   ")")) {
+                        "id integer primary key, "
+                        "filename varchar unique, "
+                        "title varchar, album integer, artist integer, genre integer, trackposition varchar, "
+                        "duration integer, samplerate integer, channelcount integer, bitrate integer, resolution varchar, framerate varchar, "
+                        "picture integer, "
+                        "audiolanguages varchar, subtitlelanguages varchar, "
+                        "format varchar, "
+                        "type integer, "
+                        "mime_type integer, "
+                        "rating integer, "
+                        "last_modified DATETIME, "
+                        "addedDate DATETIME, "
+                        "last_played DATETIME, "
+                        "progress_played integer, "
+                        "counter_played integer DEFAULT 0, "
+                        "acoustid varchar, "
+                        "mbid varchar, "
+                        "FOREIGN KEY(type) REFERENCES type(id), "
+                        "FOREIGN KEY(mime_type) REFERENCES mime_type(id), "
+                        "FOREIGN KEY(artist) REFERENCES artist(id), "
+                        "FOREIGN KEY(album) REFERENCES album(id), "
+                        "FOREIGN KEY(picture) REFERENCES picture(id), "
+                        "FOREIGN KEY(genre) REFERENCES genre(id)"
+                        ")")) {
             log->Error("unable to create table media in MediaLibrary " + query.lastError().text());
+            return false;
         }
 
         if (!query.exec("create table if not exists type (id integer primary key, "
                                                          "name varchar unique)")) {
             log->Error("unable to create table type in MediaLibrary " + query.lastError().text());
+            return false;
         }
 
         if (!query.exec("create table if not exists mime_type (id integer primary key, "
                                                               "name varchar unique)")) {
             log->Error("unable to create table mime_type in MediaLibrary " + query.lastError().text());
+            return false;
         }
 
         if (!query.exec("create table if not exists artist (id integer primary key, "
                                                            "name varchar unique)")) {
             log->Error("unable to create table artist in MediaLibrary " + query.lastError().text());
+            return false;
         }
 
         if (!query.exec("create table if not exists album (id integer primary key, "
                                                           "name varchar unique)")) {
             log->Error("unable to create table album in MediaLibrary " + query.lastError().text());
+            return false;
         }
 
         if (!query.exec("create table if not exists genre (id integer primary key, "
                                                           "name varchar unique)")) {
             log->Error("unable to create table genre in MediaLibrary " + query.lastError().text());
+            return false;
         }
 
         if (!query.exec("create table if not exists picture (id integer primary key, "
                                                             "name varchar unique)")) {
             log->Error("unable to create table picture in MediaLibrary " + query.lastError().text());
+            return false;
         }
 
         if (!query.exec("CREATE INDEX IF NOT EXISTS idx_idmedia ON media(id)")) {
             log->Error("unable to create index in MediaLibrary " + query.lastError().text());
+            return false;
         }
 
         if (!query.exec("CREATE INDEX IF NOT EXISTS idx_artistmedia ON media(artist)")) {
             log->Error("unable to create index in MediaLibrary " + query.lastError().text());
+            return false;
         }
 
         if (!query.exec("CREATE INDEX IF NOT EXISTS idx_albummedia ON media(album)")) {
             log->Error("unable to create index in MediaLibrary " + query.lastError().text());
+            return false;
         }
 
         if (!query.exec("CREATE INDEX IF NOT EXISTS idx_genremedia ON media(genre)")) {
             log->Error("unable to create index in MediaLibrary " + query.lastError().text());
+            return false;
         }
 
         // update foreign keys
@@ -100,10 +122,13 @@ MediaLibrary::MediaLibrary(Logger* log, QSqlDatabase *database, QObject *parent)
             }
         }
     }
+
+    return true;
 }
 
 MediaLibrary::~MediaLibrary() {
-
+    if (libraryState)
+        delete libraryState;
 }
 
 QVariant MediaLibrary::getmetaData(QString tagName, int idMedia) {
@@ -293,7 +318,6 @@ bool MediaLibrary::incrementCounterPlayed(const QString &filename)
     data["progress_played"] = 0;
     if (query.next()) {
         data["counter_played"] = query.value("counter_played").toInt()+1;
-        qWarning() << "INCREMENT COUNTER" << query.value("id").toInt() << query.value("counter_played").toInt();
         return update(query.value("id").toInt(), data);
     }
 
@@ -319,6 +343,17 @@ bool MediaLibrary::add_media(QHash<QString, QVariant> data)
 
     } else {
         // new media
+
+        // set the DateTime when the media has been added
+        data["addedDate"] = QDateTime::currentDateTime();
+
+        // update data with state of the library to import in new media
+        if (libraryState && libraryState->contains(data["filename"].toString())) {
+            foreach(const QString &param, libraryState->operator [](data["filename"].toString()).keys()) {
+                data[param] = libraryState->operator [](data["filename"].toString())[param];
+            }
+        }
+
         log->Debug("add resource " + data["mime_type"].toString() + " " + data["filename"].toString());
         return insert(data);
     }
@@ -351,5 +386,53 @@ void MediaLibrary::checkMetaData(QFileInfo fileinfo)
                 qWarning() << "No acoustid found";
             }
         }
+    }
+}
+
+MediaLibrary::StateType *MediaLibrary::exportMediaState()
+{
+    StateType *res = 0;
+
+    QStringList attributesToExport;
+    attributesToExport << "rating" << "last_played" << "progress_played" << "counter_played" << "acoustid" << "mbid";
+    attributesToExport << "addedDate";
+
+    QSqlQuery query;
+    if (query.exec(QString("SELECT filename, %1 from media").arg(attributesToExport.join(",")))) {
+        res = new StateType();
+        while (query.next()) {
+            QHash<QString, QVariant> d_values;
+
+            foreach (const QString &param, attributesToExport)
+                if (!query.value(param).isNull())
+                    d_values[param] = query.value(param);
+
+            if (!d_values.isEmpty())
+                res->operator [](query.value("filename").toString()) = d_values;
+        }
+    } else {
+        log->Error(QString("Unable to execute request: %1").arg(query.lastError().text()));
+    }
+
+    return res;
+}
+
+bool MediaLibrary::resetLibrary(QString pathname)
+{
+    if (libraryState)
+        delete libraryState;
+
+    // save current state of the library
+    libraryState = exportMediaState();
+
+    if (libraryState) {
+        // close current database
+        db->close();
+
+        // open new database
+        db->setDatabaseName(pathname);
+        return open();
+    } else {
+        return false;
     }
 }

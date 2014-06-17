@@ -1263,9 +1263,10 @@ void Request::close() {
     if (streamContent != 0) {
         if (streamContent->atEnd()) {
             setStatus("Streaming finished.");
-            emit servingFinished(mediaFilename);
+            emit servingFinished(mediaFilename, 0);
         } else {
             setStatus("Streaming aborted.");
+            emit servingFinished(mediaFilename, 1);
         }
 
         setDuration(QString("%1 ms").arg(clock.elapsed()));
@@ -1282,8 +1283,10 @@ void Request::close() {
             transcodeProcess->killProcess();
         }
 
-        if (!transcodeProcess->isKilled())
-            emit servingFinished(mediaFilename);
+        if (!transcodeProcess->isKilled() && transcodeProcess->exitCode()==0)
+            emit servingFinished(mediaFilename, 0);
+        else
+            emit servingFinished(mediaFilename, 1);
 
         setDuration(QString("%1 ms").arg(clock.elapsed()));
 
