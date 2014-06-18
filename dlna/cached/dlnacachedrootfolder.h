@@ -29,6 +29,8 @@ public:
     bool updateLibrary(const QString &filename, const QHash<QString, QVariant> &data);
     bool incrementCounterPlayed(const QString &filename);
 
+    bool resetLibrary();
+
 private:
     void readDirectory(QDir folder);
 
@@ -39,6 +41,7 @@ private:
     DlnaCachedFolder *recentlyPlayedChild;
     DlnaCachedFolder *resumeChild;
     DlnaCachedFolder *favoritesChild;
+    DlnaCachedFolder *lastAddedChild;
 };
 
 #endif // DLNACACHEDROOTFOLDER_H

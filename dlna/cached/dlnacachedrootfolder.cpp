@@ -7,7 +7,8 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
     rootFolder(log, host, port, this),
     recentlyPlayedChild(0),
     resumeChild(0),
-    favoritesChild(0)
+    favoritesChild(0),
+    lastAddedChild(0)
 {
     recentlyPlayedChild = new DlnaCachedFolder(log, &library,
                                                QString("last_played is not null"),
@@ -22,6 +23,14 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
                                        QString("DESC"),
                                        "Resume", host, port, true, this);
     addChild(resumeChild);
+
+    lastAddedChild = new DlnaCachedFolder(log, &library,
+                                          QString("addedDate is not null"),
+                                          QString("addedDate"),
+                                          QString("DESC"),
+                                          "Last Added", host, port, true, this);
+    lastAddedChild->setLimitSizeMax(200);
+    addChild(lastAddedChild);
 
     favoritesChild = new DlnaCachedFolder(log, &library,
                                           QString("counter_played>0"),
@@ -174,4 +183,10 @@ bool DlnaCachedRootFolder::incrementCounterPlayed(const QString &filename)
     resumeChild->needRefresh();
     favoritesChild->needRefresh();
     return ret;
+}
+
+bool DlnaCachedRootFolder::resetLibrary()
+{
+    QString newDatabaseName = QString("%1.new").arg(library.getDatabase()->databaseName());
+    return library.resetLibrary(newDatabaseName);
 }
