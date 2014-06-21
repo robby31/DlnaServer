@@ -1136,30 +1136,32 @@ void Request::bytesSent(qint64 size) {
                             bytesToRead = 0;
                     }
 
-                    // read the stream
-                    char bytesToSend[bytesToRead];
-                    qint64 bytes = streamContent->read(bytesToSend, sizeof(bytesToSend));
+                    if (bytesToRead>0) {
+                        // read the stream
+                        char bytesToSend[bytesToRead];
+                        qint64 bytes = streamContent->read(bytesToSend, sizeof(bytesToSend));
 
-                    if (bytes == -1) {
-                        log->Error("HTTP Request: Unable to send content.");
-
-                        close();
-
-                        setStatus("KO");
-
-                    } else if (bytes == 0) {
-                        // stream ended
-
-                    } else {
-                        if (client->write(bytesToSend, sizeof(bytesToSend))== -1) {
+                        if (bytes == -1) {
                             log->Error("HTTP Request: Unable to send content.");
 
                             close();
 
                             setStatus("KO");
 
+                        } else if (bytes == 0) {
+                            // stream ended
+
                         } else {
-                            setStatus(QString("Streaming (%1%)").arg(int(100.0*double(streamContent->pos())/double(streamContent->size()))));
+                            if (client->write(bytesToSend, sizeof(bytesToSend))== -1) {
+                                log->Error("HTTP Request: Unable to send content.");
+
+                                close();
+
+                                setStatus("KO");
+
+                            } else {
+                                setStatus(QString("Streaming (%1%)").arg(int(100.0*double(streamContent->pos())/double(streamContent->size()))));
+                            }
                         }
                     }
                 }
@@ -1222,7 +1224,8 @@ void Request::errorSocket(QAbstractSocket::SocketError error) {
     }
 
     if (error == QAbstractSocket::RemoteHostClosedError) {
-        client->disconnect(this);
+        if (client)
+            client->disconnect(this);
         client = 0;
         setNetworkStatus("disconnected");
     }

@@ -15,7 +15,7 @@ HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel, MediaRender
     QTcpServer(parent),
     requestsModel(requestsModel),
     renderersModel(renderersModel),
-    log(log != 0 ? log : new Logger(this)),
+    m_log(log != 0 ? log : new Logger(this)),
     hostaddress(),
     serverport(SERVERPORT),
     database(QSqlDatabase::addDatabase("QSQLITE")),
@@ -43,13 +43,13 @@ HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel, MediaRender
             this, SLOT(newConnectionError(QAbstractSocket::SocketError)));
 
     if (hostaddress.isNull()) {
-        log->Error("HTTP server: unable to define host ip address.");
+        m_log->Error("HTTP server: unable to define host ip address.");
     }
     else {
         if (!listen(hostaddress, serverport))
-            log->Error("HTTP server: " + errorString());
+            m_log->Error("HTTP server: " + errorString());
         else
-            log->Trace("HTTP server: listen " + getHost().toString() + ":" + QString("%1").arg(getPort()));
+            m_log->Trace("HTTP server: listen " + getHost().toString() + ":" + QString("%1").arg(getPort()));
     }
 
     // initialize the root folder
@@ -72,7 +72,7 @@ HttpServer::~HttpServer()
         batch->quit();
     batchThread.wait();
 
-    log->Trace("Close HTTP server.");
+    m_log->Trace("Close HTTP server.");
     close();
 }
 
@@ -83,10 +83,10 @@ QString HttpServer::getURL() const {
 void HttpServer::acceptConnection()
 {
     while (hasPendingConnections()) {
-        log->Trace("HTTP server: new connection");
+        m_log->Trace("HTTP server: new connection");
 
         if (requestsModel != 0) {
-            Request *request = requestsModel->addRequest(log,
+            Request *request = requestsModel->addRequest(m_log,
                                                          nextPendingConnection(),
                                                          UUID, QString("%1").arg(SERVERNAME),
                                                          getHost().toString(), getPort(),
@@ -95,12 +95,12 @@ void HttpServer::acceptConnection()
             connect(request, SIGNAL(servingFinished(QString, int)), this, SLOT(servingFinished(QString, int)));
         }
         else
-            log->Error("Unable to add new request (requestsModel is null).");
+            m_log->Error("Unable to add new request (requestsModel is null).");
     }
 }
 
 void HttpServer::newConnectionError(QAbstractSocket::SocketError error) {
-    log->Error(QString("HTTP server: error at new connection (%1).").arg(error));
+    m_log->Error(QString("HTTP server: error at new connection (%1).").arg(error));
 }
 
 bool HttpServer::addFolder(QString folder) {
@@ -122,13 +122,13 @@ void HttpServer::servingProgress(QString filename, int playedDurationInMs)
     data.insert("last_played", QDateTime::currentDateTime());
     data.insert("progress_played", playedDurationInMs);
     if (!rootFolder->updateLibrary(filename, data))
-        log->Error(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
+        m_log->Error(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
 }
 
 void HttpServer::servingFinished(QString filename, int status)
 {
     if (status==0) {
         if (!rootFolder->incrementCounterPlayed(filename))
-            log->Error(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
+            m_log->Error(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
     }
 }

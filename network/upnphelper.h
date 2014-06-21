@@ -41,7 +41,7 @@ private slots:
     void processPendingDatagrams();
 
 private:
-    Logger* log;
+    Logger* m_log;
 
     HttpServer *server;
     QUdpSocket udpSocketBroadcast;

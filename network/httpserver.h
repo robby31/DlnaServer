@@ -51,7 +51,7 @@ private :
     RequestListModel* requestsModel;
     MediaRendererModel* renderersModel;
 
-    Logger* log;
+    Logger* m_log;
 
     QHostAddress hostaddress;
     int serverport;
