@@ -2,6 +2,7 @@
 #define LOGGER_H
 
 #include <QDebug>
+#include <QDateTime>
 
 enum LogLevel {TRA, DEBG, INF, WAR, ERR};
 
@@ -22,6 +23,8 @@ public:
     void Warning(QString message) const;
 
 private:
+    QString date() const { return QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"); }
+
     // LOG level:
     //    0: TRACE
     //    1: DEBUG
