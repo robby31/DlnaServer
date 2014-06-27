@@ -2,7 +2,7 @@
 
 BatchedRootFolder::BatchedRootFolder(DlnaCachedRootFolder* root, QObject *parent) :
     QObject(parent),
-    root(root->getLog(), root->getDatabase(), root->getHost(), root->getPort(), this), //TODO: protect pointer null
+    m_root(root),
     stop(false)
 {
 }
@@ -49,7 +49,7 @@ void BatchedRootFolder::readDirectory(QDir folder, bool flag_root) {
         if(fileinfo.isDir())
             readDirectory(currentPath, false);
         else if (fileinfo.isFile())
-            root.addResource(fileinfo);
+            m_root->addResource(fileinfo);
 
         if (stop)
             break;

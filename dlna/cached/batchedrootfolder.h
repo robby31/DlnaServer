@@ -10,7 +10,7 @@ class BatchedRootFolder : public QObject
 public:
     explicit BatchedRootFolder(DlnaCachedRootFolder* root, QObject *parent = 0);
 
-    bool resetLibrary() { return root.resetLibrary(); }
+    bool resetLibrary() { return m_root->resetLibrary(); }
 
 private:
     int countDirectory(QDir folder);
@@ -26,7 +26,7 @@ signals:
     void progress(int value);
 
 private:
-    DlnaCachedRootFolder root;
+    DlnaCachedRootFolder *m_root;
     bool stop;   //boolean to stop the batch process
 };
 
