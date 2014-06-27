@@ -6,7 +6,8 @@ TranscodeProcess::TranscodeProcess(QObject *parent) :
     QProcess(parent),
     transcodeClock(),
     transcodeLog(),
-    killTranscodeProcess(false)
+    killTranscodeProcess(false),
+    m_paused(false)
 {
     connect(this, SIGNAL(readyReadStandardError()), this, SLOT(receivedTranscodingLogMessage()));
     connect(this, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorTrancodedData(QProcess::ProcessError)));
@@ -51,21 +52,31 @@ void TranscodeProcess::killProcess() {
 }
 
 bool TranscodeProcess::pause() {
-    QStringList arguments;
-    arguments << "-STOP" << QString("%1").arg(pid());
-    QProcess pauseTrancodeProcess;
-    pauseTrancodeProcess.setProgram("kill");
-    pauseTrancodeProcess.setArguments(arguments);
-    pauseTrancodeProcess.start();
-    return pauseTrancodeProcess.waitForFinished();
+    if (!m_paused) {
+        qWarning() << QString("%1 pause transcoding").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")) << state();
+
+        QStringList arguments;
+        arguments << "-STOP" << QString("%1").arg(pid());
+        QProcess pauseTrancodeProcess;
+        pauseTrancodeProcess.setProgram("kill");
+        pauseTrancodeProcess.setArguments(arguments);
+        pauseTrancodeProcess.start();
+        m_paused = pauseTrancodeProcess.waitForFinished();
+    }
+    return m_paused;
 }
 
 bool TranscodeProcess::resume() {
-    QStringList arguments;
-    arguments << "-CONT" << QString("%1").arg(pid());
-    QProcess continueTrancodeProcess;
-    continueTrancodeProcess.setProgram("kill");
-    continueTrancodeProcess.setArguments(arguments);
-    continueTrancodeProcess.start();
-    return continueTrancodeProcess.waitForFinished();
+    if (m_paused) {
+        qWarning() << QString("%1 restart transcoding").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")) << state();
+
+        QStringList arguments;
+        arguments << "-CONT" << QString("%1").arg(pid());
+        QProcess continueTrancodeProcess;
+        continueTrancodeProcess.setProgram("kill");
+        continueTrancodeProcess.setArguments(arguments);
+        continueTrancodeProcess.start();
+        m_paused = !continueTrancodeProcess.waitForFinished();
+    }
+    return !m_paused;
 }

@@ -3,6 +3,8 @@
 
 #include <QProcess>
 #include <QElapsedTimer>
+#include <QDebug>
+#include <QDateTime>
 
 #include "httprange.h"
 
@@ -40,6 +42,7 @@ private:
     QElapsedTimer transcodeClock;
     QString transcodeLog;
     bool killTranscodeProcess;  // true if the application aborts the transcoding
+    bool m_paused;   // true if the transcoding has been paused
 };
 
 #endif // TRANSCODEPROCESS_H
