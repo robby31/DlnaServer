@@ -4,6 +4,7 @@
 #include <QString>
 #include <QStringList>
 #include <QTcpSocket>
+#include <QTimer>
 
 #include <QFile>
 #include <QUrl>
@@ -118,6 +119,9 @@ private slots:
     void receivedTranscodingLogMessage();
     void finishedTranscodeData(int exitCode);
 
+    // slot to update status on streaming or transcoding
+    void updateStatus();
+
     // slot to send data to client
     void sendAnswer(QStringList headerAnswer, QByteArray contentAnswer = QByteArray(), long totalSize = -1);
 
@@ -156,11 +160,13 @@ private:
     QTcpSocket* client;
     int networkBytesSent;
     bool keepSocketOpened;  // flag to not close automatically the client socket when answer is sent
+    QTimer timerStatus;    // timer used to updated periodically the status on streaming or transcoding
     QElapsedTimer clock;  // clock to measure time taken to answer to the request
     QElapsedTimer clockSending; // clock to mesure time taken to send streamed or transcoded data.
 
     QIODevice* streamContent;
     TranscodeProcess* transcodeProcess;
+    int maxBufferSize;
     QMutex mutex;
     QWaitCondition servingStarted;
 

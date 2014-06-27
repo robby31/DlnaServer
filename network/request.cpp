@@ -31,8 +31,10 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     client(client),
     networkBytesSent(0),
     keepSocketOpened(false),
+    timerStatus(this),
     streamContent(0),
     transcodeProcess(0),
+    maxBufferSize(1024*1024*100),  // 100 MBytes
     status("init"),
     networkStatus("connected"),
     rootFolder(rootFolder),
@@ -55,6 +57,10 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
         peerAddress = client->peerAddress().toString();
         socket = client->socketDescriptor();
     }
+
+    // Start timer to broadcast UPnP ALIVE messages every second
+    connect(&timerStatus, SIGNAL(timeout()), this, SLOT(updateStatus()));
+    timerStatus.start(1000);
 
     // start clock to measure time taken to answer to the request
     clock.start();
@@ -926,6 +932,9 @@ void Request::run() {
 
 void Request::runStreaming(DlnaItem* dlna) {
     if (streamContent == 0) {
+        // set buffer size
+        maxBufferSize = 32*1024;
+
         // get stream file
         streamContent = dlna->getStream(this);
 
@@ -945,6 +954,8 @@ void Request::runStreaming(DlnaItem* dlna) {
 
 void Request::runTranscoding(DlnaItem* dlna) {
     if (transcodeProcess == 0) {
+        //set buffer size
+        maxBufferSize = 1024*1024*100;  // 100 MBytes
 
         transcodeProcess = dlna->getTranscodeProcess(range, timeSeekRangeStart, timeSeekRangeEnd, this);
 
@@ -1089,22 +1100,53 @@ void Request::readSocket() {
     }
 }
 
+void Request::updateStatus()
+{
+    if (!mediaFilename.isNull())
+        emit serving(mediaFilename, clockSending.elapsed());
+
+    if (streamContent) {
+        setStatus(QString("Streaming (%1%)").arg(int(100.0*double(streamContent->pos())/double(streamContent->size()))));
+    }
+
+    if (transcodeProcess) {
+        if (transcodeProcess->state()==QProcess::Running && client->bytesToWrite() < (maxBufferSize/10))
+            qWarning() << QString("%1 buffer low (%2%)").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(int(100.0*double(client->bytesToWrite())/double(maxBufferSize)));
+
+        if (client) {
+
+            if (client->bytesToWrite() > maxBufferSize) {
+                // pause transcoding process
+                if (transcodeProcess->pause() == false)
+                    log->Error(QString("Unable to pause transcoding: pid=%1").arg(transcodeProcess->pid()));
+            }
+
+            if (client->bytesToWrite() < (maxBufferSize*0.5)) {
+                // restart transcoding process
+                if (transcodeProcess->resume() == false)
+                    log->Error(QString("Unable to restart transcoding: pid=%1").arg(transcodeProcess->pid()));
+            }
+        }
+    }
+
+    if (client and maxBufferSize != 0) {
+        // display the network buffer and network speed
+        int networkSpeed = int((double(networkBytesSent)/1024.0)/(double(clockSending.elapsed())/1000.0));
+        setNetworkStatus(QString("Buffer: %1%, Speed: %2 Ko/s").arg(int(100.0*double(client->bytesToWrite())/double(maxBufferSize))).arg(networkSpeed));
+    }
+}
+
 void Request::bytesSent(qint64 size) {
     Q_UNUSED(size)
 
     networkBytesSent += size;
 
-    if (!mediaFilename.isNull())
-        emit serving(mediaFilename, clockSending.elapsed());
-
-    if (log->isLevel(DEBG) and transcodeProcess != 0) {
+    if (log->isLevel(TRA) and transcodeProcess != 0) {
         if (client != 0)
             transcodeProcess->appendLog(QString("%2: bytes sent %3 (%1)").arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
         else
             transcodeProcess->appendLog(QString("%1: bytes sent %2 (client deleted)").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
     }
-
-    int maxBufferSize = 0;
 
     if (streamContent != 0) {
 
@@ -1124,7 +1166,6 @@ void Request::bytesSent(qint64 size) {
             } else {
                 if (client->bytesToWrite() == 0) {
 
-                    maxBufferSize = 32*1024;
                     int bytesToRead = maxBufferSize;
                     if (range != 0 && range->getEndByte() > 0) {
                         if (range->getEndByte() >= streamContent->pos()) {
@@ -1158,9 +1199,6 @@ void Request::bytesSent(qint64 size) {
                                 close();
 
                                 setStatus("KO");
-
-                            } else {
-                                setStatus(QString("Streaming (%1%)").arg(int(100.0*double(streamContent->pos())/double(streamContent->size()))));
                             }
                         }
                     }
@@ -1169,29 +1207,6 @@ void Request::bytesSent(qint64 size) {
         } else {
             // stream ended
         }
-    }
-
-    if (transcodeProcess != 0) {
-        if (client != 0) {
-            maxBufferSize = 1024*1024*100;  // 100 MBytes
-
-            if (client->bytesToWrite() > maxBufferSize) {
-                // pause transcoding process
-                if (transcodeProcess->pause() == false)
-                    log->Error(QString("Unable to pause transcoding: pid=%1").arg(transcodeProcess->pid()));
-            }
-
-            if (client->bytesToWrite() < (maxBufferSize/5)) {
-                // restart transcoding process
-                if (transcodeProcess->resume() == false)
-                    log->Error(QString("Unable to restart transcoding: pid=%1").arg(transcodeProcess->pid()));
-            }
-        }
-    }
-
-    if (client != 0 and maxBufferSize != 0) {
-        // display the network buffer
-        setNetworkStatus(QString("Buffer (%1%)").arg(int(100.0*double(client->bytesToWrite())/double(maxBufferSize))));
     }
 }
 
@@ -1253,6 +1268,8 @@ void Request::closeClient() {
 }
 
 void Request::close() {
+    timerStatus.stop();
+
     if (clockSending.isValid())
         qWarning() << "REQUEST CLOSED" << networkBytesSent << "bytes sent," << QTime(0, 0).addMSecs(clockSending.elapsed()).toString("hh:mm:ss.zzz") << "ms taken to send data.";
 
