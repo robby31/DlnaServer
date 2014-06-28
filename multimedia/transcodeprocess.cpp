@@ -52,7 +52,7 @@ void TranscodeProcess::killProcess() {
 }
 
 bool TranscodeProcess::pause() {
-    if (!m_paused) {
+    if (state() != QProcess::NotRunning && !m_paused) {
         qWarning() << QString("%1 pause transcoding").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")) << state();
 
         QStringList arguments;
@@ -67,7 +67,7 @@ bool TranscodeProcess::pause() {
 }
 
 bool TranscodeProcess::resume() {
-    if (m_paused) {
+    if (state() != QProcess::NotRunning && m_paused) {
         qWarning() << QString("%1 restart transcoding").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")) << state();
 
         QStringList arguments;
