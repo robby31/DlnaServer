@@ -13,7 +13,7 @@ MediaLibrary::MediaLibrary(Logger* log, QSqlDatabase *database, QObject *parent)
 
 bool MediaLibrary::open()
 {
-    qWarning() << "Open" << db->databaseName();
+    log->Debug(QString("Open MediaLibrary %1").arg(db->databaseName()));
 
     if (!db->open()) {
         log->Error("unable to open database " + db->databaseName());
@@ -29,6 +29,7 @@ bool MediaLibrary::open()
         if (!query.exec("create table if not exists media ("
                         "id integer primary key, "
                         "filename varchar unique, "
+                        "is_reachable integer DEFAULT 1, "
                         "title varchar, album integer, artist integer, genre integer, trackposition varchar, "
                         "duration integer, samplerate integer, channelcount integer, bitrate integer, resolution varchar, framerate varchar, "
                         "picture integer, "
@@ -121,7 +122,19 @@ bool MediaLibrary::open()
                 foreignKeys[tableName][query.value("from").toString()] = tmp;
             }
         }
+
+        // check if all media are reachable
+        if (query.exec("SELECT id, filename from media")) {
+            while (query.next()) {
+                QFile fd(query.value("filename").toString());
+                if (!fd.exists()) {
+                    log->Info(QString("unable to reach media %1 id=%2").arg(fd.fileName()).arg(query.value("id").toString()));
+                }
+            }
+        }
     }
+
+    log->Debug(QString("MediaLibrary %1 opened.").arg(db->databaseName()));
 
     return true;
 }
@@ -162,9 +175,9 @@ QSqlQuery MediaLibrary::getDistinctMetaData(int typeMedia, QString tagName) {
     if (foreignKeys["media"].contains(tagName)) {
         QString foreignTable = foreignKeys["media"][tagName]["table"];
         QString foreignTo = foreignKeys["media"][tagName]["to"];
-        query.exec(QString("SELECT DISTINCT %2.id, %2.name FROM media LEFT OUTER JOIN %2 ON media.%1=%2.%3 WHERE media.type=%4 ORDER BY %2.name").arg(tagName).arg(foreignTable).arg(foreignTo).arg(typeMedia));
+        query.exec(QString("SELECT DISTINCT %2.id, %2.name FROM media LEFT OUTER JOIN %2 ON media.%1=%2.%3 WHERE media.type=%4 and is_reachable=1 ORDER BY %2.name").arg(tagName).arg(foreignTable).arg(foreignTo).arg(typeMedia));
     } else {
-        query.exec(QString("SELECT DISTINCT %1 FROM media WHERE type=%2 ORDER by %1").arg(tagName).arg(typeMedia));
+        query.exec(QString("SELECT DISTINCT %1 FROM media WHERE type=%2 and is_reachable=1 ORDER by %1").arg(tagName).arg(typeMedia));
     }
 
     return query;
@@ -175,9 +188,9 @@ int MediaLibrary::countDistinctMetaData(int typeMedia, QString tagName) {
     if (foreignKeys["media"].contains(tagName)) {
         QString foreignTable = foreignKeys["media"][tagName]["table"];
         QString foreignTo = foreignKeys["media"][tagName]["to"];
-        query.exec(QString("SELECT count(DISTINCT %2.name) FROM media LEFT OUTER JOIN %2 ON media.%1=%2.%3 WHERE media.type=%4").arg(tagName).arg(foreignTable).arg(foreignTo).arg(typeMedia));
+        query.exec(QString("SELECT count(DISTINCT %2.name) FROM media LEFT OUTER JOIN %2 ON media.%1=%2.%3 WHERE media.type=%4 and is_reachable=1").arg(tagName).arg(foreignTable).arg(foreignTo).arg(typeMedia));
     } else {
-        query.exec(QString("SELECT count(DISTINCT %1) FROM media WHERE type=%2").arg(tagName).arg(typeMedia));
+        query.exec(QString("SELECT count(DISTINCT %1) FROM media WHERE type=%2 and is_reachable=1").arg(tagName).arg(typeMedia));
     }
 
     if (query.next()) {
@@ -188,7 +201,7 @@ int MediaLibrary::countDistinctMetaData(int typeMedia, QString tagName) {
 }
 
 int MediaLibrary::countMedia(QString where) {
-    QSqlQuery query(QString("SELECT count(id) FROM media WHERE %1").arg(where));
+    QSqlQuery query(QString("SELECT count(id) FROM media WHERE %1 and is_reachable=1").arg(where));
     if (query.next()) {
         return query.value(0).toInt();
     } else {
@@ -279,7 +292,7 @@ bool MediaLibrary::update(int id, QHash<QString, QVariant> data)
                 int index = insertForeignKey(foreignTable, "name", data[elt]);
 
                 if (record.value(elt) != index) {
-                    log->Debug(QString("update %1, %2, index %3, %4").arg(elt).arg(record.value(elt).toString()).arg(index).arg(data[elt].toString()));
+                    log->Debug(QString("update %1, %2, index %3 --> %4").arg(elt).arg(record.value(elt).toString()).arg(index).arg(data[elt].toString()));
                     QSqlQuery queryUpdate;
                     if (!queryUpdate.exec(QString("UPDATE media SET %1=%2 WHERE id=%3").arg(elt).arg(index).arg(id)))
                         return false;
@@ -287,7 +300,7 @@ bool MediaLibrary::update(int id, QHash<QString, QVariant> data)
 
             } else {
                 if (record.value(elt) != data[elt]) {
-                    log->Debug(QString("update %1, %2, %3").arg(elt).arg(record.value(elt).toString()).arg(data[elt].toString()));
+                    log->Debug(QString("update %1, %2 --> %3").arg(elt).arg(record.value(elt).toString()).arg(data[elt].toString()));
                     QSqlQuery queryUpdate;
                     QSqlField field = record.field(record.indexOf(elt));
                     field.setValue(data[elt]);
