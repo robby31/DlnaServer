@@ -12,6 +12,8 @@ Application::Application(QQmlApplicationEngine *engine, QObject *parent):
     m_requestsModel(0),
     m_renderersModel(0)
 {
+    log.setLevel(INF);
+
     setRequestsModel(new RequestListModel(this));
     setRenderersModel(new MediaRendererModel(this));
 
@@ -19,8 +21,6 @@ Application::Application(QQmlApplicationEngine *engine, QObject *parent):
 
     server = new HttpServer(&log, m_requestsModel, m_renderersModel, this);
     upnp = new UPNPHelper(&log, server, this);
-
-    log.setLevel(INF);
 
     // load the settings
     loadSettings();
