@@ -6,6 +6,7 @@
 #include <QDebug>
 #include <QDateTime>
 
+#include "logger.h"
 #include "httprange.h"
 
 // Format available for transcoding
@@ -16,7 +17,7 @@ class TranscodeProcess : public QProcess
     Q_OBJECT
 
 public:
-    explicit TranscodeProcess(QObject *parent = 0);
+    explicit TranscodeProcess(Logger* log, QObject *parent = 0);
 
     void launch();
     bool pause();
@@ -39,6 +40,7 @@ private:
     // Carriage return and line feed.
     static const QString CRLF;
 
+    Logger *m_log;
     QElapsedTimer transcodeClock;
     QString transcodeLog;
     bool killTranscodeProcess;  // true if the application aborts the transcoding

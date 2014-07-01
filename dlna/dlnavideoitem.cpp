@@ -142,7 +142,7 @@ MencoderTranscoding *DlnaVideoItem::getTranscodeProcess(HttpRange *range, long t
 
     } else {
 
-        MencoderTranscoding* transcodeProcess = new MencoderTranscoding(parent != 0 ? parent : this);
+        MencoderTranscoding* transcodeProcess = new MencoderTranscoding(log, parent != 0 ? parent : this);
 
         if (transcodeProcess->initialize(range, timeseek_start, timeseek_end, fileinfo.filePath(), getLengthInSeconds(), transcodeFormat, bitrate(), audioLanguages(), subtitleLanguages(), framerate())) {
 

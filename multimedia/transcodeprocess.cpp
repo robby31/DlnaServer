@@ -2,8 +2,9 @@
 
 const QString TranscodeProcess::CRLF = "\r\n";
 
-TranscodeProcess::TranscodeProcess(QObject *parent) :
+TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
     QProcess(parent),
+    m_log(log != 0 ? log : new Logger(this)),
     transcodeClock(),
     transcodeLog(),
     killTranscodeProcess(false),
@@ -53,7 +54,7 @@ void TranscodeProcess::killProcess() {
 
 bool TranscodeProcess::pause() {
     if (state() != QProcess::NotRunning && !m_paused) {
-        qWarning() << QString("%1 pause transcoding").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")) << state();
+        m_log->Debug(QString("Pause transcoding"));
 
         QStringList arguments;
         arguments << "-STOP" << QString("%1").arg(pid());
@@ -68,7 +69,7 @@ bool TranscodeProcess::pause() {
 
 bool TranscodeProcess::resume() {
     if (state() != QProcess::NotRunning && m_paused) {
-        qWarning() << QString("%1 restart transcoding").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")) << state();
+        m_log->Debug(QString("Restart transcoding"));
 
         QStringList arguments;
         arguments << "-CONT" << QString("%1").arg(pid());

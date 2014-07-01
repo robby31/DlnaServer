@@ -201,7 +201,7 @@ FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess(HttpRange *range, long ti
 
     } else {
 
-        FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(parent != 0 ? parent : this);
+        FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log, parent != 0 ? parent : this);
 
         if (transcodeProcess->initialize(range, timeseek_start, timeseek_end, fileinfo.filePath(), getLengthInSeconds(), transcodeFormat, bitrate())) {
 

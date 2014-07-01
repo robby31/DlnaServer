@@ -1,7 +1,7 @@
 #include "ffmpegtranscoding.h"
 
-FfmpegTranscoding::FfmpegTranscoding(QObject *parent) :
-    TranscodeProcess(parent)
+FfmpegTranscoding::FfmpegTranscoding(Logger *log, QObject *parent) :
+    TranscodeProcess(log, parent)
 {
 }
 

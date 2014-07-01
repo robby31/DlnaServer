@@ -1,7 +1,7 @@
 #include "mencodertranscoding.h"
 
-MencoderTranscoding::MencoderTranscoding(QObject *parent) :
-    TranscodeProcess(parent)
+MencoderTranscoding::MencoderTranscoding(Logger *log, QObject *parent) :
+    TranscodeProcess(log, parent)
 {
 }
 

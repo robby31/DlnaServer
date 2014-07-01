@@ -8,7 +8,7 @@ class FfmpegTranscoding : public TranscodeProcess
     Q_OBJECT
 
 public:
-    explicit FfmpegTranscoding(QObject *parent = 0);
+    explicit FfmpegTranscoding(Logger* log, QObject *parent = 0);
 
     // initialize program pathname and arguments of the QProcess
     virtual bool initialize(HttpRange* range, long timeseek_start, long timeseek_end, QString filePath, int lengthInSeconds, TranscodeFormatAvailable transcodeFormat, int bitrate);
