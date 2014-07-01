@@ -158,9 +158,9 @@ private:
     Logger* log;
 
     QTcpSocket* client;
-    int networkBytesSent;
+    long networkBytesSent;
     bool keepSocketOpened;  // flag to not close automatically the client socket when answer is sent
-    QTimer timerStatus;    // timer used to updated periodically the status on streaming or transcoding
+    QTimer timerStatus;    // timer used to update periodically the status on streaming or transcoding
     QElapsedTimer clock;  // clock to measure time taken to answer to the request
     QElapsedTimer clockSending; // clock to mesure time taken to send streamed or transcoded data.
 

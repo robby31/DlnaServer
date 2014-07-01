@@ -58,7 +58,7 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
         socket = client->socketDescriptor();
     }
 
-    // Start timer to broadcast UPnP ALIVE messages every second
+    // Start timer to update periodically the status on streaming or transcoding (every second)
     connect(&timerStatus, SIGNAL(timeout()), this, SLOT(updateStatus()));
     timerStatus.start(1000);
 
@@ -776,7 +776,7 @@ void Request::run() {
                     setStatus("OK");
 
                 } else {
-                    qWarning() << dlna->size() << "bytes to send," << QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz") << "ms to send.";
+                    log->Debug(QString("%1 bytes to send, %2 to send.").arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")));
 
                     mediaFilename = dlna->getFileInfo().absoluteFilePath();
                     emit serving(mediaFilename, 0);
@@ -932,8 +932,11 @@ void Request::run() {
 
 void Request::runStreaming(DlnaItem* dlna) {
     if (streamContent == 0) {
-        // set buffer size
-        maxBufferSize = 32*1024;
+        //set buffer size
+        if (dlna->bitrate()>0) {
+            // set buffer size to 10 seconds transcoding
+            maxBufferSize = dlna->bitrate()/8*10;
+        }
 
         // get stream file
         streamContent = dlna->getStream(this);
@@ -955,7 +958,10 @@ void Request::runStreaming(DlnaItem* dlna) {
 void Request::runTranscoding(DlnaItem* dlna) {
     if (transcodeProcess == 0) {
         //set buffer size
-        maxBufferSize = 1024*1024*100;  // 100 MBytes
+        if (dlna->bitrate()>0) {
+            // set buffer size to 10 seconds transcoding
+            maxBufferSize = dlna->bitrate()/8*10;
+        }
 
         transcodeProcess = dlna->getTranscodeProcess(range, timeSeekRangeStart, timeSeekRangeEnd, this);
 
@@ -1111,9 +1117,9 @@ void Request::updateStatus()
 
     if (transcodeProcess) {
         if (transcodeProcess->state()==QProcess::Running && client->bytesToWrite() < (maxBufferSize/10))
-            qWarning() << QString("%1 buffer low (%2%)").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(int(100.0*double(client->bytesToWrite())/double(maxBufferSize)));
+            log->Info(QString("Transcoding: buffer low %1%").arg(int(100.0*double(client->bytesToWrite())/double(maxBufferSize))));
 
-        if (client) {
+        if (client && transcodeProcess->state()==QProcess::Running) {
 
             if (client->bytesToWrite() > maxBufferSize) {
                 // pause transcoding process
@@ -1132,7 +1138,8 @@ void Request::updateStatus()
     if (client and maxBufferSize != 0) {
         // display the network buffer and network speed
         int networkSpeed = int((double(networkBytesSent)/1024.0)/(double(clockSending.elapsed())/1000.0));
-        setNetworkStatus(QString("Buffer: %1%, Speed: %2 Ko/s").arg(int(100.0*double(client->bytesToWrite())/double(maxBufferSize))).arg(networkSpeed));
+        double bufferTime = double(maxBufferSize)/double(networkSpeed*1024);
+        setNetworkStatus(QString("Buffer: %4 bytes %1% %3 seconds, Speed: %2 Ko/s").arg(int(100.0*double(client->bytesToWrite())/double(maxBufferSize))).arg(networkSpeed).arg(bufferTime).arg(maxBufferSize));
     }
 }
 
@@ -1239,9 +1246,11 @@ void Request::errorSocket(QAbstractSocket::SocketError error) {
     }
 
     if (error == QAbstractSocket::RemoteHostClosedError) {
-        if (client)
+        if (client) {
             client->disconnect(this);
-        client = 0;
+            client->deleteLater();
+            client = 0;
+        }
         setNetworkStatus("disconnected");
     }
 
@@ -1271,12 +1280,13 @@ void Request::close() {
     timerStatus.stop();
 
     if (clockSending.isValid())
-        qWarning() << "REQUEST CLOSED" << networkBytesSent << "bytes sent," << QTime(0, 0).addMSecs(clockSending.elapsed()).toString("hh:mm:ss.zzz") << "ms taken to send data.";
+        log->Debug(QString("REQUEST CLOSED: %1 bytes sent, %2 taken to send data.").arg(networkBytesSent).arg(QTime(0, 0).addMSecs(clockSending.elapsed()).toString("hh:mm:ss.zzz")));
 
     if (client != 0) {
         if (clockSending.isValid())
-            qWarning() << "remaining data to send" << client->bytesToWrite();
+            log->Debug(QString("remaining data to send: %1").arg(client->bytesToWrite()));
         client->disconnect(this);
+        client->deleteLater();
         client = 0;
     }
 
