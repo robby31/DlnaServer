@@ -1111,9 +1111,8 @@ void Request::updateStatus()
     if (!mediaFilename.isNull())
         emit serving(mediaFilename, clockSending.elapsed());
 
-    if (streamContent) {
+    if (streamContent)
         setStatus(QString("Streaming (%1%)").arg(int(100.0*double(streamContent->pos())/double(streamContent->size()))));
-    }
 
     if (transcodeProcess) {
         if (transcodeProcess->state()==QProcess::Running && client->bytesToWrite() < (maxBufferSize/10))
@@ -1143,9 +1142,8 @@ void Request::updateStatus()
     }
 }
 
-void Request::bytesSent(qint64 size) {
-    Q_UNUSED(size)
-
+void Request::bytesSent(qint64 size)
+{
     networkBytesSent += size;
 
     if (log->isLevel(TRA) and transcodeProcess != 0) {
@@ -1155,8 +1153,7 @@ void Request::bytesSent(qint64 size) {
             transcodeProcess->appendLog(QString("%1: bytes sent %2 (client deleted)").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
     }
 
-    if (streamContent != 0) {
-
+    if (streamContent) {
         if (range != 0 && streamContent->pos() == 0) {
             if (range->getStartByte() > 0)
                 streamContent->seek(range->getStartByte());
@@ -1171,14 +1168,14 @@ void Request::bytesSent(qint64 size) {
 
                 setStatus("KO");
             } else {
-                if (client->bytesToWrite() == 0) {
+                if (client->bytesToWrite() < maxBufferSize) {
 
-                    int bytesToRead = maxBufferSize;
+                    int bytesToRead = maxBufferSize - client->bytesToWrite();
                     if (range != 0 && range->getEndByte() > 0) {
                         if (range->getEndByte() >= streamContent->pos()) {
                             bytesToRead = range->getEndByte() - streamContent->pos() + 1;
-                            if (bytesToRead > maxBufferSize) {
-                                bytesToRead = maxBufferSize;
+                            if (bytesToRead > (maxBufferSize - client->bytesToWrite())) {
+                                bytesToRead = maxBufferSize - client->bytesToWrite();
                             }
                         } else
                             bytesToRead = 0;
