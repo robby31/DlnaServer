@@ -26,7 +26,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 14542, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 14667, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -41,7 +41,7 @@ void tst_dlnacachedresources::testCase_Library_NbAudios()
         if (query.last())
             nbAudios = query.at() + 1;
     }
-    QVERIFY2(nbAudios == 13659, QString("%1").arg(nbAudios).toUtf8().constData());
+    QVERIFY2(nbAudios == 13696, QString("%1").arg(nbAudios).toUtf8().constData());
     db.close();
 }
 
@@ -56,7 +56,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 883, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 971, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -71,7 +71,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbums()
         if (query.last())
             nbAlbums = query.at() + 1;
     }
-    QVERIFY2(nbAlbums == 1242, QString("%1").arg(nbAlbums).toUtf8().constData());
+    QVERIFY2(nbAlbums == 1244, QString("%1").arg(nbAlbums).toUtf8().constData());
     db.close();
 }
 
@@ -86,7 +86,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbumPictures()
         if (query.last())
             nbAlbumPictures = query.at() + 1;
     }
-    QVERIFY2(nbAlbumPictures == 790, QString("%1").arg(nbAlbumPictures).toUtf8().constData());
+    QVERIFY2(nbAlbumPictures == 792, QString("%1").arg(nbAlbumPictures).toUtf8().constData());
     db.close();
 }
 
@@ -101,7 +101,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithAlbum()
         if (query.last())
             nbTracksWithAlbum = query.at() + 1;
     }
-    QVERIFY2(nbTracksWithAlbum == 13429, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
+    QVERIFY2(nbTracksWithAlbum == 13466, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
     db.close();
 }
 
@@ -116,7 +116,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithPicture()
         if (query.last())
             nbTracksWithPicture = query.at() + 1;
     }
-    QVERIFY2(nbTracksWithPicture == 9371, QString("%1").arg(nbTracksWithPicture).toUtf8().constData());
+    QVERIFY2(nbTracksWithPicture == 9408, QString("%1").arg(nbTracksWithPicture).toUtf8().constData());
     db.close();
 }
 
@@ -298,14 +298,17 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY(track->getStream() == 0);  // returns null because it shall be transcoded
     transcodeProcess = track->getTranscodeProcess(range);
     QVERIFY(transcodeProcess != 0);
-    transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
-    transcodeProcess->start();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodedSize == 7558825);
-    delete transcodeProcess;
-    transcodeProcess = 0;
+
+    if (transcodeProcess) {
+        transcodedSize = 0;
+        connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+        transcodeProcess->start();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        QVERIFY(transcodedSize == 7558825);
+        delete transcodeProcess;
+        transcodeProcess = 0;
+    }
     delete range;
     range = 0;
 
@@ -398,14 +401,17 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY(track->getStream() == 0);  // returns null because it shall be transcoded
     transcodeProcess = track->getTranscodeProcess(range);
     QVERIFY(transcodeProcess != 0);
-    transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
-    transcodeProcess->start();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodedSize == 7558825);
-    delete transcodeProcess;
-    transcodeProcess = 0;
+
+    if (transcodeProcess) {
+        transcodedSize = 0;
+        connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+        transcodeProcess->start();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        QVERIFY(transcodedSize == 7558825);
+        delete transcodeProcess;
+        transcodeProcess = 0;
+    }
     delete range;
     range = 0;
 }
@@ -491,14 +497,17 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
 //    QVERIFY(stream->size() == 733723671);
     transcodeProcess = movie->getTranscodeProcess(0, 0, 10);
     QVERIFY(transcodeProcess != 0);
-    transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
-    transcodeProcess->start();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY2(transcodedSize <= 3000000, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
-    delete transcodeProcess;
-    transcodeProcess = 0;
+
+    if (transcodeProcess) {
+        transcodedSize = 0;
+        connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+        transcodeProcess->start();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        QVERIFY2(transcodedSize <= 3000000, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+        delete transcodeProcess;
+        transcodeProcess = 0;
+    }
 }
 
 int tst_dlnacachedresources::parseFolder(QString resourceId, DlnaResource *resource) {

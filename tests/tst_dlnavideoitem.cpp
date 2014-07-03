@@ -30,14 +30,17 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars() {
     stream = 0;
     transcodeProcess = movie.getTranscodeProcess(0, 0, -1);
     QVERIFY(transcodeProcess != 0);
-    transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
-    transcodeProcess->start();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY2(transcodedSize >= 2000000000, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
-    delete transcodeProcess;
-    transcodeProcess = 0;
+
+    if (transcodeProcess) {
+        transcodedSize = 0;
+        connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+        transcodeProcess->start();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        QVERIFY2(transcodedSize >= 2000000000, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+        delete transcodeProcess;
+        transcodeProcess = 0;
+    }
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
     QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
@@ -65,14 +68,17 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper() {
     stream = 0;
     transcodeProcess = movie.getTranscodeProcess(0, 0, -1);
     QVERIFY(transcodeProcess != 0);
-    transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
-    transcodeProcess->start();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY2(transcodedSize >= 1400000000, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
-    delete transcodeProcess;
-    transcodeProcess = 0;
+
+    if (transcodeProcess) {
+        transcodedSize = 0;
+        connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+        transcodeProcess->start();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        QVERIFY2(transcodedSize >= 1400000000, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+        delete transcodeProcess;
+        transcodeProcess = 0;
+    }
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
     QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
@@ -150,13 +156,16 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
     stream = 0;
     transcodeProcess = movie.getTranscodeProcess(0, 0, -1);
     QVERIFY(transcodeProcess != 0);
-    transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
-    transcodeProcess->start();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY2(transcodedSize >= 3000000000, QString("transcoded size = %1").arg(transcodedSize).toUtf8());    delete transcodeProcess;
-    transcodeProcess = 0;
+
+    if (transcodeProcess) {
+        transcodedSize = 0;
+        connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+        transcodeProcess->start();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        QVERIFY2(transcodedSize >= 3000000000, QString("transcoded size = %1").arg(transcodedSize).toUtf8());    delete transcodeProcess;
+        transcodeProcess = 0;
+    }
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
     QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
@@ -240,14 +249,17 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
 //    QVERIFY(stream->size() == 733723671);
     transcodeProcess = movie.getTranscodeProcess(0, 0, 10);
     QVERIFY(transcodeProcess != 0);
-    transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
-    transcodeProcess->start();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY2(transcodedSize <= 3000000, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
-    delete transcodeProcess;
-    transcodeProcess = 0;
+
+    if (transcodeProcess) {
+        transcodedSize = 0;
+        connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+        transcodeProcess->start();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        QVERIFY2(transcodedSize <= 3000000, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+        delete transcodeProcess;
+        transcodeProcess = 0;
+    }
 
     // test full transcoding
     QVERIFY(movie.getStream() == 0);
@@ -256,13 +268,16 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
 //    QVERIFY(stream->size() == 733723671);
     transcodeProcess = movie.getTranscodeProcess(0, 0, -1);
     QVERIFY(transcodeProcess != 0);
-    transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
-    transcodeProcess->start();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY2(transcodedSize >= 4500000000, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
-    delete transcodeProcess;
-    transcodeProcess = 0;
+
+    if (transcodeProcess) {
+        transcodedSize = 0;
+        connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(receivedTranscodedData()));
+        transcodeProcess->start();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        QVERIFY2(transcodedSize >= 4500000000, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+        delete transcodeProcess;
+        transcodeProcess = 0;
+    }
 }
 
