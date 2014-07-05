@@ -21,7 +21,7 @@ public:
 
     QSqlDatabase *getDatabase() const { return db; }
 
-    QSqlQuery getMediaType() { return QSqlQuery("SELECT DISTINCT id, name FROM type WHERE is_reachable=1"); }
+    QSqlQuery getMediaType() { return QSqlQuery("SELECT DISTINCT id, name FROM type"); }
 
     QSqlQuery getMedia(QString where, QString orderParam="media.id", QString sortOption="ASC") { return QSqlQuery(QString("SELECT media.id, media.filename, type.name AS type_media, media.last_modified, media.counter_played from media LEFT OUTER JOIN type ON media.type=type.id WHERE %1 and is_reachable=1 ORDER BY %2 %3").arg(where).arg(orderParam).arg(sortOption)); }
     int countMedia(QString where);
