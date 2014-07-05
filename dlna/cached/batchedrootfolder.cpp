@@ -54,4 +54,6 @@ void BatchedRootFolder::readDirectory(QDir folder, bool flag_root) {
         if (stop)
             break;
     }
+
+    m_root->refreshLastAddedMedia();
 }

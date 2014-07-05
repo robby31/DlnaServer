@@ -165,6 +165,8 @@ void DlnaCachedRootFolder::readDirectory(QDir folder) {
             addResource(fileinfo);
         }
     }
+
+    lastAddedChild->needRefresh();
 }
 
 bool DlnaCachedRootFolder::updateLibrary(const QString &filename, const QHash<QString, QVariant> &data)

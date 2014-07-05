@@ -28,6 +28,7 @@ public:
     QSqlDatabase *getDatabase() const { return library.getDatabase(); }
     bool updateLibrary(const QString &filename, const QHash<QString, QVariant> &data);
     bool incrementCounterPlayed(const QString &filename);
+    void refreshLastAddedMedia() { lastAddedChild->needRefresh(); }
 
     bool resetLibrary();
 
