@@ -55,7 +55,7 @@ Item {
             TableViewColumn {
                 role: "host"
                 title: "Host"
-                width: 120
+                width: 150
             }
 
             TableViewColumn {
