@@ -82,7 +82,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     QVERIFY(track.getAlbumArt().isNull() == true);
     QVERIFY(track.getByteAlbumArt().isNull() == true);
 
-    QIODevice* stream = track.getStream();
+    StreamingFile* stream = track.getStream();
     QVERIFY(stream->isOpen() == true);
     QVERIFY(stream->size() == 376593);
     delete stream;
@@ -168,7 +168,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
     int size = track.getByteAlbumArt().size();
     QVERIFY2(size == 3558, QString("%1").arg(size).toUtf8());
 
-    QIODevice* stream = track.getStream();
+    StreamingFile* stream = track.getStream();
     QVERIFY(stream->isOpen() == true);
     QVERIFY(stream->size() == 845029);
     delete stream;
@@ -253,7 +253,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
     QVERIFY(track.getAlbumArt().size().height() == 100);
     QVERIFY2(track.getByteAlbumArt().size() == 1611, QString("%1").arg(track.getByteAlbumArt().size()).toUtf8());
 
-    QIODevice* stream = track.getStream();
+    StreamingFile* stream = track.getStream();
     QVERIFY(stream->isOpen() == true);
     QVERIFY(stream->size() == 3841064);
     delete stream;

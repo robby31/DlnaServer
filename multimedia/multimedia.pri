@@ -10,7 +10,8 @@ HEADERS += \
     ../multimedia/ffmpegtranscoding.h \
     ../multimedia/mediarenderer.h \
     ../multimedia/mediarenderermodel.h \
-    ../multimedia/medialibrary.h
+    ../multimedia/medialibrary.h \
+    ../multimedia/streamingfile.h
 
 SOURCES += \
     ../multimedia/transcodeprocess.cpp \
@@ -18,7 +19,8 @@ SOURCES += \
     ../multimedia/ffmpegtranscoding.cpp \
     ../multimedia/mediarenderer.cpp \
     ../multimedia/mediarenderermodel.cpp \
-    ../multimedia/medialibrary.cpp
+    ../multimedia/medialibrary.cpp \
+    ../multimedia/streamingfile.cpp
 
 
 

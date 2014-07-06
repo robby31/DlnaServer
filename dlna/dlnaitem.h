@@ -8,6 +8,7 @@
 #include "dlnaresource.h"
 
 #include "transcodeprocess.h"
+#include "streamingfile.h"
 
 #include <qmimedatabase.h>
 
@@ -34,10 +35,10 @@ public:
     QFileInfo getFileInfo() const { return fileinfo; }
 
     // Returns an InputStream of this DLNA node.
-    QIODevice* getStream(QObject *parent = 0);
+    StreamingFile *getStream(HttpRange* range=0, long timeseek_start=-1, long timeseek_end=-1, QObject *parent = 0);
 
     // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0) = 0;
+    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range=0, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0) = 0;
 
     // return true if the track shall be transcoded
     virtual bool toTranscode() const = 0;

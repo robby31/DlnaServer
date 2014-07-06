@@ -21,7 +21,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars() {
 
     QVERIFY2(movie.framerate() == "23.976", movie.framerate().toUtf8());
 
-    QIODevice* stream = movie.getStream();
+    StreamingFile* stream = movie.getStream();
     QVERIFY(stream == 0);
 //    QVERIFY(stream != 0);
 //    QVERIFY(stream->isOpen() == true);
@@ -59,7 +59,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper() {
 
     QVERIFY(movie.framerate() == "25.000");
 
-    QIODevice* stream = movie.getStream();
+    StreamingFile* stream = movie.getStream();
     QVERIFY(stream == 0);
 //    QVERIFY(stream != 0);
 //    QVERIFY(stream->isOpen() == true);
@@ -147,7 +147,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
     QVERIFY2(movie.subtitleLanguages() == QStringList(), movie.subtitleLanguages().join(',').toUtf8());
     QVERIFY(movie.framerate() == "25.000");
 
-    QIODevice* stream = movie.getStream();
+    StreamingFile* stream = movie.getStream();
     QVERIFY(stream == 0);
 //    QVERIFY(stream != 0);
 //    QVERIFY(stream->isOpen() == true);

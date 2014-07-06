@@ -939,7 +939,7 @@ void Request::runStreaming(DlnaItem* dlna) {
         }
 
         // get stream file
-        streamContent = dlna->getStream(this);
+        streamContent = dlna->getStream(range, timeSeekRangeStart, timeSeekRangeEnd, this);
 
         if (streamContent == 0) {
             // No inputStream indicates that transcoding / remuxing probably crashed.
@@ -1154,64 +1154,39 @@ void Request::bytesSent(qint64 size)
     }
 
     if (streamContent) {
-        if (range != 0 && streamContent->pos() == 0) {
-            if (range->getStartByte() > 0)
-                streamContent->seek(range->getStartByte());
-        }
+        if (client == 0) {
+            log->Error("HTTP Request: Unable to send content (client deleted).");
 
-        if (streamContent->size()-streamContent->pos() > 0) {
+            close();
 
-            if (client == 0) {
-                log->Error("HTTP Request: Unable to send content (client deleted).");
+            setStatus("KO");
+        } else {
+            int bytesToRead = maxBufferSize - client->bytesToWrite();
+            if (bytesToRead > 0) {
+                // read the stream
+                char bytesToSend[bytesToRead];
+                qint64 bytes = streamContent->read(bytesToSend, sizeof(bytesToSend));
 
-                close();
+                if (bytes == -1) {
+                    log->Error("HTTP Request: Unable to send content.");
 
-                setStatus("KO");
-            } else {
-                if (client->bytesToWrite() < maxBufferSize) {
+                    close();
 
-                    int bytesToRead = maxBufferSize - client->bytesToWrite();
-                    if (range != 0 && range->getEndByte() > 0) {
-                        if (range->getEndByte() >= streamContent->pos()) {
-                            bytesToRead = range->getEndByte() - streamContent->pos() + 1;
-                            if (bytesToRead > (maxBufferSize - client->bytesToWrite())) {
-                                bytesToRead = maxBufferSize - client->bytesToWrite();
-                            }
-                        } else
-                            bytesToRead = 0;
-                    }
+                    setStatus("KO");
 
-                    if (bytesToRead>0) {
-                        // read the stream
-                        char bytesToSend[bytesToRead];
-                        qint64 bytes = streamContent->read(bytesToSend, sizeof(bytesToSend));
+                } else if (bytes > 0) {
+                    if (client->write(bytesToSend, bytes)== -1) {
+                        log->Error("HTTP Request: Unable to send content.");
 
-                        if (bytes == -1) {
-                            log->Error("HTTP Request: Unable to send content.");
+                        close();
 
-                            close();
-
-                            setStatus("KO");
-
-                        } else if (bytes == 0) {
-                            // stream ended
-
-                        } else {
-                            if (client->write(bytesToSend, sizeof(bytesToSend))== -1) {
-                                log->Error("HTTP Request: Unable to send content.");
-
-                                close();
-
-                                setStatus("KO");
-                            }
-                        }
+                        setStatus("KO");
                     }
                 }
             }
-        } else {
-            // stream ended
         }
     }
+
 }
 
 void Request::stateChanged(QAbstractSocket::SocketState state) {
@@ -1269,7 +1244,7 @@ void Request::closeClient() {
         } else
             log->Debug("Unable to close client (client deleted).");
 
-        setDuration(QString("%1 ms").arg(clock.elapsed()));
+        setDuration(clock.elapsed());
     }
 }
 
@@ -1296,7 +1271,7 @@ void Request::close() {
             emit servingFinished(mediaFilename, 1);
         }
 
-        setDuration(QString("%1 ms").arg(clock.elapsed()));
+        setDuration(clock.elapsed());
 
         delete streamContent;
         streamContent = 0;
@@ -1315,7 +1290,7 @@ void Request::close() {
         else
             emit servingFinished(mediaFilename, 1);
 
-        setDuration(QString("%1 ms").arg(clock.elapsed()));
+        setDuration(clock.elapsed());
 
         transcodeProcess->disconnect(this);
 

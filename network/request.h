@@ -47,7 +47,7 @@ public:
 
     QString getNetworkStatus() const { return networkStatus; }
 
-    QString getDuration() const { return duration; }
+    QString getDuration() const { return QTime(0, 0).addMSecs(m_duration).toString("hh:mm:ss.zzz"); }
 
     QString getDate() const { return date; }
 
@@ -164,7 +164,7 @@ private:
     QElapsedTimer clock;  // clock to measure time taken to answer to the request
     QElapsedTimer clockSending; // clock to mesure time taken to send streamed or transcoded data.
 
-    QIODevice* streamContent;
+    StreamingFile* streamContent;
     TranscodeProcess* transcodeProcess;
     int maxBufferSize;
     QMutex mutex;
@@ -172,7 +172,7 @@ private:
 
     QString status;  // status of the request
     QString networkStatus;  // status of network (interface client)
-    QString duration;  // duration taken to answer to the request
+    qint64 m_duration;  // duration taken to answer to the request
     QString date;      // date when the request has been received
     DlnaRootFolder* rootFolder;
     MediaRendererModel* renderersModel;
@@ -224,7 +224,7 @@ private:
 
     void setNetworkStatus(QString status) { this->networkStatus = status; emit dataChanged(); }
 
-    void setDuration(QString duration) { this->duration = duration; emit dataChanged(); }
+    void setDuration(qint64 duration) { m_duration = duration; emit dataChanged(); }
 
     void setDate(QString date) { this->date = date; emit dataChanged(); }
 

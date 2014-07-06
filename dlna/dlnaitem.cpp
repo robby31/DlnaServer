@@ -54,7 +54,7 @@ void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
     }
 }
 
-QIODevice* DlnaItem::getStream(QObject *parent) {
+StreamingFile *DlnaItem::getStream(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent) {
 
     if (toTranscode()) {
 
@@ -63,13 +63,14 @@ QIODevice* DlnaItem::getStream(QObject *parent) {
 
     } else {
 
-        QFile* tmp = new QFile(fileinfo.absoluteFilePath(),
-                               parent != 0 ? parent : this);
+        StreamingFile* tmp = new StreamingFile(fileinfo.absoluteFilePath(),
+                                               parent != 0 ? parent : this);
 
         if (!tmp->open(QIODevice::ReadOnly)) {
             return 0;
         }
         else {
+            tmp->setRange(range);
             return tmp;
         }
     }
