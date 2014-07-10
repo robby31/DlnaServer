@@ -10,6 +10,8 @@ class DlnaCachedVideo : public DlnaVideoItem
 public:
     explicit DlnaCachedVideo(Logger* log, QString filename, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent = 0);
 
+    virtual qint64 getResumeTime() const { if (library != 0) return library->getmetaData("progress_played", idMedia).toLongLong(); else return 0; }
+
     virtual int metaDataBitrate() { if (library != 0) return library->getmetaData("bitrate", idMedia).toInt(); else return -1; }
     virtual int metaDataDuration() { if (library != 0) return library->getmetaData("duration", idMedia).toInt(); else return -1; }
     virtual QString metaDataTitle() { return ""; }

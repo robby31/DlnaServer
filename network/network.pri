@@ -6,13 +6,15 @@ HEADERS += \
     $$PWD/httpserver.h \
     $$PWD/request.h \
     $$PWD/requestlistmodel.h \
-    ../network/httprange.h
+    ../network/httprange.h \
+    ../network/elapsedtimer.h
 
 SOURCES += \
     $$PWD/upnphelper.cpp \
     $$PWD/httpserver.cpp \
     $$PWD/request.cpp \
     $$PWD/requestlistmodel.cpp \
-    ../network/httprange.cpp
+    ../network/httprange.cpp \
+    ../network/elapsedtimer.cpp
 
 include (../dlna/dlna.pri)

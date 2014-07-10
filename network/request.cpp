@@ -30,6 +30,7 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     log(log),
     client(client),
     networkBytesSent(0),
+    lastNetBytesSent(-1),
     keepSocketOpened(false),
     timerStatus(this),
     streamContent(0),
@@ -58,15 +59,10 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
         socket = client->socketDescriptor();
     }
 
-    // Start timer to update periodically the status on streaming or transcoding (every second)
     connect(&timerStatus, SIGNAL(timeout()), this, SLOT(updateStatus()));
-    timerStatus.start(1000);
 
     // start clock to measure time taken to answer to the request
     clock.start();
-
-    // invalidate clock used to measure time taken to stream or transcode
-    clockSending.invalidate();
 
     setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
 
@@ -781,9 +777,6 @@ void Request::run() {
                     mediaFilename = dlna->getFileInfo().absoluteFilePath();
                     emit serving(mediaFilename, 0);
 
-                    // start clock to measure time taken to stream or transcode
-                    clockSending.start();
-
                     if (!dlna->toTranscode()) {
 
                         // stream file
@@ -931,11 +924,18 @@ void Request::run() {
 }
 
 void Request::runStreaming(DlnaItem* dlna) {
-    if (streamContent == 0) {
+    if (streamContent == 0) {        
         //set buffer size
         if (dlna->bitrate()>0) {
             // set buffer size to 10 seconds transcoding
             maxBufferSize = dlna->bitrate()/8*10;
+        }
+
+        // recover resume time
+        qint64 resume = dlna->getResumeTime();
+        if (resume>0) {
+            timeSeekRangeStart = resume/1000 - 10;
+            clockSending.addMSec(timeSeekRangeStart*1000);
         }
 
         // get stream file
@@ -947,6 +947,9 @@ void Request::runStreaming(DlnaItem* dlna) {
             setStatus("KO");
         } else {
             renderersModel->serving(peerAddress, dlna->getDisplayName());
+
+            // Start timer to update periodically the status on streaming or transcoding (every second)
+            timerStatus.start(1000);
         }
     } else {
         log->Error(QString("Streaming already in progress"));
@@ -963,6 +966,14 @@ void Request::runTranscoding(DlnaItem* dlna) {
             maxBufferSize = dlna->bitrate()/8*10;
         }
 
+        // recover resume time
+        qint64 resume = dlna->getResumeTime();
+        if (resume>0) {
+            timeSeekRangeStart = resume/1000 - 10;
+            clockSending.addMSec(timeSeekRangeStart*1000);
+        }
+
+        // get transcoding process
         transcodeProcess = dlna->getTranscodeProcess(range, timeSeekRangeStart, timeSeekRangeEnd, this);
 
         if (transcodeProcess == 0) {
@@ -982,6 +993,9 @@ void Request::runTranscoding(DlnaItem* dlna) {
                 // transcoding process started
                 renderersModel->serving(peerAddress, dlna->getDisplayName());
                 setStatus("Transcoding");
+
+                // Start timer to update periodically the status on streaming or transcoding (every second)
+                timerStatus.start(1000);
             }
         }
     } else {
@@ -1108,9 +1122,6 @@ void Request::readSocket() {
 
 void Request::updateStatus()
 {
-    if (!mediaFilename.isNull())
-        emit serving(mediaFilename, clockSending.elapsed());
-
     if (streamContent)
         setStatus(QString("Streaming (%1%)").arg(int(100.0*double(streamContent->pos())/double(streamContent->size()))));
 
@@ -1134,17 +1145,33 @@ void Request::updateStatus()
         }
     }
 
-    if (client and maxBufferSize != 0) {
-        // display the network buffer and network speed
-        int networkSpeed = int((double(networkBytesSent)/1024.0)/(double(clockSending.elapsed())/1000.0));
-        double bufferTime = double(maxBufferSize)/double(networkSpeed*1024);
-        setNetworkStatus(QString("Buffer: %4 bytes %1% %3 seconds, Speed: %2 Ko/s").arg(int(100.0*double(client->bytesToWrite())/double(maxBufferSize))).arg(networkSpeed).arg(bufferTime).arg(maxBufferSize));
+    if (!mediaFilename.isNull()) {
+        emit serving(mediaFilename, clockSending.elapsedFromBeginning());
+
+        if (client and maxBufferSize != 0) {
+            // display the network buffer and network speed
+            int networkSpeed = int((double(networkBytesSent)/1024.0)/(double(clockSending.elapsed())/1000.0));
+            double bufferTime = double(maxBufferSize)/double(networkSpeed*1024);
+            setNetworkStatus(QString("Time: %5 Buffer: %4 bytes %1% %3 seconds, Speed: %2 Ko/s").arg(int(100.0*double(client->bytesToWrite())/double(maxBufferSize))).arg(networkSpeed).arg(bufferTime).arg(maxBufferSize).arg(QTime(0, 0).addMSecs(clockSending.elapsedFromBeginning()).toString("hh:mm:ss")));
+        }
+
+        if (lastNetBytesSent!=-1 && lastNetBytesSent==networkBytesSent)
+            clockSending.pause();
+        else
+            clockSending.start();
+
+        lastNetBytesSent = networkBytesSent;
     }
 }
 
 void Request::bytesSent(qint64 size)
 {
     networkBytesSent += size;
+
+    if (!clockSending.isValid()) {
+        // start clock to measure time taken to stream or transcode
+        clockSending.start();
+    }
 
     if (log->isLevel(TRA) and transcodeProcess != 0) {
         if (client != 0)

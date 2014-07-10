@@ -17,6 +17,7 @@
 #include "httprange.h"
 #include "transcodeprocess.h"
 #include "mediarenderermodel.h"
+#include "elapsedtimer.h"
 
 class Request: public QThread
 {
@@ -159,10 +160,11 @@ private:
 
     QTcpSocket* client;
     long networkBytesSent;
+    long lastNetBytesSent;
     bool keepSocketOpened;  // flag to not close automatically the client socket when answer is sent
     QTimer timerStatus;    // timer used to update periodically the status on streaming or transcoding
     QElapsedTimer clock;  // clock to measure time taken to answer to the request
-    QElapsedTimer clockSending; // clock to mesure time taken to send streamed or transcoded data.
+    ElapsedTimer clockSending; // clock to mesure time taken to send streamed or transcoded data.
 
     StreamingFile* streamContent;
     TranscodeProcess* transcodeProcess;

@@ -34,6 +34,9 @@ public:
 
     QFileInfo getFileInfo() const { return fileinfo; }
 
+    // Returns the time where the media has been stopped during last play
+    virtual qint64 getResumeTime() const { return 0; }
+
     // Returns an InputStream of this DLNA node.
     StreamingFile *getStream(HttpRange* range=0, long timeseek_start=-1, long timeseek_end=-1, QObject *parent = 0);
 
