@@ -120,7 +120,8 @@ void HttpServer::servingProgress(QString filename, int playedDurationInMs)
 {
     QHash<QString, QVariant> data;
     data.insert("last_played", QDateTime::currentDateTime());
-    data.insert("progress_played", playedDurationInMs);
+    if (playedDurationInMs>0)
+        data.insert("progress_played", playedDurationInMs);
     if (!rootFolder->updateLibrary(filename, data))
         m_log->Error(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
 }
