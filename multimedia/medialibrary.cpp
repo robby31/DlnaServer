@@ -132,6 +132,13 @@ bool MediaLibrary::open()
                 }
             }
         }
+
+        // check if all artists are used by at least one media
+        if (query.exec("SELECT artist.id, artist.name, count(media.id) from artist LEFT OUTER JOIN media ON media.artist=artist.id GROUP BY artist.id, artist.name")) {
+            while (query.next())
+                if (query.value(2).toInt()==0)
+                    log->Warning(QString("Artist with no media: %1(id=%2)").arg(query.value(1).toString()).arg(query.value(0).toInt()));
+        }
     }
 
     log->Debug(QString("MediaLibrary %1 opened.").arg(db->databaseName()));
