@@ -31,7 +31,7 @@ Item {
             TableViewColumn {
                 role: "status"
                 title: "Status"
-                width: 120
+                width: 150
             }
 
             TableViewColumn {
