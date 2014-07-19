@@ -34,10 +34,10 @@ public:
     long getLength() const;
 
     // Set the size which is the total size in bytes of the data stream where is applied the range
-    void setSize(long size) { this->size = size; }
+    void setSize(const long &size) { this->size = size; }
 
     // returns the size of the data stream
-    long getSize() { return this->size; }
+    long getSize() const { return size; }
 
 signals:
 

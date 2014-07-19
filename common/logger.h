@@ -13,14 +13,14 @@ class Logger: public QObject
 public:
     Logger(QObject *parent = 0);
 
-    void setLevel(LogLevel level) { m_level = level; }
-    bool isLevel(LogLevel level) const { return m_level <= level; }
+    void setLevel(const LogLevel &level) { m_level = level; }
+    bool isLevel(const LogLevel &level) const { return m_level <= level; }
 
-    void Trace(QString message) const;
-    void Debug(QString message) const;
-    void Info(QString message) const;
-    void Error(QString message) const;
-    void Warning(QString message) const;
+    void Trace(const QString &message) const;
+    void Debug(const QString &message) const;
+    void Info(const QString &message) const;
+    void Error(const QString &message) const;
+    void Warning(const QString &message) const;
 
 private:
     QString date() const { return QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"); }

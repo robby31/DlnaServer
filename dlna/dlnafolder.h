@@ -15,10 +15,10 @@ public:
     virtual ~DlnaFolder();
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0);
-    virtual int getChildrenSize() { return children.size(); }
+    virtual int getChildrenSize() const { return children.size(); }
 
     // returns the file path of children
-    QList<QFileInfo> getChildrenFileInfo() { return children; }
+    QList<QFileInfo> getChildrenFileInfo() const { return children; }
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
@@ -27,7 +27,7 @@ public:
     virtual QString getSystemName() const { return fileinfo.absoluteFilePath(); }
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName() { return fileinfo.completeBaseName(); }
+    virtual QString getDisplayName() const { return fileinfo.completeBaseName(); }
 
 private:
     QFileInfo fileinfo;

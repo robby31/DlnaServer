@@ -18,7 +18,7 @@ public:
                               QString name, QString host, int port, bool cacheEnabled = false, QObject *parent = 0);
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0);
-    virtual int getChildrenSize() { return nbChildren; }
+    virtual int getChildrenSize() const { return nbChildren; }
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
@@ -27,7 +27,7 @@ public:
     virtual QString getSystemName() const { return name; }
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName() { return name; }
+    virtual QString getDisplayName() const { return name; }
 
     void setLimitSizeMax(const int &size) { limitSizeMax = size; refreshContent(); }
 

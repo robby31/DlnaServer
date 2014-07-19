@@ -18,7 +18,7 @@ public:
 
     qint64 elapsed() const;
     qint64 elapsedFromBeginning() const { return m_elapsedBeforeStarting+elapsed(); }
-    void addMSec(qint64 time) { m_elapsedBeforeStarting += time; }
+    void addMSec(const qint64 &time) { m_elapsedBeforeStarting += time; }
 
 private:
     QElapsedTimer timer;

@@ -78,7 +78,7 @@ QString DlnaResource::getDlnaParentId() const {
         return "-1";
 }
 
-QString DlnaResource::getStringContentDirectory(QStringList properties) {
+QString DlnaResource::getStringContentDirectory(QStringList properties) const {
     QDomDocument xml;
     xml.appendChild(getXmlContentDirectory(&xml, properties));
 
@@ -98,7 +98,7 @@ QString DlnaResource::getStringContentDirectory(QStringList properties) {
     return strRes;
 }
 
-QByteArray DlnaResource::getByteAlbumArt() {
+QByteArray DlnaResource::getByteAlbumArt() const {
     QImage picture = getAlbumArt();
 
     if (!picture.isNull()) {
@@ -114,7 +114,7 @@ QByteArray DlnaResource::getByteAlbumArt() {
     return QByteArray();
 }
 
-void DlnaResource::updateXmlContentDirectory(QDomDocument *xml, QDomElement *xml_obj, QStringList properties) {
+void DlnaResource::updateXmlContentDirectory(QDomDocument *xml, QDomElement *xml_obj, QStringList properties) const {
     Q_UNUSED(properties);
 
     if (xml and xml_obj) {

@@ -13,7 +13,7 @@ public:
     explicit DlnaCachedFolderMetaData(Logger* log, MediaLibrary* library, int typeMedia, QString metaData, QString name, QString host, int port, QObject *parent = 0);
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0);
-    virtual int getChildrenSize() { return nbChildren; }
+    virtual int getChildrenSize() const { return nbChildren; }
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
@@ -22,7 +22,7 @@ public:
     virtual QString getSystemName() const { return name; }
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName() { return name; }
+    virtual QString getDisplayName() const { return name; }
 
 private:
     MediaLibrary* library;

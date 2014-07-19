@@ -11,14 +11,14 @@ class StreamingFile : public QObject
 public:
     explicit StreamingFile(QString filename, QObject *parent = 0);
 
-    bool open(QIODevice::OpenMode mode) { return file.open(mode); }
+    bool open(const QIODevice::OpenMode &mode) { return file.open(mode); }
     bool isOpen() const { return file.isOpen(); }
 
     qint64 pos() const { return file.pos(); }
     qint64 size() const;
     bool atEnd() const;
 
-    qint64 read(char *data, qint64 maxSize);
+    qint64 read(char *data, const qint64 &maxSize);
 
     void setRange(HttpRange *range);
 

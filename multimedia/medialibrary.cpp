@@ -151,7 +151,7 @@ MediaLibrary::~MediaLibrary() {
         delete libraryState;
 }
 
-QVariant MediaLibrary::getmetaData(QString tagName, int idMedia) {
+QVariant MediaLibrary::getmetaData(const QString &tagName, const int &idMedia) const {
 
     QSqlQuery query;
     if (foreignKeys["media"].contains(tagName)) {
@@ -176,7 +176,7 @@ QVariant MediaLibrary::getmetaData(QString tagName, int idMedia) {
     }
 }
 
-QSqlQuery MediaLibrary::getDistinctMetaData(int typeMedia, QString tagName) {
+QSqlQuery MediaLibrary::getDistinctMetaData(const int &typeMedia, const QString &tagName) const {
 
     QSqlQuery query;
     if (foreignKeys["media"].contains(tagName)) {
@@ -190,7 +190,7 @@ QSqlQuery MediaLibrary::getDistinctMetaData(int typeMedia, QString tagName) {
     return query;
 }
 
-int MediaLibrary::countDistinctMetaData(int typeMedia, QString tagName) {
+int MediaLibrary::countDistinctMetaData(const int &typeMedia, const QString &tagName) const {
     QSqlQuery query;
     if (foreignKeys["media"].contains(tagName)) {
         QString foreignTable = foreignKeys["media"][tagName]["table"];
@@ -207,7 +207,7 @@ int MediaLibrary::countDistinctMetaData(int typeMedia, QString tagName) {
     }
 }
 
-int MediaLibrary::countMedia(QString where) {
+int MediaLibrary::countMedia(const QString &where) const {
     QSqlQuery query(QString("SELECT count(id) FROM media WHERE %1 and is_reachable=1").arg(where));
     if (query.next()) {
         return query.value(0).toInt();
@@ -216,7 +216,7 @@ int MediaLibrary::countMedia(QString where) {
     }
 }
 
-bool MediaLibrary::insert(QHash<QString, QVariant> data) {
+bool MediaLibrary::insert(const QHash<QString, QVariant> &data) {
     QSqlQuery query;
 
     QStringList l_parameters;
@@ -256,7 +256,7 @@ bool MediaLibrary::insert(QHash<QString, QVariant> data) {
     return res;
 }
 
-int MediaLibrary::insertForeignKey(QString table, QString parameter, QVariant value) {
+int MediaLibrary::insertForeignKey(const QString &table, const QString &parameter, const QVariant &value) {
 
     QSqlField field(parameter, value.type());
     field.setValue(value);
@@ -278,7 +278,7 @@ int MediaLibrary::insertForeignKey(QString table, QString parameter, QVariant va
     return index;
 }
 
-bool MediaLibrary::update(int id, QHash<QString, QVariant> data)
+bool MediaLibrary::update(const int &id, const QHash<QString, QVariant> &data)
 {
     QSqlRecord record;
     QSqlQuery query;
@@ -321,7 +321,7 @@ bool MediaLibrary::update(int id, QHash<QString, QVariant> data)
     return true;
 }
 
-bool MediaLibrary::updateFromFilename(QString filename, QHash<QString, QVariant> data)
+bool MediaLibrary::updateFromFilename(const QString &filename, const QHash<QString, QVariant> &data)
 {
     QSqlQuery query = getMedia(QString("filename=\"%1\"").arg(filename));
     if (query.next()) {
@@ -379,7 +379,7 @@ bool MediaLibrary::add_media(QHash<QString, QVariant> data)
     }
 }
 
-bool MediaLibrary::contains(QFileInfo fileinfo)
+bool MediaLibrary::contains(const QFileInfo &fileinfo) const
 {
     QSqlQuery query = getMedia(QString("filename=\"%1\"").arg(fileinfo.absoluteFilePath()));
     if (query.next()) {
@@ -392,7 +392,7 @@ bool MediaLibrary::contains(QFileInfo fileinfo)
     }
 }
 
-void MediaLibrary::checkMetaData(QFileInfo fileinfo)
+void MediaLibrary::checkMetaData(const QFileInfo &fileinfo) const
 {
     QSqlQuery query = getMedia(QString("filename=\"%1\"").arg(fileinfo.absoluteFilePath()));
     if (query.next()) {
@@ -409,7 +409,7 @@ void MediaLibrary::checkMetaData(QFileInfo fileinfo)
     }
 }
 
-MediaLibrary::StateType *MediaLibrary::exportMediaState()
+MediaLibrary::StateType *MediaLibrary::exportMediaState() const
 {
     StateType *res = 0;
 
@@ -437,7 +437,7 @@ MediaLibrary::StateType *MediaLibrary::exportMediaState()
     return res;
 }
 
-bool MediaLibrary::resetLibrary(QString pathname)
+bool MediaLibrary::resetLibrary(const QString &pathname)
 {
     if (libraryState)
         delete libraryState;

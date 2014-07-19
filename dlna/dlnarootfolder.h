@@ -19,7 +19,7 @@ public:
     virtual QString getSystemName() const { return getName(); }
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName() { return getName(); }
+    virtual QString getDisplayName() const { return getName(); }
 
     /*
      * Adds a new DLNAResource to the child list.
@@ -28,7 +28,7 @@ public:
     void addChild(DlnaResource *child);
     void clearChildren() { children.clear(); }
 
-    virtual int getChildrenSize() { return children.size(); }
+    virtual int getChildrenSize() const { return children.size(); }
     virtual DlnaResource* getChild(int index, QObject *parent = 0) { Q_UNUSED(parent) return children.at(index); }
 
     // returns true if the folder is added to Root.

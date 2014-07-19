@@ -22,7 +22,7 @@ public:
     QString getURL() const;
 
     DlnaRootFolder* getRootFolder() const { return rootFolder; }
-    bool addFolder(QString folder);
+    bool addFolder(const QString &folder);
 
     bool resetLibrary() { return batch->resetLibrary(); }
 
@@ -36,15 +36,15 @@ public:
     static const int SERVERPORT;
 
 signals:
-    void batched_addFolder(QString folder);
-    void progressUpdate(int value);
+    void batched_addFolder(const QString &folder);
+    void progressUpdate(const int &value);
 
 private slots :
-    void acceptConnection();                                      // new connection detected
-    void newConnectionError(QAbstractSocket::SocketError error);  // error during new connection
+    void acceptConnection();                                             // new connection detected
+    void newConnectionError(const QAbstractSocket::SocketError &error);  // error during new connection
 
-    void servingProgress(QString filename, int playedDurationInMs);
-    void servingFinished(QString filename, int status);
+    void servingProgress(const QString &filename, const int &playedDurationInMs);
+    void servingFinished(const QString &filename, const int &status);
 
 
 private :

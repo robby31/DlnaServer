@@ -20,7 +20,7 @@ void TranscodeProcess::receivedTranscodingLogMessage() {
     transcodeLog.append(this->readAllStandardError());
 }
 
-void TranscodeProcess::errorTrancodedData(QProcess::ProcessError error) {
+void TranscodeProcess::errorTrancodedData(const ProcessError &error) {
     Q_UNUSED(error);
 
     // trancoding failed
@@ -30,7 +30,7 @@ void TranscodeProcess::errorTrancodedData(QProcess::ProcessError error) {
     }
 }
 
-void TranscodeProcess::finishedTranscodeData(int exitCode) {
+void TranscodeProcess::finishedTranscodeData(const int &exitCode) {
     transcodeLog.append(QString("TRANSCODE FINISHED with exitCode %1."+CRLF).arg(exitCode));
     transcodeLog.append(QString("TRANCODING done in %1 ms."+CRLF).arg(transcodeClock.elapsed()));
 }

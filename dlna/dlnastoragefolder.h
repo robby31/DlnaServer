@@ -16,13 +16,13 @@ public:
     virtual bool isFolder() const { return true; }
 
     // Returns the XML (DIDL) representation of the DLNA node.
-    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
+    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) const;
 
     // Returns album art in jpeg format
-    virtual QImage getAlbumArt() { return QImage(); }
+    virtual QImage getAlbumArt() const { return QImage(); }
 
-    QString getHost() { return host; }
-    int getPort() { return port; }
+    QString getHost() const { return host; }
+    int getPort() const { return port; }
 
 protected:
     QString host;

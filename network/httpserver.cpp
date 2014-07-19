@@ -99,11 +99,11 @@ void HttpServer::acceptConnection()
     }
 }
 
-void HttpServer::newConnectionError(QAbstractSocket::SocketError error) {
+void HttpServer::newConnectionError(const QAbstractSocket::SocketError &error) {
     m_log->Error(QString("HTTP server: error at new connection (%1).").arg(error));
 }
 
-bool HttpServer::addFolder(QString folder) {
+bool HttpServer::addFolder(const QString &folder) {
     if (QFileInfo(folder).isDir()) {
         emit batched_addFolder(folder);
         if (rootFolder != 0) {
@@ -116,7 +116,7 @@ bool HttpServer::addFolder(QString folder) {
     return false;
 }
 
-void HttpServer::servingProgress(QString filename, int playedDurationInMs)
+void HttpServer::servingProgress(const QString &filename, const int &playedDurationInMs)
 {
     QHash<QString, QVariant> data;
     data.insert("last_played", QDateTime::currentDateTime());
@@ -126,7 +126,7 @@ void HttpServer::servingProgress(QString filename, int playedDurationInMs)
         m_log->Error(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
 }
 
-void HttpServer::servingFinished(QString filename, int status)
+void HttpServer::servingFinished(const QString &filename, const int &status)
 {
     if (status==0) {
         if (!rootFolder->incrementCounterPlayed(filename))

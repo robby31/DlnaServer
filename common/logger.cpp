@@ -7,27 +7,27 @@ Logger::Logger(QObject *parent):
     setLevel(TRA);
 }
 
-void Logger::Trace(QString message) const {
+void Logger::Trace(const QString &message) const {
     if (isLevel(TRA))
         qDebug() << QString("TRACE - %1 - %2").arg(date()).arg(message).toUtf8().constData();
 }
 
-void Logger::Debug(QString message) const {
+void Logger::Debug(const QString &message) const {
     if (isLevel(DEBG))
         qDebug() << QString("DEBUG - %1 - %2").arg(date()).arg(message).toUtf8().constData();
 }
 
-void Logger::Info(QString message) const {
+void Logger::Info(const QString &message) const {
     if (isLevel(INF))
         qDebug() << QString("INFO  - %1 - %2").arg(date()).arg(message).toUtf8().constData();
 }
 
-void Logger::Warning(QString message) const {
+void Logger::Warning(const QString &message) const {
     if (isLevel(WAR))
         qDebug() << QString("WAR   - %1 - %2").arg(date()).arg(message).toUtf8().constData();
 }
 
-void Logger::Error(QString message) const {
+void Logger::Error(const QString &message) const {
     if (isLevel(ERR))
         qDebug() << QString("ERROR - %1 - %2").arg(date()).arg(message).toUtf8().constData();
 }

@@ -19,16 +19,16 @@ public:
 
 private:
     // Build a UPnP message string based on a message.
-    QByteArray buildMsg(QString nt, QString message);
+    QByteArray buildMsg(const QString &nt, const QString &message);
 
     // Send the provided message to the socket.
-    void sendMessage(QString nt, QString message);
+    void sendMessage(const QString &nt, const QString &message);
 
     // Send UPnP discovery search message to discover devices of interest on the network.
-    void sendDiscover(QHostAddress host, int port, QString st);
+    void sendDiscover(const QHostAddress &host, const int &port, const QString &st);
 
     // Send reply.
-    void sendReply(QHostAddress host, int port, QByteArray msg);
+    void sendReply(const QHostAddress &host, const int &port, const QByteArray &msg);
 
     // Send the UPnP BYEBYE message.
     void sendByeBye();

@@ -24,7 +24,7 @@ public:
     bool resume();
 
     QString getTranscodeLog() const { return transcodeLog; }
-    void appendLog(QString msg) { transcodeLog.append(msg+CRLF); }
+    void appendLog(const QString &msg) { transcodeLog.append(msg+CRLF); }
 
     bool isKilled() const { return killTranscodeProcess; }
     void killProcess();
@@ -32,9 +32,9 @@ public:
 signals:
 
 public slots:
-    void errorTrancodedData(QProcess::ProcessError error);
+    void errorTrancodedData(const QProcess::ProcessError &error);
     void receivedTranscodingLogMessage();
-    void finishedTranscodeData(int exitCode);
+    void finishedTranscodeData(const int &exitCode);
 
 private:
     // Carriage return and line feed.

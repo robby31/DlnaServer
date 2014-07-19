@@ -34,11 +34,11 @@ public:
 
     // Create a new request and add it to the model
     Request* addRequest(Logger* log,
-                        QTcpSocket* client, QString uuid,
-                        QString servername, QString host, int port,
+                        QTcpSocket* client, const QString &uuid,
+                        const QString &servername, const QString &host, const int &port,
                         DlnaRootFolder* rootFolder, MediaRendererModel *renderersModel);
 
-    Q_INVOKABLE QVariant get(int index, int roleIndex);
+    Q_INVOKABLE QVariant get(const int &index, const int &roleIndex) const;
 
     // remove all requests from the model
     void clearAll();

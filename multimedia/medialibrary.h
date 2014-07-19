@@ -21,33 +21,33 @@ public:
 
     QSqlDatabase *getDatabase() const { return db; }
 
-    QSqlQuery getMediaType() { return QSqlQuery("SELECT DISTINCT id, name FROM type"); }
+    QSqlQuery getMediaType() const { return QSqlQuery("SELECT DISTINCT id, name FROM type"); }
 
-    QSqlQuery getMedia(QString where, QString orderParam="media.id", QString sortOption="ASC") { return QSqlQuery(QString("SELECT media.id, media.filename, type.name AS type_media, media.last_modified, media.counter_played from media LEFT OUTER JOIN type ON media.type=type.id WHERE %1 and is_reachable=1 ORDER BY %2 %3").arg(where).arg(orderParam).arg(sortOption)); }
-    int countMedia(QString where);
+    QSqlQuery getMedia(const QString &where, const QString &orderParam="media.id", const QString &sortOption="ASC") const { return QSqlQuery(QString("SELECT media.id, media.filename, type.name AS type_media, media.last_modified, media.counter_played from media LEFT OUTER JOIN type ON media.type=type.id WHERE %1 and is_reachable=1 ORDER BY %2 %3").arg(where).arg(orderParam).arg(sortOption)); }
+    int countMedia(const QString &where) const;
 
-    QSqlQuery getDistinctMetaData(int typeMedia, QString tagName);
-    int countDistinctMetaData(int typeMedia, QString tagName);
+    QSqlQuery getDistinctMetaData(const int &typeMedia, const QString &tagName) const;
+    int countDistinctMetaData(const int &typeMedia, const QString &tagName) const;
 
-    QVariant getmetaData(QString tagName, int idMedia);
+    QVariant getmetaData(const QString &tagName, const int &idMedia) const;
 
-    void checkMetaData(QFileInfo fileinfo);
+    void checkMetaData(const QFileInfo &fileinfo) const;
 
-    bool contains(QFileInfo fileinfo);
+    bool contains(const QFileInfo &fileinfo) const;
     bool add_media(QHash<QString, QVariant> data);
-    bool updateFromFilename(QString filename, QHash<QString, QVariant> data);
+    bool updateFromFilename(const QString &filename, const QHash<QString, QVariant> &data);
     bool incrementCounterPlayed(const QString &filename);
 
-    bool resetLibrary(QString pathname);
+    bool resetLibrary(const QString &pathname);
 
 private:
-    int insertForeignKey(QString table, QString parameter, QVariant value);
+    int insertForeignKey(const QString &table, const QString &parameter, const QVariant &value);
 
-    bool insert(QHash<QString, QVariant> data);
-    bool update(int id, QHash<QString, QVariant> data);
+    bool insert(const QHash<QString, QVariant> &data);
+    bool update(const int &id, const QHash<QString, QVariant> &data);
 
     // export attributes not stored in media file such as last_played, counter_played, progress_played.
-    StateType *exportMediaState();
+    StateType *exportMediaState() const;
 
 signals:
 

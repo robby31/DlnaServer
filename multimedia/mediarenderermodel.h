@@ -27,15 +27,15 @@ public:
     // Create a new mediarenderer and add it to the model
     MediaRenderer* addRenderer(Logger* log, QString ip, int port, QString userAgent);
 
-    Q_INVOKABLE QVariant get(int index, int roleIndex);
-    MediaRenderer* getFromIp(QString ip);
+    Q_INVOKABLE QVariant get(const int &index, const int &roleIndex) const;
+    MediaRenderer* getFromIp(const QString &ip) const;
 
     // remove all renderers from the model
     void clearAll();
 
     // the renderer is serving a new media
-    void serving(QString ip, QString mediaName);
-    void stopServing(QString ip);
+    void serving(const QString &ip, const QString &mediaName);
+    void stopServing(const QString &ip);
 
 public slots:
     void rendererChanged();

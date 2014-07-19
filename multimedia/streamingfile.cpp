@@ -31,7 +31,7 @@ bool StreamingFile::atEnd() const
     return file.atEnd();
 }
 
-qint64 StreamingFile::read(char *data, qint64 maxSize)
+qint64 StreamingFile::read(char *data, const qint64 &maxSize)
 {
     if (atEnd())
         return 0;

@@ -41,7 +41,7 @@ public:
     virtual QString getSystemName() const = 0;
 
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName() = 0;
+    virtual QString getDisplayName() const = 0;
 
     // Return upnp class
     virtual QString getUpnpClass() const = 0;
@@ -49,9 +49,9 @@ public:
     virtual bool isFolder() const = 0;
 
     // Returns the XML (DIDL) representation of the DLNA node.
-    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) = 0;
-    virtual void updateXmlContentDirectory(QDomDocument *xml, QDomElement* xml_obj, QStringList properties);
-    QString getStringContentDirectory(QStringList properties);
+    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) const = 0;
+    virtual void updateXmlContentDirectory(QDomDocument *xml, QDomElement* xml_obj, QStringList properties) const;
+    QString getStringContentDirectory(QStringList properties) const;
 
     // ressource shall be refreshed
     void needRefresh() { m_needRefresh = true; }
@@ -65,7 +65,7 @@ public:
     void setDlnaParent(DlnaResource *dlna_parent) { dlnaParent = dlna_parent; }
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0) = 0;
-    virtual int getChildrenSize() = 0;
+    virtual int getChildrenSize() const = 0;
 
     // Recursive function that searches for a given ID such as 0$2$13.
     DlnaResource* search(QString searchId, QString searchStr, QObject *parent = 0);
@@ -75,10 +75,10 @@ public:
     QList<DlnaResource*> getDLNAResources(QString objectId, bool returnChildren, int start, int count, QString searchStr, QObject *parent = 0);
 
     // Returns album art in jpeg format
-    virtual QImage getAlbumArt() = 0;
-    QByteArray getByteAlbumArt();
+    virtual QImage getAlbumArt() const = 0;
+    QByteArray getByteAlbumArt() const;
 
-    Logger* getLog() { return log; }
+    Logger* getLog() const { return log; }
 
 private:
     virtual void refreshContent() { qWarning() << "Resource" << getName() << "shall be refreshed, please define function refreshContent() herited from DlnaResource to do it."; }

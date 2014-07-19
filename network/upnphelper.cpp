@@ -106,7 +106,7 @@ void UPNPHelper::processPendingDatagrams()
  * @param st The search target string
  * @throws IOException Signals that an I/O exception has occurred.
  */
-void UPNPHelper::sendDiscover(QHostAddress host, int port, QString st) {
+void UPNPHelper::sendDiscover(const QHostAddress &host, const int &port, const QString &st) {
     if (server != 0) {
         QString usn = QString("uuid:%1").arg(server->UUID);
         QString serverHost = server->getHost().toString();
@@ -145,7 +145,7 @@ void UPNPHelper::sendDiscover(QHostAddress host, int port, QString st) {
  * @param msg the msg
  * @throws IOException Signals that an I/O exception has occurred.
  */
-void UPNPHelper::sendReply(QHostAddress host, int port, QByteArray msg) {
+void UPNPHelper::sendReply(const QHostAddress &host, const int &port, const QByteArray &msg) {
 
     QUdpSocket socket;
 
@@ -166,7 +166,7 @@ void UPNPHelper::sendReply(QHostAddress host, int port, QByteArray msg) {
  * @param message the message
  * @return the string
  */
-QByteArray UPNPHelper::buildMsg(QString nt, QString message)
+QByteArray UPNPHelper::buildMsg(const QString &nt, const QString &message)
 {
     if (server != 0) {
         QString sb;
@@ -210,7 +210,7 @@ QByteArray UPNPHelper::buildMsg(QString nt, QString message)
  * @param nt the nt
  * @param message the message
  */
-void UPNPHelper::sendMessage(QString nt, QString message)
+void UPNPHelper::sendMessage(const QString &nt, const QString &message)
 {
     QByteArray ssdpPacket = buildMsg(nt, message);
 

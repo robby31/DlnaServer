@@ -10,16 +10,16 @@ class MediaRenderer : public QObject
     Q_OBJECT
 
 public:
-    explicit MediaRenderer(Logger* log, QString ip, int port, QString userAgent, QObject *parent = 0);
+    explicit MediaRenderer(Logger* log, const QString &ip, const int &port, const QString &userAgent, QObject *parent = 0);
 
     QString getStatus() const { return status; }
-    void setStatus(QString status) { this->status = status; emit dataChanged(); }
+    void setStatus(const QString &status) { this->status = status; emit dataChanged(); }
 
     QString getName() const { return name; }
 
-    QString getNetworkAddress() { return ip; }
+    QString getNetworkAddress() const { return ip; }
 
-    QString getUserAgent() { return userAgent; }
+    QString getUserAgent() const { return userAgent; }
 
 signals:
     // emit signal when data changed

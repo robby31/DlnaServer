@@ -24,18 +24,18 @@ public:
     Application(QQmlApplicationEngine *engine, QObject *parent = 0);
 
     // load the qml file describing the HMI
-    int load(QUrl url);
+    int load(const QUrl &url);
 
-    Q_INVOKABLE void addSharedFolder(QUrl folder);
-    Q_INVOKABLE void removeFolder(int index);
+    Q_INVOKABLE void addSharedFolder(const QUrl &folder);
+    Q_INVOKABLE void removeFolder(const int &index);
 
     QStringList sharedFolderModel() const { return m_sharedFolderModel; }
     void setsharedFolderModel(const QStringList &model) { m_sharedFolderModel = model; emit sharedFolderModelChanged(); }
 
-    RequestListModel *requestsModel() { return m_requestsModel; }
+    RequestListModel *requestsModel() const { return m_requestsModel; }
     void setRequestsModel(RequestListModel *model) { m_requestsModel = model; emit requestsModelChanged(); }
 
-    MediaRendererModel *renderersModel() { return m_renderersModel; }
+    MediaRendererModel *renderersModel() const { return m_renderersModel; }
     void setRenderersModel(MediaRendererModel *model) { m_renderersModel = model; emit renderersModelChanged(); }
 
 private:

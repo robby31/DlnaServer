@@ -83,12 +83,12 @@ void MediaRendererModel::rendererChanged() {
     emit dataChanged(index(rendererIndex, 0), index(rendererIndex, columnCount()-1));
 }
 
-QVariant MediaRendererModel::get(int index, int roleIndex)
+QVariant MediaRendererModel::get(const int &index, const int &roleIndex) const
 {
     return data(this->index(index, 0), Qt::UserRole+1+roleIndex);
 }
 
-MediaRenderer* MediaRendererModel::getFromIp(QString ip) {
+MediaRenderer* MediaRendererModel::getFromIp(const QString &ip) const {
     foreach(MediaRenderer* renderer, mRecords) {
         if (renderer->getNetworkAddress() == ip) {
             return renderer;
@@ -98,13 +98,13 @@ MediaRenderer* MediaRendererModel::getFromIp(QString ip) {
     return 0;
 }
 
-void MediaRendererModel::serving(QString ip, QString mediaName) {
+void MediaRendererModel::serving(const QString &ip, const QString &mediaName) {
     MediaRenderer* renderer = getFromIp(ip);
     if (renderer != 0)
         renderer->setStatus(QString("Serving %1").arg(mediaName));
 }
 
-void MediaRendererModel::stopServing(QString ip) {
+void MediaRendererModel::stopServing(const QString &ip) {
     MediaRenderer* renderer = getFromIp(ip);
     if (renderer != 0)
         renderer->setStatus("standby");

@@ -25,6 +25,7 @@ RequestListModel::~RequestListModel() {
 }
 
 void RequestListModel::clearAll() {
+    qWarning() << "Remove all requests, size =" << mRecords.size();
     // remove all requests
     qDeleteAll(mRecords);
     mRecords.clear();
@@ -88,7 +89,7 @@ QVariant RequestListModel::data(const QModelIndex &index, int role) const
     return QVariant::Invalid;
 }
 
-Request* RequestListModel::addRequest(Logger *log, QTcpSocket *client, QString uuid, QString servername, QString host, int port, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel)
+Request* RequestListModel::addRequest(Logger *log, QTcpSocket *client, const QString &uuid, const QString &servername, const QString &host, const int &port, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel)
 {
     Request* request = 0;
 
@@ -114,7 +115,7 @@ void RequestListModel::requestChanged() {
     emit dataChanged(index(requestIndex, 0), index(requestIndex, columnCount()-1));
 }
 
-QVariant RequestListModel::get(int index, int roleIndex)
+QVariant RequestListModel::get(const int &index, const int &roleIndex) const
 {
     return data(this->index(index, 0), Qt::UserRole+1+roleIndex);
 }

@@ -17,7 +17,7 @@ DlnaStorageFolder::~DlnaStorageFolder() {
 *
 * Reference: http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v1-Service.pdf
 */
-QDomElement DlnaStorageFolder::getXmlContentDirectory(QDomDocument *xml, QStringList properties) {
+QDomElement DlnaStorageFolder::getXmlContentDirectory(QDomDocument *xml, QStringList properties) const {
     if (!xml)
         return QDomElement();
 

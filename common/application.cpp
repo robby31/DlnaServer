@@ -29,7 +29,7 @@ Application::Application(QQmlApplicationEngine *engine, QObject *parent):
 //        loadSettings();
 }
 
-int Application::load(QUrl url) {
+int Application::load(const QUrl &url) {
     if (engine != 0) {
         engine->rootContext()->setContextProperty("_app",  this);
 
@@ -56,7 +56,7 @@ int Application::load(QUrl url) {
     }
 }
 
-void Application::addSharedFolder(QUrl folder) {
+void Application::addSharedFolder(const QUrl &folder) {
     if (folder.isLocalFile() && server != 0 && server->addFolder(folder.toLocalFile())) {
         m_sharedFolderModel.append(folder.toLocalFile());
 
@@ -64,7 +64,7 @@ void Application::addSharedFolder(QUrl folder) {
     }
 }
 
-void Application::removeFolder(int index) {
+void Application::removeFolder(const int &index) {
     if (index >=0 && index < m_sharedFolderModel.size()) {
         m_sharedFolderModel.removeAt(index);
 
