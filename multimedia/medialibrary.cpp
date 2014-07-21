@@ -125,10 +125,16 @@ bool MediaLibrary::open()
 
         // check if all media are reachable
         if (query.exec("SELECT id, filename from media")) {
+            QHash<QString, QVariant> data;
+            data["is_reachable"] = QVariant(0);
             while (query.next()) {
-                QFile fd(query.value("filename").toString());
-                if (!fd.exists()) {
-                    log->Info(QString("unable to reach media %1 id=%2").arg(fd.fileName()).arg(query.value("id").toString()));
+                QString url(query.value("filename").toString());
+                if (!url.startsWith("http")) {
+                    QFile fd(url);
+                    if (!fd.exists()) {
+                        log->Info(QString("unable to reach media %1 id=%2").arg(fd.fileName()).arg(query.value("id").toString()));
+                        update(query.value("id").toInt(), data);
+                    }
                 }
             }
         }
@@ -139,6 +145,10 @@ bool MediaLibrary::open()
                 if (query.value(2).toInt()==0)
                     log->Warning(QString("Artist with no media: %1(id=%2)").arg(query.value(1).toString()).arg(query.value(0).toInt()));
         }
+
+        if (query.exec("SELECT filename from media where is_reachable=0"))
+            while (query.next())
+                qWarning() << "OFF LINE" << query.value(0).toString().toUtf8().constData();
     }
 
     log->Debug(QString("MediaLibrary %1 opened.").arg(db->databaseName()));

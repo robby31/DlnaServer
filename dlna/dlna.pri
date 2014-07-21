@@ -1,6 +1,8 @@
 INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
+QT += webkitwidgets
+
 HEADERS += \
     $$PWD/dlnaresource.h \
     $$PWD/dlnarootfolder.h \
@@ -17,7 +19,10 @@ HEADERS += \
     ../dlna/cached/dlnacachedmusicfolder.h \
     ../dlna/cached/dlnacachedfoldermetadata.h \
     ../dlna/dlnastoragefolder.h \
-    ../dlna/cached/batchedrootfolder.h
+    ../dlna/cached/batchedrootfolder.h \
+    ../dlna/dlnayoutubemusic.h \
+    ../dlna/dlnayoutubevideo.h \
+    ../dlna/cached/dlnacachednetworkvideo.h
 
 SOURCES += \
     $$PWD/dlnaresource.cpp \
@@ -35,7 +40,10 @@ SOURCES += \
     ../dlna/cached/dlnacachedmusicfolder.cpp \
     ../dlna/cached/dlnacachedfoldermetadata.cpp \
     ../dlna/dlnastoragefolder.cpp \
-    ../dlna/cached/batchedrootfolder.cpp
+    ../dlna/cached/batchedrootfolder.cpp \
+    ../dlna/dlnayoutubemusic.cpp \
+    ../dlna/dlnayoutubevideo.cpp \
+    ../dlna/cached/dlnacachednetworkvideo.cpp
 
 include (../multimedia/multimedia.pri)
 

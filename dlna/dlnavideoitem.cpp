@@ -9,8 +9,8 @@ const QString DlnaVideoItem::ASF_TYPEMIME = "video/x-ms-asf";
 const QString DlnaVideoItem::MATROSKA_TYPEMIME = "video/x-matroska";
 const QString DlnaVideoItem::VIDEO_TRANSCODE = "video/transcode";
 
-DlnaVideoItem::DlnaVideoItem(Logger *log, QString filename, QString host, int port, QObject *parent):
-    DlnaItem(log, filename, host, port, parent)
+DlnaVideoItem::DlnaVideoItem(Logger *log, QString host, int port, QObject *parent):
+    DlnaItem(log, host, port, parent)
 {
     setTranscodeFormat(MPEG2_AC3);   // default transcode format
 
@@ -29,7 +29,7 @@ DlnaVideoItem::~DlnaVideoItem() {
 *
 * Reference: http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v1-Service.pdf
 */
-QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList properties) {
+QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList properties) const {
     if (!xml)
         return QDomElement();
 
@@ -117,14 +117,14 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
         res.setAttribute("size", QString("%1").arg(size()));
     }
 
-    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId()).arg(host).arg(port).arg(fileinfo.fileName().replace(" ", "+"))));
+    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId()).arg(host).arg(port).arg(getName().replace(" ", "+"))));
 
     xml_obj.appendChild(res);
 
     return xml_obj;
 }
 
-int DlnaVideoItem::bitrate() {
+int DlnaVideoItem::bitrate() const {
     // returns bitrate in bits/sec
     if (toTranscode()) {
         // variable bitrate
@@ -134,30 +134,7 @@ int DlnaVideoItem::bitrate() {
     }
 }
 
-MencoderTranscoding *DlnaVideoItem::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent) {
-    if (!toTranscode()) {
-
-        // use getStream instead of transcoding
-        return 0;
-
-    } else {
-
-        MencoderTranscoding* transcodeProcess = new MencoderTranscoding(log, parent != 0 ? parent : this);
-
-        if (transcodeProcess->initialize(range, timeseek_start, timeseek_end, fileinfo.filePath(), getLengthInSeconds(), transcodeFormat, bitrate(), audioLanguages(), subtitleLanguages(), framerate())) {
-
-            log->Debug(QString("Video Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
-            return transcodeProcess;
-
-        } else {
-
-            return 0;
-
-        }
-    }
-}
-
-QString DlnaVideoItem::mimeType() {
+QString DlnaVideoItem::mimeType() const {
     if (toTranscode()) {
         if (transcodeFormat == MPEG2_AC3) {
             return MPEG_TYPEMIME;

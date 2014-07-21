@@ -1,38 +1,26 @@
 #ifndef DLNAITEM_H
 #define DLNAITEM_H
 
-#include <QFileInfo>
-#include <QFile>
-
 #include "logger.h"
 #include "dlnaresource.h"
 
 #include "transcodeprocess.h"
 #include "streamingfile.h"
 
-#include <qmimedatabase.h>
 
 class DlnaItem : public DlnaResource
 {
 
 public:
-    explicit DlnaItem(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
+    explicit DlnaItem(Logger* log, QString host, int port, QObject *parent = 0);
     virtual ~DlnaItem();
 
-    // Any resource needs to represent the container or item with a String.
-    // String to be showed in the UPNP client.
-    virtual QString getName() const { return fileinfo.fileName(); }
-
-    virtual QString getSystemName() const { return fileinfo.filePath(); }
-
     // Returns the DisplayName that is shown to the Renderer.
-    virtual QString getDisplayName();
+    virtual QString getDisplayName() const;
 
     virtual bool isFolder() const { return false; }
     virtual DlnaResource* getChild(int index, QObject *parent = 0) { Q_UNUSED(index) Q_UNUSED(parent) return 0; }
-    virtual int getChildrenSize() { return 0; }
-
-    QFileInfo getFileInfo() const { return fileinfo; }
+    virtual int getChildrenSize() const { return 0; }
 
     // Returns the time where the media has been stopped during last play
     virtual qint64 getResumeTime() const { return 0; }
@@ -49,35 +37,36 @@ public:
     void setTranscodeFormat(TranscodeFormatAvailable format);
 
     // Returns the mimeType for this DLNA node.
-    virtual QString mimeType() = 0;
+    virtual QString mimeType() const = 0;
 
-    // return the size of the audio track
-    long size();
+    // return the size
+    virtual long size() const = 0;
 
     // return the length in seconds of the media
-    int getLengthInSeconds();
-    int getLengthInMilliSeconds();
+    int getLengthInSeconds() const;
+    int getLengthInMilliSeconds() const;
 
     // returns the samplerate of the audio track
-    virtual int samplerate() = 0;
+    virtual int samplerate() const = 0;
 
     //returns the channel number of the audio track
-    virtual int channelCount() = 0;
+    virtual int channelCount() const = 0;
 
     // returns the bitrate of the audio track
-    virtual int bitrate() = 0;
+    virtual int bitrate() const = 0;
 
-    virtual int metaDataBitrate() = 0;
-    virtual int metaDataDuration() = 0;
-    virtual QString metaDataTitle() = 0;
-    virtual QString metaDataGenre() = 0;
-    virtual QString metaDataPerformer() = 0;
-    virtual QString metaDataAlbum() = 0;
-    virtual QString metaDataTrackPosition() = 0;
-    virtual QString metaDataFormat() = 0;
-    virtual QByteArray metaDataPicture() = 0;
+    virtual int metaDataBitrate() const = 0;
+    virtual int metaDataDuration() const = 0;
+    virtual QString metaDataTitle() const = 0;
+    virtual QString metaDataGenre() const = 0;
+    virtual QString metaDataPerformer() const = 0;
+    virtual QString metaDataAlbum() const = 0;
+    virtual QString metaDataTrackPosition() const = 0;
+    virtual QString metaDataFormat() const = 0;
+    virtual QByteArray metaDataPicture() const = 0;
+    virtual QString metaDataLastModifiedDate() const = 0;
 
-    QString getProtocolInfo();
+    QString getProtocolInfo() const;
 
     QString getDlnaContentFeatures() const;
 
@@ -91,10 +80,6 @@ private:
     virtual void updateDLNAOrgPn() = 0;
 
 protected:
-    QFileInfo fileinfo;
-
-    QMimeType mime_type;
-
     QString host;
     int port;
 

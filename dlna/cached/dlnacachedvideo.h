@@ -8,32 +8,48 @@ class DlnaCachedVideo : public DlnaVideoItem
 {
 
 public:
-    explicit DlnaCachedVideo(Logger* log, QString filename, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent = 0);
+    explicit DlnaCachedVideo(Logger* log, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent = 0);
+
+    // Any resource needs to represent the container or item with a String.
+    // String to be showed in the UPNP client.
+    virtual QString getName() const { return QString("Media(%1)").arg(idMedia); }
+
+    virtual QString getSystemName() const { if (library != 0) return library->getmetaData("filename", idMedia).toString(); else return QString(); }
+
+    // return the size
+    virtual long size() const;
+
+    // Returns the process for transcoding
+    virtual MencoderTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
+
+    // return true if the track shall be transcoded
+    virtual bool toTranscode() const { return true; }
 
     virtual qint64 getResumeTime() const { if (library != 0) return library->getmetaData("progress_played", idMedia).toLongLong(); else return 0; }
 
-    virtual int metaDataBitrate() { if (library != 0) return library->getmetaData("bitrate", idMedia).toInt(); else return -1; }
-    virtual int metaDataDuration() { if (library != 0) return library->getmetaData("duration", idMedia).toInt(); else return -1; }
-    virtual QString metaDataTitle() { return ""; }
-    virtual QString metaDataGenre() { return ""; }
-    virtual QString metaDataPerformer() { return ""; }
-    virtual QString metaDataAlbum() { return ""; }
-    virtual QString metaDataTrackPosition() { return ""; }
-    virtual QString metaDataFormat() { if (library != 0) return library->getmetaData("format", idMedia).toString(); else return QString(); }
-    virtual QByteArray metaDataPicture() { return QByteArray(); }
+    virtual int metaDataBitrate()              const { if (library != 0) return library->getmetaData("bitrate", idMedia).toInt(); else return -1; }
+    virtual int metaDataDuration()             const { if (library != 0) return library->getmetaData("duration", idMedia).toInt(); else return -1; }
+    virtual QString metaDataTitle()            const { return QFileInfo(getSystemName()).completeBaseName(); }
+    virtual QString metaDataGenre()            const { return ""; }
+    virtual QString metaDataPerformer()        const { return ""; }
+    virtual QString metaDataAlbum()            const { return ""; }
+    virtual QString metaDataTrackPosition()    const { return ""; }
+    virtual QString metaDataFormat()           const { if (library != 0) return library->getmetaData("format", idMedia).toString(); else return QString(); }
+    virtual QByteArray metaDataPicture()       const { return QByteArray(); }
+    virtual QString metaDataLastModifiedDate() const { if (library != 0) return library->getmetaData("last_modified", idMedia).toString(); else return QString(); }
 
-    // returns the samplerate of the audio track
-    virtual int samplerate() { if (library != 0) return library->getmetaData("samplerate", idMedia).toInt(); else return -1; }
+    // returns the samplerate of the video track
+    virtual int samplerate() const { if (library != 0) return library->getmetaData("samplerate", idMedia).toInt(); else return -1; }
 
-    //returns the channel number of the audio track
-    virtual int channelCount() { if (library != 0) return library->getmetaData("channelcount", idMedia).toInt(); else return -1; }
+    //returns the channel number of the video track
+    virtual int channelCount() const { if (library != 0) return library->getmetaData("channelcount", idMedia).toInt(); else return -1; }
 
-    virtual QString resolution() { if (library != 0) return library->getmetaData("resolution", idMedia).toString(); else return QString(); }
-    virtual QStringList subtitleLanguages() { if (library != 0) return library->getmetaData("subtitlelanguages", idMedia).toString().split(","); else return QStringList(); }
-    virtual QStringList audioLanguages() { if (library != 0) return library->getmetaData("audiolanguages", idMedia).toString().split(","); else return QStringList(); }
-    virtual QString framerate() { if (library != 0) return library->getmetaData("framerate", idMedia).toString(); else return QString(); }
+    virtual QString resolution()            const { if (library != 0) return library->getmetaData("resolution", idMedia).toString(); else return QString(); }
+    virtual QStringList subtitleLanguages() const { if (library != 0) return library->getmetaData("subtitlelanguages", idMedia).toString().split(","); else return QStringList(); }
+    virtual QStringList audioLanguages()    const { if (library != 0) return library->getmetaData("audiolanguages", idMedia).toString().split(","); else return QStringList(); }
+    virtual QString framerate()             const { if (library != 0) return library->getmetaData("framerate", idMedia).toString(); else return QString(); }
 
-private:
+protected:
     MediaLibrary* library;
     int idMedia;
 };

@@ -1,52 +1,69 @@
 #include "dlnamusictrackfile.h"
 
 DlnaMusicTrackFile::DlnaMusicTrackFile(Logger* log, QString filename, QString host, int port, QObject *parent):
-    DlnaMusicTrack(log, filename, host, port, parent),
+    DlnaMusicTrack(log, host, port, parent),
+    fileinfo(filename),
+    mime_type(),
     ffmpeg(filename, this)
 {
+    QMimeDatabase db;
+    mime_type = db.mimeTypeForFile(fileinfo);
 }
 
-QString DlnaMusicTrackFile::metaDataTitle() {
+long DlnaMusicTrackFile::size() const {
+    if (toTranscode()) {
+        if (bitrate() != -1) {
+            return double(bitrate())*double(getLengthInMilliSeconds())/8000.0;
+        } else {
+            // variable bitrate, we don't know exactly the size
+            return -1;
+        }
+    } else {
+        return fileinfo.size();
+    }
+}
+
+QString DlnaMusicTrackFile::metaDataTitle() const {
     return ffmpeg.metaData("title");
 }
 
-QString DlnaMusicTrackFile::metaDataGenre() {
+QString DlnaMusicTrackFile::metaDataGenre() const {
     return ffmpeg.metaData("genre");
 }
 
-QString DlnaMusicTrackFile::metaDataPerformer() {
+QString DlnaMusicTrackFile::metaDataPerformer() const {
     return ffmpeg.metaData("artist");
 }
 
-QString DlnaMusicTrackFile::metaDataAlbum() {
+QString DlnaMusicTrackFile::metaDataAlbum() const {
     return ffmpeg.metaData("album");
 }
 
-QString DlnaMusicTrackFile::metaDataTrackPosition() {
+QString DlnaMusicTrackFile::metaDataTrackPosition() const {
     return ffmpeg.metaData("track").split('/').at(0);
 }
 
-QString DlnaMusicTrackFile::metaDataFormat() {
+QString DlnaMusicTrackFile::metaDataFormat() const {
     return ffmpeg.getAudioFormat();
 }
 
-QByteArray DlnaMusicTrackFile::metaDataPicture() {
+QByteArray DlnaMusicTrackFile::metaDataPicture() const {
     return ffmpeg.getPicture();
 }
 
-int DlnaMusicTrackFile::metaDataDuration() {
+int DlnaMusicTrackFile::metaDataDuration() const {
     return ffmpeg.getDuration();
 }
 
-int DlnaMusicTrackFile::metaDataBitrate() {
+int DlnaMusicTrackFile::metaDataBitrate() const {
     return ffmpeg.getAudioBitrate();
 }
 
-int DlnaMusicTrackFile::channelCount() {
+int DlnaMusicTrackFile::channelCount() const {
     return ffmpeg.getAudioChannelCount();
 }
 
-int DlnaMusicTrackFile::samplerate() {
+int DlnaMusicTrackFile::samplerate() const {
     return ffmpeg.getAudioSamplerate();
 }
 

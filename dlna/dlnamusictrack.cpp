@@ -10,8 +10,8 @@ const QString DlnaMusicTrack::AUDIO_OGG_TYPEMIME = "audio/x-ogg";
 const QString DlnaMusicTrack::AUDIO_LPCM_TYPEMIME = "audio/L16";
 const QString DlnaMusicTrack::AUDIO_TRANSCODE = "audio/transcode";
 
-DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString filename, QString host, int port, QObject *parent):
-    DlnaItem(log, filename, host, port, parent)
+DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString host, int port, QObject *parent):
+    DlnaItem(log, host, port, parent)
 {
     transcodeFormat = MP3;   // default transcode format
     setdlnaOrgPN("MP3");
@@ -31,7 +31,7 @@ void DlnaMusicTrack::updateDLNAOrgPn() {
     }
 }
 
-int DlnaMusicTrack::bitrate() {
+int DlnaMusicTrack::bitrate() const {
     // returns bitrate in bits/sec
     if (toTranscode()) {
         if (transcodeFormat == MP3) {
@@ -60,7 +60,7 @@ int DlnaMusicTrack::bitrate() {
 *
 * Reference: http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v1-Service.pdf
 */
-QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringList properties) {
+QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringList properties) const {
     if (!xml)
         return QDomElement();
 
@@ -136,7 +136,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
     if (properties.contains("*") or properties.contains("dc:date")) {
         QDomElement upnpDate = xml->createElement("dc:date");
-        upnpDate.appendChild(xml->createTextNode(fileinfo.lastModified().toString("yyyy-MM-dd")));
+        upnpDate.appendChild(xml->createTextNode(metaDataLastModifiedDate()));
         xml_obj.appendChild(upnpDate);
     }
 
@@ -185,7 +185,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
         res.setAttribute("size", QString("%1").arg(size()));
     }
 
-    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId()).arg(host).arg(port).arg(fileinfo.fileName().replace(" ", "+"))));
+    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId()).arg(host).arg(port).arg(getName().replace(" ", "+"))));
 
     xml_obj.appendChild(res);
 
@@ -203,7 +203,7 @@ FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess(HttpRange *range, long ti
 
         FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log, parent != 0 ? parent : this);
 
-        if (transcodeProcess->initialize(range, timeseek_start, timeseek_end, fileinfo.filePath(), getLengthInSeconds(), transcodeFormat, bitrate())) {
+        if (transcodeProcess->initialize(range, timeseek_start, timeseek_end, getSystemName(), getLengthInSeconds(), transcodeFormat, bitrate())) {
 
             log->Debug(QString("Audio Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
             return transcodeProcess;
@@ -216,7 +216,7 @@ FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess(HttpRange *range, long ti
     }
 }
 
-QString DlnaMusicTrack::mimeType() {
+QString DlnaMusicTrack::mimeType() const {
     if (toTranscode()) {
         // Trancode music track
         if (transcodeFormat == MP3) {
@@ -241,7 +241,7 @@ QString DlnaMusicTrack::mimeType() {
     return UNKNOWN_AUDIO_TYPEMIME;
 }
 
-QImage DlnaMusicTrack::getAlbumArt() {
+QImage DlnaMusicTrack::getAlbumArt() const {
     QImage picture;
 
     QByteArray bytesPicture = metaDataPicture();

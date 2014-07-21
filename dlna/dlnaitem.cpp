@@ -1,49 +1,33 @@
 #include "dlnaitem.h"
 
-DlnaItem::DlnaItem(Logger *log, QString filename, QString host, int port, QObject *parent) :
+DlnaItem::DlnaItem(Logger *log, QString host, int port, QObject *parent) :
     DlnaResource(log, parent),
-    fileinfo(filename),
-    mime_type(),
     host(host),
     port(port),
     transcodeFormat(UNKNOWN),  // default transcode format
     dlnaOrgOpFlags("01"),      // seek by byte (exclusive)
     dlnaOrgPN()
 {
-    QMimeDatabase db;
-    mime_type = db.mimeTypeForFile(fileinfo);
 }
 
 DlnaItem::~DlnaItem() {
 
 }
 
-QString DlnaItem::getDisplayName() {
+QString DlnaItem::getDisplayName() const {
     QString title = metaDataTitle();
     if (title.isEmpty())
-        return fileinfo.completeBaseName();
-    else
-        return title;
+        title = getName();
+    if (title.isEmpty())
+        title = getSystemName();
+    return title;
 }
 
-long DlnaItem::size() {
-    if (toTranscode()) {
-        if (bitrate() != -1) {
-            return double(bitrate())*double(getLengthInMilliSeconds())/8000.0;
-        } else {
-            // variable bitrate, we don't know exactly the size
-            return -1;
-        }
-    } else {
-        return fileinfo.size();
-    }
-}
-
-int DlnaItem::getLengthInSeconds() {
+int DlnaItem::getLengthInSeconds() const {
     return qRound(double(getLengthInMilliSeconds())/1000.0);
 }
 
-int DlnaItem::getLengthInMilliSeconds() {
+int DlnaItem::getLengthInMilliSeconds() const {
     return metaDataDuration();
 }
 
@@ -63,7 +47,7 @@ StreamingFile *DlnaItem::getStream(HttpRange *range, long timeseek_start, long t
 
     } else {
 
-        StreamingFile* tmp = new StreamingFile(fileinfo.absoluteFilePath(),
+        StreamingFile* tmp = new StreamingFile(getSystemName(),
                                                parent != 0 ? parent : this);
 
         if (!tmp->open(QIODevice::ReadOnly)) {
@@ -76,7 +60,7 @@ StreamingFile *DlnaItem::getStream(HttpRange *range, long timeseek_start, long t
     }
 }
 
-QString DlnaItem::getProtocolInfo() {
+QString DlnaItem::getProtocolInfo() const {
     QStringList result;
 
     if (!getdlnaOrgPN().isNull()) {

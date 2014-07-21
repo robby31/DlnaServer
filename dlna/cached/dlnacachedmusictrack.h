@@ -8,25 +8,38 @@ class DlnaCachedMusicTrack : public DlnaMusicTrack
 {
 
 public:
-    explicit DlnaCachedMusicTrack(Logger* log, QString filename, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent = 0);
+    explicit DlnaCachedMusicTrack(Logger* log, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent = 0);
+
+    // Any resource needs to represent the container or item with a String.
+    // String to be showed in the UPNP client.
+    virtual QString getName() const { return QString("Media(%1)").arg(idMedia); }
+
+    virtual QString getSystemName() const { if (library != 0) return library->getmetaData("filename", idMedia).toString(); else return QString(); }
+
+    // return the size
+    virtual long size() const;
+
+    // return true if the track shall be transcoded
+    virtual bool toTranscode() const { return true; }
 
     virtual qint64 getResumeTime() const { if (library != 0) return library->getmetaData("progress_played", idMedia).toLongLong(); else return 0; }
 
-    virtual int metaDataBitrate() { if (library != 0) return library->getmetaData("bitrate", idMedia).toInt(); else return -1; }
-    virtual int metaDataDuration() { if (library != 0) return library->getmetaData("duration", idMedia).toInt(); else return -1; }
-    virtual QString metaDataTitle() { if (library != 0) return library->getmetaData("title", idMedia).toString(); else return QString(); }
-    virtual QString metaDataGenre() { if (library != 0) return library->getmetaData("genre", idMedia).toString(); else return QString(); }
-    virtual QString metaDataPerformer() { if (library != 0) return library->getmetaData("artist", idMedia).toString(); else return QString(); }
-    virtual QString metaDataAlbum() { if (library != 0) return library->getmetaData("album", idMedia).toString(); else return QString(); }
-    virtual QString metaDataTrackPosition() { if (library != 0) return library->getmetaData("trackposition", idMedia).toString(); else return QString(); }
-    virtual QString metaDataFormat() { if (library != 0) return library->getmetaData("format", idMedia).toString(); else return QString(); }
-    virtual QByteArray metaDataPicture() { if (library != 0) return QByteArray::fromHex(library->getmetaData("picture", idMedia).toByteArray()); else return QByteArray(); }
+    virtual int metaDataBitrate()              const { if (library != 0) return library->getmetaData("bitrate", idMedia).toInt(); else return -1; }
+    virtual int metaDataDuration()             const { if (library != 0) return library->getmetaData("duration", idMedia).toInt(); else return -1; }
+    virtual QString metaDataTitle()            const{ if (library != 0) return library->getmetaData("title", idMedia).toString(); else return QString(); }
+    virtual QString metaDataGenre()            const { if (library != 0) return library->getmetaData("genre", idMedia).toString(); else return QString(); }
+    virtual QString metaDataPerformer()        const { if (library != 0) return library->getmetaData("artist", idMedia).toString(); else return QString(); }
+    virtual QString metaDataAlbum()            const { if (library != 0) return library->getmetaData("album", idMedia).toString(); else return QString(); }
+    virtual QString metaDataTrackPosition()    const { if (library != 0) return library->getmetaData("trackposition", idMedia).toString(); else return QString(); }
+    virtual QString metaDataFormat()           const { if (library != 0) return library->getmetaData("format", idMedia).toString(); else return QString(); }
+    virtual QByteArray metaDataPicture()       const { if (library != 0) return QByteArray::fromHex(library->getmetaData("picture", idMedia).toByteArray()); else return QByteArray(); }
+    virtual QString metaDataLastModifiedDate() const { if (library != 0) return library->getmetaData("last_modified", idMedia).toString(); else return QString(); }
 
     // returns the samplerate of the audio track
-    virtual int samplerate() { if (library != 0) return library->getmetaData("samplerate", idMedia).toInt(); else return -1; }
+    virtual int samplerate() const { if (library != 0) return library->getmetaData("samplerate", idMedia).toInt(); else return -1; }
 
     //returns the channel number of the audio track
-    virtual int channelCount() { if (library != 0) return library->getmetaData("channelcount", idMedia).toInt(); else return -1; }
+    virtual int channelCount() const { if (library != 0) return library->getmetaData("channelcount", idMedia).toInt(); else return -1; }
 
 private:
     MediaLibrary* library;

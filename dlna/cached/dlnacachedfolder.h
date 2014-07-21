@@ -3,6 +3,7 @@
 
 #include "dlnastoragefolder.h"
 #include "dlnacachedvideo.h"
+#include "dlnacachednetworkvideo.h"
 #include "dlnacachedmusictrack.h"
 
 #include "medialibrary.h"

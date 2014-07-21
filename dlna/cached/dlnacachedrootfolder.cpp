@@ -95,6 +95,38 @@ bool DlnaCachedRootFolder::addFolder(QString path) {
     return false;
 }
 
+void DlnaCachedRootFolder::addResource(QUrl url)
+{
+    QHash<QString, QVariant> data;
+
+    data.insert("filename", url.toString());
+    data.insert("type", "video");
+//    data.insert("mime_type", mime_type);
+//    data.insert("last_modified", fileinfo.lastModified());
+
+    DlnaYouTubeVideo movie(log, url.toString(), host, port, this);
+    data.insert("title", movie.metaDataTitle());
+    data.insert("duration", movie.metaDataDuration());
+    data.insert("resolution", movie.resolution());
+    data.insert("samplerate", movie.samplerate());
+    data.insert("channelcount", movie.channelCount());
+    data.insert("audiolanguages", movie.audioLanguages().join(","));
+    data.insert("subtitlelanguages", movie.subtitleLanguages().join(","));
+    data.insert("framerate", movie.framerate());
+    data.insert("bitrate", movie.bitrate());
+    data.insert("format", movie.metaDataFormat());
+
+    if (movie.metaDataTitle().isEmpty()) {
+        log->Error(QString("unable to add resource %1, title is empty").arg(url.toString()));
+    } else {
+        if (!data.isEmpty()) {
+            if (!library.add_media(data)) {
+                log->Error(QString("unable to add or update resource %1 (%2)").arg(url.toString().arg("video")));
+            }
+        }
+    }
+}
+
 void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
 //    // check meta data
 //    library.checkMetaData(fileinfo);

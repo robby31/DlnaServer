@@ -19,7 +19,7 @@ class TranscodeProcess : public QProcess
 public:
     explicit TranscodeProcess(Logger* log, QObject *parent = 0);
 
-    void launch();
+    virtual void launch();
     bool pause();
     bool resume();
 

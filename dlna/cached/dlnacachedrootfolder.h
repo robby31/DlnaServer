@@ -11,6 +11,8 @@
 #include "dlnacachedfolder.h"
 #include "dlnacachedmusicfolder.h"
 #include "dlnarootfolder.h"
+#include "dlnayoutubemusic.h"
+#include "dlnayoutubevideo.h"
 
 class DlnaCachedRootFolder : public DlnaRootFolder
 {
@@ -24,6 +26,7 @@ public:
     DlnaRootFolder* getRootFolder() { return &rootFolder; }
 
     void addResource(QFileInfo fileinfo);
+    void addResource(QUrl url);
 
     QSqlDatabase *getDatabase() const { return library.getDatabase(); }
     bool updateLibrary(const QString &filename, const QHash<QString, QVariant> &data);

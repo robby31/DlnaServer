@@ -8,29 +8,26 @@ class DlnaMusicTrack : public DlnaItem
 {
 
 public:
-    DlnaMusicTrack(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
+    DlnaMusicTrack(Logger* log, QString host, int port, QObject *parent = 0);
     virtual ~DlnaMusicTrack();
 
     // Return upnp class
     virtual QString getUpnpClass() const { return QString("object.item.audioItem.musicTrack"); }
 
     // returns the bitrate of the audio track
-    virtual int bitrate();
+    virtual int bitrate() const;
 
     // Returns the mimeType for this DLNA node.
-    virtual QString mimeType();
+    virtual QString mimeType() const;
 
     // Returns the XML (DIDL) representation of the DLNA node.
-    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
-
-    // return true if the track shall be transcoded
-    virtual bool toTranscode() const { return mime_type.name() != "audio/mpeg"; }
+    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) const;
 
     // Returns the process for transcoding
     virtual FfmpegTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
 
     // Returns album art in jpeg format
-    virtual QImage getAlbumArt();
+    virtual QImage getAlbumArt() const;
 
     static const QString UNKNOWN_AUDIO_TYPEMIME;
     static const QString AUDIO_MP3_TYPEMIME;
