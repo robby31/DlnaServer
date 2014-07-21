@@ -10,6 +10,15 @@ DlnaMusicTrackFile::DlnaMusicTrackFile(Logger* log, QString filename, QString ho
     mime_type = db.mimeTypeForFile(fileinfo);
 }
 
+QString DlnaMusicTrackFile::getDisplayName() const {
+    QString title = metaDataTitle();
+    if (title.isEmpty())
+        title = fileinfo.completeBaseName();
+    if (title.isEmpty())
+        title = getSystemName();
+    return title;
+}
+
 long DlnaMusicTrackFile::size() const {
     if (toTranscode()) {
         if (bitrate() != -1) {

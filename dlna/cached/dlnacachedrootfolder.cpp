@@ -120,6 +120,7 @@ void DlnaCachedRootFolder::addResource(QUrl url)
         log->Error(QString("unable to add resource %1, title is empty").arg(url.toString()));
     } else {
         if (!data.isEmpty()) {
+            log->Debug(QString("Resource to add: %1").arg(movie.metaDataTitle()));
             if (!library.add_media(data)) {
                 log->Error(QString("unable to add or update resource %1 (%2)").arg(url.toString().arg("video")));
             }

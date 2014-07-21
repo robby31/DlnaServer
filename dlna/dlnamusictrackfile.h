@@ -14,6 +14,9 @@ public:
 
     QFileInfo getFileInfo() const { return fileinfo; }
 
+    // Returns the DisplayName that is shown to the Renderer.
+    virtual QString getDisplayName() const;
+
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
     virtual QString getName() const { return fileinfo.fileName(); }

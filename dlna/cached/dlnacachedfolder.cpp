@@ -72,7 +72,7 @@ DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
     } else if (type_media == "video") {
         QString url(library->getmetaData("filename", id_media).toString());
 
-        if (url.startsWith("http://"))
+        if (url.startsWith("http"))
             child = new DlnaCachedNetworkVideo(log, library, id_media, host, port,
                                                parent != 0 ? parent : this);
         else
