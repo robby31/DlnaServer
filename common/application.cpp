@@ -72,6 +72,11 @@ void Application::removeFolder(const int &index) {
     }
 }
 
+void Application::addNetworkLink(const QString url)
+{
+    qWarning() << "add" << url << server->addNetworkLink(url);
+}
+
 void Application::quit() {
     log.Trace("Quit Application.");
 

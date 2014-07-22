@@ -24,6 +24,8 @@ public:
     DlnaRootFolder* getRootFolder() const { return rootFolder; }
     bool addFolder(const QString &folder);
 
+    bool addNetworkLink(const QString url) { return rootFolder->addNetworkLink(url); }
+
     bool resetLibrary() { return batch->resetLibrary(); }
 
     // identifier of the render (unique)

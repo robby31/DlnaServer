@@ -95,7 +95,7 @@ bool DlnaCachedRootFolder::addFolder(QString path) {
     return false;
 }
 
-void DlnaCachedRootFolder::addResource(QUrl url)
+bool DlnaCachedRootFolder::addResource(QUrl url)
 {
     QHash<QString, QVariant> data;
 
@@ -123,9 +123,13 @@ void DlnaCachedRootFolder::addResource(QUrl url)
             log->Debug(QString("Resource to add: %1").arg(movie.metaDataTitle()));
             if (!library.add_media(data)) {
                 log->Error(QString("unable to add or update resource %1 (%2)").arg(url.toString().arg("video")));
+            } else {
+                return true;
             }
         }
     }
+
+    return false;
 }
 
 void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {

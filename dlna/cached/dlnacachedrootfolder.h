@@ -23,10 +23,12 @@ public:
     // returns true if the folder is added to Root.
     virtual bool addFolder(QString path);
 
+    bool addNetworkLink(const QString url) { return addResource(QUrl(url)); }
+
     DlnaRootFolder* getRootFolder() { return &rootFolder; }
 
     void addResource(QFileInfo fileinfo);
-    void addResource(QUrl url);
+    bool addResource(QUrl url);
 
     QSqlDatabase *getDatabase() const { return library.getDatabase(); }
     bool updateLibrary(const QString &filename, const QHash<QString, QVariant> &data);

@@ -67,7 +67,21 @@ Item {
         spacing: 4
 
         RowLayout {
-            anchors.fill: parent
+            spacing: 4
+
+            TextField {
+                id: link
+                Layout.fillWidth: true
+                placeholderText: "Network Link, example: https://www.youtube.com/watch?v=rWy30tJdyAM"
+            }
+
+            Button {
+                text: "Add link"
+                onClicked: _app.addNetworkLink(link.text)
+            }
+        }
+
+        RowLayout {
             spacing: 4
 
             Button {
