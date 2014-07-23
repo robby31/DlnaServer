@@ -45,6 +45,11 @@ ApplicationWindow {
                 SharedView { }
             }
 
+            Tab {
+                title: "Navigator"
+                Navigator { }
+            }
+
         }
 
         // Progress bar defined

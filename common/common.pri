@@ -24,7 +24,8 @@ OTHER_FILES += \
     $$PWD/qml/main.qml \
     $$PWD/qml/content/RequestsView.qml \
     ../common/qml/content/RenderersView.qml \
-    ../common/qml/content/SharedView.qml
+    ../common/qml/content/SharedView.qml \
+    ../common/qml/content/Navigator.qml
 
 RESOURCES += \
     $$PWD/ressources.qrc
