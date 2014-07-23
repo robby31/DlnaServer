@@ -95,6 +95,16 @@ bool DlnaCachedRootFolder::addFolder(QString path) {
     return false;
 }
 
+bool DlnaCachedRootFolder::addNetworkLink(const QString url)
+{
+    if (addResource(QUrl(url))) {
+        lastAddedChild->needRefresh();
+        return true;
+    }
+
+    return false;
+}
+
 bool DlnaCachedRootFolder::addResource(QUrl url)
 {
     QHash<QString, QVariant> data;

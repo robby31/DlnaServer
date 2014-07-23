@@ -23,7 +23,7 @@ public:
     // returns true if the folder is added to Root.
     virtual bool addFolder(QString path);
 
-    bool addNetworkLink(const QString url) { return addResource(QUrl(url)); }
+    bool addNetworkLink(const QString url);
 
     DlnaRootFolder* getRootFolder() { return &rootFolder; }
 
