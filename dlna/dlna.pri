@@ -20,7 +20,6 @@ HEADERS += \
     ../dlna/cached/dlnacachedfoldermetadata.h \
     ../dlna/dlnastoragefolder.h \
     ../dlna/cached/batchedrootfolder.h \
-    ../dlna/dlnayoutubemusic.h \
     ../dlna/dlnayoutubevideo.h \
     ../dlna/cached/dlnacachednetworkvideo.h
 
@@ -41,7 +40,6 @@ SOURCES += \
     ../dlna/cached/dlnacachedfoldermetadata.cpp \
     ../dlna/dlnastoragefolder.cpp \
     ../dlna/cached/batchedrootfolder.cpp \
-    ../dlna/dlnayoutubemusic.cpp \
     ../dlna/dlnayoutubevideo.cpp \
     ../dlna/cached/dlnacachednetworkvideo.cpp
 
