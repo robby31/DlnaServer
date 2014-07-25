@@ -67,6 +67,9 @@ bool MencoderTranscoding::initialize(HttpRange *range, const long &timeseek_star
                 // default framerate output
                 arguments << "-ofps" << "25.000";
             }
+        } else {
+            // default framerate output
+            arguments << "-ofps" << "25.000";
         }
 
     } else {
@@ -93,6 +96,7 @@ bool MencoderTranscoding::initialize(HttpRange *range, const long &timeseek_star
     arguments << "-o" << "-";
 
     // set option on loglevel (required to use seek time mode, option -ss)
+    arguments << "-really-quiet";
     arguments << "-msglevel" << "statusline=2";
 
     setProgram(program);
