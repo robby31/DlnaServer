@@ -44,7 +44,7 @@ public:
     void clearAll();
 
 public slots:
-    void requestChanged();
+    void requestChanged(const QString &roleChanged);
 
 private:
     QList<Request *> mRecords;

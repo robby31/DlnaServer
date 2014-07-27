@@ -13,7 +13,7 @@ public:
     explicit MediaRenderer(Logger* log, const QString &ip, const int &port, const QString &userAgent, QObject *parent = 0);
 
     QString getStatus() const { return status; }
-    void setStatus(const QString &status) { this->status = status; emit dataChanged(); }
+    void setStatus(const QString &status) { this->status = status; emit dataChanged("status"); }
 
     QString getName() const { return name; }
 
@@ -23,7 +23,7 @@ public:
 
 signals:
     // emit signal when data changed
-    void dataChanged();
+    void dataChanged(const QString &roleChanged);
 
 public slots:
 

@@ -73,14 +73,27 @@ MediaRenderer* MediaRendererModel::addRenderer(Logger *log, QString ip, int port
     mRecords.append(renderer);
     endInsertRows();
 
-    connect(renderer, SIGNAL(dataChanged()), this, SLOT(rendererChanged()));
+    connect(renderer, SIGNAL(dataChanged(QString)), this, SLOT(rendererChanged(QString)));
 
     return renderer;
 }
 
-void MediaRendererModel::rendererChanged() {
-    int rendererIndex = mRecords.indexOf(static_cast<MediaRenderer*>(sender()));
-    emit dataChanged(index(rendererIndex, 0), index(rendererIndex, columnCount()-1));
+void MediaRendererModel::rendererChanged(const QString &roleChanged)
+{
+    int roleChangedIndex = mRoles.key(QByteArray(roleChanged.toUtf8().constData()));
+    if (mRoles.contains(roleChangedIndex)) {
+        int columnIndex = roleChangedIndex-Qt::UserRole-1;
+        int rendererIndex = mRecords.indexOf(static_cast<MediaRenderer*>(sender()));
+        if (rendererIndex!=-1) {
+            QVector<int> rolesChanged;
+            rolesChanged.append(roleChangedIndex);
+            emit dataChanged(index(rendererIndex, columnIndex), index(rendererIndex, columnIndex), rolesChanged);
+        } else {
+            qWarning() << "rendererChanged ERROR, sender" << sender() << "is unknown";
+        }
+    } else {
+        qWarning() << "rendererChanged ERROR, role" << roleChanged << "is unknown";
+    }
 }
 
 QVariant MediaRendererModel::get(const int &index, const int &roleIndex) const

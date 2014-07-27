@@ -104,15 +104,27 @@ Request* RequestListModel::addRequest(Logger *log, QTcpSocket *client, const QSt
         mRecords.prepend(request);
         endInsertRows();
 
-        connect(request, SIGNAL(dataChanged()), this, SLOT(requestChanged()));
+        connect(request, SIGNAL(dataChanged(QString)), this, SLOT(requestChanged(QString)));
     }
 
     return request;
 }
 
-void RequestListModel::requestChanged() {
-    int requestIndex = mRecords.indexOf(static_cast<Request*>(sender()));
-    emit dataChanged(index(requestIndex, 0), index(requestIndex, columnCount()-1));
+void RequestListModel::requestChanged(const QString &roleChanged) {
+    int roleChangedIndex = mRoles.key(QByteArray(roleChanged.toUtf8().constData()));
+    if (mRoles.contains(roleChangedIndex)) {
+        int columnIndex = roleChangedIndex-Qt::UserRole-1;
+        int requestIndex = mRecords.indexOf(static_cast<Request*>(sender()));
+        if (requestIndex!=-1) {
+            QVector<int> rolesChanged;
+            rolesChanged.append(roleChangedIndex);
+            emit dataChanged(index(requestIndex, columnIndex), index(requestIndex, columnIndex), rolesChanged);
+        } else {
+            qWarning() << "requestChanged ERROR, sender" << sender() << "is unknown";
+        }
+    } else {
+        qWarning() << "requestChanged ERROR, role" << roleChanged << "is unknown";
+    }
 }
 
 QVariant RequestListModel::get(const int &index, const int &roleIndex) const

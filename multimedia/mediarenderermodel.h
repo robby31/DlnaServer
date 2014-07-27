@@ -38,7 +38,7 @@ public:
     void stopServing(const QString &ip);
 
 public slots:
-    void rendererChanged();
+    void rendererChanged(const QString &roleChanged);
 
 private:
     QList<MediaRenderer *> mRecords;
