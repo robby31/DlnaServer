@@ -25,6 +25,9 @@ const QString Request::EVENT_Header = "<e:propertyset xmlns:e=\"urn:schemas-upnp
 const QString Request::EVENT_Prop = "<e:property><%1>%2</%1></e:property>";
 const QString Request::EVENT_FOOTER = "</e:propertyset>";
 
+// call updateStatus function every second
+const int Request::UPDATE_STATUS_PERIOD = 1000;
+
 Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString servername, QString host, int port, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel, QObject *parent):
     QThread(parent),
     log(log),
@@ -36,17 +39,19 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     streamContent(0),
     transcodeProcess(0),
     maxBufferSize(1024*1024*100),  // 100 MBytes
-    status("init"),
-    networkStatus("connected"),
+    m_status(),
+    m_networkStatus(),
+    m_duration(0),
+    m_date(),
     rootFolder(rootFolder),
     renderersModel(renderersModel),
     uuid(uuid),
     servername(servername),
-    host(host),
+    m_host(),
     port(port),
     socket(-1),
     soapaction(""),
-    content(""),
+    m_content(""),
     receivedContentLength(-1),
     range(0),
     timeSeekRangeStart(-1),
@@ -54,12 +59,18 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     http10(false),
     mediaFilename()
 {
+    setStatus("init");
+    setHost(host);
+    setNetworkStatus("connected");
+
     if (client != 0) {
-        peerAddress = client->peerAddress().toString();
+        setPeerAddress(client->peerAddress().toString());
         socket = client->socketDescriptor();
     }
 
     connect(&timerStatus, SIGNAL(timeout()), this, SLOT(updateStatus()));
+
+    clockUpdateStatus.invalidate();
 
     // start clock to measure time taken to answer to the request
     clock.start();
@@ -78,7 +89,7 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
 
     connect(this, SIGNAL(newRenderer(Logger*,QString,int,QString)), this, SLOT(createRenderer(Logger*,QString,int,QString)));
 
-    log->Trace("Request: receiving a request from " + peerAddress);
+    log->Trace("Request: receiving a request from " + getpeerAddress());
 
     if (client != 0) {
         if (client->isOpen()) {
@@ -104,17 +115,18 @@ Request::~Request() {
         client->deleteLater();
 }
 
-void Request::setSoapaction(QString soapaction) {
+void Request::setSoapaction(const QString &soapaction) {
     if (!getSoapaction().isEmpty()) {
         log->Warning(QString("SOAPACTION in request is overwritten (old value was %1)").arg(soapaction));
     }
     this->soapaction = soapaction;
 }
 
-bool Request::appendHeader(QString headerLine)
+bool Request::appendHeader(const QString &headerLine)
 {
     // add the line to header list
-    header.append(headerLine);
+    m_header.append(headerLine);
+    emit dataChanged("header");
 
     // read the header line and update request attributes
     QStringList fields = headerLine.split(QRegExp("\\s+"));
@@ -138,17 +150,17 @@ bool Request::appendHeader(QString headerLine)
     if (fields.length() > 0) {
 
         if (fields[0] == "SUBSCRIBE" || fields[0] == "GET" || fields[0] == "POST" || fields[0] == "HEAD") {
-            method = fields[0];
+            setMethod(fields[0]);
             if (fields.length() > 1) {
                 // Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
                 if (fields[1].startsWith("/"))
                 {
                     log->Trace("Stripping preceding slash from: " + fields[1]);
-                    this->argument = fields[1].remove(0, 1);
+                    setArgument(fields[1].remove(0, 1));
                 }
                 else
                 {
-                    this->argument = fields[1];
+                    setArgument(fields[1]);
                 }
             }
             if (fields.length() > 2 && fields[2] == "HTTP/1.0")
@@ -240,7 +252,7 @@ bool Request::appendHeader(QString headerLine)
     return true;
 }
 
-void Request::sendLine(QTcpSocket *client, QString msg)
+void Request::sendLine(QTcpSocket *client, const QString &msg)
 {
     if (client == 0) {
         log->Error("Unable to send line (client deleted).");
@@ -253,12 +265,13 @@ void Request::sendLine(QTcpSocket *client, QString msg)
             log->Error("HTTP Request: Unable to send line: " + msg);
         }
 
-        stringAnswer.append(msg+CRLF);
+        m_stringAnswer.append(msg+CRLF);
+        emit dataChanged("answer");
         log->Debug("Wrote on socket: " + msg);
     }
 }
 
-void Request::sendAnswer(QStringList headerAnswer, QByteArray contentAnswer, long totalSize)
+void Request::sendAnswer(const QStringList &headerAnswer, const QByteArray &contentAnswer, const long &totalSize)
 {
     if (client == 0) {
         log->Error("Unable to send answer (client deleted).");
@@ -295,10 +308,11 @@ void Request::sendAnswer(QStringList headerAnswer, QByteArray contentAnswer, lon
         sendLine(client, "");
 
         // HEAD requests only require headers to be set, no need to set contents.
-        if (method != "HEAD" && !contentAnswer.isNull()) {
+        if (m_method != "HEAD" && !contentAnswer.isNull()) {
             // send the content
-            stringAnswer.append(QString("content size: %1%2").arg(contentAnswer.size()).arg(CRLF));
-            stringAnswer.append(contentAnswer);
+            m_stringAnswer.append(QString("content size: %1%2").arg(contentAnswer.size()).arg(CRLF));
+            m_stringAnswer.append(contentAnswer);
+            emit dataChanged("answer");
             if (client->write(contentAnswer) == -1) {
 
                 log->Error("HTTP request: Unable to send content.");
@@ -317,12 +331,12 @@ void Request::sendAnswer(QStringList headerAnswer, QByteArray contentAnswer, lon
 void Request::run() {
     // prepare data and send answer
 
-    log->Trace("ANSWER: " + method + " " + argument);
+    log->Trace("ANSWER: " + getMethod() + " " + getArgument());
 
-    if ((method == "GET" || method == "HEAD") && (argument == "description/fetch" || argument.endsWith("1.0.xml"))) {
-        if (argument == "description/fetch") {
+    if ((getMethod() == "GET" || getMethod() == "HEAD") && (getArgument() == "description/fetch" || getArgument().endsWith("1.0.xml"))) {
+        if (getArgument() == "description/fetch") {
             // new renderer is connecting to server
-            emit newRenderer(log, peerAddress, port, userAgentString);
+            emit newRenderer(log, getpeerAddress(), port, userAgentString);
         }
 
         QStringList answerHeader;
@@ -345,7 +359,7 @@ void Request::run() {
             // replace parameter by its value
             answerContent.replace(QString("[servername]"), servername);
             answerContent.replace(QString("[uuid]"), QString("uuid:%1").arg(uuid));
-            answerContent.replace(QString("[host]"), host);
+            answerContent.replace(QString("[host]"), getHost());
             answerContent.replace(QString("[port]"), QString("%1").arg(port));
         }
         else {
@@ -356,7 +370,7 @@ void Request::run() {
 
         setStatus("OK");
     }
-    else if (method == "POST" && argument.endsWith("upnp/control/connection_manager")) {
+    else if (getMethod() == "POST" && getArgument().endsWith("upnp/control/connection_manager")) {
 
         if (!soapaction.isEmpty() && soapaction.indexOf("ConnectionManager:1#GetProtocolInfo") > -1) {
             QStringList answerHeader;
@@ -379,7 +393,7 @@ void Request::run() {
         }
 
     }
-    else if (method == "POST" && argument.endsWith("upnp/control/content_directory")) {
+    else if (getMethod() == "POST" && getArgument().endsWith("upnp/control/content_directory")) {
         QStringList answerHeader;
         answerHeader << CONTENT_TYPE_UTF8;
         answerHeader << "Server: " + servername;
@@ -450,7 +464,7 @@ void Request::run() {
 
             // read the content of the received request
             QDomDocument doc;
-            doc.setContent(content);
+            doc.setContent(m_content);
 
             QString objectID;
             QDomNodeList list = doc.elementsByTagName("ObjectID");
@@ -649,7 +663,7 @@ void Request::run() {
             setStatus("KO");
         }
     }
-    else if ((method == "GET" || method == "HEAD") && argument.startsWith("get/")) {
+    else if ((getMethod() == "GET" || getMethod() == "HEAD") && getArgument().startsWith("get/")) {
         // Request to retrieve a file
         QStringList answerHeader;
 
@@ -660,7 +674,7 @@ void Request::run() {
         QRegExp rxId("get/([\\d$]+)/(.+)");
         QString id;
         QString fileName;
-        if (rxId.indexIn(argument) != -1) {
+        if (rxId.indexIn(getArgument()) != -1) {
             id = rxId.capturedTexts().at(1);
             fileName = rxId.capturedTexts().at(2);
         }
@@ -748,7 +762,7 @@ void Request::run() {
                 answerHeader << "Server: " + servername;
                 headerAnswerToSend << "Server: " + servername;
 
-                if (timeSeekRangeStart >= 0) {
+                if (timeSeekRangeStart >= 0 && dlna->getLengthInMilliSeconds() > 0) {
                     QTime start_time(0, 0, 0);
                     start_time = start_time.addSecs(timeSeekRangeStart);
 
@@ -767,14 +781,14 @@ void Request::run() {
                     headerAnswerToSend << QString("X-AvailableSeekRange: 1 npt=%1-%2").arg(0).arg(dlna->getLengthInSeconds());
                 }
 
-                if (method == "HEAD") {
+                if (m_method == "HEAD") {
                     emit answerReady(answerHeader, QByteArray(), dlna->size());
                     setStatus("OK");
 
                 } else {
                     log->Debug(QString("%1 bytes to send, %2 to send.").arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")));
 
-                    mediaFilename = dlna->getFileInfo().absoluteFilePath();
+                    mediaFilename = dlna->getSystemName();
                     emit serving(mediaFilename, 0);
 
                     if (!dlna->toTranscode()) {
@@ -809,7 +823,7 @@ void Request::run() {
                 }
             }
         }
-    } else if (method == "SUBSCRIBE" && !soapaction.isEmpty()) {
+    } else if (m_method == "SUBSCRIBE" && !soapaction.isEmpty()) {
         QStringList answerHeader;
         answerHeader << CONTENT_TYPE_UTF8;
         answerHeader << "Content-Length: 0";
@@ -834,7 +848,7 @@ void Request::run() {
         QTcpSocket sock;
         sock.connectToHost(addr, port);
         if (sock.waitForConnected()) {
-            sendLine(&sock, "NOTIFY /" + argument + " HTTP/1.1");
+            sendLine(&sock, "NOTIFY /" + getArgument() + " HTTP/1.1");
             sendLine(&sock, QString("SID: uuid:%1").arg(uuid));
             sendLine(&sock, "SEQ: 0");
             sendLine(&sock, "NT: upnp:event");
@@ -853,7 +867,7 @@ void Request::run() {
         QString answerContent;
         keepSocketOpened = false;
 
-        if (argument.contains("connection_manager")) {
+        if (getArgument().contains("connection_manager")) {
             QStringList answerHeader;
             answerHeader << "Server: " + servername;
 
@@ -867,7 +881,7 @@ void Request::run() {
 
             setStatus("OK");
 
-        } else if (argument.contains("content_directory")) {
+        } else if (getArgument().contains("content_directory")) {
             QStringList answerHeader;
             answerHeader << "Server: " + servername;
 
@@ -885,10 +899,10 @@ void Request::run() {
             setStatus("Unknown argument");
         }
     }
-    else if ((method == "GET" || method == "HEAD") && (argument.toLower().endsWith(".png") || argument.toLower().endsWith(".jpg") || argument.toLower().endsWith(".jpeg"))) {
+    else if ((getMethod() == "GET" || getMethod() == "HEAD") && (getArgument().toLower().endsWith(".png") || getArgument().toLower().endsWith(".jpg") || getArgument().toLower().endsWith(".jpeg"))) {
         QStringList answerHeader;
 
-        if (argument.toLower().endsWith(".png")) {
+        if (getArgument().toLower().endsWith(".png")) {
             answerHeader << "Content-Type: image/png";
         } else {
             answerHeader << "Content-Type: image/jpeg";
@@ -902,14 +916,14 @@ void Request::run() {
         QByteArray answerContent;
 
         // read the image file
-        QFile inputStream(":/" + argument);
+        QFile inputStream(":/" + getArgument());
         if (inputStream.open(QFile::ReadOnly)) {
             answerContent = inputStream.readAll();
             inputStream.close();
 
         }
         else {
-            log->Error(QString("Unable to read %1 for %2 answer.").arg(argument).arg(method));
+            log->Error(QString("Unable to read %1 for %2 answer.").arg(getArgument()).arg(m_method));
         }
 
         emit answerReady(answerHeader, answerContent);
@@ -917,7 +931,7 @@ void Request::run() {
         setStatus("OK");
     }
     else {
-        log->Error("Unkown answer for: " + method + " " + argument);
+        log->Error("Unkown answer for: " + getMethod() + " " + getArgument());
         setStatus("KO");
     }
 
@@ -946,10 +960,10 @@ void Request::runStreaming(DlnaItem* dlna) {
             log->Error("There is no inputstream to return for " + dlna->getDisplayName());
             setStatus("KO");
         } else {
-            renderersModel->serving(peerAddress, dlna->getDisplayName());
+            renderersModel->serving(getpeerAddress(), dlna->getDisplayName());
 
-            // Start timer to update periodically the status on streaming or transcoding (every second)
-            timerStatus.start(1000);
+            // Start timer to update periodically the status on streaming or transcoding
+            timerStatus.start(UPDATE_STATUS_PERIOD);
         }
     } else {
         log->Error(QString("Streaming already in progress"));
@@ -991,11 +1005,11 @@ void Request::runTranscoding(DlnaItem* dlna) {
                 setStatus("KO");
             } else {
                 // transcoding process started
-                renderersModel->serving(peerAddress, dlna->getDisplayName());
+                renderersModel->serving(getpeerAddress(), dlna->getDisplayName());
                 setStatus("Transcoding");
 
-                // Start timer to update periodically the status on streaming or transcoding (every second)
-                timerStatus.start(1000);
+                // Start timer to update periodically the status on streaming or transcoding
+                timerStatus.start(UPDATE_STATUS_PERIOD);
             }
         }
     } else {
@@ -1014,7 +1028,7 @@ void Request::waitTranscodingFinished() {
 
 void Request::receivedTranscodingLogMessage() {
     if (transcodeProcess != 0) {
-        emit dataChanged();
+        emit dataChanged("transcode_log");
     }
 }
 
@@ -1036,6 +1050,13 @@ void Request::receivedTranscodedData() {
                 // send data to client
                 if (client->write(bytes) == -1) {
                     log->Error("Unable to send transcoded data to client.");
+                } else if (transcodeProcess->state()==QProcess::Running) {
+                    // data sent and transcoding is in progress
+                    if (client->bytesToWrite() > maxBufferSize) {
+                        // pause transcoding process
+                        if (transcodeProcess->pause() == false)
+                            log->Error(QString("Unable to pause transcoding: pid=%1").arg(transcodeProcess->pid()));
+                    }
                 }
             } else {
                 log->Error("Unable to send transcoded data to client (client deleted).");
@@ -1044,7 +1065,7 @@ void Request::receivedTranscodedData() {
     }
 }
 
-void Request::finishedTranscodeData(int exitCode) {
+void Request::finishedTranscodeData(const int &exitCode) {
     if (transcodeProcess != 0) {
         if (transcodeProcess->isKilled() == false) {
             if (exitCode != 0) {
@@ -1069,7 +1090,7 @@ void Request::readSocket() {
     } else {
         bool flagHeaderReading = true;
 
-        if (header.isEmpty()) {
+        if (m_header.isEmpty()) {
             // read the header
             foreach (QString headerLine, client->readAll().split('\n')) {
                 if (flagHeaderReading && !headerLine.isEmpty() && headerLine != "\r") {
@@ -1079,7 +1100,8 @@ void Request::readSocket() {
                     if (flagHeaderReading) {
                         flagHeaderReading = false;
                     } else if (!headerLine.isEmpty()) {
-                        content.append(headerLine).append('\n');
+                        m_content.append(headerLine).append('\n');
+                        emit dataChanged("content");
                     }
                 }
             }
@@ -1097,7 +1119,7 @@ void Request::readSocket() {
                 log->Debug("HTTP: " + getMethod() + " " + getArgument() + " / " + QString("No range"));
             }
 
-            if ((getReceivedContentLength() <= 0) || (content.size() == getReceivedContentLength())) {
+            if ((getReceivedContentLength() <= 0) || (m_content.size() == getReceivedContentLength())) {
                 // no content expected to received
 
                 // prepare and send answer
@@ -1106,12 +1128,13 @@ void Request::readSocket() {
 
         } else {
             // read the content
-            content.append(client->readAll());
+            m_content.append(client->readAll());
+            emit dataChanged("content");
 
-            if (content.size() == getReceivedContentLength()) {
+            if (m_content.size() == getReceivedContentLength()) {
                 setStatus("content read");
-                log->Trace("Bytes Read: " + QString("%1").arg(content.size()));
-                log->Trace("Data Read: " + content);
+                log->Trace("Bytes Read: " + QString("%1").arg(m_content.size()));
+                log->Trace("Data Read: " + m_content);
 
                 // prepare and send answer
                 start();
@@ -1122,28 +1145,23 @@ void Request::readSocket() {
 
 void Request::updateStatus()
 {
+    if (clockUpdateStatus.isValid()) {
+        int delta = qAbs(clockUpdateStatus.restart()-UPDATE_STATUS_PERIOD);
+
+        if (delta > UPDATE_STATUS_PERIOD/10) {
+            if (streamContent)
+                log->Info(QString("UPDATE STATUS delta %2 streaming <%1>").arg(mediaFilename).arg(delta));
+            else if (transcodeProcess)
+                log->Info(QString("UPDATE STATUS delta %2 transcoding <%1>").arg(mediaFilename).arg(delta));
+            else
+                log->Info(QString("UPDATE STATUS delta %2 <%1>").arg(mediaFilename).arg(delta));
+        }
+    } else {
+        clockUpdateStatus.start();
+    }
+
     if (streamContent)
         setStatus(QString("Streaming (%1%)").arg(int(100.0*double(streamContent->pos())/double(streamContent->size()))));
-
-    if (transcodeProcess) {
-        if (transcodeProcess->state()==QProcess::Running && client->bytesToWrite() < (maxBufferSize/10))
-            log->Info(QString("Transcoding: buffer low %1%").arg(int(100.0*double(client->bytesToWrite())/double(maxBufferSize))));
-
-        if (client && transcodeProcess->state()==QProcess::Running) {
-
-            if (client->bytesToWrite() > maxBufferSize) {
-                // pause transcoding process
-                if (transcodeProcess->pause() == false)
-                    log->Error(QString("Unable to pause transcoding: pid=%1").arg(transcodeProcess->pid()));
-            }
-
-            if (client->bytesToWrite() < (maxBufferSize*0.5)) {
-                // restart transcoding process
-                if (transcodeProcess->resume() == false)
-                    log->Error(QString("Unable to restart transcoding: pid=%1").arg(transcodeProcess->pid()));
-            }
-        }
-    }
 
     if (!mediaFilename.isNull()) {
         emit serving(mediaFilename, clockSending.elapsedFromBeginning());
@@ -1164,7 +1182,7 @@ void Request::updateStatus()
     }
 }
 
-void Request::bytesSent(qint64 size)
+void Request::bytesSent(const qint64 &size)
 {
     networkBytesSent += size;
 
@@ -1175,9 +1193,9 @@ void Request::bytesSent(qint64 size)
 
     if (log->isLevel(TRA) and transcodeProcess != 0) {
         if (client != 0)
-            transcodeProcess->appendLog(QString("%2: bytes sent %3 (%1)").arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
+            appendTrancodeProcessLog(QString("%2: bytes sent %3 (%1)").arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
         else
-            transcodeProcess->appendLog(QString("%1: bytes sent %2 (client deleted)").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
+            appendTrancodeProcessLog(QString("%1: bytes sent %2 (client deleted)").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
     }
 
     if (streamContent) {
@@ -1214,14 +1232,22 @@ void Request::bytesSent(qint64 size)
         }
     }
 
+    if (client && transcodeProcess && transcodeProcess->state()==QProcess::Running) {
+        if (client->bytesToWrite() < (maxBufferSize*0.5)) {
+            // restart transcoding process
+            if (transcodeProcess->resume() == false)
+                log->Error(QString("Unable to restart transcoding: pid=%1").arg(transcodeProcess->pid()));
+        }
+    }
+
 }
 
-void Request::stateChanged(QAbstractSocket::SocketState state) {
+void Request::stateChanged(const QAbstractSocket::SocketState &state) {
     if (log->isLevel(DEBG) and transcodeProcess != 0) {
         if (client != 0)
-            transcodeProcess->appendLog(QString("%2: Socket state changed %3 (%1)").arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(state));
+            appendTrancodeProcessLog(QString("%2: Socket state changed %3 (%1)").arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(state));
         else
-            transcodeProcess->appendLog(QString("%1: Socket state changed %2 (client deleted)").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(state));
+            appendTrancodeProcessLog(QString("%1: Socket state changed %2 (client deleted)").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(state));
     }
 
     if (state == QAbstractSocket::UnconnectedState) {
@@ -1233,15 +1259,15 @@ void Request::stateChanged(QAbstractSocket::SocketState state) {
         setNetworkStatus("closed");
 }
 
-void Request::errorSocket(QAbstractSocket::SocketError error) {
+void Request::errorSocket(const QAbstractSocket::SocketError &error) {
     Q_UNUSED(error)
 
     if (log->isLevel(DEBG) and transcodeProcess != 0) {
         if (client != 0) {
-            transcodeProcess->appendLog(QString("%3: Socket ERROR (%1): %2").arg(client->socketDescriptor()).arg(client->errorString()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-            transcodeProcess->appendLog(QString("Available socket data: %1").arg(client->bytesAvailable()));
+            appendTrancodeProcessLog(QString("%3: Socket ERROR (%1): %2").arg(client->socketDescriptor()).arg(client->errorString()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+            appendTrancodeProcessLog(QString("Available socket data: %1").arg(client->bytesAvailable()));
         } else
-            transcodeProcess->appendLog(QString("%1: Socket ERROR (client deleted)").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+            appendTrancodeProcessLog(QString("%1: Socket ERROR (client deleted)").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
     }
 
     if (error == QAbstractSocket::RemoteHostClosedError) {
@@ -1258,14 +1284,14 @@ void Request::errorSocket(QAbstractSocket::SocketError error) {
 
 void Request::closeClient() {
     if (log->isLevel(DEBG) and transcodeProcess != 0)
-        transcodeProcess->appendLog(QString("%3: closeclient, state transcodeprocess %1, client valid? %2").arg(transcodeProcess->state()).arg(client != 0).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        appendTrancodeProcessLog(QString("%3: closeclient, state transcodeprocess %1, client valid? %2").arg(transcodeProcess->state()).arg(client != 0).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
     if (!keepSocketOpened and (transcodeProcess == 0 or transcodeProcess->state() != QProcess::Running) and (streamContent == 0 or streamContent->atEnd())) {
         // No streaming or transcoding in progress
         log->Trace("Close client connection in request");
         if (client != 0) {
             if (log->isLevel(DEBG) and transcodeProcess != 0)
-                transcodeProcess->appendLog(QString("%2: CLOSE CLIENT (%1)").arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                appendTrancodeProcessLog(QString("%2: CLOSE CLIENT (%1)").arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
             client->close();
         } else
@@ -1303,7 +1329,7 @@ void Request::close() {
         delete streamContent;
         streamContent = 0;
 
-        renderersModel->stopServing(peerAddress); 
+        renderersModel->stopServing(getpeerAddress());
     }
 
     if (transcodeProcess != 0) {
@@ -1321,10 +1347,10 @@ void Request::close() {
 
         transcodeProcess->disconnect(this);
 
-        renderersModel->stopServing(peerAddress);
+        renderersModel->stopServing(getpeerAddress());
     }
 }
 
-void Request::createRenderer(Logger *log, QString peerAddress, int port, QString userAgent) {
+void Request::createRenderer(Logger *log, const QString &peerAddress, const int &port, const QString &userAgent) {
     renderersModel->addRenderer(log, peerAddress, port, userAgent);
 }

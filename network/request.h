@@ -33,28 +33,28 @@ public:
 
     bool isHttp10() const { return http10; }
 
-    QString getMethod() const { return method; }
+    QString getMethod() const { return m_method; }
 
     // Retrieves the argument of the request.
     // It contains a command, a unique resource id and a resource name, all separated by slashes.
     // For example: "get/0$0$2$17/big_buck_bunny_1080p_h264.mov" or "get/0$0$2$13/thumbnail0000Sintel.2010.1080p.mkv"
-    QString getArgument() const { return argument; }
+    QString getArgument() const { return m_argument; }
 
-    QString getHost() const { return host; }
-    QString getpeerAddress() const { return peerAddress; }
+    QString getHost() const { return m_host; }
+    QString getpeerAddress() const { return m_peerAddress; }
     qintptr socketDescriptor() const { return socket; }
 
-    QString getStatus() const { return status; }
+    QString getStatus() const { return m_status; }
 
-    QString getNetworkStatus() const { return networkStatus; }
+    QString getNetworkStatus() const { return m_networkStatus; }
 
     QString getDuration() const { return QTime(0, 0).addMSecs(m_duration).toString("hh:mm:ss.zzz"); }
 
-    QString getDate() const { return date; }
+    QString getDate() const { return m_date; }
 
     QString getSoapaction() const { return soapaction; }
 
-    QString getTextContent() const { return content; }
+    QString getTextContent() const { return m_content; }
 
     QString getUserAgent() const { return userAgentString; }
 
@@ -64,13 +64,13 @@ public:
 
     int getReceivedContentLength() const { return receivedContentLength; }
 
-    QString getTextHeader() const { return header.join(""); }
+    QString getTextHeader() const { return m_header.join(""); }
 
-    QString getTextAnswer() const { return stringAnswer.join(""); }
+    QString getTextAnswer() const { return m_stringAnswer.join(""); }
 
     QString getTranscodeLog() const { if (transcodeProcess != 0) return transcodeProcess->getTranscodeLog(); else return QString(); }
 
-    bool appendHeader(QString headerLine);
+    bool appendHeader(const QString &headerLine);
 
     // Construct a proper HTTP response to a received request
     // and provide answer to the client on the request
@@ -79,7 +79,7 @@ public:
 
 signals:
     // emit signal when data changed
-    void dataChanged();
+    void dataChanged(const QString &roleChanged);
 
     // emit signal to send answer to client
     void answerReady(QStringList headerAnswer, QByteArray contentAnswer = QByteArray(), long totalSize = -1);
@@ -107,9 +107,9 @@ signals:
 private slots:
     // slots for incoming data
     void readSocket();
-    void stateChanged(QAbstractSocket::SocketState state);
-    void errorSocket(QAbstractSocket::SocketError error);
-    void bytesSent(qint64 size);
+    void stateChanged(const QAbstractSocket::SocketState &state);
+    void errorSocket(const QAbstractSocket::SocketError &error);
+    void bytesSent(const qint64 &size);
 
     // slots for streaming
     void runStreaming(DlnaItem *dlna);
@@ -118,16 +118,16 @@ private slots:
     void runTranscoding(DlnaItem *dlna);
     void receivedTranscodedData();
     void receivedTranscodingLogMessage();
-    void finishedTranscodeData(int exitCode);
+    void finishedTranscodeData(const int &exitCode);
 
     // slot to update status on streaming or transcoding
     void updateStatus();
 
     // slot to send data to client
-    void sendAnswer(QStringList headerAnswer, QByteArray contentAnswer = QByteArray(), long totalSize = -1);
+    void sendAnswer(const QStringList &headerAnswer, const QByteArray &contentAnswer = QByteArray(), const long &totalSize = -1);
 
     // slot to create new renderer
-    void createRenderer(Logger* log, QString peerAddress, int port, QString userAgent);
+    void createRenderer(Logger* log, const QString &peerAddress, const int &port, const QString &userAgent);
 
 private:
     static const QString CONTENT_TYPE_UTF8;
@@ -156,15 +156,20 @@ private:
     // Carriage return and line feed.
     static const QString CRLF;
 
+    static const int UPDATE_STATUS_PERIOD;
+
     Logger* log;
 
     QTcpSocket* client;
     long networkBytesSent;
     long lastNetBytesSent;
     bool keepSocketOpened;  // flag to not close automatically the client socket when answer is sent
+
     QTimer timerStatus;    // timer used to update periodically the status on streaming or transcoding
+
     QElapsedTimer clock;  // clock to measure time taken to answer to the request
     ElapsedTimer clockSending; // clock to mesure time taken to send streamed or transcoded data.
+    QElapsedTimer clockUpdateStatus; // clock to check UpdateStatus period
 
     StreamingFile* streamContent;
     TranscodeProcess* transcodeProcess;
@@ -172,35 +177,35 @@ private:
     QMutex mutex;
     QWaitCondition servingStarted;
 
-    QString status;  // status of the request
-    QString networkStatus;  // status of network (interface client)
+    QString m_status;  // status of the request
+    QString m_networkStatus;  // status of network (interface client)
     qint64 m_duration;  // duration taken to answer to the request
-    QString date;      // date when the request has been received
+    QString m_date;      // date when the request has been received
     DlnaRootFolder* rootFolder;
     MediaRendererModel* renderersModel;
 
     QString uuid;
     QString servername;
-    QString host;
+    QString m_host;
     int port;
     qintptr socket;
-    QString peerAddress;
+    QString m_peerAddress;
 
-    QStringList header;  // header of the request received
+    QStringList m_header;  // header of the request received
 
-    QStringList stringAnswer;  // answer sent
+    QStringList m_stringAnswer;  // answer sent
     QStringList headerAnswerToSend;  // answer header prepared but not yet sent
 
-    QString method;
+    QString m_method;
 
     // argument of the request:
     // It contains a command, a unique resource id and a resource name, all
     // separated by slashes. For example: "get/0$0$2$17/big_buck_bunny_1080p_h264.mov" or
     // "get/0$0$2$13/thumbnail0000Sintel.2010.1080p.mkv"
-    QString argument;
+    QString m_argument;
 
     QString soapaction;
-    QString content;
+    QString m_content;
     QString userAgentString;
     int receivedContentLength;
 
@@ -213,28 +218,36 @@ private:
     QString contentFeatures;
     QString mediaInfoSec;
     QString httpConnection;
-    double timeseek;
-    double timeRangeEnd;
 
     bool http10;
 
     QString mediaFilename;
 
-    void setHttp10(bool http10) { this->http10 = http10; }
+    void setHttp10(const bool &http10) { this->http10 = http10; }
 
-    void setStatus(QString status) { this->status = status; emit dataChanged(); }
+    void setMethod(const QString &method) { m_method = method; emit dataChanged("method"); }
 
-    void setNetworkStatus(QString status) { this->networkStatus = status; emit dataChanged(); }
+    void setArgument(const QString &argument) { m_argument = argument; emit dataChanged("argument"); }
 
-    void setDuration(qint64 duration) { m_duration = duration; emit dataChanged(); }
+    void setHost(const QString &host) { m_host = host; emit dataChanged("host"); }
 
-    void setDate(QString date) { this->date = date; emit dataChanged(); }
+    void setPeerAddress(const QString &address) { m_peerAddress = address; emit dataChanged("peerAddress"); }
 
-    void setSoapaction(QString soapaction);
+    void setStatus(const QString &status) { m_status = status; emit dataChanged("status"); }
 
-    void setTextContent(QString content) { this->content = content; }
+    void setNetworkStatus(const QString &status) { m_networkStatus = status; emit dataChanged("network_status"); }
 
-    void sendLine(QTcpSocket *client, QString msg);
+    void setDuration(const qint64 &duration) { m_duration = duration; emit dataChanged("duration"); }
+
+    void setDate(const QString &date) { m_date = date; emit dataChanged("date"); }
+
+    void setSoapaction(const QString &soapaction);
+
+    void setTextContent(const QString &content) { m_content = content; emit dataChanged("content"); }
+
+    void sendLine(QTcpSocket *client, const QString &msg);
+
+    void appendTrancodeProcessLog(const QString &text) { if (transcodeProcess) { transcodeProcess->appendLog(text); emit dataChanged("transcode_log"); } }
 
     // wait transcoding is finished
     void waitTranscodingFinished();
