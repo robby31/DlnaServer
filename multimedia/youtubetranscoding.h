@@ -19,9 +19,12 @@ public:
 signals:
 
 public slots:
+    void youtubeFinished(int status);
+    void youtubeReadyReadStandardError();
 
 private:
     QProcess youtubeStreaming;
+    QString url;
 };
 
 #endif // YOUTUBETRANSCODING_H
