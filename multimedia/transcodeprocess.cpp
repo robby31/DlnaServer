@@ -32,7 +32,7 @@ void TranscodeProcess::errorTrancodedData(const ProcessError &error) {
 
 void TranscodeProcess::finishedTranscodeData(const int &exitCode) {
     transcodeLog.append(QString("TRANSCODE FINISHED with exitCode %1."+CRLF).arg(exitCode));
-    transcodeLog.append(QString("TRANCODING done in %1 ms."+CRLF).arg(transcodeClock.elapsed()));
+    transcodeLog.append(QString("TRANCODING done in %1 ms."+CRLF).arg(QTime(0, 0).addMSecs(transcodeClock.elapsed()).toString("hh:mm:ss")));
 }
 
 void TranscodeProcess::launch() {
