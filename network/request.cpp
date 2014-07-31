@@ -1034,10 +1034,7 @@ void Request::receivedTranscodingLogMessage() {
 
 void Request::receivedTranscodedData() {
     if (transcodeProcess != 0) {
-        if (transcodeProcess->bytesAvailable() > 32*1024) {
-            // read transcoded data
-            QByteArray bytes = transcodeProcess->readAllStandardOutput();
-
+        if (transcodeProcess->bytesAvailable() > 1024*1024) {
             if (client != 0) {
                 if (!headerAnswerToSend.isEmpty()) {
                     // send the header
@@ -1048,7 +1045,7 @@ void Request::receivedTranscodedData() {
                 }
 
                 // send data to client
-                if (client->write(bytes) == -1) {
+                if (client->write(transcodeProcess->readAllStandardOutput()) == -1) {
                     log->Error("Unable to send transcoded data to client.");
                 } else if (transcodeProcess->state()==QProcess::Running) {
                     // data sent and transcoding is in progress
@@ -1067,6 +1064,13 @@ void Request::receivedTranscodedData() {
 
 void Request::finishedTranscodeData(const int &exitCode) {
     if (transcodeProcess != 0) {
+        if (transcodeProcess->bytesAvailable() > 0) {
+            // send last transcoded data to client
+            if (client && client->write(transcodeProcess->readAllStandardOutput()) == -1)
+                log->Error("Unable to send last transcoded data to client.");
+        }
+
+
         if (transcodeProcess->isKilled() == false) {
             if (exitCode != 0) {
                 // trancoding failed
@@ -1146,9 +1150,9 @@ void Request::readSocket() {
 void Request::updateStatus()
 {
     if (clockUpdateStatus.isValid()) {
-        int delta = qAbs(clockUpdateStatus.restart()-UPDATE_STATUS_PERIOD);
+        int delta = clockUpdateStatus.restart() - UPDATE_STATUS_PERIOD;
 
-        if (delta > UPDATE_STATUS_PERIOD/10) {
+        if (qAbs(delta) > UPDATE_STATUS_PERIOD/10) {
             if (streamContent)
                 log->Info(QString("UPDATE STATUS delta %2 streaming <%1>").arg(mediaFilename).arg(delta));
             else if (transcodeProcess)
@@ -1164,9 +1168,12 @@ void Request::updateStatus()
         setStatus(QString("Streaming (%1%)").arg(int(100.0*double(streamContent->pos())/double(streamContent->size()))));
 
     if (!mediaFilename.isNull()) {
-        emit serving(mediaFilename, clockSending.elapsedFromBeginning());
+        if (clockSending.isValid())
+            emit serving(mediaFilename, clockSending.elapsedFromBeginning());
+        else
+            emit serving(mediaFilename, 0);
 
-        if (client and maxBufferSize != 0) {
+        if (client && clockSending.isValid() && maxBufferSize != 0) {
             // display the network buffer and network speed
             int networkSpeed = int((double(networkBytesSent)/1024.0)/(double(clockSending.elapsed())/1000.0));
             double bufferTime = double(maxBufferSize)/double(networkSpeed*1024);
@@ -1175,7 +1182,7 @@ void Request::updateStatus()
 
         if (lastNetBytesSent!=-1 && lastNetBytesSent==networkBytesSent)
             clockSending.pause();
-        else
+        else if (networkBytesSent > 0)
             clockSending.start();
 
         lastNetBytesSent = networkBytesSent;
@@ -1232,14 +1239,11 @@ void Request::bytesSent(const qint64 &size)
         }
     }
 
-    if (client && transcodeProcess && transcodeProcess->state()==QProcess::Running) {
-        if (client->bytesToWrite() < (maxBufferSize*0.5)) {
-            // restart transcoding process
-            if (transcodeProcess->resume() == false)
-                log->Error(QString("Unable to restart transcoding: pid=%1").arg(transcodeProcess->pid()));
-        }
+    if (transcodeProcess && client && client->bytesToWrite() < (maxBufferSize*0.5)) {
+        // restart transcoding process
+        if (transcodeProcess->resume() == false)
+            log->Error(QString("Unable to restart transcoding: pid=%1").arg(transcodeProcess->pid()));
     }
-
 }
 
 void Request::stateChanged(const QAbstractSocket::SocketState &state) {
@@ -1310,7 +1314,7 @@ void Request::close() {
     if (client != 0) {
         if (clockSending.isValid())
             log->Debug(QString("remaining data to send: %1").arg(client->bytesToWrite()));
-        client->disconnect(this);
+
         client->deleteLater();
         client = 0;
     }
@@ -1345,7 +1349,12 @@ void Request::close() {
 
         setDuration(clock.elapsed());
 
-        transcodeProcess->disconnect(this);
+        if (!transcodeProcess->isKilled()) {
+            delete transcodeProcess;
+            transcodeProcess = 0;
+        } else {
+            transcodeProcess->disconnect(this);
+        }
 
         renderersModel->stopServing(getpeerAddress());
     }
