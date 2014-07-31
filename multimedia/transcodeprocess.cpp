@@ -53,7 +53,7 @@ void TranscodeProcess::killProcess() {
 }
 
 bool TranscodeProcess::pause() {
-    if (state() != QProcess::NotRunning && !m_paused) {
+    if (!m_paused && state() != QProcess::NotRunning) {
         m_log->Debug(QString("Pause transcoding"));
 
         QStringList arguments;
@@ -68,7 +68,7 @@ bool TranscodeProcess::pause() {
 }
 
 bool TranscodeProcess::resume() {
-    if (state() != QProcess::NotRunning && m_paused) {
+    if (m_paused && state() != QProcess::NotRunning) {
         m_log->Debug(QString("Restart transcoding"));
 
         QStringList arguments;
