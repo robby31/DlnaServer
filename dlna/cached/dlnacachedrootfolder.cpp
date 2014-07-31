@@ -10,6 +10,10 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
     favoritesChild(0),
     lastAddedChild(0)
 {
+    DlnaCachedGroupedFolderMetaData *youtube = new DlnaCachedGroupedFolderMetaData(log, &library, host, port,
+                                                                                   "YOUTUBE", 2, "filename like '%youtube%'", this);
+    addChild(youtube);
+
     recentlyPlayedChild = new DlnaCachedFolder(log, &library,
                                                QString("last_played is not null"),
                                                QString("last_played"),

@@ -1,16 +1,17 @@
 #include "dlnacachedfoldermetadata.h"
 
-DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *library, int typeMedia, QString metaData, QString name, QString host, int port, QObject *parent):
+DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *library, int typeMedia, QString metaData, QString name, QString host, int port, QString where, QObject *parent):
     DlnaStorageFolder(log, host, port, parent),
     library(library),
     metaData(metaData),
     name(name),
     typeMedia(typeMedia),
     query(),
+    where(where),
     nbChildren(-1)
 {
     if (library) {
-        query = library->getDistinctMetaData(typeMedia, metaData);
+        query = library->getDistinctMetaData(typeMedia, metaData, where);
         if (query.last())
             nbChildren = query.at() + 1;
         else
@@ -18,7 +19,11 @@ DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *li
     }
 }
 
-DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent) {
+DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
+{
+    QString whereQuery;
+    if (!where.isEmpty())
+        whereQuery = "and " + where;
 
     DlnaResource *child = 0;
 
@@ -30,7 +35,7 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent) {
         // metaData is null ?
         if (query.value(0).isNull())
             child = new DlnaCachedFolder(log, library,
-                                         QString("type=\"%2\" and %1 is null").arg(metaData).arg(typeMedia),
+                                         QString("type=\"%2\" and %1 is null %3").arg(metaData).arg(typeMedia).arg(whereQuery),
                                          QString("album"),
                                          QString("ASC"),
                                          QString("No %1").arg(metaData),
@@ -39,7 +44,7 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent) {
                                          parent != 0 ? parent : this);
         else
             child = new DlnaCachedFolder(log, library,
-                                         QString("type=\"%3\" and %1=\"%2\"").arg(metaData).arg(query.value(0).toString()).arg(typeMedia),
+                                         QString("type=\"%3\" and %1=\"%2\" %4").arg(metaData).arg(query.value(0).toString()).arg(typeMedia).arg(whereQuery),
                                          QString("album"),
                                          QString("ASC"),
                                          name,

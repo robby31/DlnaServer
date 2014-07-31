@@ -149,6 +149,34 @@ bool MediaLibrary::open()
         if (query.exec("SELECT filename from media where is_reachable=0"))
             while (query.next())
                 qWarning() << "OFF LINE" << query.value(0).toString().toUtf8().constData();
+
+
+
+
+
+
+
+//        QString artist("chicane");
+//        int idArtist = -1;
+//        if (query.exec("SELECT id, name from artist where name like '%"+artist+"%'"))
+//            while (query.next()) {
+//                qWarning() << "ARTIST found" << query.value("name");
+//                idArtist = query.value("id").toInt();
+//                break;
+//            }
+
+//        if (idArtist != -1) {
+//            qWarning() << "UPDATE" << artist << "=" << idArtist;
+
+////            if (!query.exec(QString("UPDATE media SET artist=%1 where type=2 and artist is null and title like '%"+artist+"%'").arg(idArtist)))
+////                qWarning() << query.lastError();
+
+//            if (query.exec("SELECT filename, title, artist from media where type=2 and title like '%"+artist+"%'"))
+//                while (query.next())
+//                    qWarning() << query.value("filename") << query.value("title") << query.value("artist");
+//        }
+
+
     }
 
     log->Debug(QString("MediaLibrary %1 opened.").arg(db->databaseName()));
@@ -186,15 +214,19 @@ QVariant MediaLibrary::getmetaData(const QString &tagName, const int &idMedia) c
     }
 }
 
-QSqlQuery MediaLibrary::getDistinctMetaData(const int &typeMedia, const QString &tagName) const {
+QSqlQuery MediaLibrary::getDistinctMetaData(const int &typeMedia, const QString &tagName, const QString &where) const
+{
+    QString whereQuery;
+    if (!where.isEmpty())
+        whereQuery = "and " + where;
 
     QSqlQuery query;
     if (foreignKeys["media"].contains(tagName)) {
         QString foreignTable = foreignKeys["media"][tagName]["table"];
         QString foreignTo = foreignKeys["media"][tagName]["to"];
-        query.exec(QString("SELECT DISTINCT %2.id, %2.name FROM media LEFT OUTER JOIN %2 ON media.%1=%2.%3 WHERE media.type=%4 and is_reachable=1 ORDER BY %2.name").arg(tagName).arg(foreignTable).arg(foreignTo).arg(typeMedia));
+        query.exec(QString("SELECT DISTINCT %2.id, %2.name FROM media LEFT OUTER JOIN %2 ON media.%1=%2.%3 WHERE media.type=%4 and is_reachable=1 %5 ORDER BY %2.name").arg(tagName).arg(foreignTable).arg(foreignTo).arg(typeMedia).arg(whereQuery));
     } else {
-        query.exec(QString("SELECT DISTINCT %1 FROM media WHERE type=%2 and is_reachable=1 ORDER by %1").arg(tagName).arg(typeMedia));
+        query.exec(QString("SELECT DISTINCT %1 FROM media WHERE type=%2 and is_reachable=1 %3 ORDER by %1").arg(tagName).arg(typeMedia).arg(whereQuery));
     }
 
     return query;

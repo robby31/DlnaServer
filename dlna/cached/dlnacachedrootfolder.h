@@ -10,6 +10,7 @@
 #include "dlnavideofile.h"
 #include "dlnacachedfolder.h"
 #include "dlnacachedmusicfolder.h"
+#include "dlnacachedgroupedfoldermetadata.h"
 #include "dlnarootfolder.h"
 #include "dlnayoutubemusic.h"
 #include "dlnayoutubevideo.h"
