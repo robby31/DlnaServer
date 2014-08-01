@@ -29,6 +29,8 @@ public:
     bool isKilled() const { return killTranscodeProcess; }
     void killProcess();
 
+    virtual int transcodeExitCode() const { return exitCode(); }
+
 signals:
 
 public slots:

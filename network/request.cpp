@@ -1034,7 +1034,7 @@ void Request::receivedTranscodingLogMessage() {
 
 void Request::receivedTranscodedData() {
     if (transcodeProcess != 0) {
-        if (transcodeProcess->bytesAvailable() > 1024*1024) {
+        if (transcodeProcess->bytesAvailable() > 0) {
             if (client != 0) {
                 if (!headerAnswerToSend.isEmpty()) {
                     // send the header
@@ -1342,7 +1342,7 @@ void Request::close() {
             transcodeProcess->killProcess();
         }
 
-        if (!transcodeProcess->isKilled() && transcodeProcess->exitCode()==0)
+        if (!transcodeProcess->isKilled() && transcodeProcess->transcodeExitCode()==0)
             emit servingFinished(mediaFilename, 0);
         else
             emit servingFinished(mediaFilename, 1);
@@ -1358,6 +1358,11 @@ void Request::close() {
 
         renderersModel->stopServing(getpeerAddress());
     }
+
+    // invalidate clock
+    clock.invalidate();
+    clockSending.invalidate();
+    clockUpdateStatus.invalidate();
 }
 
 void Request::createRenderer(Logger *log, const QString &peerAddress, const int &port, const QString &userAgent) {

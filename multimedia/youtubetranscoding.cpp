@@ -29,7 +29,7 @@ bool YouTubeTranscoding::initialize(HttpRange *range, const long &timeseek_start
 void YouTubeTranscoding::launch()
 {
     youtubeStreaming.start();
-    TranscodeProcess::launch();
+    MencoderTranscoding::launch();
 }
 
 void YouTubeTranscoding::youtubeFinished(int status)
@@ -40,4 +40,12 @@ void YouTubeTranscoding::youtubeFinished(int status)
 void YouTubeTranscoding::youtubeReadyReadStandardError()
 {
     appendLog(youtubeStreaming.readAllStandardError());
+}
+
+int YouTubeTranscoding::transcodeExitCode() const
+{
+    if (youtubeStreaming.exitCode()==0)
+        return MencoderTranscoding::exitCode();
+    else
+        return youtubeStreaming.exitCode();
 }

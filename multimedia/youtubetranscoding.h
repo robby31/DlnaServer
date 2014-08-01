@@ -16,6 +16,8 @@ public:
 
     virtual void launch();
 
+    virtual int transcodeExitCode() const;
+
 signals:
 
 public slots:
