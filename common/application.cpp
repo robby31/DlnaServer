@@ -72,9 +72,11 @@ void Application::removeFolder(const int &index) {
     }
 }
 
-void Application::addNetworkLink(const QString url)
+bool Application::addNetworkLink(const QString url)
 {
-    qWarning() << "add" << url << server->addNetworkLink(url);
+    bool res = server->addNetworkLink(url);
+    qWarning() << "add" << url << res;
+    return res;
 }
 
 void Application::quit() {
@@ -123,9 +125,25 @@ bool Application::saveSettings() {
 
 bool Application::reloadLibrary()
 {
+    // save network media
+    QList<QString> networkMedia;
+    QSqlQuery query;
+    if (query.exec("SELECT filename from media WHERE filename like 'http%'")) {
+        while (query.next())
+            networkMedia.append(query.value("filename").toString());
+    } else {
+        log.Error(QString("Unable to load network media: %1").arg(query.lastError().text()));
+    }
+
     if (server->resetLibrary()) {
-        loadSettings();
-        return true;
+       bool res = true;
+
+        // load network media
+        foreach (const QString &url, networkMedia)
+            if (!addNetworkLink(url))
+                res = false;
+
+        return loadSettings() && res;
     } else {
         log.Error("Unable to reload library");
         return false;

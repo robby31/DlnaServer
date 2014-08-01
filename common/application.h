@@ -28,7 +28,7 @@ public:
 
     Q_INVOKABLE void addSharedFolder(const QUrl &folder);
     Q_INVOKABLE void removeFolder(const int &index);
-    Q_INVOKABLE void addNetworkLink(const QString url);
+    Q_INVOKABLE bool addNetworkLink(const QString url);
 
     QStringList sharedFolderModel() const { return m_sharedFolderModel; }
     void setsharedFolderModel(const QStringList &model) { m_sharedFolderModel = model; emit sharedFolderModelChanged(); }
