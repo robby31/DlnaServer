@@ -14,19 +14,6 @@ DlnaVideoFile::~DlnaVideoFile() {
 
 }
 
-long DlnaVideoFile::size() const {
-    if (toTranscode()) {
-        if (bitrate() != -1) {
-            return double(bitrate())*double(getLengthInMilliSeconds())/8000.0;
-        } else {
-            // variable bitrate, we don't know exactly the size
-            return -1;
-        }
-    } else {
-        return fileinfo.size();
-    }
-}
-
 MencoderTranscoding *DlnaVideoFile::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent) {
     if (!toTranscode()) {
 

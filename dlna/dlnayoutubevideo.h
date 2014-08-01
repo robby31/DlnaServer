@@ -21,8 +21,8 @@ public:
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName() const { return metaDataTitle(); }
 
-    // return the size
-    virtual long size() const;
+    //returns the size of the source
+    virtual qint64 sourceSize() const { return -1; }
 
     virtual int metaDataBitrate()              const { return -1; }
     virtual int metaDataDuration()             const { return -1; }

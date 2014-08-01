@@ -85,3 +85,16 @@ QString DlnaItem::getDlnaContentFeatures() const {
 
     return result.join(";");
 }
+
+qint64 DlnaItem::size() const {
+    if (toTranscode()) {
+        if (bitrate() != -1) {
+            return double(bitrate())*double(getLengthInMilliSeconds())/8000.0;
+        } else {
+            // variable bitrate, we don't know exactly the size
+            return -1;
+        }
+    } else {
+        return sourceSize();
+    }
+}

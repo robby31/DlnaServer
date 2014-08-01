@@ -22,8 +22,8 @@ public:
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName() const { return fileinfo.completeBaseName(); }
 
-    // return the size
-    virtual long size() const;
+    //returns the size of the source
+    virtual qint64 sourceSize() const { return fileinfo.size(); }
 
     // Returns the process for transcoding
     virtual MencoderTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);

@@ -16,8 +16,8 @@ public:
 
     virtual QString getSystemName() const { if (library != 0) return library->getmetaData("filename", idMedia).toString(); else return QString(); }
 
-    // return the size
-    virtual long size() const;
+    //returns the size of the source
+    virtual qint64 sourceSize() const { return -1; }
 
     // return true if the track shall be transcoded
     virtual bool toTranscode() const { return true; }

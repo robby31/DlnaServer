@@ -23,8 +23,8 @@ public:
 
     virtual QString getSystemName() const { return fileinfo.absoluteFilePath(); }
 
-    // return the size
-    virtual long size() const;
+    //returns the size of the source
+    virtual qint64 sourceSize() const { return fileinfo.size(); }
 
     // return true if the track shall be transcoded
     virtual bool toTranscode() const { return mime_type.name() != "audio/mpeg"; }

@@ -39,8 +39,11 @@ public:
     // Returns the mimeType for this DLNA node.
     virtual QString mimeType() const = 0;
 
-    // return the size
-    virtual long size() const = 0;
+    // returns the size of the dlna item
+    virtual qint64 size() const;
+
+    //returns the size of the source
+    virtual qint64 sourceSize() const = 0;
 
     // return the length in seconds of the media
     int getLengthInSeconds() const;

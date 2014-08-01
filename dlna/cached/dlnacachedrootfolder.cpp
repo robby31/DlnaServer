@@ -10,10 +10,6 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
     favoritesChild(0),
     lastAddedChild(0)
 {
-    DlnaCachedGroupedFolderMetaData *youtube = new DlnaCachedGroupedFolderMetaData(log, &library, host, port,
-                                                                                   "YOUTUBE", 2, "filename like '%youtube%'", this);
-    addChild(youtube);
-
     recentlyPlayedChild = new DlnaCachedFolder(log, &library,
                                                QString("last_played is not null"),
                                                QString("last_played"),
@@ -47,6 +43,12 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
     while (query.next()) {
         int id_type = query.value(0).toInt();
         QString typeMedia = query.value(1).toString();
+
+        if (typeMedia == "video") {
+            DlnaCachedGroupedFolderMetaData *youtube = new DlnaCachedGroupedFolderMetaData(log, &library, host, port,
+                                                                                           "YOUTUBE", id_type, "filename like '%youtube%'", this);
+            addChild(youtube);
+        }
 
         if (typeMedia == "audio") {
             DlnaCachedMusicFolder* child = new DlnaCachedMusicFolder(log, &library, host, port, id_type, this);

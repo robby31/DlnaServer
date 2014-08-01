@@ -19,19 +19,6 @@ QString DlnaMusicTrackFile::getDisplayName() const {
     return title;
 }
 
-long DlnaMusicTrackFile::size() const {
-    if (toTranscode()) {
-        if (bitrate() != -1) {
-            return double(bitrate())*double(getLengthInMilliSeconds())/8000.0;
-        } else {
-            // variable bitrate, we don't know exactly the size
-            return -1;
-        }
-    } else {
-        return fileinfo.size();
-    }
-}
-
 QString DlnaMusicTrackFile::metaDataTitle() const {
     return ffmpeg.metaData("title");
 }
