@@ -50,18 +50,18 @@ QList<DlnaResource*> DlnaResource::getDLNAResources(QString objectId, bool retur
             resources.append(dlna);
         } else {
             if (count > 0) {
-                if (dlna->m_needRefresh) {
-                    dlna->refreshContent();
-                    ++dlna->updateId;
-                    dlna->m_needRefresh = false;
-                }
-
                 int nbChildren = dlna->getChildrenSize();
                 for (int i = start; i < start + count; i++) {
                     if (i < nbChildren) {
                         DlnaResource* child = dlna->getChild(i, parent);
-                        if (child != 0)
+                        if (child != 0) {
+                            if (child->m_needRefresh) {
+                                child->refreshContent();
+                                ++child->updateId;
+                                child->m_needRefresh = false;
+                            }
                             resources.append(child);
+                        }
                     }
                 }
             }
