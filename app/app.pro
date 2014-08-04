@@ -9,3 +9,11 @@ SOURCES += \
 include (../common/common.pri)
 include (../network/network.pri)
 
+HEADERS += \
+    application.h
+
+SOURCES += \
+    application.cpp
+
+RESOURCES += \
+    ressources.qrc
