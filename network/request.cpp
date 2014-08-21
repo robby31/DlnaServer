@@ -1081,8 +1081,6 @@ void Request::finishedTranscodeData(const int &exitCode) {
         } else {
             setStatus("Transcoding aborted.");
         }
-
-        closeClient();
     }
 }
 
@@ -1263,27 +1261,17 @@ void Request::stateChanged(const QAbstractSocket::SocketState &state) {
         setNetworkStatus("closed");
 }
 
-void Request::errorSocket(const QAbstractSocket::SocketError &error) {
+void Request::errorSocket(const QAbstractSocket::SocketError &error)
+{
     Q_UNUSED(error)
 
-    if (log->isLevel(DEBG) and transcodeProcess != 0) {
-        if (client != 0) {
+    if (log->isLevel(DEBG) and transcodeProcess) {
+        if (client) {
             appendTrancodeProcessLog(QString("%3: Socket ERROR (%1): %2").arg(client->socketDescriptor()).arg(client->errorString()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
             appendTrancodeProcessLog(QString("Available socket data: %1").arg(client->bytesAvailable()));
         } else
             appendTrancodeProcessLog(QString("%1: Socket ERROR (client deleted)").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
     }
-
-    if (error == QAbstractSocket::RemoteHostClosedError) {
-        if (client) {
-            client->disconnect(this);
-            client->deleteLater();
-            client = 0;
-        }
-        setNetworkStatus("disconnected");
-    }
-
-    close();
 }
 
 void Request::closeClient() {
@@ -1301,7 +1289,8 @@ void Request::closeClient() {
         } else
             log->Debug("Unable to close client (client deleted).");
 
-        setDuration(clock.elapsed());
+        if (clock.isValid())
+            setDuration(clock.elapsed());
     }
 }
 
@@ -1311,16 +1300,8 @@ void Request::close() {
     if (clockSending.isValid())
         log->Debug(QString("REQUEST CLOSED: %1 bytes sent, %2 taken to send data.").arg(networkBytesSent).arg(QTime(0, 0).addMSecs(clockSending.elapsed()).toString("hh:mm:ss.zzz")));
 
-    if (client != 0) {
-        if (clockSending.isValid())
-            log->Debug(QString("remaining data to send: %1").arg(client->bytesToWrite()));
-
-        client->deleteLater();
-        client = 0;
-    }
-
-    if (streamContent != 0) {
-        if (streamContent->atEnd()) {
+    if (streamContent) {
+        if (streamContent->atEnd() && client && client->bytesToWrite() == 0) {
             setStatus("Streaming finished.");
             emit servingFinished(mediaFilename, 0);
         } else {
@@ -1328,7 +1309,8 @@ void Request::close() {
             emit servingFinished(mediaFilename, 1);
         }
 
-        setDuration(clock.elapsed());
+        if (clock.isValid())
+            setDuration(clock.elapsed());
 
         delete streamContent;
         streamContent = 0;
@@ -1336,18 +1318,19 @@ void Request::close() {
         renderersModel->stopServing(getpeerAddress());
     }
 
-    if (transcodeProcess != 0) {
+    if (transcodeProcess) {
         if (transcodeProcess->state() != QProcess::NotRunning) {
             setStatus("Transcoding aborted.");
             transcodeProcess->killProcess();
         }
 
-        if (!transcodeProcess->isKilled() && transcodeProcess->transcodeExitCode()==0)
+        if (!transcodeProcess->isKilled() && transcodeProcess->transcodeExitCode()==0 && client && client->bytesToWrite() == 0)
             emit servingFinished(mediaFilename, 0);
         else
             emit servingFinished(mediaFilename, 1);
 
-        setDuration(clock.elapsed());
+        if (clock.isValid())
+            setDuration(clock.elapsed());
 
         if (!transcodeProcess->isKilled()) {
             delete transcodeProcess;
@@ -1363,6 +1346,14 @@ void Request::close() {
     clock.invalidate();
     clockSending.invalidate();
     clockUpdateStatus.invalidate();
+
+    if (client) {
+        if (clockSending.isValid())
+            log->Debug(QString("remaining data to send: %1").arg(client->bytesToWrite()));
+
+        client->deleteLater();
+        client = 0;
+    }
 }
 
 void Request::createRenderer(Logger *log, const QString &peerAddress, const int &port, const QString &userAgent) {
