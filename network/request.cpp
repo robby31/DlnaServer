@@ -1244,8 +1244,9 @@ void Request::bytesSent(const qint64 &size)
     }
 }
 
-void Request::stateChanged(const QAbstractSocket::SocketState &state) {
-    if (log->isLevel(DEBG) and transcodeProcess != 0) {
+void Request::stateChanged(const QAbstractSocket::SocketState &state)
+{
+    if (log->isLevel(DEBG) and transcodeProcess) {
         if (client != 0)
             appendTrancodeProcessLog(QString("%2: Socket state changed %3 (%1)").arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(state));
         else
@@ -1265,7 +1266,7 @@ void Request::errorSocket(const QAbstractSocket::SocketError &error)
 {
     Q_UNUSED(error)
 
-    if (log->isLevel(DEBG) and transcodeProcess) {
+    if (transcodeProcess) {
         if (client) {
             appendTrancodeProcessLog(QString("%3: Socket ERROR (%1): %2").arg(client->socketDescriptor()).arg(client->errorString()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
             appendTrancodeProcessLog(QString("Available socket data: %1").arg(client->bytesAvailable()));
@@ -1275,14 +1276,14 @@ void Request::errorSocket(const QAbstractSocket::SocketError &error)
 }
 
 void Request::closeClient() {
-    if (log->isLevel(DEBG) and transcodeProcess != 0)
+    if (log->isLevel(DEBG) and transcodeProcess)
         appendTrancodeProcessLog(QString("%3: closeclient, state transcodeprocess %1, client valid? %2").arg(transcodeProcess->state()).arg(client != 0).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
     if (!keepSocketOpened and (transcodeProcess == 0 or transcodeProcess->state() != QProcess::Running) and (streamContent == 0 or streamContent->atEnd())) {
         // No streaming or transcoding in progress
         log->Trace("Close client connection in request");
         if (client != 0) {
-            if (log->isLevel(DEBG) and transcodeProcess != 0)
+            if (log->isLevel(DEBG) and transcodeProcess)
                 appendTrancodeProcessLog(QString("%2: CLOSE CLIENT (%1)").arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
             client->close();
@@ -1357,5 +1358,5 @@ void Request::close() {
 }
 
 void Request::createRenderer(Logger *log, const QString &peerAddress, const int &port, const QString &userAgent) {
-    renderersModel->addRenderer(log, peerAddress, port, userAgent);
+    renderersModel->createRenderer(log, peerAddress, port, userAgent);
 }

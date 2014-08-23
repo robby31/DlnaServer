@@ -17,6 +17,8 @@ RequestListModel::RequestListModel(QObject *parent) :
     mRoles[answerRole] = "answer";
     mRoles[networkStatusRole] = "network_status";
     mRoles[transcodeLogRole] = "transcode_log";
+
+    connect(this, SIGNAL(newRequest(Request*)), this, SLOT(addRequestInModel(Request*)));
 }
 
 RequestListModel::~RequestListModel() {
@@ -89,25 +91,33 @@ QVariant RequestListModel::data(const QModelIndex &index, int role) const
     return QVariant::Invalid;
 }
 
-Request* RequestListModel::addRequest(Logger *log, QTcpSocket *client, const QString &uuid, const QString &servername, const QString &host, const int &port, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel)
+void RequestListModel::createRequest(Logger *log, QTcpSocket *client, const QString &uuid, const QString &servername, const QString &host, const int &port, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel)
 {
     Request* request = 0;
 
-    if (client != 0) {
+    if (client) {
         request = new Request(log,
                               client,
                               uuid, servername,
                               host, port,
                               rootFolder, renderersModel);
 
-        beginInsertRows(QModelIndex(), 0, 0);
-        mRecords.prepend(request);
-        endInsertRows();
-
-        connect(request, SIGNAL(dataChanged(QString)), this, SLOT(requestChanged(QString)));
+        if (request)
+            emit newRequest(request);
+        else
+            log->Error("Unable to create new request");
+    } else {
+        log->Error("Unable to create request (client deleted).");
     }
+}
 
-    return request;
+void RequestListModel::addRequestInModel(Request *request)
+{
+    beginInsertRows(QModelIndex(), 0, 0);
+    mRecords.prepend(request);
+    endInsertRows();
+
+    connect(request, SIGNAL(dataChanged(QString)), this, SLOT(requestChanged(QString)));
 }
 
 void RequestListModel::requestChanged(const QString &roleChanged) {

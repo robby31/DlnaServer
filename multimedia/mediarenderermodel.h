@@ -24,8 +24,7 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     virtual QHash<int,QByteArray> roleNames() const { return mRoles; }
 
-    // Create a new mediarenderer and add it to the model
-    MediaRenderer* addRenderer(Logger* log, QString ip, int port, QString userAgent);
+    void createRenderer(Logger* log, QString ip, int port, QString userAgent);
 
     Q_INVOKABLE QVariant get(const int &index, const int &roleIndex) const;
     MediaRenderer* getFromIp(const QString &ip) const;
@@ -37,7 +36,11 @@ public:
     void serving(const QString &ip, const QString &mediaName);
     void stopServing(const QString &ip);
 
+signals:
+    void newRenderer(MediaRenderer *renderer);
+
 public slots:
+    void addRendererInModel(MediaRenderer *renderer);
     void rendererChanged(const QString &roleChanged);
 
 private:

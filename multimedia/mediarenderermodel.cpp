@@ -9,6 +9,8 @@ MediaRendererModel::MediaRendererModel(QObject *parent) :
     mRoles[nameRole] = "name";
     mRoles[networkAddressRole] = "networkAddress";
     mRoles[userAgentRole] = "userAgent";
+
+    connect(this, SIGNAL(newRenderer(MediaRenderer*)), this, SLOT(addRendererInModel(MediaRenderer*)));
 }
 
 MediaRendererModel::~MediaRendererModel()
@@ -63,19 +65,25 @@ QVariant MediaRendererModel::data(const QModelIndex &index, int role) const
     return QVariant::Invalid;
 }
 
-MediaRenderer* MediaRendererModel::addRenderer(Logger *log, QString ip, int port, QString userAgent)
+void MediaRendererModel::createRenderer(Logger *log, QString ip, int port, QString userAgent)
 {
     MediaRenderer* renderer = 0;
 
     renderer = new MediaRenderer(log, ip, port, userAgent);
 
+    if (renderer)
+        emit newRenderer(renderer);
+    else
+        log->Error("Unable to create new renderer");
+}
+
+void MediaRendererModel::addRendererInModel(MediaRenderer *renderer)
+{
     beginInsertRows(QModelIndex(), rowCount(), rowCount());
     mRecords.append(renderer);
     endInsertRows();
 
     connect(renderer, SIGNAL(dataChanged(QString)), this, SLOT(rendererChanged(QString)));
-
-    return renderer;
 }
 
 void MediaRendererModel::rendererChanged(const QString &roleChanged)

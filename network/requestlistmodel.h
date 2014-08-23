@@ -32,8 +32,7 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     virtual QHash<int,QByteArray> roleNames() const { return mRoles; }
 
-    // Create a new request and add it to the model
-    Request* addRequest(Logger* log,
+    void createRequest(Logger* log,
                         QTcpSocket* client, const QString &uuid,
                         const QString &servername, const QString &host, const int &port,
                         DlnaRootFolder* rootFolder, MediaRendererModel *renderersModel);
@@ -43,7 +42,11 @@ public:
     // remove all requests from the model
     void clearAll();
 
+signals:
+    void newRequest(Request *request);
+
 public slots:
+    void addRequestInModel(Request *request);
     void requestChanged(const QString &roleChanged);
 
 private:

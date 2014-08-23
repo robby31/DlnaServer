@@ -7,6 +7,7 @@ Application::Application(QQmlApplicationEngine *engine, QObject *parent):
     engine(engine),
     topLevel(engine != 0 ? engine->rootObjects().value(0) : 0),
     log(this),
+    worker(this),
     server(0),
     upnp(0),
     m_requestsModel(0),
@@ -19,8 +20,23 @@ Application::Application(QQmlApplicationEngine *engine, QObject *parent):
 
     settings = new QSettings("HOME", "QMS", this);
 
-    server = new HttpServer(&log, m_requestsModel, m_renderersModel, this);
-    upnp = new UPNPHelper(&log, server, this);
+    server = new HttpServer(&log, m_requestsModel, m_renderersModel);
+    server->moveToThread(&worker);
+    connect(&worker, SIGNAL(finished()), server, SLOT(deleteLater()));
+
+    upnp = new UPNPHelper(&log, server);
+    upnp->moveToThread(&worker);
+    connect(&worker, SIGNAL(finished()), upnp, SLOT(deleteLater()));
+
+    connect(this, SIGNAL(addFolder(QString)), server, SLOT(addFolder(QString)));
+    connect(server, SIGNAL(folderAdded(QString)), this, SLOT(folderAdded(QString)));
+    connect(server, SIGNAL(error_addFolder(QString)), this, SLOT(folderNotAdded(QString)));
+
+    connect(this, SIGNAL(addLink(QString)), server, SLOT(addNetworkLink(QString)));
+    connect(server, SIGNAL(linkAdded(QString)), this, SLOT(linkAdded(QString)));
+    connect(server, SIGNAL(error_addNetworkLink(QString)), this, SLOT(linkNotAdded(QString)));
+
+    worker.start();
 
     // load the settings
     loadSettings();
@@ -57,11 +73,8 @@ int Application::load(const QUrl &url) {
 }
 
 void Application::addSharedFolder(const QUrl &folder) {
-    if (folder.isLocalFile() && server != 0 && server->addFolder(folder.toLocalFile())) {
-        m_sharedFolderModel.append(folder.toLocalFile());
-
-        emit sharedFolderModelChanged();
-    }
+    if (folder.isLocalFile())
+        emit addFolder(folder.toLocalFile());
 }
 
 void Application::removeFolder(const int &index) {
@@ -72,11 +85,9 @@ void Application::removeFolder(const int &index) {
     }
 }
 
-bool Application::addNetworkLink(const QString url)
+void Application::addNetworkLink(const QString &url)
 {
-    bool res = server->addNetworkLink(url);
-    qWarning() << "add" << url << res;
-    return res;
+    emit addLink(url);
 }
 
 void Application::quit() {
@@ -84,6 +95,31 @@ void Application::quit() {
 
     // save the settings
     saveSettings();
+
+    worker.quit();
+    if (!worker.wait(1000))
+        log.Error("Unable to stop the worker of the application");
+}
+
+void Application::folderAdded(const QString &folder)
+{
+    m_sharedFolderModel.append(folder);
+    emit sharedFolderModelChanged();
+}
+
+void Application::folderNotAdded(const QString &folder)
+{
+    log.Error(QString("Folder not added %1").arg(folder));
+}
+
+void Application::linkAdded(const QString &url)
+{
+    log.Info(QString("network link %1 added successfully.").arg(url));
+}
+
+void Application::linkNotAdded(const QString &url)
+{
+    log.Error(QString("network link %1 not added.").arg(url));
 }
 
 bool Application::loadSettings() {
@@ -93,10 +129,7 @@ bool Application::loadSettings() {
         for (int i = 0; i < size; ++i) {
             settings->setArrayIndex(i);
             QString folder = settings->value("folder").toString();
-            if (server->addFolder(folder)) {
-                m_sharedFolderModel.append(folder);
-                emit sharedFolderModelChanged();
-            }
+            emit addFolder(folder);
         }
         settings->endArray();
 
@@ -140,7 +173,7 @@ bool Application::reloadLibrary()
 
         // load network media
         foreach (const QString &url, networkMedia)
-            if (!addNetworkLink(url))
+            if (!server->addNetworkLink(url))
                 res = false;
 
         return loadSettings() && res;

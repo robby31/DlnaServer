@@ -36,6 +36,8 @@ HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel, MediaRender
         }
     }
 
+    connect(requestsModel, SIGNAL(newRequest(Request*)), this, SLOT(newRequest(Request*)));
+
     connect(this, SIGNAL(newConnection()),
             this, SLOT(acceptConnection()));
 
@@ -85,35 +87,55 @@ void HttpServer::acceptConnection()
     while (hasPendingConnections()) {
         m_log->Trace("HTTP server: new connection");
 
-        if (requestsModel != 0) {
-            Request *request = requestsModel->addRequest(m_log,
-                                                         nextPendingConnection(),
-                                                         UUID, QString("%1").arg(SERVERNAME),
-                                                         getHost().toString(), getPort(),
-                                                         rootFolder, renderersModel);
-            connect(request, SIGNAL(serving(QString,int)), this, SLOT(servingProgress(QString,int)));
-            connect(request, SIGNAL(servingFinished(QString, int)), this, SLOT(servingFinished(QString, int)));
-        }
+        if (requestsModel)
+            requestsModel->createRequest(m_log,
+                                         nextPendingConnection(),
+                                         UUID, QString("%1").arg(SERVERNAME),
+                                         getHost().toString(), getPort(),
+                                         rootFolder, renderersModel);
         else
             m_log->Error("Unable to add new request (requestsModel is null).");
     }
+}
+
+void HttpServer::newRequest(Request *request)
+{
+    connect(request, SIGNAL(serving(QString,int)), this, SLOT(servingProgress(QString,int)));
+    connect(request, SIGNAL(servingFinished(QString, int)), this, SLOT(servingFinished(QString, int)));
 }
 
 void HttpServer::newConnectionError(const QAbstractSocket::SocketError &error) {
     m_log->Error(QString("HTTP server: error at new connection (%1).").arg(error));
 }
 
-bool HttpServer::addFolder(const QString &folder) {
+void HttpServer::addFolder(const QString &folder) {
     if (QFileInfo(folder).isDir()) {
-        emit batched_addFolder(folder);
-        if (rootFolder != 0) {
+        if (rootFolder) {
             DlnaRootFolder *obj = rootFolder->getRootFolder();
-            if (obj != 0) {
-                return obj->addFolder(folder);
+            if (obj and obj->addFolder(folder)) {
+                emit batched_addFolder(folder);
+                emit folderAdded(folder);
+            } else {
+                emit error_addFolder(folder);
             }
+        } else {
+            emit error_addFolder(folder);
         }
+    } else {
+        // error folder is not a directory
+        emit error_addFolder(folder);
     }
-    return false;
+}
+
+bool HttpServer::addNetworkLink(const QString url)
+{
+    if (rootFolder->addNetworkLink(url)) {
+        emit linkAdded(url);
+        return true;
+    } else {
+        emit error_addNetworkLink(url);
+        return false;
+    }
 }
 
 void HttpServer::servingProgress(const QString &filename, const int &playedDurationInMs)

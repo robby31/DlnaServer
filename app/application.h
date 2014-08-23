@@ -5,6 +5,7 @@
 #include <QtQml>
 #include <QtQuick/QQuickView>
 #include <QSettings>
+#include <QThread>
 
 #include "httpserver.h"
 #include "upnphelper.h"
@@ -28,7 +29,7 @@ public:
 
     Q_INVOKABLE void addSharedFolder(const QUrl &folder);
     Q_INVOKABLE void removeFolder(const int &index);
-    Q_INVOKABLE bool addNetworkLink(const QString url);
+    Q_INVOKABLE void addNetworkLink(const QString &url);
 
     QStringList sharedFolderModel() const { return m_sharedFolderModel; }
     void setsharedFolderModel(const QStringList &model) { m_sharedFolderModel = model; emit sharedFolderModelChanged(); }
@@ -46,6 +47,11 @@ private:
     bool reloadLibrary();
 
 public slots:
+    void folderAdded(const QString &folder);
+    void folderNotAdded(const QString &folder);
+
+    void linkAdded(const QString &url);
+    void linkNotAdded(const QString &url);
 
     // quit the application
     void quit();
@@ -54,6 +60,9 @@ signals:
     void sharedFolderModelChanged();
     void requestsModelChanged();
     void renderersModelChanged();
+
+    void addFolder(QString folder);
+    void addLink(QString url);
 
 private:
     QSettings* settings;
@@ -65,6 +74,8 @@ private:
     QObject *topLevel;
 
     Logger log;
+
+    QThread worker;
 
     HttpServer *server;
 

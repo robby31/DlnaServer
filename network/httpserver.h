@@ -22,9 +22,6 @@ public:
     QString getURL() const;
 
     DlnaRootFolder* getRootFolder() const { return rootFolder; }
-    bool addFolder(const QString &folder);
-
-    bool addNetworkLink(const QString url) { return rootFolder->addNetworkLink(url); }
 
     bool resetLibrary() { return batch->resetLibrary(); }
 
@@ -41,13 +38,24 @@ signals:
     void batched_addFolder(const QString &folder);
     void progressUpdate(const int &value);
 
+    void folderAdded(QString folder);
+    void error_addFolder(QString folder);
+
+    void linkAdded(QString url);
+    void error_addNetworkLink(QString url);
+
+public slots:
+    bool addNetworkLink(const QString url);
+
 private slots :
     void acceptConnection();                                             // new connection detected
     void newConnectionError(const QAbstractSocket::SocketError &error);  // error during new connection
+    void newRequest(Request *request);                                   // new request has been created successfully
 
     void servingProgress(const QString &filename, const int &playedDurationInMs);
     void servingFinished(const QString &filename, const int &status);
 
+    void addFolder(const QString &folder);
 
 private :
     RequestListModel* requestsModel;
