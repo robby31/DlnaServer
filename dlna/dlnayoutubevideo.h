@@ -4,6 +4,7 @@
 #include "dlnavideoitem.h"
 #include "youtubetranscoding.h"
 #include <QProcess>
+#include <QTime>
 
 class DlnaYouTubeVideo : public DlnaVideoItem
 {
@@ -25,12 +26,12 @@ public:
     virtual qint64 sourceSize() const { return -1; }
 
     virtual int metaDataBitrate()              const { return -1; }
-    virtual int metaDataDuration()             const { return -1; }
+    virtual int metaDataDuration()             const { return m_durationInMs; }
     virtual QString metaDataTitle()            const { return m_title; }
     virtual QString metaDataGenre()            const { return QString(); }
     virtual QString metaDataPerformer()        const { return QString(); }
     virtual QString metaDataAlbum()            const { return QString(); }
-    virtual QString metaDataTrackPosition()    const { return QString(); }
+    virtual int metaDataTrackPosition()        const { return 0; }
     virtual QString metaDataFormat()           const { return QString(); }
     virtual QByteArray metaDataPicture()       const { return QByteArray(); }
     virtual QString metaDataLastModifiedDate() const { return QString(); }
@@ -41,7 +42,7 @@ public:
     //returns the channel number of the video track
     virtual int channelCount() const { return -1; }
 
-    virtual QString resolution() const { return QString(); }
+    virtual QString resolution() const { return m_resolution; }
     virtual QStringList subtitleLanguages() const { return QStringList(); }
     virtual QStringList audioLanguages() const { return QStringList(); }
     virtual QString framerate() const { return QString(); }
@@ -60,6 +61,8 @@ private:
 private:
     QUrl m_url;
     QString m_title;
+    int m_durationInMs;
+    QString m_resolution;
 
     QString programYouTube;
     QString programFfmpeg;

@@ -30,7 +30,7 @@ public:
     virtual QString metaDataGenre()            const { if (library != 0) return library->getmetaData("genre", idMedia).toString(); else return QString(); }
     virtual QString metaDataPerformer()        const { if (library != 0) return library->getmetaData("artist", idMedia).toString(); else return QString(); }
     virtual QString metaDataAlbum()            const { if (library != 0) return library->getmetaData("album", idMedia).toString(); else return QString(); }
-    virtual QString metaDataTrackPosition()    const { if (library != 0) return library->getmetaData("trackposition", idMedia).toString(); else return QString(); }
+    virtual int metaDataTrackPosition()        const { if (library != 0) return library->getmetaData("trackposition", idMedia).toInt(); else return 0; }
     virtual QString metaDataFormat()           const { if (library != 0) return library->getmetaData("format", idMedia).toString(); else return QString(); }
     virtual QByteArray metaDataPicture()       const { if (library != 0) return QByteArray::fromHex(library->getmetaData("picture", idMedia).toByteArray()); else return QByteArray(); }
     virtual QString metaDataLastModifiedDate() const { if (library != 0) return library->getmetaData("last_modified", idMedia).toString(); else return QString(); }

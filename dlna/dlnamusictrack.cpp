@@ -116,7 +116,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
     if (properties.contains("*") or properties.contains("upnp:originalTrackNumber")) {
         QDomElement upnpTrackNumber = xml->createElement("upnp:originalTrackNumber");
-        upnpTrackNumber.appendChild(xml->createTextNode(metaDataTrackPosition()));
+        upnpTrackNumber.appendChild(xml->createTextNode(QString("%1").arg(metaDataTrackPosition())));
         xml_obj.appendChild(upnpTrackNumber);
     }
 

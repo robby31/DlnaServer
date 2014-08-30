@@ -30,7 +30,7 @@ bool MediaLibrary::open()
                         "id integer primary key, "
                         "filename varchar unique, "
                         "is_reachable integer DEFAULT 1, "
-                        "title varchar, album integer, artist integer, genre integer, trackposition varchar, "
+                        "title varchar, album integer, artist integer, genre integer, trackposition integer, "
                         "duration integer, samplerate integer, channelcount integer, bitrate integer, resolution varchar, framerate varchar, "
                         "picture integer, "
                         "audiolanguages varchar, subtitlelanguages varchar, "
@@ -150,13 +150,17 @@ bool MediaLibrary::open()
             while (query.next())
                 qWarning() << "OFF LINE" << query.value(0).toString().toUtf8().constData();
 
+        if (query.exec("SELECT count(id) from media") && query.next())
+            log->Info(QString("%1 medias in database.").arg(query.value(0).toInt()));
 
 
 
 
+//        if (query.exec("SELECT filename, counter_played from media ORDER BY counter_played"))
+//            while (query.next())
+//                qWarning() << query.value("counter_played") << query.value("filename");
 
-
-//        QString artist("chicane");
+//        QString artist("adele");
 //        int idArtist = -1;
 //        if (query.exec("SELECT id, name from artist where name like '%"+artist+"%'"))
 //            while (query.next()) {
@@ -168,10 +172,10 @@ bool MediaLibrary::open()
 //        if (idArtist != -1) {
 //            qWarning() << "UPDATE" << artist << "=" << idArtist;
 
-////            if (!query.exec(QString("UPDATE media SET artist=%1 where type=2 and artist is null and title like '%"+artist+"%'").arg(idArtist)))
+////            if (!query.exec(QString("UPDATE media SET artist=%1 where type=1 and artist is null and title like '%"+artist+"%'").arg(idArtist)))
 ////                qWarning() << query.lastError();
 
-//            if (query.exec("SELECT filename, title, artist from media where type=2 and title like '%"+artist+"%'"))
+//            if (query.exec("SELECT filename, title, artist from media where type=1 and title like '%"+artist+"%'"))
 //                while (query.next())
 //                    qWarning() << query.value("filename") << query.value("title") << query.value("artist");
 //        }
@@ -458,16 +462,22 @@ MediaLibrary::StateType *MediaLibrary::exportMediaState() const
     QStringList attributesToExport;
     attributesToExport << "rating" << "last_played" << "progress_played" << "counter_played" << "acoustid" << "mbid";
     attributesToExport << "addedDate";
+    attributesToExport << "artist";
 
     QSqlQuery query;
-    if (query.exec(QString("SELECT filename, %1 from media").arg(attributesToExport.join(",")))) {
+    if (query.exec(QString("SELECT id, filename from media")))
+    {
         res = new StateType();
-        while (query.next()) {
+        while (query.next())
+        {
             QHash<QString, QVariant> d_values;
 
             foreach (const QString &param, attributesToExport)
-                if (!query.value(param).isNull())
-                    d_values[param] = query.value(param);
+            {
+                QVariant value = getmetaData(param, query.value("id").toInt());
+                if (!value.isNull())
+                    d_values[param] = value;
+            }
 
             if (!d_values.isEmpty())
                 res->operator [](query.value("filename").toString()) = d_values;

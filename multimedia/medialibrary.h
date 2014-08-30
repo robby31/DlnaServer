@@ -26,6 +26,8 @@ public:
     QSqlQuery getMedia(const QString &where, const QString &orderParam="media.id", const QString &sortOption="ASC") const { return QSqlQuery(QString("SELECT media.id, media.filename, type.name AS type_media, media.last_modified, media.counter_played from media LEFT OUTER JOIN type ON media.type=type.id WHERE %1 and is_reachable=1 ORDER BY %2 %3").arg(where).arg(orderParam).arg(sortOption)); }
     int countMedia(const QString &where) const;
 
+    QSqlQuery getAllNetworkLinks() { return QSqlQuery("SELECT id, filename, title, artist from media WHERE filename like 'http%'"); }
+
     QSqlQuery getDistinctMetaData(const int &typeMedia, const QString &tagName, const QString &where = QString()) const;
     int countDistinctMetaData(const int &typeMedia, const QString &tagName) const;
 

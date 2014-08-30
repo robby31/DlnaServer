@@ -43,9 +43,11 @@ signals:
 
     void linkAdded(QString url);
     void error_addNetworkLink(QString url);
+    void brokenLink(QString url, QString title);
 
 public slots:
     bool addNetworkLink(const QString url);
+    void checkNetworkLink();
 
 private slots :
     void acceptConnection();                                             // new connection detected

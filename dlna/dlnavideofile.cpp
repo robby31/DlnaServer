@@ -53,8 +53,8 @@ QString DlnaVideoFile::metaDataAlbum() const {
     return ffmpeg.metaData("album");
 }
 
-QString DlnaVideoFile::metaDataTrackPosition() const {
-    return ffmpeg.metaData("track").split('/').at(0);
+int DlnaVideoFile::metaDataTrackPosition() const {
+    return ffmpeg.metaData("track").split('/').at(0).toInt();
 }
 
 QString DlnaVideoFile::metaDataFormat() const {

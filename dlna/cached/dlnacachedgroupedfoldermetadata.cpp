@@ -9,19 +9,25 @@ DlnaCachedGroupedFolderMetaData::DlnaCachedGroupedFolderMetaData(Logger* log, Me
     DlnaResource* child = 0;
 
     child = new DlnaCachedFolderMetaData(log, library, idType, "artist", "Artist",
-                                         host, port, where, this);
+                                         host, port,
+                                         QString("title"), QString("ASC"),
+                                         where, this);
     child->setId(QString("%1").arg(children.length()+1));
     children.append(child);
     child->setDlnaParent(this);
 
     child = new DlnaCachedFolderMetaData(log, library, idType, "album", "Album",
-                                         host, port, where, this);
+                                         host, port,
+                                         QString("title"), QString("ASC"),
+                                         where, this);
     child->setId(QString("%1").arg(children.length()+1));
     children.append(child);
     child->setDlnaParent(this);
 
     child = new DlnaCachedFolderMetaData(log, library, idType, "genre", "Genre",
-                                         host, port, where, this);
+                                         host, port,
+                                         QString("title"), QString("ASC"),
+                                         where, this);
     child->setId(QString("%1").arg(children.length()+1));
     children.append(child);
     child->setDlnaParent(this);

@@ -101,7 +101,7 @@ bool DlnaCachedRootFolder::addFolder(QString path) {
     return false;
 }
 
-bool DlnaCachedRootFolder::addNetworkLink(const QString url)
+bool DlnaCachedRootFolder::addNetworkLink(const QString &url)
 {
     if (addResource(QUrl(url))) {
         lastAddedChild->needRefresh();
@@ -109,6 +109,12 @@ bool DlnaCachedRootFolder::addNetworkLink(const QString url)
     }
 
     return false;
+}
+
+bool DlnaCachedRootFolder::networkLinkIsValid(const QString &url)
+{
+    DlnaYouTubeVideo movie(log, url, host, port);
+    return !movie.metaDataTitle().isEmpty();
 }
 
 bool DlnaCachedRootFolder::addResource(QUrl url)
@@ -120,7 +126,7 @@ bool DlnaCachedRootFolder::addResource(QUrl url)
 //    data.insert("mime_type", mime_type);
 //    data.insert("last_modified", fileinfo.lastModified());
 
-    DlnaYouTubeVideo movie(log, url.toString(), host, port, this);
+    DlnaYouTubeVideo movie(log, url.toString(), host, port);
     data.insert("title", movie.metaDataTitle());
     data.insert("duration", movie.metaDataDuration());
     data.insert("resolution", movie.resolution());
@@ -135,6 +141,11 @@ bool DlnaCachedRootFolder::addResource(QUrl url)
     if (movie.metaDataTitle().isEmpty()) {
         log->Error(QString("unable to add resource %1, title is empty").arg(url.toString()));
     } else {
+        if (movie.metaDataDuration()<=0)
+            log->Warning(QString("invalid duration %3 for %1 (%2).").arg(movie.metaDataTitle()).arg(url.toString()).arg(movie.metaDataDuration()));
+        if (movie.resolution().isEmpty())
+            log->Warning(QString("invalid resolution %3 for %1 (%2).").arg(movie.metaDataTitle()).arg(url.toString()).arg(movie.resolution()));
+
         if (!data.isEmpty()) {
             log->Debug(QString("Resource to add: %1").arg(movie.metaDataTitle()));
             if (!library.add_media(data)) {

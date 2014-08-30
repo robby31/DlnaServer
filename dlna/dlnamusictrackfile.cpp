@@ -35,8 +35,8 @@ QString DlnaMusicTrackFile::metaDataAlbum() const {
     return ffmpeg.metaData("album");
 }
 
-QString DlnaMusicTrackFile::metaDataTrackPosition() const {
-    return ffmpeg.metaData("track").split('/').at(0);
+int DlnaMusicTrackFile::metaDataTrackPosition() const {
+    return ffmpeg.metaData("track").split('/').at(0).toInt();
 }
 
 QString DlnaMusicTrackFile::metaDataFormat() const {

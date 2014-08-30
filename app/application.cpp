@@ -36,10 +36,13 @@ Application::Application(QQmlApplicationEngine *engine, QObject *parent):
     connect(server, SIGNAL(linkAdded(QString)), this, SLOT(linkAdded(QString)));
     connect(server, SIGNAL(error_addNetworkLink(QString)), this, SLOT(linkNotAdded(QString)));
 
+    connect(this, SIGNAL(checkNetworkLink()), server, SLOT(checkNetworkLink()));
+
     worker.start();
 
     // load the settings
     loadSettings();
+//    emit checkNetworkLink();
 
 //    if (!reloadLibrary())
 //        loadSettings();

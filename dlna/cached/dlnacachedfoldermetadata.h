@@ -10,7 +10,9 @@ class DlnaCachedFolderMetaData : public DlnaStorageFolder
 {
 
 public:
-    explicit DlnaCachedFolderMetaData(Logger* log, MediaLibrary* library, int typeMedia, QString metaData, QString name, QString host, int port, QString where = QString(), QObject *parent = 0);
+    explicit DlnaCachedFolderMetaData(Logger* log, MediaLibrary* library, int typeMedia, QString metaData, QString name, QString host, int port,
+                                      QString orderedParam, QString sortOption = QString("ASC"),
+                                      QString where = QString(), QObject *parent = 0);
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0);
     virtual int getChildrenSize() const { return nbChildren; }
@@ -30,6 +32,8 @@ private:
     QString name;
     int typeMedia;
     QSqlQuery query;
+    QString m_orderedParam;
+    QString m_sortOption;
     QString where;
     int nbChildren;
 };

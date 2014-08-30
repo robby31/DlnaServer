@@ -138,6 +138,21 @@ bool HttpServer::addNetworkLink(const QString url)
     }
 }
 
+void HttpServer::checkNetworkLink()
+{
+    int nb = 0;
+    m_log->Info("CHECK NETWORK LINK started");
+
+    QSqlQuery query = rootFolder->getAllNetworkLinks();
+    while (query.next()) {
+        ++nb;
+        if (!rootFolder->networkLinkIsValid(query.value("filename").toString()))
+            m_log->Error(QString("link %1 is broken, title: %2").arg(query.value("filename").toString()).arg(query.value("title").toString()));
+    }
+
+    m_log->Info(QString("%1 links checked.").arg(nb));
+}
+
 void HttpServer::servingProgress(const QString &filename, const int &playedDurationInMs)
 {
     QHash<QString, QVariant> data;

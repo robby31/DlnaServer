@@ -1,12 +1,14 @@
 #include "dlnacachedfoldermetadata.h"
 
-DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *library, int typeMedia, QString metaData, QString name, QString host, int port, QString where, QObject *parent):
+DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *library, int typeMedia, QString metaData, QString name, QString host, int port, QString orderedParam, QString sortOption, QString where, QObject *parent):
     DlnaStorageFolder(log, host, port, parent),
     library(library),
     metaData(metaData),
     name(name),
     typeMedia(typeMedia),
     query(),
+    m_orderedParam(orderedParam),
+    m_sortOption(sortOption),
     where(where),
     nbChildren(-1)
 {
@@ -36,8 +38,8 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
         if (query.value(0).isNull())
             child = new DlnaCachedFolder(log, library,
                                          QString("type=\"%2\" and %1 is null %3").arg(metaData).arg(typeMedia).arg(whereQuery),
-                                         QString("album"),
-                                         QString("ASC"),
+                                         m_orderedParam,
+                                         m_sortOption,
                                          QString("No %1").arg(metaData),
                                          host, port,
                                          false,
@@ -45,8 +47,8 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
         else
             child = new DlnaCachedFolder(log, library,
                                          QString("type=\"%3\" and %1=\"%2\" %4").arg(metaData).arg(query.value(0).toString()).arg(typeMedia).arg(whereQuery),
-                                         QString("album"),
-                                         QString("ASC"),
+                                         m_orderedParam,
+                                         m_sortOption,
                                          name,
                                          host, port,
                                          false,

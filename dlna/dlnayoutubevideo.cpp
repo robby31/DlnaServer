@@ -4,10 +4,13 @@ DlnaYouTubeVideo::DlnaYouTubeVideo(Logger *log, QUrl url, QString host, int port
     DlnaVideoItem(log, host, port, parent),
     m_url(url),
     m_title(),
+    m_durationInMs(-1),
+    m_resolution(),
     programYouTube("/usr/local/bin/youtube-dl"),
     programFfmpeg("/Users/doudou/workspaceQT/DLNA_server/exe/ffmpeg")
 {
     requestTitle();
+    requestVideoInfo();
 }
 
 void DlnaYouTubeVideo::requestTitle()
@@ -46,19 +49,20 @@ void DlnaYouTubeVideo::requestVideoInfo()
 
     if (res) {
         QString answer(ffmpeg.readAllStandardError());
-        qWarning() << answer;
+//        qWarning() << answer;
 
         QRegExp duration_bitrate("Duration:\\s*(\\S*),\\s*start:\\s*(\\S*),\\s*bitrate:\\s*(\\S*)");
         if (duration_bitrate.indexIn(answer) != -1) {
             QString duration(duration_bitrate.cap(1));
-            QString bitrate(duration_bitrate.cap(2));
-            qWarning() << duration;
-            qWarning() << bitrate;
+            QString bitrate(duration_bitrate.cap(3));
+            QTime time = QTime::fromString(duration, "hh:mm:ss.z");
+            m_durationInMs = (time.hour()*3600+time.minute()*60+time.second())*1000+time.msec();
         }
 
-        QRegExp video("Stream #\\d+:\\d+\\(\\w+\\): Video:(.*)");
+        QRegExp video("Stream #\\d+:\\d+\\(\\w+\\): Video:([^,]+), ([^,]+), ([^,\\s]+)\\s?([^,]*), ([^,]+), ([^,]+)");
         if (video.indexIn(answer) != -1) {
-            qWarning() << video.capturedTexts();
+            m_resolution = video.cap(3);
+//            qWarning() << "VIDEO INFO" << video.capturedTexts();
         }
     }
 }

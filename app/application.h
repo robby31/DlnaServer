@@ -63,6 +63,7 @@ signals:
 
     void addFolder(QString folder);
     void addLink(QString url);
+    void checkNetworkLink();
 
 private:
     QSettings* settings;
