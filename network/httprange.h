@@ -5,16 +5,14 @@
  * Http range specified here: http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35
  */
 
-#include <QObject>
 #include <QRegExp>
 
-class HttpRange : public QObject
+class HttpRange
 {
-    Q_OBJECT
 
 public:
-    explicit HttpRange(QObject *parent = 0);
-    explicit HttpRange(QString range, QObject *parent = 0);
+    explicit HttpRange();
+    explicit HttpRange(QString range);
 
     bool isNull() const { return null; }
 
@@ -38,10 +36,6 @@ public:
 
     // returns the size of the data stream
     long getSize() const { return size; }
-
-signals:
-
-public slots:
 
 private:
     bool null;

@@ -81,7 +81,7 @@ QVariant RequestListModel::data(const QModelIndex &index, int role) const
         case networkStatusRole:
             return item->getNetworkStatus();
         case transcodeLogRole:
-            return item->getTranscodeLog();
+            return item->getLog();
         default:
             return QVariant::Invalid;
 
@@ -91,22 +91,24 @@ QVariant RequestListModel::data(const QModelIndex &index, int role) const
     return QVariant::Invalid;
 }
 
-void RequestListModel::createRequest(Logger *log, QTcpSocket *client, const QString &uuid, const QString &servername, const QString &host, const int &port, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel)
+void RequestListModel::createRequest(Logger *log, QTcpSocket *client, const QString &uuid, const QString &servername, const QString &host, const int &port)
 {
     Request* request = 0;
 
-    if (client) {
+    if (client)
+    {
         request = new Request(log,
                               client,
                               uuid, servername,
-                              host, port,
-                              rootFolder, renderersModel);
+                              host, port);
 
         if (request)
             emit newRequest(request);
         else
             log->Error("Unable to create new request");
-    } else {
+    }
+    else
+    {
         log->Error("Unable to create request (client deleted).");
     }
 }

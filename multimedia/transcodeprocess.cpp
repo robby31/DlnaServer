@@ -10,14 +10,15 @@ TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
     killTranscodeProcess(false),
     m_paused(false)
 {
-    connect(this, SIGNAL(readyReadStandardError()), this, SLOT(receivedTranscodingLogMessage()));
+    connect(this, SIGNAL(readyReadStandardError()), this, SLOT(appendTranscodingLogMessage()));
     connect(this, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorTrancodedData(QProcess::ProcessError)));
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedTranscodeData(int)));
 }
 
-void TranscodeProcess::receivedTranscodingLogMessage() {
+void TranscodeProcess::appendTranscodingLogMessage() {
     // incoming log message
-    transcodeLog.append(this->readAllStandardError());
+    QByteArray msg(this->readAllStandardError());
+    appendLog(msg);
 }
 
 void TranscodeProcess::errorTrancodedData(const ProcessError &error) {
@@ -26,18 +27,18 @@ void TranscodeProcess::errorTrancodedData(const ProcessError &error) {
     // trancoding failed
     if (killTranscodeProcess == false) {
         // an error occured
-        transcodeLog.append(QString("ERROR Transcoding: %1."+CRLF).arg(errorString()));
+        appendLog(QString("ERROR Transcoding: %1."+CRLF).arg(errorString()));
     }
 }
 
 void TranscodeProcess::finishedTranscodeData(const int &exitCode) {
-    transcodeLog.append(QString("TRANSCODE FINISHED with exitCode %1."+CRLF).arg(exitCode));
-    transcodeLog.append(QString("TRANCODING done in %1 ms."+CRLF).arg(QTime(0, 0).addMSecs(transcodeClock.elapsed()).toString("hh:mm:ss")));
+    appendLog(QString("%2: TRANSCODE FINISHED with exitCode %1."+CRLF).arg(exitCode).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+    appendLog(QString("%2: TRANSCODING DONE in %1 ms."+CRLF).arg(QTime(0, 0).addMSecs(transcodeClock.elapsed()).toString("hh:mm:ss")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 }
 
 void TranscodeProcess::launch() {
-    transcodeLog.append(program()+' ');
-    transcodeLog.append(arguments().join(' ')+CRLF);
+    appendLog(program()+' ');
+    appendLog(arguments().join(' ')+CRLF);
 
     transcodeClock.start();
 
@@ -46,7 +47,7 @@ void TranscodeProcess::launch() {
 
 void TranscodeProcess::killProcess() {
     if (state() != QProcess::NotRunning) {
-        transcodeLog.append(CRLF+"KILL transcoding process."+CRLF);
+        appendLog(QString(CRLF+"%1: KILL transcoding process."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
         killTranscodeProcess = true;
         kill();
     }

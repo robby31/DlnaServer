@@ -8,6 +8,7 @@
 #include "mediarenderermodel.h"
 #include "cached/dlnacachedrootfolder.h"
 #include "cached/batchedrootfolder.h"
+#include "reply.h"
 
 class HttpServer : public QTcpServer
 {
@@ -53,11 +54,15 @@ private slots :
     void acceptConnection();                                             // new connection detected
     void newConnectionError(const QAbstractSocket::SocketError &error);  // error during new connection
     void newRequest(Request *request);                                   // new request has been created successfully
+    void sendReply();                                                    // reply shall be sent
 
     void servingProgress(const QString &filename, const int &playedDurationInMs);
     void servingFinished(const QString &filename, const int &status);
 
     void addFolder(const QString &folder);
+
+    // slot to create new renderer
+    void createRenderer(Logger* log, const QString &peerAddress, const int &port, const QString &userAgent);
 
 private :
     RequestListModel* requestsModel;

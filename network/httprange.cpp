@@ -1,7 +1,6 @@
 #include "httprange.h"
 
-HttpRange::HttpRange(QObject *parent) :
-    QObject(parent),
+HttpRange::HttpRange() :
     null(true),
     lowRange(0),
     highRange(0),
@@ -10,8 +9,7 @@ HttpRange::HttpRange(QObject *parent) :
 {
 }
 
-HttpRange::HttpRange(QString range, QObject *parent) :
-    QObject(parent),
+HttpRange::HttpRange(QString range) :
     null(true),
     lowRange(0),
     highRange(0),

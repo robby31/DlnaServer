@@ -24,22 +24,22 @@ HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel, MediaRender
     batchThread(this)
 {
     // read the LocalIpAddress
-    foreach(QNetworkInterface net, QNetworkInterface::allInterfaces()) {
-        if (!(net.flags() & QNetworkInterface::IsLoopBack)) {
-            foreach(QNetworkAddressEntry address, net.addressEntries()) {
-                if (address.ip().toString().count('.') == 3) {
-                    // ip address is on format x.x.x.x
-                    hostaddress = address.ip();
-                    break;
-                }
-            }
+    QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
+    // use the first non-localhost IPv4 address
+    for (int i = 0; i < ipAddressesList.size(); ++i) {
+        if (ipAddressesList.at(i) != QHostAddress::LocalHost &&
+            ipAddressesList.at(i).toIPv4Address()) {
+            hostaddress = ipAddressesList.at(i).toString();
+            break;
         }
     }
+    // if we did not find one, use IPv4 localhost
+    if (hostaddress.isNull())
+        hostaddress = QHostAddress(QHostAddress::LocalHost).toString();
 
     connect(requestsModel, SIGNAL(newRequest(Request*)), this, SLOT(newRequest(Request*)));
 
-    connect(this, SIGNAL(newConnection()),
-            this, SLOT(acceptConnection()));
+    connect(this, SIGNAL(newConnection()), this, SLOT(acceptConnection()));
 
     connect(this, SIGNAL(acceptError(QAbstractSocket::SocketError)),
             this, SLOT(newConnectionError(QAbstractSocket::SocketError)));
@@ -84,28 +84,43 @@ QString HttpServer::getURL() const {
 
 void HttpServer::acceptConnection()
 {
-    while (hasPendingConnections()) {
+    QTcpSocket *newConnection = nextPendingConnection();
+    if (newConnection) {
         m_log->Trace("HTTP server: new connection");
+        connect(newConnection, SIGNAL(disconnected()), newConnection, SLOT(deleteLater()));
 
-        if (requestsModel)
+        if (requestsModel) {
             requestsModel->createRequest(m_log,
-                                         nextPendingConnection(),
+                                         newConnection,
                                          UUID, QString("%1").arg(SERVERNAME),
-                                         getHost().toString(), getPort(),
-                                         rootFolder, renderersModel);
+                                         getHost().toString(), getPort());
+        }
         else
+        {
             m_log->Error("Unable to add new request (requestsModel is null).");
+        }
+    } else {
+        m_log->Error("No new connection available.");
     }
 }
 
 void HttpServer::newRequest(Request *request)
 {
-    connect(request, SIGNAL(serving(QString,int)), this, SLOT(servingProgress(QString,int)));
-    connect(request, SIGNAL(servingFinished(QString, int)), this, SLOT(servingFinished(QString, int)));
+    connect(request, SIGNAL(sendReply()), this, SLOT(sendReply()));
+    connect(request, SIGNAL(newRenderer(Logger*,QString,int,QString)), this, SLOT(createRenderer(Logger*,QString,int,QString)));
 }
 
 void HttpServer::newConnectionError(const QAbstractSocket::SocketError &error) {
     m_log->Error(QString("HTTP server: error at new connection (%1).").arg(error));
+}
+
+void HttpServer::sendReply()
+{
+    Request* request = (Request*) sender();
+    Reply* reply = new Reply(m_log, request, rootFolder, renderersModel, request);
+    connect(reply, SIGNAL(serving(QString,int)), this, SLOT(servingProgress(QString,int)));
+    connect(reply, SIGNAL(servingFinished(QString, int)), this, SLOT(servingFinished(QString, int)));
+    reply->run();
 }
 
 void HttpServer::addFolder(const QString &folder) {
@@ -169,4 +184,9 @@ void HttpServer::servingFinished(const QString &filename, const int &status)
         if (!rootFolder->incrementCounterPlayed(filename))
             m_log->Error(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
     }
+}
+
+void HttpServer::createRenderer(Logger *log, const QString &peerAddress, const int &port, const QString &userAgent)
+{
+    renderersModel->createRenderer(log, peerAddress, port, userAgent);
 }

@@ -23,26 +23,28 @@ public:
     bool pause();
     bool resume();
 
-    QString getTranscodeLog() const { return transcodeLog; }
-    void appendLog(const QString &msg) { transcodeLog.append(msg+CRLF); }
-
     bool isKilled() const { return killTranscodeProcess; }
     void killProcess();
 
     virtual int transcodeExitCode() const { return exitCode(); }
 
 signals:
+    void receivedTranscodingLogMessage(const QString &msg);
 
 public slots:
     void errorTrancodedData(const QProcess::ProcessError &error);
-    void receivedTranscodingLogMessage();
+    void appendTranscodingLogMessage();
     void finishedTranscodeData(const int &exitCode);
+
+protected:
+    void appendLog(const QString &msg) { transcodeLog.append(msg+CRLF); emit receivedTranscodingLogMessage(msg+CRLF); }
+
+    Logger *m_log;
 
 private:
     // Carriage return and line feed.
     static const QString CRLF;
 
-    Logger *m_log;
     QElapsedTimer transcodeClock;
     QString transcodeLog;
     bool killTranscodeProcess;  // true if the application aborts the transcoding

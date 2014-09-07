@@ -33,9 +33,8 @@ public:
     virtual QHash<int,QByteArray> roleNames() const { return mRoles; }
 
     void createRequest(Logger* log,
-                        QTcpSocket* client, const QString &uuid,
-                        const QString &servername, const QString &host, const int &port,
-                        DlnaRootFolder* rootFolder, MediaRendererModel *renderersModel);
+                       QTcpSocket* client, const QString &uuid,
+                       const QString &servername, const QString &host, const int &port);
 
     Q_INVOKABLE QVariant get(const int &index, const int &roleIndex) const;
 
@@ -51,7 +50,6 @@ public slots:
 
 private:
     QList<Request *> mRecords;
-
     QHash<int, QByteArray> mRoles;
 };
 

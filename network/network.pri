@@ -7,7 +7,8 @@ HEADERS += \
     $$PWD/request.h \
     $$PWD/requestlistmodel.h \
     ../network/httprange.h \
-    ../network/elapsedtimer.h
+    ../network/elapsedtimer.h \
+    ../network/reply.h
 
 SOURCES += \
     $$PWD/upnphelper.cpp \
@@ -15,6 +16,7 @@ SOURCES += \
     $$PWD/request.cpp \
     $$PWD/requestlistmodel.cpp \
     ../network/httprange.cpp \
-    ../network/elapsedtimer.cpp
+    ../network/elapsedtimer.cpp \
+    ../network/reply.cpp
 
 include (../dlna/dlna.pri)
