@@ -120,6 +120,9 @@ void HttpServer::sendReply()
     Reply* reply = new Reply(m_log, request, rootFolder, renderersModel, request);
     connect(reply, SIGNAL(serving(QString,int)), this, SLOT(servingProgress(QString,int)));
     connect(reply, SIGNAL(servingFinished(QString, int)), this, SLOT(servingFinished(QString, int)));
+    connect(reply, SIGNAL(finished()), request, SLOT(replyFinished()));
+    connect(reply, SIGNAL(finished()), reply, SLOT(deleteLater()));
+
     reply->run();
 }
 

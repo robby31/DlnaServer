@@ -50,33 +50,33 @@ public:
 
     QString getDate() const { return m_date; }
 
-    QString getSoapaction() const { return soapaction; }
+    QString getSoapaction() const { return getParamHeader("SOAPACTION"); }
 
     QString getTextContent() const { return m_content; }
 
-    QString getUserAgent() const { return userAgentString; }
+    QString getTransferMode() const { return getParamHeader("TRANSFERMODE.DLNA.ORG"); }
 
-    QString getTransferMode() const { return transferMode; }
+    QString getContentFeatures() const { return getParamHeader("GETCONTENTFEATURES.DLNA.ORG"); }
 
-    QString getContentFeatures() const { return contentFeatures; }
-
-    int getReceivedContentLength() const { return receivedContentLength; }
+    int getReceivedContentLength() const;
 
     QString getTextHeader() const { return m_header.join(""); }
 
-    QString getMediaInfoSec() const { return mediaInfoSec; }
+    QString getMediaInfoSec() const { return getParamHeader("GETMEDIAINFO.SEC"); }
 
     QString getTextAnswer() const { return m_stringAnswer.join(""); }
 
     QString getLog() const { return requestLog; }
+
+    QString getHttpConnection() const { return getParamHeader("CONNECTION"); }
+
+    QString getParamHeader(const QString &param) const;
 
     bool appendHeader(const QString &headerLine);
 
     void setStatus(const QString &status) { m_status = status; emit dataChanged("status"); }
 
     void setNetworkStatus(const QString &status) { m_networkStatus = status; emit dataChanged("network_status"); }
-
-    void endReply();
 
     void appendAnswer(const QString &string) { m_stringAnswer.append(string); emit dataChanged("answer"); }
 
@@ -95,6 +95,9 @@ signals:
     // emit signal to add a new renderer
     void newRenderer(Logger* log, QString peerAddress, int port, QString userAgent);
 
+public slots:
+    void replyFinished();
+
 private slots:
     // slots for incoming data
     void readSocket();
@@ -109,6 +112,8 @@ private:
     QString requestLog;  // internal log
 
     QTcpSocket* m_client;
+    int replyNumber;
+    bool replyInProgress;   // flag to know a reply is preparing to be sent
     bool flagHeaderReading; // flag to know if the header has been received or not
     QStringList m_stringAnswer;  // answer sent
 
@@ -127,6 +132,7 @@ private:
     QString m_peerAddress;
 
     QStringList m_header;  // header of the request received
+    QHash<QString, QString> m_params;
 
     QString m_method;
 
@@ -136,28 +142,19 @@ private:
     // "get/0$0$2$13/thumbnail0000Sintel.2010.1080p.mkv"
     QString m_argument;
 
-    QString soapaction;
     QString m_content;
-    QString userAgentString;
-    int receivedContentLength;
 
     // range requested
     HttpRange* range;
     long timeSeekRangeStart;
     long timeSeekRangeEnd;
-
-    QString transferMode;
-    QString contentFeatures;
-    QString mediaInfoSec;
-    QString httpConnection;
-
     bool http10;
 
     void setHttp10(const bool &http10) { this->http10 = http10; }
 
     void setMethod(const QString &method) { m_method = method; emit dataChanged("method"); }
 
-    void setArgument(const QString &argument) { m_argument = argument; emit dataChanged("argument"); }
+    void setArgument(const QString &argument);
 
     void setHost(const QString &host) { m_host = host; emit dataChanged("host"); }
 
@@ -167,9 +164,9 @@ private:
 
     void setDate(const QString &date) { m_date = date; emit dataChanged("date"); }
 
-    void setSoapaction(const QString &soapaction);
-
     void setTextContent(const QString &content) { m_content = content; emit dataChanged("content"); }
+
+    void setParamHeader(const QString &param, const QString &value);
 };
 
 #endif // REQUEST_H

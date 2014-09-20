@@ -12,7 +12,7 @@ class Reply : public QObject
     Q_OBJECT
 
 public:
-    Reply(Logger* log, Request* request, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel, QObject *parent = 0);
+    Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel, QObject *parent = 0);
     virtual ~Reply();
 
     // Construct a proper HTTP response to a received request
@@ -27,6 +27,9 @@ public:
 
 
 signals:
+    // emit signal when reply is done
+    void finished();
+
     // emit signal to provide progress on serving media
     void serving(QString filename, int playedDurationInMs);
 
@@ -38,8 +41,6 @@ signals:
 
 public slots:
     void bytesSent(const qint64 &size);
-    void stateChanged(const QAbstractSocket::SocketState &state);
-    void errorSocket(const QAbstractSocket::SocketError &error);
 
     // slot to update status on streaming or transcoding
     void updateStatus();
@@ -47,6 +48,9 @@ public slots:
     void receivedTranscodedData();
     void receivedTranscodingLogMessage(const QString &msg);
     void finishedTranscodeData(const int &exitCode);
+
+    // close the request
+    void close();
 
 
 private:
@@ -63,9 +67,6 @@ private:
 
     // wait transcoding is finished
     void waitTranscodingFinished();
-
-    // close the request
-    void close();
 
 private:
     static const QString CONTENT_TYPE_UTF8;
@@ -112,12 +113,12 @@ private:
 
     DlnaRootFolder *m_rootFolder;
 
-    MediaRendererModel* m_renderersModel;
+    MediaRendererModel *m_renderersModel;
 
     QString mediaFilename;
 
-    StreamingFile* streamContent;
-    TranscodeProcess* transcodeProcess;
+    StreamingFile *streamContent;
+    TranscodeProcess *transcodeProcess;
     int maxBufferSize;
 };
 

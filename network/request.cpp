@@ -7,6 +7,8 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     QObject(parent),
     log(log),
     m_client(client),
+    replyNumber(0),
+    replyInProgress(false),  // by default no reply is in progress, we wait a request
     flagHeaderReading(true), // by default the header has not been received
     m_status(),
     m_networkStatus(),
@@ -17,16 +19,13 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     m_host(),
     port(port),
     socket(-1),
-    soapaction(""),
     m_content(""),
-    receivedContentLength(-1),
     range(0),
     timeSeekRangeStart(-1),
     timeSeekRangeEnd(-1),
     http10(false)
 {
-    // start clock to measure time taken to answer to the request
-    clock.start();
+    clock.invalidate();
 
     setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
     setStatus("init");
@@ -55,11 +54,40 @@ Request::~Request() {
         delete range;
 }
 
-void Request::setSoapaction(const QString &soapaction) {
-    if (!getSoapaction().isEmpty()) {
-        log->Warning(QString("SOAPACTION in request is overwritten (old value was %1)").arg(soapaction));
+void Request::setArgument(const QString &argument)
+{
+    m_argument = argument;
+
+    if (argument.startsWith("/"))
+    {
+        log->Trace("Stripping preceding slash from: " + argument);
+        m_argument = m_argument.remove(0, 1);
     }
-    this->soapaction = soapaction;
+
+    emit dataChanged("argument");
+}
+
+QString Request::getParamHeader(const QString &param) const
+{
+    if (m_params.contains(param))
+        return m_params[param];
+    return QString();
+}
+
+void Request::setParamHeader(const QString &param, const QString &value)
+{
+    if (m_params.contains(param))
+        log->Error(QString("Param %1 is defined several times in header.").arg(param));
+    else
+        m_params[param] = value;
+}
+
+int Request::getReceivedContentLength() const
+{
+    QString value = getParamHeader("CONTENT-LENGTH");
+    if (!value.isEmpty())
+        return value.toInt();
+    return -1;
 }
 
 bool Request::appendHeader(const QString &headerLine)
@@ -68,128 +96,68 @@ bool Request::appendHeader(const QString &headerLine)
     m_header.append(headerLine);
     emit dataChanged("header");
 
-    // read the header line and update request attributes
-    QStringList fields = headerLine.split(QRegExp("\\s+"));
+    QRegExp rxDefinition("(GET|HEAD|POST|SUBSCRIBE)\\s*(\\S+)\\s*HTTP/(\\S+)");
+    QRegExp rxParam("(\\S+)\\s*:\\s*(.+)");
 
-    QRegExp rxHost("Host:\\s*(.+)", Qt::CaseInsensitive);
-    QRegExp rxLanguage("Accept-language:\\s*(.+)", Qt::CaseInsensitive);
-    QRegExp rxEncoding("Accept-Encoding:\\s*(.+)", Qt::CaseInsensitive);
-    QRegExp rxAccept("Accept: \\s*(.+)", Qt::CaseInsensitive);
-    QRegExp rxConnection("Connection:\\s*(\\S+)", Qt::CaseInsensitive);
-    QRegExp rxContentType("Content-Type:\\s*(.+)", Qt::CaseInsensitive);
-    QRegExp rxTimeOut("Timeout:\\s*(.+)", Qt::CaseInsensitive);
-    QRegExp rxNt("Nt:\\s*(.+)", Qt::CaseInsensitive);
-    QRegExp rxIcyMetadata("Icy-Metadata:\\s*(\\w+)", Qt::CaseInsensitive);
-    QRegExp rxRange("RANGE: BYTES=(\\d+)-(\\d*)", Qt::CaseInsensitive);
-    QRegExp rxContentLength("CONTENT-LENGTH:\\s*(\\d+)", Qt::CaseInsensitive);
-    QRegExp rxTransferMode("transferMode\\.dlna\\.org:\\s*(\\w+)", Qt::CaseInsensitive);
-    QRegExp rxContentFeatures("getcontentFeatures\\.dlna\\.org:\\s*(\\w+)", Qt::CaseInsensitive);
-    QRegExp rxMediaInfoSec("getMediaInfo\\.sec:\\s*(\\w+)", Qt::CaseInsensitive);
-    QRegExp rxCaptionInfoSec("getCaptionInfo\\.sec:\\s*(\\w+)", Qt::CaseInsensitive);
-    QRegExp rxTimeSeekRange("timeseekrange\\.dlna\\.org:\\s*npt\\s*=\\s*(\\d+)\\-?(\\d*)", Qt::CaseInsensitive);
-
-    if (fields.length() > 0) {
-
-        if (fields[0] == "SUBSCRIBE" || fields[0] == "GET" || fields[0] == "POST" || fields[0] == "HEAD") {
-            setMethod(fields[0]);
-            if (fields.length() > 1) {
-                // Samsung 2012 TVs have a problematic preceding slash that needs to be removed.
-                if (fields[1].startsWith("/"))
-                {
-                    log->Trace("Stripping preceding slash from: " + fields[1]);
-                    setArgument(fields[1].remove(0, 1));
-                }
-                else
-                {
-                    setArgument(fields[1]);
-                }
-            }
-            if (fields.length() > 2 && fields[2] == "HTTP/1.0")
+    if (rxDefinition.indexIn(headerLine.trimmed()) != -1)
+    {
+        setMethod(rxDefinition.cap(1));
+        setArgument(rxDefinition.cap(2));
+        if (rxDefinition.cap(3)=="1.0")
+            setHttp10(true);
+    }
+    else if (rxParam.indexIn(headerLine.trimmed()) != -1)
+    {
+        QString param = rxParam.cap(1).trimmed().toUpper();
+        if (param == "RANGE")
+        {
+            if (range)
             {
-                setHttp10(true);
-            }
-        }
-        else if (fields[0].toUpper() == "CALLBACK:") {
-            setSoapaction(fields[1]);
-        }
-        else if (fields[0].toUpper() == "SOAPACTION:") {
-            setSoapaction(fields[1]);
-        }
-        else if (rxRange.indexIn(headerLine) != -1) {
-            if (range != 0) {
                 // range already read, ignore it
                 log->Error("A range has already been read in the request");
-            } else {
+                return false;
+            }
+            else
+            {
                 range = new HttpRange(headerLine);
                 if (range->isNull()) {
                     // invalid range, ignore it
                     delete range;
                     range = 0;
                     log->Error("Invalid range in request: " + headerLine);
+                    return false;
                 }
             }
         }
-        else if (fields[0].toUpper() == "USER-AGENT:") {
-            userAgentString = fields[1];
-        }
-        else if (rxContentLength.indexIn(headerLine) != -1) {
-            receivedContentLength = rxContentLength.cap(1).toInt();
-        }
-        else if (rxTransferMode.indexIn(headerLine) != -1) {
-            transferMode = rxTransferMode.cap(1);
-        }
-        else if (rxContentFeatures.indexIn(headerLine) != -1) {
-            contentFeatures = rxContentFeatures.cap(1);
-        }
-        else if (rxMediaInfoSec.indexIn(headerLine) != -1) {
-            mediaInfoSec = rxMediaInfoSec.cap(1);
-        }
-        else if (rxCaptionInfoSec.indexIn(headerLine) != -1) {
+        else if (param == "TIMESEEKRANGE.DLNA.ORG")
+        {
+            QRegExp rxTimeSeekRange("timeseekrange\\.dlna\\.org:\\s*npt\\s*=\\s*(\\d+)\\-?(\\d*)", Qt::CaseInsensitive);
+            if (rxTimeSeekRange.indexIn(headerLine) != -1)
+            {
+                if (!rxTimeSeekRange.cap(1).isEmpty())
+                    timeSeekRangeStart = rxTimeSeekRange.cap(1).toLong();
 
-        }
-        else if (rxHost.indexIn(headerLine) != -1) {
-
-        }
-        else if (rxLanguage.indexIn(headerLine) != -1) {
-
-        }
-        else if (rxEncoding.indexIn(headerLine) != -1) {
-
-        }
-        else if (rxAccept.indexIn(headerLine) != -1) {
-
-        }
-        else if (rxConnection.indexIn(headerLine) != -1) {
-            httpConnection = rxConnection.cap(1).toLower();
-        }
-        else if (rxContentType.indexIn(headerLine) != -1) {
-
-        }
-        else if (rxTimeOut.indexIn(headerLine) != -1) {
-
-        }
-        else if (rxNt.indexIn(headerLine) != -1) {
-
-        }
-        else if (rxIcyMetadata.indexIn(headerLine) != -1) {
-
-        }
-        else if (rxTimeSeekRange.indexIn(headerLine) != -1) {
-            if (!rxTimeSeekRange.cap(1).isEmpty()) {
-                timeSeekRangeStart = rxTimeSeekRange.cap(1).toLong();
+                if (!rxTimeSeekRange.cap(2).isEmpty())
+                    timeSeekRangeEnd = rxTimeSeekRange.cap(2).toLong();
             }
-
-            if (!rxTimeSeekRange.cap(2).isEmpty()) {
-                timeSeekRangeEnd = rxTimeSeekRange.cap(2).toLong();
+            else
+            {
+                log->Error(QString("Invalid param TimeSeekRange %1").arg(headerLine.trimmed()));
+                return false;
             }
         }
-        else {
-            log->Error("Unknown headerLine in request: <" + headerLine + ">");
-            return false;
+        else
+        {
+            QString value = rxParam.cap(2).trimmed();
+            setParamHeader(param, value);
+
+            if (param=="CALLBACK")
+                setParamHeader("SOAPACTION", value);
         }
     }
-    else {
-        log->Error("Unknown headerLine in request: <" + headerLine + ">");
+    else
+    {
+        qWarning() << "ERROR" << headerLine;
         return false;
     }
 
@@ -200,12 +168,15 @@ bool Request::appendHeader(const QString &headerLine)
 
 void Request::readSocket()
 {
+    if (!clock.isValid())
+        clock.start();      // start clock to measure time taken to answer to the request
+
     QTcpSocket* client = (QTcpSocket*)sender();
 
     if (client == 0) {
         log->Error("data received but client is deleted.");
 
-    } else {
+    } else if (!replyInProgress) {
         if (flagHeaderReading) {
             // read the header
             while (client->canReadLine()) {
@@ -220,7 +191,7 @@ void Request::readSocket()
 
                         if (getArgument() == "description/fetch") {
                             // new renderer is connecting to server
-                            emit newRenderer(log, getpeerAddress(), getPort(), getUserAgent());
+                            emit newRenderer(log, getpeerAddress(), getPort(), getParamHeader("USER-AGENT"));
                         }
                     } else {
                         log->Trace("Request: Received on socket: " + headerLine);
@@ -241,6 +212,7 @@ void Request::readSocket()
 
             if ((getReceivedContentLength() <= 0) || (m_content.size() == getReceivedContentLength())) {
                 // prepare and send answer
+                replyInProgress = true;
                 emit sendReply();
             }
 
@@ -259,26 +231,55 @@ void Request::readSocket()
                 log->Trace("Data Read: " + m_content);
 
                 // prepare and send answer
+                replyInProgress = true;
                 emit sendReply();
             }
         }
+    } else {
+        qWarning() << "unable to read request, a reply is in progress.";
     }
 }
 
 void Request::stateChanged(const QAbstractSocket::SocketState &state)
 {
-    if (state == QAbstractSocket::UnconnectedState) {
+    if (state == QAbstractSocket::UnconnectedState)
         setNetworkStatus("disconnected");
-
-    } else if (state == QAbstractSocket::ClosingState)
+    else if (state == QAbstractSocket::ClosingState)
         setNetworkStatus("closed");
+    else
+        setNetworkStatus(QString("State %1").arg(state));
 }
 
-void Request::endReply()
+void Request::replyFinished()
 {
     if (clock.isValid())
     {
+        appendLog("REPLY FINISHED"+CRLF);
         setDuration(clock.elapsed());
         clock.invalidate();
+
+        // initialize to get new request
+        replyNumber++;
+        replyInProgress = false;
+        flagHeaderReading = true;
+        m_header.append(QString("%1 **************************"+CRLF).arg(replyNumber)); emit dataChanged("header");
+        m_params.clear();
+        appendAnswer(QString("%1 **************************"+CRLF).arg(replyNumber));
+        setMethod(QString());
+        setArgument(QString());
+        setTextContent(QString());
+        if (range)
+        {
+            delete range;
+            range = 0;
+        }
+        timeSeekRangeStart = -1;
+        timeSeekRangeEnd = -1;
+        setHttp10(false);
+        setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
+    }
+    else
+    {
+        appendLog("Reply finished but not yet started"+CRLF);
     }
 }

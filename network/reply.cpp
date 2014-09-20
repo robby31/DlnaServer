@@ -29,7 +29,7 @@ const QString Reply::EVENT_FOOTER = "</e:propertyset>";
 const int Reply::UPDATE_STATUS_PERIOD = 1000;
 
 
-Reply::Reply(Logger* log, Request* request, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel, QObject *parent):
+Reply::Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel, QObject *parent):
     QObject(parent),
     m_log(log),
     m_request(request),
@@ -45,7 +45,7 @@ Reply::Reply(Logger* log, Request* request, DlnaRootFolder *rootFolder, MediaRen
     maxBufferSize(1024*1024*100)  // 100 MBytes
 {
     connect(request->getClient(), SIGNAL(bytesWritten(qint64)), this, SLOT(bytesSent(qint64)));
-    connect(request->getClient(), SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(stateChanged(QAbstractSocket::SocketState)));
+    connect(request->getClient(), SIGNAL(disconnected()), this, SLOT(close()));
 
     connect(&timerStatus, SIGNAL(timeout()), this, SLOT(updateStatus()));
 
@@ -54,12 +54,16 @@ Reply::Reply(Logger* log, Request* request, DlnaRootFolder *rootFolder, MediaRen
 
 Reply::~Reply() {
     if (transcodeProcess != 0)
+    {
         delete transcodeProcess;
+        transcodeProcess = 0;
+    }
 
     if (streamContent != 0)
+    {
         delete streamContent;
-
-    close();
+        streamContent = 0;
+    }
 }
 
 void Reply::sendLine(QTcpSocket *client, const QString &msg)
@@ -881,26 +885,32 @@ void Reply::finishedTranscodeData(const int &exitCode) {
         } else {
             m_request->setStatus("Transcoding aborted.");
         }
+
+        closeClient();
     }
 }
 
 void Reply::closeClient() {
-    if (m_log->isLevel(DEBG) and transcodeProcess)
-        appendTrancodeProcessLog(QString("%3: closeclient, state transcodeprocess %1, client valid? %2").arg(transcodeProcess->state()).arg(client != 0).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+    if (m_request->getHttpConnection().toLower() == "close")
+    {
+        if (m_log->isLevel(DEBG) and transcodeProcess)
+            appendTrancodeProcessLog(QString("%3: closeclient, state transcodeprocess %1, client valid? %2").arg(transcodeProcess->state()).arg(client != 0).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
-    if (!keepSocketOpened and (transcodeProcess == 0 or transcodeProcess->state() != QProcess::Running) and (streamContent == 0 or streamContent->atEnd())) {
-        // No streaming or transcoding in progress
-        m_log->Trace("Close client connection in request");
-        if (client != 0) {
-            if (m_log->isLevel(DEBG) and transcodeProcess)
-                appendTrancodeProcessLog(QString("%2: CLOSE CLIENT (%1)").arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        if (!keepSocketOpened and (transcodeProcess == 0 or transcodeProcess->state() != QProcess::Running) and (streamContent == 0 or streamContent->atEnd())) {
+            // No streaming or transcoding in progress
+            m_log->Trace("Close client connection in request");
+            if (client != 0) {
+                if (m_log->isLevel(DEBG) and transcodeProcess)
+                    appendTrancodeProcessLog(QString("%2: CLOSE CLIENT (%1)").arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
-            client->disconnectFromHost();
-        } else
-            m_log->Debug("Unable to close client (client deleted).");
-
-        m_request->endReply();
+                client->disconnectFromHost();
+            } else
+                m_log->Debug("Unable to close client (client deleted).");
+        }
     }
+
+    if (!keepSocketOpened and transcodeProcess == 0 and streamContent == 0)
+        emit finished();
 }
 
 void Reply::updateStatus()
@@ -995,41 +1005,15 @@ void Reply::bytesSent(const qint64 &size)
         }
     }
 
-    if (transcodeProcess && client && client->bytesToWrite() < (maxBufferSize*0.5)) {
+    if (transcodeProcess && transcodeProcess->state() != QProcess::NotRunning && client && client->bytesToWrite() < (maxBufferSize*0.5)) {
         // restart transcoding process
         if (transcodeProcess->resume() == false)
             m_log->Error(QString("Unable to restart transcoding: pid=%1").arg(transcodeProcess->pid()));
     }
 }
 
-void Reply::stateChanged(const QAbstractSocket::SocketState &state)
-{
-    if (m_log->isLevel(DEBG) and transcodeProcess) {
-        if (client != 0)
-            appendTrancodeProcessLog(QString("%2: Socket state changed %3 (%1)").arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(state));
-        else
-            appendTrancodeProcessLog(QString("%1: Socket state changed %2 (client deleted)").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(state));
-    }
-
-    if (state == QAbstractSocket::UnconnectedState) {
-        close();
-    }
-}
-
-void Reply::errorSocket(const QAbstractSocket::SocketError &error)
-{
-    Q_UNUSED(error)
-
-    if (transcodeProcess) {
-        if (client) {
-            appendTrancodeProcessLog(QString("%3: Socket ERROR (%1): %2").arg(client->socketDescriptor()).arg(client->errorString()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-            appendTrancodeProcessLog(QString("Available socket data: %1 bytes, Bytes sent: %2 bytes").arg(client->bytesAvailable()).arg(networkBytesSent));
-        } else
-            appendTrancodeProcessLog(QString("%1: Socket ERROR (client deleted)").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-    }
-}
-
 void Reply::close() {
+    appendTrancodeProcessLog(QString("CLOSE REPLY"+CRLF));
     timerStatus.stop();
 
     if (clockSending.isValid())
@@ -1054,6 +1038,8 @@ void Reply::close() {
         if (transcodeProcess->state() != QProcess::NotRunning) {
             m_request->setStatus("Transcoding aborted.");
             transcodeProcess->killProcess();
+            if (!transcodeProcess->waitForFinished(1000))
+                m_log->Warning("Unable to kill process before process deletion.");
         }
 
         if (!transcodeProcess->isKilled() && transcodeProcess->transcodeExitCode()==0 && client && client->bytesToWrite() == 0)
@@ -1061,12 +1047,8 @@ void Reply::close() {
         else
             emit servingFinished(mediaFilename, 1);
 
-        if (!transcodeProcess->isKilled()) {
-            delete transcodeProcess;
-            transcodeProcess = 0;
-        } else {
-            transcodeProcess->disconnect(this);
-        }
+        delete transcodeProcess;
+        transcodeProcess = 0;
 
         m_renderersModel->stopServing(m_request->getpeerAddress());
     }
@@ -1080,5 +1062,5 @@ void Reply::close() {
             m_log->Debug(QString("remaining data to send: %1").arg(client->bytesToWrite()));
     }
 
-    m_request->endReply();
+    emit finished();
 }
