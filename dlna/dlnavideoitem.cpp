@@ -117,7 +117,7 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
         res.setAttribute("size", QString("%1").arg(size()));
     }
 
-    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId()).arg(host).arg(port).arg(getName().replace(" ", "+"))));
+    res.appendChild(xml->createTextNode(QString("http://%2:%3/get/%1/%4").arg(getResourceId()).arg(host).arg(port).arg(getName().toUtf8().toPercentEncoding().constData())));
 
     xml_obj.appendChild(res);
 
