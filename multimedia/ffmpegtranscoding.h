@@ -14,6 +14,8 @@ public:
     virtual bool initialize(HttpRange* range, const long &timeseek_start, const long &timeseek_end,
                             const QString &filePath, const int &lengthInSeconds, const TranscodeFormatAvailable &transcodeFormat, const int &bitrate);
 
+    static const QString PROGRAM;
+
 signals:
 
 public slots:

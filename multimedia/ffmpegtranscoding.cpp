@@ -1,14 +1,15 @@
 #include "ffmpegtranscoding.h"
 
+const QString FfmpegTranscoding::PROGRAM = QString("/opt/local/bin/ffmpeg");
+
 FfmpegTranscoding::FfmpegTranscoding(Logger *log, QObject *parent) :
     TranscodeProcess(log, parent)
 {
+    setProgram(PROGRAM);
 }
 
 bool FfmpegTranscoding::initialize(HttpRange *range, const long &timeseek_start, const long &timeseek_end, const QString &filePath, const int &lengthInSeconds, const TranscodeFormatAvailable &transcodeFormat, const int &bitrate)
 {
-    QString program = "/Users/doudou/workspaceQT/DLNA_server/exe/ffmpeg";
-
     QStringList arguments;
     if (timeseek_start > 0)
     {
@@ -65,7 +66,6 @@ bool FfmpegTranscoding::initialize(HttpRange *range, const long &timeseek_start,
 
     arguments << "pipe:";
 
-    setProgram(program);
     setArguments(arguments);
 
     return true;
