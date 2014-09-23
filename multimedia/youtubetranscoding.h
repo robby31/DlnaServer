@@ -8,6 +8,7 @@ class YouTubeTranscoding : public MencoderTranscoding
     Q_OBJECT
 public:
     explicit YouTubeTranscoding(Logger* log, QObject *parent = 0);
+    virtual ~YouTubeTranscoding();
 
     // initialize program pathname and arguments of the QProcess
     virtual bool initialize(HttpRange* range, const long &timeseek_start, const long &timeseek_end,

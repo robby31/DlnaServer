@@ -10,17 +10,20 @@ YouTubeTranscoding::YouTubeTranscoding(Logger *log, QObject *parent) :
     youtubeStreaming.setProgram("/usr/local/bin/youtube-dl");
 }
 
+YouTubeTranscoding::~YouTubeTranscoding() {
+    if (!youtubeStreaming.waitForFinished(1000))
+        m_log->Error("YouTubeTranscoding not finished");
+}
+
 bool YouTubeTranscoding::initialize(HttpRange *range, const long &timeseek_start, const long &timeseek_end, const QString &filePath, const int &lengthInSeconds, const TranscodeFormatAvailable &transcodeFormat, const int &bitrate, const QStringList &audioLanguages, const QStringList &subtitleLanguages, const QString &framerate)
 {
     url = filePath;
 
     QStringList argYoutube;
-    argYoutube << "-o";
-    argYoutube << "-";
-    argYoutube << filePath;
+    argYoutube << "-o" << "-";
+    argYoutube << "--max-quality" << "18";
+    argYoutube << url;
     youtubeStreaming.setArguments(argYoutube);
-    appendLog(QString("%1 %2").arg(youtubeStreaming.program()).arg(youtubeStreaming.arguments().join(" ")));
-
     youtubeStreaming.setStandardOutputProcess(this);
 
     return MencoderTranscoding::initialize(range, timeseek_start, timeseek_start, "-", lengthInSeconds, transcodeFormat, bitrate, audioLanguages, subtitleLanguages, framerate);
@@ -28,6 +31,8 @@ bool YouTubeTranscoding::initialize(HttpRange *range, const long &timeseek_start
 
 void YouTubeTranscoding::launch()
 {
+    appendLog(QString("%1 %2").arg(youtubeStreaming.program()).arg(youtubeStreaming.arguments().join(" ")));
+
     youtubeStreaming.start();
     MencoderTranscoding::launch();
 }
