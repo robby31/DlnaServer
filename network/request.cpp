@@ -169,7 +169,23 @@ bool Request::appendHeader(const QString &headerLine)
 void Request::readSocket()
 {
     if (!clock.isValid())
+    {
         clock.start();      // start clock to measure time taken to answer to the request
+
+        // initialize data
+        setMethod(QString());
+        setArgument(QString());
+        setTextContent(QString());
+        if (range)
+        {
+            delete range;
+            range = 0;
+        }
+        timeSeekRangeStart = -1;
+        timeSeekRangeEnd = -1;
+        setHttp10(false);
+        setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
+    }
 
     QTcpSocket* client = (QTcpSocket*)sender();
 
@@ -265,18 +281,6 @@ void Request::replyFinished()
         m_header.append(QString("%1 **************************"+CRLF).arg(replyNumber)); emit dataChanged("header");
         m_params.clear();
         appendAnswer(QString("%1 **************************"+CRLF).arg(replyNumber));
-        setMethod(QString());
-        setArgument(QString());
-        setTextContent(QString());
-        if (range)
-        {
-            delete range;
-            range = 0;
-        }
-        timeSeekRangeStart = -1;
-        timeSeekRangeEnd = -1;
-        setHttp10(false);
-        setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
     }
     else
     {
