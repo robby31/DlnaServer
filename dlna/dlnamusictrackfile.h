@@ -36,6 +36,7 @@ public:
     virtual QString metaDataPerformer() const;
     virtual QString metaDataAlbum() const;
     virtual int metaDataTrackPosition() const;
+    virtual int metaDataDisc() const;
     virtual QString metaDataFormat() const;
     virtual QByteArray metaDataPicture() const;
     virtual QString metaDataLastModifiedDate() const { return fileinfo.lastModified().toString("yyyy-MM-dd"); }

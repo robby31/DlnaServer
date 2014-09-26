@@ -8,7 +8,7 @@ DlnaCachedMusicFolder::DlnaCachedMusicFolder(Logger* log, MediaLibrary *library,
 
     child = new DlnaCachedFolderMetaData(log, library, idType, "artist", "Artist",
                                          host, port,
-                                         QString("album, trackposition"), QString("ASC"),
+                                         QString("album, disc, trackposition"), QString("ASC"),
                                          QString(), this);
     child->setId(QString("%1").arg(children.length()+1));
     children.append(child);
@@ -16,7 +16,7 @@ DlnaCachedMusicFolder::DlnaCachedMusicFolder(Logger* log, MediaLibrary *library,
 
     child = new DlnaCachedFolderMetaData(log, library, idType, "album", "Album",
                                          host, port,
-                                         QString("trackposition"), QString("ASC"),
+                                         QString("disc, trackposition"), QString("ASC"),
                                          QString(), this);
     child->setId(QString("%1").arg(children.length()+1));
     children.append(child);
@@ -24,7 +24,7 @@ DlnaCachedMusicFolder::DlnaCachedMusicFolder(Logger* log, MediaLibrary *library,
 
     child = new DlnaCachedFolderMetaData(log, library, idType, "genre", "Genre",
                                          host, port,
-                                         QString("album, trackposition"), QString("ASC"),
+                                         QString("album, disc, trackposition"), QString("ASC"),
                                          QString(), this);
     child->setId(QString("%1").arg(children.length()+1));
     children.append(child);

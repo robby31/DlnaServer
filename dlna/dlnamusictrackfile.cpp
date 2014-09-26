@@ -39,6 +39,11 @@ int DlnaMusicTrackFile::metaDataTrackPosition() const {
     return ffmpeg.metaData("track").split('/').at(0).toInt();
 }
 
+int DlnaMusicTrackFile::metaDataDisc() const
+{
+    return ffmpeg.metaData("disc").split('/').at(0).toInt();
+}
+
 QString DlnaMusicTrackFile::metaDataFormat() const {
     return ffmpeg.getAudioFormat();
 }

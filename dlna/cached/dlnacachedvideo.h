@@ -34,6 +34,7 @@ public:
     virtual QString metaDataPerformer()        const { return ""; }
     virtual QString metaDataAlbum()            const { return ""; }
     virtual int metaDataTrackPosition()        const { return 0; }
+    virtual int metaDataDisc()                 const { return 0; }
     virtual QString metaDataFormat()           const { if (library != 0) return library->getmetaData("format", idMedia).toString(); else return QString(); }
     virtual QByteArray metaDataPicture()       const { return QByteArray(); }
     virtual QString metaDataLastModifiedDate() const { if (library != 0) return library->getmetaData("last_modified", idMedia).toString(); else return QString(); }

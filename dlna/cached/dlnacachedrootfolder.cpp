@@ -163,7 +163,8 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
 //    // check meta data
 //    library.checkMetaData(fileinfo);
 
-    if (!library.contains(fileinfo)) {
+    if (!library.contains(fileinfo))
+    {
         QString mime_type = mimeDb.mimeTypeForFile(fileinfo).name();
 
         QHash<QString, QVariant> data;
@@ -173,8 +174,8 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
         data.insert("mime_type", mime_type);
         data.insert("last_modified", fileinfo.lastModified());
 
-        if (mime_type.startsWith("audio/")) {
-
+        if (mime_type.startsWith("audio/"))
+        {
             DlnaMusicTrackFile track(log, fileinfo.absoluteFilePath(), host, port);
 
             data.insert("title", track.metaDataTitle());
@@ -182,15 +183,16 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
             data.insert("artist", track.metaDataPerformer());
             data.insert("genre", track.metaDataGenre());
             data.insert("trackposition", track.metaDataTrackPosition());
+            data.insert("disc", track.metaDataDisc());
             data.insert("duration", track.metaDataDuration());
             data.insert("samplerate", track.samplerate());
             data.insert("channelcount", track.channelCount());
             data.insert("picture", track.getByteAlbumArt());
             data.insert("format", track.metaDataFormat());
             data.insert("bitrate", track.bitrate());
-
-        } else if (mime_type.startsWith("video/")) {
-
+        }
+        else if (mime_type.startsWith("video/"))
+        {
             DlnaVideoFile movie(log, fileinfo.absoluteFilePath(), host, port);
 
             data.insert("duration", movie.metaDataDuration());
@@ -203,15 +205,17 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
             data.insert("bitrate", movie.bitrate());
             data.insert("format", movie.metaDataFormat());
 
-        } else {
+        }
+        else
+        {
             log->Debug("resource not added to library: " + mime_type + ", " + fileinfo.absoluteFilePath());
             data.clear();
         }
 
-        if (!data.isEmpty()) {
-            if (!library.add_media(data)) {
+        if (!data.isEmpty())
+        {
+            if (!library.add_media(data))
                 log->Error(QString("unable to add or update resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type));
-            }
         }
     }
 }

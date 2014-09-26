@@ -57,6 +57,11 @@ int DlnaVideoFile::metaDataTrackPosition() const {
     return ffmpeg.metaData("track").split('/').at(0).toInt();
 }
 
+int DlnaVideoFile::metaDataDisc() const
+{
+    return ffmpeg.metaData("disc").split('/').at(0).toInt();
+}
+
 QString DlnaVideoFile::metaDataFormat() const {
     return ffmpeg.getFormat();
 }

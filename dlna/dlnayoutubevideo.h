@@ -32,6 +32,7 @@ public:
     virtual QString metaDataPerformer()        const { return QString(); }
     virtual QString metaDataAlbum()            const { return QString(); }
     virtual int metaDataTrackPosition()        const { return 0; }
+    virtual int metaDataDisc()                 const { return 0; }
     virtual QString metaDataFormat()           const { return QString(); }
     virtual QByteArray metaDataPicture()       const { return QByteArray(); }
     virtual QString metaDataLastModifiedDate() const { return QString(); }

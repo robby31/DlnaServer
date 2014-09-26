@@ -30,7 +30,7 @@ bool MediaLibrary::open()
                         "id integer primary key, "
                         "filename varchar unique, "
                         "is_reachable integer DEFAULT 1, "
-                        "title varchar, album integer, artist integer, genre integer, trackposition integer, "
+                        "title varchar, album integer, artist integer, genre integer, trackposition integer, disc integer, "
                         "duration integer, samplerate integer, channelcount integer, bitrate integer, resolution varchar, framerate varchar, "
                         "picture integer, "
                         "audiolanguages varchar, subtitlelanguages varchar, "
@@ -69,13 +69,18 @@ bool MediaLibrary::open()
         }
 
         if (!query.exec("create table if not exists artist (id integer primary key, "
-                                                           "name varchar unique)")) {
+                                                           "name varchar unique, sortname varchar "
+                                                           ")")) {
             log->Error("unable to create table artist in MediaLibrary " + query.lastError().text());
             return false;
         }
 
         if (!query.exec("create table if not exists album (id integer primary key, "
-                                                          "name varchar unique)")) {
+                                                          "name varchar unique, artist integer, year integer, "
+                                                          "musicbrainz_type varchar, musicbrainz_id varchar, musicbrainz_artistid varchar,"
+                                                          "FOREIGN KEY(artist) REFERENCES artist(id)"
+                                                          ")"))
+        {
             log->Error("unable to create table album in MediaLibrary " + query.lastError().text());
             return false;
         }
