@@ -9,6 +9,7 @@
 #include "cached/dlnacachedrootfolder.h"
 #include "cached/batchedrootfolder.h"
 #include "reply.h"
+#include "replydlnaitemcontent.h"
 
 class HttpServer : public QTcpServer
 {
