@@ -10,7 +10,7 @@ class MediaRendererModel : public QAbstractTableModel
 
 public:
     explicit MediaRendererModel(QObject *parent = 0);
-    ~MediaRendererModel();
+    virtual ~MediaRendererModel();
 
     enum Roles {
         statusRole = Qt::UserRole+1,

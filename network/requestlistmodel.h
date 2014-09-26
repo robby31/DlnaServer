@@ -10,7 +10,7 @@ class RequestListModel : public QAbstractTableModel
 
 public:
     explicit RequestListModel(QObject *parent = 0);
-    ~RequestListModel();
+    virtual ~RequestListModel();
 
     enum Roles {
         methodRole = Qt::UserRole+1,
