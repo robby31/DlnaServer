@@ -35,6 +35,7 @@ Reply::Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, MediaRen
     m_rootFolder(rootFolder),
     m_renderersModel(renderersModel)
 {
+    connect(client, SIGNAL(destroyed()), this, SLOT(clientDestroyed()));
 }
 
 void Reply::sendLine(QTcpSocket *client, const QString &msg)
@@ -127,7 +128,8 @@ void Reply::run() {
         answerHeader << "Cache-Control: no-cache";
         answerHeader << "Expires: 0";
         answerHeader << "Accept-Ranges: bytes";
-        answerHeader << "Connection: keep-alive";
+        if (!m_request->isHttp10())
+            answerHeader << "Connection: keep-alive";
         answerHeader << "Server: " + m_request->getServername();
 
         QString answerContent;
@@ -530,7 +532,8 @@ void Reply::run() {
         }
 
         answerHeader << "Accept-Ranges: bytes";
-        answerHeader << "Connection: keep-alive";
+        if (!m_request->isHttp10())
+            answerHeader << "Connection: keep-alive";
 //        answerHeader << "Expires: " + getFUTUREDATE() + " GMT";
         answerHeader << "Server: " + m_request->getServername();
 
@@ -559,12 +562,13 @@ void Reply::run() {
 }
 
 void Reply::closeClient() {
-    if (m_request->getHttpConnection().toLower() == "close")
+    if (m_request->isHttp10() or m_request->getHttpConnection().toLower() == "close")
     {
         if (!keepSocketOpened)
         {
             // No streaming or transcoding in progress
             m_log->Trace("Close client connection in request");
+            appendTrancodeProcessLog("Close Client."+CRLF);
             if (client != 0)
                 client->disconnectFromHost();
             else

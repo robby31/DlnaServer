@@ -84,7 +84,8 @@ void ReplyDlnaItemContent::run() {
                 answerHeader << "Content-Type: image/jpeg";
                 answerHeader << "Accept-Ranges: bytes";
 //                answerHeader << "Expires: " + getFUTUREDATE() + " GMT";
-                answerHeader << "Connection: keep-alive";
+                if (!m_request->isHttp10())
+                    answerHeader << "Connection: keep-alive";
                 answerHeader << "Server: " + m_request->getServername();
 
                 QByteArray answerContent = dlna->getByteAlbumArt();
@@ -122,8 +123,8 @@ void ReplyDlnaItemContent::run() {
                 headerAnswerToSend << "Content-Type: " + dlna->mimeType();
 
                 if (!m_request->getContentFeatures().isNull()) {
-                    answerHeader << "ContentFeatures.DLNA.ORG: " + dlna->getDlnaContentFeatures();
-                    headerAnswerToSend << "ContentFeatures.DLNA.ORG: " + dlna->getDlnaContentFeatures();
+                    answerHeader << "contentFeatures.dlna.org: " + dlna->getDlnaContentFeatures();
+                    headerAnswerToSend << "contentFeatures.dlna.org: " + dlna->getDlnaContentFeatures();
                 }
 
                 if (!m_request->getMediaInfoSec().isNull()) {
@@ -136,8 +137,11 @@ void ReplyDlnaItemContent::run() {
                     headerAnswerToSend << "Accept-Ranges: bytes";
                 }
 
-                answerHeader << "Connection: keep-alive";
-                headerAnswerToSend << "Connection: keep-alive";
+                if (!m_request->isHttp10())
+                {
+                    answerHeader << "Connection: keep-alive";
+                    headerAnswerToSend << "Connection: keep-alive";
+                }
 
                 answerHeader << "Server: " + m_request->getServername();
                 headerAnswerToSend << "Server: " + m_request->getServername();
@@ -510,7 +514,7 @@ void ReplyDlnaItemContent::close() {
 }
 
 void ReplyDlnaItemContent::closeClient() {
-    if (m_request->getHttpConnection().toLower() == "close")
+    if (m_request->isHttp10() or m_request->getHttpConnection().toLower() == "close")
     {
         if (m_log->isLevel(DEBG) and transcodeProcess)
             appendTrancodeProcessLog(QString("%3: closeclient, state transcodeprocess %1, client valid? %2").arg(transcodeProcess->state()).arg(client != 0).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
@@ -518,6 +522,7 @@ void ReplyDlnaItemContent::closeClient() {
         if (!keepSocketOpened and (transcodeProcess == 0 or transcodeProcess->state() != QProcess::Running) and (streamContent == 0 or streamContent->atEnd())) {
             // No streaming or transcoding in progress
             m_log->Trace("Close client connection in request");
+            appendTrancodeProcessLog("CLose Client."+CRLF);
             if (client != 0) {
                 if (m_log->isLevel(DEBG) and transcodeProcess)
                     appendTrancodeProcessLog(QString("%2: CLOSE CLIENT (%1)").arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));

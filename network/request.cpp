@@ -44,6 +44,7 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
 
         connect(client, SIGNAL(readyRead()), this, SLOT(readSocket()));
         connect(client, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(stateChanged(QAbstractSocket::SocketState)));
+        connect(client, SIGNAL(destroyed()), this, SLOT(clientDestroyed()));
     }
 
     log->Trace("Request: receiving a request from " + getpeerAddress());

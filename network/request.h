@@ -95,8 +95,12 @@ signals:
     // emit signal to add a new renderer
     void newRenderer(Logger* log, QString peerAddress, int port, QString userAgent);
 
+
 public slots:
     void replyFinished();
+
+    void clientDestroyed() { m_client = 0; appendLog("Client destroyed (request)."+CRLF); }
+
 
 private slots:
     // slots for incoming data

@@ -26,6 +26,7 @@ signals:
 
 
 public slots:
+    void clientDestroyed() { client = 0; appendTrancodeProcessLog("Client destroyed (reply)."+CRLF); }
 
 
 protected:
