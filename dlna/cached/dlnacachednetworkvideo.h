@@ -18,7 +18,7 @@ public:
     virtual qint64 getResumeTime() const { return 0; }
 
     // Returns the process for transcoding
-    virtual YouTubeTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
+    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
 
 };
 

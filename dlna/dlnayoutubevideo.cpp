@@ -67,7 +67,7 @@ void DlnaYouTubeVideo::requestVideoInfo()
     }
 }
 
-YouTubeTranscoding *DlnaYouTubeVideo::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent) {
+TranscodeProcess *DlnaYouTubeVideo::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent) {
     if (!toTranscode()) {
 
         // use getStream instead of transcoding

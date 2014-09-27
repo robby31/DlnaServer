@@ -5,7 +5,7 @@ DlnaCachedNetworkVideo::DlnaCachedNetworkVideo(Logger* log, MediaLibrary* librar
 {
 }
 
-YouTubeTranscoding *DlnaCachedNetworkVideo::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent) {
+TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent) {
     if (!toTranscode()) {
 
         // use getStream instead of transcoding

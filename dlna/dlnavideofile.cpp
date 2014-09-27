@@ -14,7 +14,7 @@ DlnaVideoFile::~DlnaVideoFile() {
 
 }
 
-MencoderTranscoding *DlnaVideoFile::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent) {
+TranscodeProcess *DlnaVideoFile::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent) {
     if (!toTranscode()) {
 
         // use getStream instead of transcoding

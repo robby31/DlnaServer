@@ -2,6 +2,7 @@
 #define DLNAVIDEOFILE_H
 
 #include "dlnavideoitem.h"
+#include "mencodertranscoding.h"
 #include "qffmpeg.h"
 
 class DlnaVideoFile : public DlnaVideoItem
@@ -26,7 +27,7 @@ public:
     virtual qint64 sourceSize() const { return fileinfo.size(); }
 
     // Returns the process for transcoding
-    virtual MencoderTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
+    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
 
     virtual int metaDataBitrate() const;
     virtual int metaDataDuration() const;

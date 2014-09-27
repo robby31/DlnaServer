@@ -2,7 +2,6 @@
 #define DLNAVIDEOITEM_H
 
 #include "dlnaitem.h"
-#include "mencodertranscoding.h"
 
 class DlnaVideoItem : public DlnaItem
 {

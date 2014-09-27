@@ -2,6 +2,7 @@
 #define DLNACACHEDVIDEO_H
 
 #include "dlnavideoitem.h"
+#include "mencodertranscoding.h"
 #include "medialibrary.h"
 
 class DlnaCachedVideo : public DlnaVideoItem
@@ -20,7 +21,7 @@ public:
     virtual qint64 sourceSize() const { return -1; }
 
     // Returns the process for transcoding
-    virtual MencoderTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
+    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
 
     // return true if the track shall be transcoded
     virtual bool toTranscode() const { return true; }
