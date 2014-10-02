@@ -55,7 +55,7 @@ private slots :
     void acceptConnection();                                             // new connection detected
     void newConnectionError(const QAbstractSocket::SocketError &error);  // error during new connection
     void newRequest(Request *request);                                   // new request has been created successfully
-    void sendReply();                                                    // reply shall be sent
+    void readyToReply();                                                 // reply shall be sent
 
     void servingProgress(const QString &filename, const int &playedDurationInMs);
     void servingFinished(const QString &filename, const int &status);

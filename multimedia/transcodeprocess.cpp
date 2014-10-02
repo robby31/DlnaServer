@@ -27,7 +27,7 @@ void TranscodeProcess::errorTrancodedData(const ProcessError &error) {
     // trancoding failed
     if (killTranscodeProcess == false) {
         // an error occured
-        appendLog(QString("ERROR Transcoding: %1."+CRLF).arg(errorString()));
+        appendLog(QString("%2: ERROR Transcoding: %1."+CRLF).arg(errorString()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
     }
 }
 
@@ -47,7 +47,7 @@ void TranscodeProcess::launch() {
 
 void TranscodeProcess::killProcess() {
     if (state() != QProcess::NotRunning) {
-        appendLog(QString(CRLF+"%1: KILL transcoding process."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        appendLog(QString("%1: KILL transcoding process."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
         killTranscodeProcess = true;
         kill();
     }

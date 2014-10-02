@@ -90,7 +90,7 @@ signals:
     void headerReady();
 
     // emit signal when reply may be prepared and sent
-    void sendReply();
+    void readyToReply();
 
     // emit signal to add a new renderer
     void newRenderer(Logger* log, QString peerAddress, int port, QString userAgent);
@@ -99,7 +99,9 @@ signals:
 public slots:
     void replyFinished();
 
-    void clientDestroyed() { m_client = 0; appendLog("Client destroyed (request)."+CRLF); }
+    void clientError(QAbstractSocket::SocketError error) { appendLog(QString("%2: Network Error: %1"+CRLF).arg(error).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
+    void clientDestroyed() { m_client = 0;
+                             appendLog(QString("%1: Client destroyed (request)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
 
 
 private slots:

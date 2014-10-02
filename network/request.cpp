@@ -43,6 +43,7 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
         }
 
         connect(client, SIGNAL(readyRead()), this, SLOT(readSocket()));
+        connect(client, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(clientError(QAbstractSocket::SocketError)));
         connect(client, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(stateChanged(QAbstractSocket::SocketState)));
         connect(client, SIGNAL(destroyed()), this, SLOT(clientDestroyed()));
     }
@@ -165,8 +166,6 @@ bool Request::appendHeader(const QString &headerLine)
     return true;
 }
 
-
-
 void Request::readSocket()
 {
     if (!clock.isValid())
@@ -230,7 +229,7 @@ void Request::readSocket()
             if ((getReceivedContentLength() <= 0) || (m_content.size() == getReceivedContentLength())) {
                 // prepare and send answer
                 replyInProgress = true;
-                emit sendReply();
+                emit readyToReply();
             }
 
         } else {
@@ -249,7 +248,7 @@ void Request::readSocket()
 
                 // prepare and send answer
                 replyInProgress = true;
-                emit sendReply();
+                emit readyToReply();
             }
         }
     } else {
@@ -271,12 +270,12 @@ void Request::replyFinished()
 {
     if (clock.isValid())
     {
-        appendLog("REPLY FINISHED"+CRLF);
         setDuration(clock.elapsed());
         clock.invalidate();
 
         // initialize to get new request
         replyNumber++;
+        appendLog(QString("%1: REPLY %2 FINISHED"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(replyNumber));
         replyInProgress = false;
         flagHeaderReading = true;
         m_header.append(QString("%1 **************************"+CRLF).arg(replyNumber)); emit dataChanged("header");
@@ -285,6 +284,6 @@ void Request::replyFinished()
     }
     else
     {
-        appendLog("Reply finished but not yet started"+CRLF);
+        appendLog(QString("%1: Reply finished but not yet started"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
     }
 }

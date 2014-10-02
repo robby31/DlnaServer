@@ -106,7 +106,7 @@ void HttpServer::acceptConnection()
 
 void HttpServer::newRequest(Request *request)
 {
-    connect(request, SIGNAL(sendReply()), this, SLOT(sendReply()));
+    connect(request, SIGNAL(readyToReply()), this, SLOT(readyToReply()));
     connect(request, SIGNAL(newRenderer(Logger*,QString,int,QString)), this, SLOT(createRenderer(Logger*,QString,int,QString)));
 }
 
@@ -114,7 +114,7 @@ void HttpServer::newConnectionError(const QAbstractSocket::SocketError &error) {
     m_log->Error(QString("HTTP server: error at new connection (%1).").arg(error));
 }
 
-void HttpServer::sendReply()
+void HttpServer::readyToReply()
 {
     Request* request = (Request*) sender();
     Reply* reply;
