@@ -2,9 +2,6 @@
 
 const QString Reply::CRLF = "\r\n";
 
-const QString Reply::CONTENT_TYPE_UTF8 = "CONTENT-TYPE: text/xml; charset=\"utf-8\"";
-const QString Reply::CONTENT_TYPE = "Content-Type: text/xml; charset=\"utf-8\"";
-
 const QString Reply::HTTP_200_OK = "HTTP/1.1 200 OK";
 const QString Reply::HTTP_500 = "HTTP/1.1 500 Internal Server Error";
 const QString Reply::HTTP_206_OK = "HTTP/1.1 206 Partial Content";
@@ -30,12 +27,29 @@ Reply::Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, MediaRen
     QObject(parent),
     m_log(log),
     m_request(request),
+    m_params(),
+    headerSent(false),
     client(request->getClient()),
     keepSocketOpened(false),
     m_rootFolder(rootFolder),
     m_renderersModel(renderersModel)
 {
     connect(client, SIGNAL(destroyed()), this, SLOT(clientDestroyed()));
+}
+
+QString Reply::getParamHeader(const QString &param) const
+{
+    if (m_params.contains(param))
+        return m_params[param];
+    return QString();
+}
+
+void Reply::setParamHeader(const QString &param, const QString &value)
+{
+    if (m_params.contains(param))
+        m_log->Error(QString("Param %1 is defined several times in header: %2 - %3.").arg(param).arg(m_params[param]).arg(value));
+    else
+        m_params[param] = value;
 }
 
 void Reply::sendLine(QTcpSocket *client, const QString &msg)
@@ -56,20 +70,17 @@ void Reply::sendLine(QTcpSocket *client, const QString &msg)
     }
 }
 
-void Reply::sendAnswer(const QStringList &headerAnswer, const QByteArray &contentAnswer, const long &totalSize)
+void Reply::sendHeader()
 {
-    if (client == 0) {
-        m_log->Error("Unable to send answer (client deleted).");
-    } else {
-        HttpRange *range = m_request->getRange();
-        if (range != 0)
+    if (!headerSent)
+    {
+        m_log->Debug("Send header.");
+        appendLog(QString("%1: Send header."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+
+        if (m_request->getRange())
         {
             // partial content requested (range is present in the header)
             sendLine(client, m_request->isHttp10() ? HTTP_206_OK_10 : HTTP_206_OK);
-
-            if (totalSize != -1) {
-                sendLine(client, QString("Content-Range: bytes %1-%2/%3").arg(range->getStartByte()).arg(range->getEndByte()).arg(totalSize));
-            }
 
         } else {
             if (m_request->getSoapaction().contains("X_GetFeatureList")) {
@@ -78,23 +89,31 @@ void Reply::sendAnswer(const QStringList &headerAnswer, const QByteArray &conten
             } else {
                 sendLine(client, m_request->isHttp10() ? HTTP_200_OK_10 : HTTP_200_OK);
             }
-
-            if (totalSize != -1) {
-                sendLine(client, "Content-Length: " + QString("%1").arg(totalSize));
-            } else if (!contentAnswer.isNull()) {
-                sendLine(client, "Content-Length: " + QString("%1").arg(contentAnswer.size()));
-            }
         }
 
-        // send the header
-        foreach (QString line, headerAnswer) {
-            sendLine(client, line.toUtf8());
-        }
+        foreach (const QString &param, m_params.keys())
+            sendLine(client, QString("%1: %2").arg(param).arg(m_params[param]).toUtf8());
 
         sendLine(client, "");
 
+        headerSent = true;
+    }
+}
+
+void Reply::sendAnswer(const QByteArray &contentAnswer)
+{
+    if (client == 0) {
+        m_log->Error("Unable to send answer (client deleted).");
+    } else {
+        if (!contentAnswer.isNull())
+            setParamHeader("Content-Length", QString("%1").arg(contentAnswer.size()));
+
+        // send the header
+        sendHeader();
+
         // HEAD requests only require headers to be set, no need to set contents.
-        if (m_request->getMethod() != "HEAD" && !contentAnswer.isNull()) {
+        if (m_request->getMethod() != "HEAD" && !contentAnswer.isNull())
+        {
             // send the content
             m_request->appendAnswer(QString("content size: %1%2").arg(contentAnswer.size()).arg(CRLF));
             m_request->appendAnswer(contentAnswer);
@@ -122,15 +141,13 @@ void Reply::run() {
 
     if ((m_request->getMethod() == "GET" || m_request->getMethod() == "HEAD") && (m_request->getArgument() == "description/fetch" || m_request->getArgument().endsWith("1.0.xml"))) {
 
-        QStringList answerHeader;
-
-        answerHeader << CONTENT_TYPE;
-        answerHeader << "Cache-Control: no-cache";
-        answerHeader << "Expires: 0";
-        answerHeader << "Accept-Ranges: bytes";
+        setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
+        setParamHeader("Cache-Control", "no-cache");
+        setParamHeader("Expires", "0");
+        setParamHeader("Accept-Ranges", "bytes");
         if (!m_request->isHttp10())
-            answerHeader << "Connection: keep-alive";
-        answerHeader << "Server: " + m_request->getServername();
+            setParamHeader("Connection", "keep-alive");
+        setParamHeader("Server", m_request->getServername());
 
         QString answerContent;
 
@@ -150,16 +167,15 @@ void Reply::run() {
             m_log->Error("Unable to read PMS.xml for description/fetch answer.");
         }
 
-        sendAnswer(answerHeader, answerContent.toUtf8());
+        sendAnswer(answerContent.toUtf8());
 
         m_request->setStatus("OK");
     }
     else if (m_request->getMethod() == "POST" && m_request->getArgument().endsWith("upnp/control/connection_manager")) {
 
         if (!soapaction.isEmpty() && soapaction.indexOf("ConnectionManager:1#GetProtocolInfo") > -1) {
-            QStringList answerHeader;
-            answerHeader << CONTENT_TYPE_UTF8;
-            answerHeader << "Server: " + m_request->getServername();
+            setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
+            setParamHeader("Server", m_request->getServername());
 
             QString answerContent;
             answerContent.append(XML_HEADER);
@@ -171,16 +187,15 @@ void Reply::run() {
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            sendAnswer(answerHeader, answerContent.toUtf8());
+            sendAnswer(answerContent.toUtf8());
 
             m_request->setStatus("OK");
         }
 
     }
     else if (m_request->getMethod() == "POST" && m_request->getArgument().endsWith("upnp/control/content_directory")) {
-        QStringList answerHeader;
-        answerHeader << CONTENT_TYPE_UTF8;
-        answerHeader << "Server: " + m_request->getServername();
+        setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
+        setParamHeader("Server", m_request->getServername());
 
         QString answerContent;
         if (!soapaction.isEmpty() && soapaction.indexOf("ContentDirectory:1#GetSystemUpdateID") > -1) {
@@ -197,7 +212,7 @@ void Reply::run() {
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            sendAnswer(answerHeader, answerContent.toUtf8());
+            sendAnswer(answerContent.toUtf8());
 
             m_request->setStatus("OK");
 
@@ -211,7 +226,7 @@ void Reply::run() {
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            sendAnswer(answerHeader, answerContent.toUtf8());
+            sendAnswer(answerContent.toUtf8());
 
             m_request->setStatus("OK");
 
@@ -226,7 +241,7 @@ void Reply::run() {
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            sendAnswer(answerHeader, answerContent.toUtf8());
+            sendAnswer(answerContent.toUtf8());
 
             m_request->setStatus("OK");
 
@@ -240,7 +255,7 @@ void Reply::run() {
             answerContent.append(SOAP_ENCODING_FOOTER);
             answerContent.append(CRLF);
 
-            sendAnswer(answerHeader, answerContent.toUtf8());
+            sendAnswer(answerContent.toUtf8());
 
             m_request->setStatus("OK");
 
@@ -440,24 +455,22 @@ void Reply::run() {
             }
 
             //send the answer to client
-            sendAnswer(answerHeader, xml.toString(-1).toUtf8());
+            sendAnswer(xml.toString(-1).toUtf8());
 
             m_request->setStatus("OK");
         } else {
             m_request->setStatus("KO");
         }
     } else if (m_request->getMethod() == "SUBSCRIBE" && !soapaction.isEmpty()) {
-        QStringList answerHeader;
-        answerHeader << CONTENT_TYPE_UTF8;
-        answerHeader << "Content-Length: 0";
-        answerHeader << "Connection: close";
-        answerHeader << QString("SID: uuid:%1").arg(m_request->getUuid());
-        answerHeader << "Server: " + m_request->getServername();
-        answerHeader << "Timeout: Second-1800";
-        answerHeader << "";
+        setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
+        setParamHeader("Content-Length", "0");
+        setParamHeader("Connection",  "close");
+        setParamHeader("SID", QString("uuid:%1").arg(m_request->getUuid()));
+        setParamHeader("Server", m_request->getServername());
+        setParamHeader("Timeout", "Second-1800");
 
         keepSocketOpened = true;
-        sendAnswer(answerHeader);
+        sendAnswer();
         if (client != 0) {
             client->flush();
         }
@@ -477,7 +490,7 @@ void Reply::run() {
             sendLine(&sock, "NT: upnp:event");
             sendLine(&sock, "NTS: upnp:propchange");
             sendLine(&sock, QString("HOST: %1:%2").arg(addr).arg(port));
-            sendLine(&sock, CONTENT_TYPE_UTF8);
+            sendLine(&sock, "Content-Type: text/xml; charset=\"utf-8\"");
         }
         else {
             m_log->Error(QString("Cannot connect to %1").arg(cb));
@@ -489,10 +502,11 @@ void Reply::run() {
 
         QString answerContent;
         keepSocketOpened = false;
+        m_params.clear();
+        headerSent = false;
 
         if (m_request->getArgument().contains("connection_manager")) {
-            QStringList answerHeader;
-            answerHeader << "Server: " + m_request->getServername();
+            setParamHeader("Server", m_request->getServername());
 
             answerContent.append(EVENT_Header.arg("urn:schemas-upnp-org:service:ConnectionManager:1"));
             answerContent.append(EVENT_Prop.arg("SinkProtocolInfo").arg(""));
@@ -500,13 +514,12 @@ void Reply::run() {
             answerContent.append(EVENT_Prop.arg("CurrentConnectionIDs").arg(""));
             answerContent.append(EVENT_FOOTER);
 
-            sendAnswer(answerHeader, answerContent.toUtf8());
+            sendAnswer(answerContent.toUtf8());
 
             m_request->setStatus("OK");
 
         } else if (m_request->getArgument().contains("content_directory")) {
-            QStringList answerHeader;
-            answerHeader << "Server: " + m_request->getServername();
+            setParamHeader("Server", m_request->getServername());
 
             answerContent.append(EVENT_Header.arg("urn:schemas-upnp-org:service:ContentDirectory:1"));
             answerContent.append(EVENT_Prop.arg("TransferIDs").arg(""));
@@ -514,7 +527,7 @@ void Reply::run() {
             answerContent.append(EVENT_Prop.arg("SystemUpdateID").arg(1));
             answerContent.append(EVENT_FOOTER);
 
-            sendAnswer(answerHeader, answerContent.toUtf8());
+            sendAnswer(answerContent.toUtf8());
 
             m_request->setStatus("OK");
         } else {
@@ -523,19 +536,18 @@ void Reply::run() {
         }
     }
     else if ((m_request->getMethod() == "GET" || m_request->getMethod() == "HEAD") && (m_request->getArgument().toLower().endsWith(".png") || m_request->getArgument().toLower().endsWith(".jpg") || m_request->getArgument().toLower().endsWith(".jpeg"))) {
-        QStringList answerHeader;
 
         if (m_request->getArgument().toLower().endsWith(".png")) {
-            answerHeader << "Content-Type: image/png";
+            setParamHeader("Content-Type", "image/png");
         } else {
-            answerHeader << "Content-Type: image/jpeg";
+            setParamHeader("Content-Type", "image/jpeg");
         }
 
-        answerHeader << "Accept-Ranges: bytes";
+        setParamHeader("Accept-Ranges", "bytes");
         if (!m_request->isHttp10())
-            answerHeader << "Connection: keep-alive";
-//        answerHeader << "Expires: " + getFUTUREDATE() + " GMT";
-        answerHeader << "Server: " + m_request->getServername();
+            setParamHeader("Connection", "keep-alive");
+//        setParamHeader("Expires:", getFUTUREDATE() + " GMT");
+        setParamHeader("Server", m_request->getServername());
 
         QByteArray answerContent;
 
@@ -550,7 +562,7 @@ void Reply::run() {
             m_log->Error(QString("Unable to read %1 for %2 answer.").arg(m_request->getArgument()).arg(m_request->getMethod()));
         }
 
-        sendAnswer(answerHeader, answerContent);
+        sendAnswer(answerContent);
 
         m_request->setStatus("OK");
     }
@@ -568,11 +580,15 @@ void Reply::closeClient() {
         {
             // No streaming or transcoding in progress
             m_log->Trace("Close client connection in request");
-            appendTrancodeProcessLog("Close Client."+CRLF);
-            if (client != 0)
+            if (client)
+            {
                 client->disconnectFromHost();
+                appendLog(QString("%2: Close client (%1)"+CRLF).arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+            }
             else
-                m_log->Debug("Unable to close client (client deleted).");
+            {
+                appendLog(QString("%1: Unable to close client (client deleted)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+            }
         }
     }
 

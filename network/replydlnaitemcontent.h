@@ -37,7 +37,7 @@ public slots:
     void updateStatus();
 
     void receivedTranscodedData();
-    void receivedTranscodingLogMessage(const QString &msg);
+    void receivedTranscodingLogMessage(const QString &msg) { appendLog(msg); }
     void finishedTranscodeData(const int &exitCode);
 
 
@@ -59,7 +59,6 @@ private:
     static const int UPDATE_STATUS_PERIOD;
 
     QTimer timerStatus;    // timer used to update periodically the status on streaming or transcoding
-    QStringList headerAnswerToSend;  // answer header prepared but not yet sent
     long networkBytesSent;
     long lastNetBytesSent;
     ElapsedTimer clockSending; // clock to mesure time taken to send streamed or transcoded data.
@@ -69,6 +68,9 @@ private:
     StreamingFile *streamContent;
     TranscodeProcess *transcodeProcess;
     int maxBufferSize;
+
+    long counter_bytesSent;
+    long counter_transcodeDataReceived;
 };
 
 #endif // REPLYDLNAITEMCONTENT_H

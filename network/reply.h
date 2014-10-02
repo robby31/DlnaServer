@@ -26,16 +26,23 @@ signals:
 
 
 public slots:
-    void clientDestroyed() { client = 0; appendTrancodeProcessLog("Client destroyed (reply)."+CRLF); }
+    void clientDestroyed() { client = 0;
+                             appendLog(QString("%1: Client destroyed (reply)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
 
 
 protected:
-    void appendTrancodeProcessLog(const QString &text) { m_request->appendLog(text); }
+    void appendLog(const QString &text) { m_request->appendLog(text); }
 
     void sendLine(QTcpSocket *client, const QString &msg);
 
+    // send reply header to client
+    void sendHeader();
+
     // send reply data to client
-    void sendAnswer(const QStringList &headerAnswer, const QByteArray &contentAnswer = QByteArray(), const long &totalSize = -1);
+    void sendAnswer(const QByteArray &contentAnswer = QByteArray());
+
+    void setParamHeader(const QString &param, const QString &value);
+    QString getParamHeader(const QString &param) const;
 
 
 private:
@@ -46,6 +53,9 @@ private:
 protected:
     Logger* m_log;
     Request* m_request;
+
+    QHash<QString, QString> m_params;  // header for the reply
+    bool headerSent;
 
     QTcpSocket *client;
     bool keepSocketOpened;  // flag to not close automatically the client socket when answer is sent
@@ -59,9 +69,6 @@ protected:
 
 
 private:
-    static const QString CONTENT_TYPE_UTF8;
-    static const QString CONTENT_TYPE;
-
     static const QString HTTP_200_OK;
     static const QString HTTP_500;
     static const QString HTTP_206_OK;
