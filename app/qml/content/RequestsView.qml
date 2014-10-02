@@ -91,7 +91,7 @@ Item {
                     } else if (currentIndex == 2) {
                         tabAnswer.item.text = _app.requestsModel.get(currentRow, 9)
                     } else if (currentIndex == 3) {
-                        tabTranscodeLog.item.text = _app.requestsModel.get(currentRow, 11)
+                        tabLog.item.text = _app.requestsModel.get(currentRow, 11)
                     }
                 }
             }
@@ -123,8 +123,8 @@ Item {
             }
 
             Tab {
-                id: tabTranscodeLog
-                title: "TRANSCODING"
+                id: tabLog
+                title: "LOG"
                 TextArea {
                     Layout.fillWidth: true
                 }
