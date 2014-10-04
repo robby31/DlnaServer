@@ -1,7 +1,7 @@
 INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
-include (../../qffmpeg/library/qffmpeg.pri)
+include (../../qffmpeg/qffmpeg.pri)
 include (../../chromaprint_v11/acoustid/acoustid.pri)
 
 HEADERS += \
