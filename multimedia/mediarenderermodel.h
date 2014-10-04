@@ -32,9 +32,6 @@ public:
     // remove all renderers from the model
     void clearAll();
 
-    // the renderer is serving a new media
-    void serving(const QString &ip, const QString &mediaName);
-    void stopServing(const QString &ip);
 
 signals:
     void newRenderer(MediaRenderer *renderer);
@@ -42,6 +39,10 @@ signals:
 public slots:
     void addRendererInModel(MediaRenderer *renderer);
     void rendererChanged(const QString &roleChanged);
+
+    // the renderer is serving a new media
+    void serving(const QString &ip, const QString &mediaName);
+    void stopServing(const QString &ip);
 
 private:
     QList<MediaRenderer *> mRecords;

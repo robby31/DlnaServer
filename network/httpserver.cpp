@@ -121,13 +121,15 @@ void HttpServer::readyToReply()
 
     if ((request->getMethod() == "GET" || request->getMethod() == "HEAD") && request->getArgument().startsWith("get/"))
     {
-        reply = new ReplyDlnaItemContent(m_log, request, rootFolder, renderersModel, request);
+        reply = new ReplyDlnaItemContent(m_log, request, rootFolder, request);
+        connect(reply, SIGNAL(servingRenderer(QString,QString)), renderersModel, SLOT(serving(QString,QString)));
+        connect(reply, SIGNAL(stopServingRenderer(QString)), renderersModel, SLOT(stopServing(QString)));
         connect(reply, SIGNAL(serving(QString,int)), this, SLOT(servingProgress(QString,int)));
         connect(reply, SIGNAL(servingFinished(QString, int)), this, SLOT(servingFinished(QString, int)));
     }
     else
     {
-        reply = new Reply(m_log, request, rootFolder, renderersModel, request);
+        reply = new Reply(m_log, request, rootFolder, request);
     }
 
     connect(reply, SIGNAL(finished()), request, SLOT(replyFinished()));

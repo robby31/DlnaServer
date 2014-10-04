@@ -23,7 +23,7 @@ const QString Reply::EVENT_Prop = "<e:property><%1>%2</%1></e:property>";
 const QString Reply::EVENT_FOOTER = "</e:propertyset>";
 
 
-Reply::Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel, QObject *parent):
+Reply::Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, QObject *parent):
     QObject(parent),
     m_log(log),
     m_request(request),
@@ -31,9 +31,15 @@ Reply::Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, MediaRen
     headerSent(false),
     client(request->getClient()),
     keepSocketOpened(false),
-    m_rootFolder(rootFolder),
-    m_renderersModel(renderersModel)
+    m_rootFolder(rootFolder)
 {
+    if (m_log==0)
+        m_log = new Logger(this);
+    else
+        connect(m_log, SIGNAL(destroyed()), this, SLOT(logDestroyed()));
+
+    connect(m_request, SIGNAL(destroyed()), this, SLOT(requestDestroyed()));
+    connect(m_rootFolder, SIGNAL(destroyed()), this, SLOT(rootFolderDestroyed()));
     connect(client, SIGNAL(destroyed()), this, SLOT(clientDestroyed()));
 }
 
@@ -65,14 +71,15 @@ void Reply::sendLine(QTcpSocket *client, const QString &msg)
             m_log->Error("HTTP Request: Unable to send line: " + msg);
         }
 
-        m_request->appendAnswer(msg+CRLF);
+        if (m_request)
+            m_request->appendAnswer(msg+CRLF);
         m_log->Debug("Wrote on socket: " + msg);
     }
 }
 
 void Reply::sendHeader()
 {
-    if (!headerSent)
+    if (!headerSent && m_request)
     {
         m_log->Debug("Send header.");
         appendLog(QString("%1: Send header."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
@@ -112,7 +119,7 @@ void Reply::sendAnswer(const QByteArray &contentAnswer)
         sendHeader();
 
         // HEAD requests only require headers to be set, no need to set contents.
-        if (m_request->getMethod() != "HEAD" && !contentAnswer.isNull())
+        if (m_request && m_request->getMethod() != "HEAD" && !contentAnswer.isNull())
         {
             // send the content
             m_request->appendAnswer(QString("content size: %1%2").arg(contentAnswer.size()).arg(CRLF));
@@ -134,6 +141,9 @@ void Reply::sendAnswer(const QByteArray &contentAnswer)
 
 
 void Reply::run() {
+    if (!m_request)
+        return;
+
     // prepare data and send answer
     QString soapaction = m_request->getSoapaction();
 
@@ -259,7 +269,7 @@ void Reply::run() {
 
             m_request->setStatus("OK");
 
-        } else if (!soapaction.isEmpty() && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
+        } else if (m_rootFolder && !soapaction.isEmpty() && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
 
             // read the content of the received request
             QDomDocument doc;
@@ -574,7 +584,7 @@ void Reply::run() {
 }
 
 void Reply::closeClient() {
-    if (m_request->isHttp10() or m_request->getHttpConnection().toLower() == "close")
+    if (!m_request or m_request->isHttp10() or m_request->getHttpConnection().toLower() == "close")
     {
         if (!keepSocketOpened)
         {

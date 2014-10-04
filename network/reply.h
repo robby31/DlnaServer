@@ -12,7 +12,7 @@ class Reply : public QObject
     Q_OBJECT
 
 public:
-    explicit Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel, QObject *parent = 0);
+    explicit Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, QObject *parent = 0);
 
     // Construct a proper HTTP response to a received request
     // and provide answer to the client on the request
@@ -26,12 +26,15 @@ signals:
 
 
 public slots:
-    void clientDestroyed() { client = 0;
-                             appendLog(QString("%1: Client destroyed (reply)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
+    void logDestroyed()        { m_log = new Logger(this); }
+    void requestDestroyed()    { m_request = 0; }
+    void rootFolderDestroyed() { m_rootFolder = 0; }
+    void clientDestroyed()     { client = 0;
+                                 appendLog(QString("%1: Client destroyed (reply)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
 
 
 protected:
-    void appendLog(const QString &text) { m_request->appendLog(text); }
+    void appendLog(const QString &text) { if (m_request) m_request->appendLog(text); }
 
     void sendLine(QTcpSocket *client, const QString &msg);
 
@@ -61,8 +64,6 @@ protected:
     bool keepSocketOpened;  // flag to not close automatically the client socket when answer is sent
 
     DlnaRootFolder *m_rootFolder;
-
-    MediaRendererModel *m_renderersModel;
 
     // Carriage return and line feed.
     static const QString CRLF;

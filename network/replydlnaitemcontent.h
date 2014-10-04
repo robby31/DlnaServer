@@ -8,7 +8,7 @@ class ReplyDlnaItemContent : public Reply
     Q_OBJECT
 
 public:
-    explicit ReplyDlnaItemContent(Logger *log, Request *request, DlnaRootFolder *rootFolder, MediaRendererModel *renderersModel, QObject *parent = 0);
+    explicit ReplyDlnaItemContent(Logger *log, Request *request, DlnaRootFolder *rootFolder, QObject *parent = 0);
     virtual ~ReplyDlnaItemContent();
 
     // Construct a proper HTTP response to a received request
@@ -18,6 +18,9 @@ public:
 
 
 signals:
+    void servingRenderer(const QString &ip, const QString &mediaName);
+    void stopServingRenderer(const QString &ip);
+
     // emit signal to provide progress on serving media
     void serving(QString filename, int playedDurationInMs);
 
@@ -36,9 +39,12 @@ public slots:
     // slot to update status on streaming or transcoding
     void updateStatus();
 
-    void receivedTranscodedData();
+    void sendDataToClient();
     void receivedTranscodingLogMessage(const QString &msg) { appendLog(msg); }
     void finishedTranscodeData(const int &exitCode);
+
+    void streamContentDestroyed()    { streamContent = 0; }
+    void transcodeProcessDestroyed() { transcodeProcess = 0; }
 
 
 private:
@@ -70,7 +76,7 @@ private:
     int maxBufferSize;
 
     long counter_bytesSent;
-    long counter_transcodeDataReceived;
+    long counter_sendDataToClient;
 };
 
 #endif // REPLYDLNAITEMCONTENT_H
