@@ -11,10 +11,8 @@ const QString HttpServer::SERVERNAME = "Mac_OS_X-x86_64-10.9.1, UPnP/1.0, QMS/1.
 
 const int HttpServer::SERVERPORT = 5002;
 
-HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel, MediaRendererModel* renderersModel, QObject *parent):
+HttpServer::HttpServer(Logger* log, QObject *parent):
     QTcpServer(parent),
-    requestsModel(requestsModel),
-    renderersModel(renderersModel),
     m_log(log != 0 ? log : new Logger(this)),
     hostaddress(),
     serverport(SERVERPORT),
@@ -36,8 +34,6 @@ HttpServer::HttpServer(Logger* log, RequestListModel *requestsModel, MediaRender
     // if we did not find one, use IPv4 localhost
     if (hostaddress.isNull())
         hostaddress = QHostAddress(QHostAddress::LocalHost).toString();
-
-    connect(requestsModel, SIGNAL(newRequest(Request*)), this, SLOT(newRequest(Request*)));
 
     connect(this, SIGNAL(newConnection()), this, SLOT(acceptConnection()));
 
@@ -89,25 +85,16 @@ void HttpServer::acceptConnection()
         m_log->Trace("HTTP server: new connection");
         connect(newConnection, SIGNAL(disconnected()), newConnection, SLOT(deleteLater()));
 
-        if (requestsModel) {
-            requestsModel->createRequest(m_log,
-                                         newConnection,
-                                         UUID, QString("%1").arg(SERVERNAME),
-                                         getHost().toString(), getPort());
-        }
-        else
-        {
-            m_log->Error("Unable to add new request (requestsModel is null).");
-        }
+        Request *request = new Request(m_log,
+                                       newConnection,
+                                       UUID, QString("%1").arg(SERVERNAME),
+                                       getHost().toString(), getPort());
+        connect(request, SIGNAL(readyToReply()), this, SLOT(readyToReply()));
+        connect(request, SIGNAL(newRenderer(MediaRenderer*)), this, SIGNAL(newRenderer(MediaRenderer*)));
+        emit newRequest(request);
     } else {
         m_log->Error("No new connection available.");
     }
-}
-
-void HttpServer::newRequest(Request *request)
-{
-    connect(request, SIGNAL(readyToReply()), this, SLOT(readyToReply()));
-    connect(request, SIGNAL(newRenderer(Logger*,QString,int,QString)), this, SLOT(createRenderer(Logger*,QString,int,QString)));
 }
 
 void HttpServer::newConnectionError(const QAbstractSocket::SocketError &error) {
@@ -122,8 +109,8 @@ void HttpServer::readyToReply()
     if ((request->getMethod() == "GET" || request->getMethod() == "HEAD") && request->getArgument().startsWith("get/"))
     {
         reply = new ReplyDlnaItemContent(m_log, request, rootFolder, request);
-        connect(reply, SIGNAL(servingRenderer(QString,QString)), renderersModel, SLOT(serving(QString,QString)));
-        connect(reply, SIGNAL(stopServingRenderer(QString)), renderersModel, SLOT(stopServing(QString)));
+        connect(reply, SIGNAL(servingRenderer(QString,QString)), this, SIGNAL(servingRenderer(QString,QString)));
+        connect(reply, SIGNAL(stopServingRenderer(QString)), this, SIGNAL(stopServingRenderer(QString)));
         connect(reply, SIGNAL(serving(QString,int)), this, SLOT(servingProgress(QString,int)));
         connect(reply, SIGNAL(servingFinished(QString, int)), this, SLOT(servingFinished(QString, int)));
     }
@@ -132,6 +119,7 @@ void HttpServer::readyToReply()
         reply = new Reply(m_log, request, rootFolder, request);
     }
 
+    connect(reply, SIGNAL(logText(QString)), request, SLOT(appendLog(QString)));
     connect(reply, SIGNAL(finished()), request, SLOT(replyFinished()));
     connect(reply, SIGNAL(finished()), reply, SLOT(deleteLater()));
     reply->run();
@@ -200,7 +188,3 @@ void HttpServer::servingFinished(const QString &filename, const int &status)
     }
 }
 
-void HttpServer::createRenderer(Logger *log, const QString &peerAddress, const int &port, const QString &userAgent)
-{
-    renderersModel->createRenderer(log, peerAddress, port, userAgent);
-}

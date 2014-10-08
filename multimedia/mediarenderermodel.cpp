@@ -9,8 +9,6 @@ MediaRendererModel::MediaRendererModel(QObject *parent) :
     mRoles[nameRole] = "name";
     mRoles[networkAddressRole] = "networkAddress";
     mRoles[userAgentRole] = "userAgent";
-
-    connect(this, SIGNAL(newRenderer(MediaRenderer*)), this, SLOT(addRendererInModel(MediaRenderer*)));
 }
 
 MediaRendererModel::~MediaRendererModel()
@@ -65,18 +63,6 @@ QVariant MediaRendererModel::data(const QModelIndex &index, int role) const
     return QVariant::Invalid;
 }
 
-void MediaRendererModel::createRenderer(Logger *log, QString ip, int port, QString userAgent)
-{
-    MediaRenderer* renderer = 0;
-
-    renderer = new MediaRenderer(log, ip, port, userAgent);
-
-    if (renderer)
-        emit newRenderer(renderer);
-    else
-        log->Error("Unable to create new renderer");
-}
-
 void MediaRendererModel::addRendererInModel(MediaRenderer *renderer)
 {
     beginInsertRows(QModelIndex(), rowCount(), rowCount());
@@ -91,7 +77,7 @@ void MediaRendererModel::rendererChanged(const QString &roleChanged)
     int roleChangedIndex = mRoles.key(QByteArray(roleChanged.toUtf8().constData()));
     if (mRoles.contains(roleChangedIndex)) {
         int columnIndex = roleChangedIndex-Qt::UserRole-1;
-        int rendererIndex = mRecords.indexOf(static_cast<MediaRenderer*>(sender()));
+        int rendererIndex = mRecords.indexOf(qobject_cast<MediaRenderer*>(sender()));
         if (rendererIndex!=-1) {
             QVector<int> rolesChanged;
             rolesChanged.append(roleChangedIndex);

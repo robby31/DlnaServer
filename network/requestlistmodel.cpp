@@ -17,8 +17,6 @@ RequestListModel::RequestListModel(QObject *parent) :
     mRoles[answerRole] = "answer";
     mRoles[networkStatusRole] = "network_status";
     mRoles[transcodeLogRole] = "transcode_log";
-
-    connect(this, SIGNAL(newRequest(Request*)), this, SLOT(addRequestInModel(Request*)));
 }
 
 RequestListModel::~RequestListModel() {
@@ -91,28 +89,6 @@ QVariant RequestListModel::data(const QModelIndex &index, int role) const
     return QVariant::Invalid;
 }
 
-void RequestListModel::createRequest(Logger *log, QTcpSocket *client, const QString &uuid, const QString &servername, const QString &host, const int &port)
-{
-    Request* request = 0;
-
-    if (client)
-    {
-        request = new Request(log,
-                              client,
-                              uuid, servername,
-                              host, port);
-
-        if (request)
-            emit newRequest(request);
-        else
-            log->Error("Unable to create new request");
-    }
-    else
-    {
-        log->Error("Unable to create request (client deleted).");
-    }
-}
-
 void RequestListModel::addRequestInModel(Request *request)
 {
     beginInsertRows(QModelIndex(), 0, 0);
@@ -126,7 +102,7 @@ void RequestListModel::requestChanged(const QString &roleChanged) {
     int roleChangedIndex = mRoles.key(QByteArray(roleChanged.toUtf8().constData()));
     if (mRoles.contains(roleChangedIndex)) {
         int columnIndex = roleChangedIndex-Qt::UserRole-1;
-        int requestIndex = mRecords.indexOf(static_cast<Request*>(sender()));
+        int requestIndex = mRecords.indexOf(qobject_cast<Request*>(sender()));
         if (requestIndex!=-1) {
             QVector<int> rolesChanged;
             rolesChanged.append(roleChangedIndex);

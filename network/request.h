@@ -7,7 +7,7 @@
 
 #include "logger.h"
 #include "httprange.h"
-#include "mediarenderermodel.h"
+#include "mediarenderer.h"
 
 
 class Request: public QObject
@@ -80,7 +80,6 @@ public:
 
     void appendAnswer(const QString &string) { m_stringAnswer.append(string); emit dataChanged("answer"); }
 
-    void appendLog(const QString &msg) { requestLog.append(msg); emit dataChanged("transcode_log"); }
 
 signals:
     // emit signal when data changed
@@ -93,7 +92,7 @@ signals:
     void readyToReply();
 
     // emit signal to add a new renderer
-    void newRenderer(Logger* log, QString peerAddress, int port, QString userAgent);
+    void newRenderer(MediaRenderer *renderer);
 
 
 public slots:
@@ -102,6 +101,8 @@ public slots:
     void clientError(QAbstractSocket::SocketError error) { appendLog(QString("%2: Network Error: %1"+CRLF).arg(error).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
     void clientDestroyed() { m_client = 0;
                              appendLog(QString("%1: Client destroyed (request)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
+
+    void appendLog(const QString &msg) { requestLog.append(msg); emit dataChanged("transcode_log"); }
 
 
 private slots:

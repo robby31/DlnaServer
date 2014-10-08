@@ -32,17 +32,12 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     virtual QHash<int,QByteArray> roleNames() const { return mRoles; }
 
-    void createRequest(Logger* log,
-                       QTcpSocket* client, const QString &uuid,
-                       const QString &servername, const QString &host, const int &port);
-
     Q_INVOKABLE QVariant get(const int &index, const int &roleIndex) const;
 
     // remove all requests from the model
     void clearAll();
 
 signals:
-    void newRequest(Request *request);
 
 public slots:
     void addRequestInModel(Request *request);

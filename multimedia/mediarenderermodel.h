@@ -24,8 +24,6 @@ public:
     QVariant data(const QModelIndex &index, int role) const;
     virtual QHash<int,QByteArray> roleNames() const { return mRoles; }
 
-    void createRenderer(Logger* log, QString ip, int port, QString userAgent);
-
     Q_INVOKABLE QVariant get(const int &index, const int &roleIndex) const;
     MediaRenderer* getFromIp(const QString &ip) const;
 
@@ -34,7 +32,7 @@ public:
 
 
 signals:
-    void newRenderer(MediaRenderer *renderer);
+
 
 public slots:
     void addRendererInModel(MediaRenderer *renderer);
@@ -46,7 +44,6 @@ public slots:
 
 private:
     QList<MediaRenderer *> mRecords;
-
     QHash<int, QByteArray> mRoles;
 };
 

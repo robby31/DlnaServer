@@ -4,8 +4,6 @@
 #include <QTcpServer>
 
 #include "logger.h"
-#include "requestlistmodel.h"
-#include "mediarenderermodel.h"
 #include "cached/dlnacachedrootfolder.h"
 #include "cached/batchedrootfolder.h"
 #include "reply.h"
@@ -16,7 +14,7 @@ class HttpServer : public QTcpServer
     Q_OBJECT
 
 public:
-    HttpServer(Logger* log, RequestListModel* requestsModel, MediaRendererModel* renderersModel, QObject *parent = 0);
+    HttpServer(Logger* log, QObject *parent = 0);
     virtual ~HttpServer();
 
     QHostAddress getHost() const { return hostaddress; }
@@ -47,14 +45,21 @@ signals:
     void error_addNetworkLink(QString url);
     void brokenLink(QString url, QString title);
 
+    void servingRenderer(const QString &ip, const QString &mediaName);
+    void stopServingRenderer(const QString &ip);
+
+    void newRequest(Request *request);
+    void newRenderer(MediaRenderer *renderer);
+
+
 public slots:
     bool addNetworkLink(const QString url);
     void checkNetworkLink();
 
+
 private slots :
     void acceptConnection();                                             // new connection detected
     void newConnectionError(const QAbstractSocket::SocketError &error);  // error during new connection
-    void newRequest(Request *request);                                   // new request has been created successfully
     void readyToReply();                                                 // reply shall be sent
 
     void servingProgress(const QString &filename, const int &playedDurationInMs);
@@ -62,13 +67,8 @@ private slots :
 
     void addFolder(const QString &folder);
 
-    // slot to create new renderer
-    void createRenderer(Logger* log, const QString &peerAddress, const int &port, const QString &userAgent);
 
 private :
-    RequestListModel* requestsModel;
-    MediaRendererModel* renderersModel;
-
     Logger* m_log;
 
     QHostAddress hostaddress;

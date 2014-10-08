@@ -207,7 +207,8 @@ void Request::readSocket()
 
                         if (getArgument() == "description/fetch") {
                             // new renderer is connecting to server
-                            emit newRenderer(log, getpeerAddress(), getPort(), getParamHeader("USER-AGENT"));
+                            MediaRenderer *renderer = new MediaRenderer(log, getpeerAddress(), getPort(), getParamHeader("USER-AGENT"));
+                            emit newRenderer(renderer);
                         }
                     } else {
                         log->Trace("Request: Received on socket: " + headerLine);
