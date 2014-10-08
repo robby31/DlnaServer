@@ -37,7 +37,7 @@ public slots:
     void finishedTranscodeData(const int &exitCode);
 
 protected:
-    void appendLog(const QString &msg) { transcodeLog.append(msg+CRLF); emit receivedTranscodingLogMessage(msg+CRLF); }
+    void appendLog(const QString &msg) { emit receivedTranscodingLogMessage(msg+CRLF); }
 
     Logger *m_log;
 
@@ -46,7 +46,6 @@ private:
     static const QString CRLF;
 
     QElapsedTimer transcodeClock;
-    QString transcodeLog;
     bool killTranscodeProcess;  // true if the application aborts the transcoding
     bool m_paused;   // true if the transcoding has been paused
 };

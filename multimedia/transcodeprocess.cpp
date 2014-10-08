@@ -6,7 +6,6 @@ TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
     QProcess(parent),
     m_log(log != 0 ? log : new Logger(this)),
     transcodeClock(),
-    transcodeLog(),
     killTranscodeProcess(false),
     m_paused(false)
 {
