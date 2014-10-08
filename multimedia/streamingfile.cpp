@@ -31,16 +31,17 @@ bool StreamingFile::atEnd() const
     return file.atEnd();
 }
 
-qint64 StreamingFile::read(char *data, const qint64 &maxSize)
+QByteArray StreamingFile::read(const qint64 &maxSize)
 {
     if (atEnd())
-        return 0;
+        return QByteArray();
 
-    if (m_range && m_range->getEndByte()>0) {
+    if (m_range && m_range->getEndByte()>0)
+    {
         int bytesToRead = m_range->getEndByte() - file.pos() + 1;
         if (bytesToRead>=0 && bytesToRead<maxSize)
-            return file.read(data, bytesToRead);
+            return file.read(bytesToRead);
     }
 
-    return file.read(data, maxSize);
+    return file.read(maxSize);
 }

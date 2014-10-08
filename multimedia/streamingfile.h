@@ -2,6 +2,7 @@
 #define STREAMINGFILE_H
 
 #include <QFile>
+#include <QDebug>
 #include <httprange.h>
 
 class StreamingFile : public QObject
@@ -18,7 +19,7 @@ public:
     qint64 size() const;
     bool atEnd() const;
 
-    qint64 read(char *data, const qint64 &maxSize);
+    QByteArray read(const qint64 &maxSize);
 
     void setRange(HttpRange *range);
 
