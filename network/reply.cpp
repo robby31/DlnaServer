@@ -82,7 +82,7 @@ void Reply::sendHeader()
     if (!headerSent && m_request)
     {
         m_log->Debug("Send header.");
-        appendLog(QString("%1: Send header."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        emit logText(QString("%1: Send header."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
         if (m_request->getRange())
         {
@@ -593,11 +593,11 @@ void Reply::closeClient() {
             if (client)
             {
                 client->disconnectFromHost();
-                appendLog(QString("%2: Close client (%1)"+CRLF).arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                emit logText(QString("%2: Close client (%1)"+CRLF).arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
             }
             else
             {
-                appendLog(QString("%1: Unable to close client (client deleted)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                emit logText(QString("%1: Unable to close client (client deleted)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
             }
         }
     }

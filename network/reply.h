@@ -24,18 +24,18 @@ signals:
     // emit signal when reply is done
     void finished();
 
+    void logText(const QString &text);
+
 
 public slots:
     void logDestroyed()        { m_log = new Logger(this); }
     void requestDestroyed()    { m_request = 0; }
     void rootFolderDestroyed() { m_rootFolder = 0; }
     void clientDestroyed()     { client = 0;
-                                 appendLog(QString("%1: Client destroyed (reply)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
+                                 emit logText(QString("%1: Client destroyed (reply)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
 
 
 protected:
-    void appendLog(const QString &text) { if (m_request) m_request->appendLog(text); }
-
     void sendLine(QTcpSocket *client, const QString &msg);
 
     // send reply header to client

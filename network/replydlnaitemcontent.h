@@ -40,7 +40,7 @@ public slots:
     void updateStatus();
 
     void sendDataToClient();
-    void receivedTranscodingLogMessage(const QString &msg) { appendLog(msg); }
+    void receivedTranscodingLogMessage(const QString &msg) { emit logText(msg); }
     void finishedTranscodeData(const int &exitCode);
 
     void streamContentDestroyed()    { streamContent = 0; }

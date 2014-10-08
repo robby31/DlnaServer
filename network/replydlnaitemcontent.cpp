@@ -158,7 +158,7 @@ void ReplyDlnaItemContent::run()
                     m_request->setStatus("OK");
 
                 } else {
-                    appendLog(QString("%3: %1 bytes to send in %2."+CRLF).arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                    emit logText(QString("%3: %1 bytes to send in %2."+CRLF).arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
                     mediaFilename = dlna->getSystemName();
                     emit serving(mediaFilename, 0);
@@ -225,7 +225,7 @@ void ReplyDlnaItemContent::runStreaming(DlnaItem* dlna)
         } else {
             connect(streamContent, SIGNAL(destroyed()), this, SLOT(streamContentDestroyed()));
 
-            appendLog(QString("%1: Streaming started."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+            emit logText(QString("%1: Streaming started."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
             emit servingRenderer(m_request->getpeerAddress(), dlna->getDisplayName());
 
             // Start timer to update periodically the status on streaming or transcoding
@@ -276,7 +276,7 @@ void ReplyDlnaItemContent::runTranscoding(DlnaItem* dlna)
                 m_request->setStatus("KO");
             } else {
                 // transcoding process started
-                appendLog(QString("%1: Transcoding started."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                emit logText(QString("%1: Transcoding started."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
                 emit servingRenderer(m_request->getpeerAddress(), dlna->getDisplayName());
                 m_request->setStatus("Transcoding");
 
@@ -313,19 +313,10 @@ void ReplyDlnaItemContent::sendDataToClient()
             int bytesToRead = maxBufferSize - client->bytesToWrite();
             if (bytesToRead > 0) {
                 // read the stream
-                char bytesToSend[bytesToRead];
-                qint64 bytes = streamContent->read(bytesToSend, sizeof(bytesToSend));
-
-                if (bytes == -1) {
-                    m_log->Error("HTTP Request: Unable to send content.");
-
-                    close();
-
-                    m_request->setStatus("KO");
-
-                } else if (bytes > 0) {
+                QByteArray bytesToSend = streamContent->read(bytesToRead);
+                if (!bytesToSend.isEmpty()) {
                     sendHeader();
-                    if (client->write(bytesToSend, bytes)== -1) {
+                    if (client->write(bytesToSend)== -1) {
                         m_log->Error("HTTP Request: Unable to send content.");
 
                         close();
@@ -340,7 +331,7 @@ void ReplyDlnaItemContent::sendDataToClient()
     if (transcodeProcess) {
 
         if (m_log->isLevel(DEBG))
-            appendLog(QString("%1: received %2 bytes transcoding data."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(transcodeProcess->bytesAvailable()));
+            emit logText(QString("%1: received %2 bytes transcoding data."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(transcodeProcess->bytesAvailable()));
 
         if (transcodeProcess->bytesAvailable() > 0) {
             if (client != 0) {
@@ -367,7 +358,7 @@ void ReplyDlnaItemContent::finishedTranscodeData(const int &exitCode)
 {
     if (transcodeProcess) {
         if (m_log->isLevel(DEBG))
-            appendLog(QString("%1: finished transcoding, %2 remaining bytes."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(transcodeProcess->bytesAvailable()));
+            emit logText(QString("%1: finished transcoding, %2 remaining bytes."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(transcodeProcess->bytesAvailable()));
 
         if (transcodeProcess->bytesAvailable() > 0) {
             // send last transcoded data to client
@@ -395,7 +386,7 @@ void ReplyDlnaItemContent::finishedTranscodeData(const int &exitCode)
 void ReplyDlnaItemContent::updateStatus()
 {
     if (m_log->isLevel(DEBG))
-        appendLog(QString("%1: update status"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        emit logText(QString("%1: update status"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
     if (clockUpdateStatus.isValid()) {
         int delta = clockUpdateStatus.restart() - UPDATE_STATUS_PERIOD;
@@ -446,9 +437,9 @@ void ReplyDlnaItemContent::bytesSent(const qint64 &size)
     if (m_log->isLevel(DEBG))
     {
         if (client)
-            appendLog(QString("%2: %3 bytes sent (socket %1)"+CRLF).arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
+            emit logText(QString("%2: %3 bytes sent (socket %1)"+CRLF).arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
         else
-            appendLog(QString("%1: %2 bytes sent (client deleted)"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
+            emit logText(QString("%1: %2 bytes sent (client deleted)"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
     }
 
     networkBytesSent += size;
@@ -469,12 +460,12 @@ void ReplyDlnaItemContent::bytesSent(const qint64 &size)
 void ReplyDlnaItemContent::close()
 {
     if (m_log->isLevel(DEBG))
-        appendLog(QString("%1: Close reply."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        emit logText(QString("%1: Close reply."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
     timerStatus.stop();
 
     if (clockSending.isValid())
-        appendLog(QString("%3: Close Reply: %1 bytes sent, %2 taken to send data."+CRLF).arg(networkBytesSent).arg(QTime(0, 0).addMSecs(clockSending.elapsed()).toString("hh:mm:ss.zzz")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        emit logText(QString("%3: Close Reply: %1 bytes sent, %2 taken to send data."+CRLF).arg(networkBytesSent).arg(QTime(0, 0).addMSecs(clockSending.elapsed()).toString("hh:mm:ss.zzz")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
     if (streamContent) {
         if (streamContent->atEnd() && client && client->bytesToWrite() == 0) {
@@ -510,18 +501,18 @@ void ReplyDlnaItemContent::close()
         emit stopServingRenderer(m_request->getpeerAddress());
     }
 
-    appendLog(QString("%1: Reply closed, %2 call to bytesSent, %3 call to sendDataToClient."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(counter_bytesSent).arg(counter_sendDataToClient));
+    emit logText(QString("%1: Reply closed, %2 call to bytesSent, %3 call to sendDataToClient."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(counter_bytesSent).arg(counter_sendDataToClient));
     if (counter_bytesSent!=0)
-        appendLog(QString("%1: bytesSent called every %2 milliseconds."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(clockSending.elapsed()/counter_bytesSent));
+        emit logText(QString("%1: bytesSent called every %2 milliseconds."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(clockSending.elapsed()/counter_bytesSent));
     if (counter_sendDataToClient!=0)
-        appendLog(QString("%1: sendDataToClient called every %2 milliseconds."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(clockSending.elapsed()/counter_sendDataToClient));
+        emit logText(QString("%1: sendDataToClient called every %2 milliseconds."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(clockSending.elapsed()/counter_sendDataToClient));
 
     // invalidate clock
     clockSending.invalidate();
     clockUpdateStatus.invalidate();
 
     if (client)
-        appendLog(QString("%2: Remaining data to send: %1"+CRLF).arg(client->bytesToWrite()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        emit logText(QString("%2: Remaining data to send: %1"+CRLF).arg(client->bytesToWrite()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
     emit finished();
 }
@@ -531,16 +522,16 @@ void ReplyDlnaItemContent::closeClient()
     if (m_request->isHttp10() or m_request->getHttpConnection().toLower() == "close")
     {
         if (transcodeProcess && m_log->isLevel(DEBG))
-            appendLog(QString("%3: closeclient, state transcodeprocess %1, client valid? %2"+CRLF).arg(transcodeProcess->state()).arg(client != 0).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+            emit logText(QString("%3: closeclient, state transcodeprocess %1, client valid? %2"+CRLF).arg(transcodeProcess->state()).arg(client != 0).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
         if (!keepSocketOpened and (transcodeProcess == 0 or transcodeProcess->state() != QProcess::Running) and (streamContent == 0 or streamContent->atEnd())) {
             // No streaming or transcoding in progress
             if (client != 0) {
-                appendLog(QString("%2: Close client (%1)"+CRLF).arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                emit logText(QString("%2: Close client (%1)"+CRLF).arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
                 client->disconnectFromHost();
             } else
-                appendLog(QString("%1: Unable to close client (client deleted)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                emit logText(QString("%1: Unable to close client (client deleted)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
         }
     }
 
