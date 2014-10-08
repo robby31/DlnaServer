@@ -1,32 +1,25 @@
 #ifndef YOUTUBETRANSCODING_H
 #define YOUTUBETRANSCODING_H
 
-#include "mencodertranscoding.h"
+#include "transcodeprocess.h"
 
-class YouTubeTranscoding : public MencoderTranscoding
+class YouTubeTranscoding : public TranscodeProcess
 {
     Q_OBJECT
+
 public:
     explicit YouTubeTranscoding(Logger* log, QObject *parent = 0);
-    virtual ~YouTubeTranscoding();
 
     // initialize program pathname and arguments of the QProcess
-    virtual bool initialize(HttpRange* range, const long &timeseek_start, const long &timeseek_end,
-                            const QString &filePath, const int &lengthInSeconds, const TranscodeFormatAvailable &transcodeFormat, const int &bitrate,
-                            const QStringList &audioLanguages, const QStringList &subtitleLanguages, const QString &framerate);
-
-    virtual void launch();
-
-    virtual int transcodeExitCode() const;
+    bool initialize(HttpRange* range, const long &timeseek_start, const long &timeseek_end,
+                    const QString &filePath, const int &lengthInSeconds, const TranscodeFormatAvailable &transcodeFormat, const int &bitrate,
+                    const QStringList &audioLanguages, const QStringList &subtitleLanguages, const QString &framerate);
 
 signals:
 
 public slots:
-    void youtubeFinished(int status);
-    void youtubeReadyReadStandardError();
 
 private:
-    QProcess youtubeStreaming;
     QString url;
 };
 
