@@ -20,6 +20,8 @@ UPNPHelper::UPNPHelper(Logger* log, HttpServer *server, QObject *parent):
     udpSocketReceiver(this),
     timerAlive(this)
 {
+    connect(server, SIGNAL(destroyed()), this, SLOT(serverDestroyed()));
+
     udpSocketBroadcast.setSocketOption(QAbstractSocket::MulticastTtlOption, 32);
 
     udpSocketReceiver.setSocketOption(QAbstractSocket::MulticastTtlOption, 4);
@@ -42,9 +44,16 @@ UPNPHelper::UPNPHelper(Logger* log, HttpServer *server, QObject *parent):
 UPNPHelper::~UPNPHelper()
 {
     m_log->Trace("Close UPNPHelper.");
+    close();
+}
 
-    timerAlive.stop();
-    sendByeBye();
+void UPNPHelper::close()
+{
+    if (timerAlive.isActive())
+    {
+        timerAlive.stop();
+        sendByeBye();
+    }
     udpSocketBroadcast.close();
     udpSocketReceiver.close();
 }
@@ -214,7 +223,7 @@ void UPNPHelper::sendMessage(const QString &nt, const QString &message)
 {
     QByteArray ssdpPacket = buildMsg(nt, message);
 
-    if (udpSocketBroadcast.writeDatagram(ssdpPacket.data(), ssdpPacket.size(), IPV4_UPNP_HOST, UPNP_PORT) == -1) {
+    if (ssdpPacket.isNull() or udpSocketBroadcast.writeDatagram(ssdpPacket, IPV4_UPNP_HOST, UPNP_PORT) == -1) {
         m_log->Error("UPNPHELPER: Unable to send message.");
     }
 
