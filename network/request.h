@@ -74,8 +74,6 @@ public:
 
     bool appendHeader(const QString &headerLine);
 
-    void setStatus(const QString &status) { m_status = status; emit dataChanged("status"); }
-
     void setNetworkStatus(const QString &status) { m_networkStatus = status; emit dataChanged("network_status"); }
 
     void appendAnswer(const QString &string) { m_stringAnswer.append(string); emit dataChanged("answer"); }
@@ -103,6 +101,10 @@ public slots:
                              appendLog(QString("%1: Client destroyed (request)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
 
     void appendLog(const QString &msg) { requestLog.append(msg); emit dataChanged("transcode_log"); }
+
+
+private slots:
+    void setStatus(const QString &status) { m_status = status; emit dataChanged("status"); }
 
 
 private slots:
