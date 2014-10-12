@@ -17,6 +17,7 @@ public:
     // Returns the time where the media has been stopped during last play
     virtual qint64 getResumeTime() const { return 0; }
 
+protected:
     // Returns the process for transcoding
     virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
 

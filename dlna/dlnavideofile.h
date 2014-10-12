@@ -26,9 +26,6 @@ public:
     //returns the size of the source
     virtual qint64 sourceSize() const { return fileinfo.size(); }
 
-    // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
-
     virtual int metaDataBitrate() const;
     virtual int metaDataDuration() const;
     virtual QString metaDataTitle() const;
@@ -51,6 +48,10 @@ public:
     virtual QStringList subtitleLanguages() const;
     virtual QStringList audioLanguages() const;
     virtual QString framerate() const;
+
+protected:
+    // Returns the process for transcoding
+    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
 
 private:
     QFileInfo fileinfo;

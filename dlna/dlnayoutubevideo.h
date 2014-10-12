@@ -48,6 +48,7 @@ public:
     virtual QStringList audioLanguages() const { return QStringList(); }
     virtual QString framerate() const { return QString(); }
 
+protected:
     // Returns the process for transcoding
     virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
 

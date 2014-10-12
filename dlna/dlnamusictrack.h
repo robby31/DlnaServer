@@ -23,9 +23,6 @@ public:
     // Returns the XML (DIDL) representation of the DLNA node.
     virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) const;
 
-    // Returns the process for transcoding
-    virtual FfmpegTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
-
     // Returns album art in jpeg format
     virtual QImage getAlbumArt() const;
 
@@ -38,6 +35,10 @@ public:
     static const QString AUDIO_OGG_TYPEMIME;
     static const QString AUDIO_LPCM_TYPEMIME;
     static const QString AUDIO_TRANSCODE;
+
+protected:
+    // Returns the process for transcoding
+    virtual FfmpegTranscoding* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
 
 private:
     virtual void updateDLNAOrgPn();

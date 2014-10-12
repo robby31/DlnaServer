@@ -20,9 +20,6 @@ public:
     //returns the size of the source
     virtual qint64 sourceSize() const { return -1; }
 
-    // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
-
     // return true if the track shall be transcoded
     virtual bool toTranscode() const { return true; }
 
@@ -52,6 +49,9 @@ public:
     virtual QString framerate()             const { if (library != 0) return library->getmetaData("framerate", idMedia).toString(); else return QString(); }
 
 protected:
+    // Returns the process for transcoding
+    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
+
     MediaLibrary* library;
     int idMedia;
 };
