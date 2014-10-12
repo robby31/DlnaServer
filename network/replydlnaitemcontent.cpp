@@ -9,7 +9,7 @@ ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, Request *request, DlnaRo
     networkBytesSent(0),
     lastNetBytesSent(-1),
     streamContent(0),
-    transcodeProcess(0),
+    streamingWithErrors(false),
     maxBufferSize(1024*1024*100),  // 100 MBytes
     counter_bytesSent(0),
     counter_sendDataToClient(0)
@@ -83,10 +83,10 @@ void ReplyDlnaItemContent::run()
                 QByteArray answerContent = dlna->getByteAlbumArt();
                 if (answerContent.isNull()) {
                     m_log->Error("Unable to get thumbnail: " + dlna->getDisplayName());
-                    m_request->setStatus("KO");
+                    emit replyStatus("KO");
                 } else {
                     sendAnswer(answerContent);
-                    m_request->setStatus("OK");
+                    emit replyStatus("OK");
                 }
 
             } else if (fileName.indexOf("subtitle0000") > -1) {
@@ -155,7 +155,7 @@ void ReplyDlnaItemContent::run()
 
                 if (m_request->getMethod() == "HEAD") {
                     sendAnswer(QByteArray());
-                    m_request->setStatus("OK");
+                    emit replyStatus("OK");
 
                 } else {
                     emit logText(QString("%3: %1 bytes to send in %2."+CRLF).arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
@@ -163,21 +163,51 @@ void ReplyDlnaItemContent::run()
                     mediaFilename = dlna->getSystemName();
                     emit serving(mediaFilename, 0);
 
-                    if (!dlna->toTranscode()) {
+                    if (streamContent == 0) {
+                        // recover resume time
+                        long timeSeekRangeStart = m_request->getTimeSeekRangeStart();
+                        long timeSeekRangeEnd = m_request->getTimeSeekRangeEnd();
+                        qint64 resume = dlna->getResumeTime();
+                        if (resume>0) {
+                            timeSeekRangeStart = resume/1000 - 10;
+                            clockSending.addMSec(timeSeekRangeStart*1000);
+                        }
 
-                        // stream file
-                        runStreaming(dlna);
+                        // get stream file
+                        streamContent = dlna->getStream(m_request->getRange(), timeSeekRangeStart, timeSeekRangeEnd, this);
 
                         if (!streamContent)
-                            m_log->Error(QString("Streaming not started : %1").arg(dlna->getSystemName()));
+                        {
+                            // No inputStream indicates that transcoding / remuxing probably crashed.
+                            m_log->Error("There is no inputstream to return for " + dlna->getDisplayName());
+                            emit replyStatus("KO");
+                        }
+                        else
+                        {
+                            //set buffer size
+                            if (dlna->bitrate()>0) {
+                                // set buffer size to 10 seconds transcoding
+                                maxBufferSize = dlna->bitrate()/8*10;
+                            }
 
+                            connect(streamContent, SIGNAL(destroyed()), this, SLOT(streamContentDestroyed()));
+                            connect(streamContent, SIGNAL(status(QString)), this, SIGNAL(replyStatus(QString)));
+                            connect(streamContent, SIGNAL(readyRead()), this, SLOT(sendDataToClient()));
+                            connect(streamContent, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+                            connect(streamContent, SIGNAL(errorRaised(QString)), this, SLOT(streamingError(QString)));
+
+                            emit logText(QString("%1: Streaming started."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                            emit servingRenderer(m_request->getpeerAddress(), dlna->getDisplayName());
+                            emit replyStatus("Streaming");
+
+                            // Start timer to update periodically the status on streaming
+                            timerStatus.start(UPDATE_STATUS_PERIOD);
+
+                            sendDataToClient();
+                        }
                     } else {
-
-                        // transcode file
-                        runTranscoding(dlna);
-
-                        if (!transcodeProcess)
-                            m_log->Error(QString("Transcoding not started : %1").arg(dlna->getSystemName()));
+                        m_log->Error(QString("Streaming already in progress"));
+                        emit replyStatus("KO");
                     }
                 }
             }
@@ -185,201 +215,48 @@ void ReplyDlnaItemContent::run()
         else
         {
             m_log->Error(QString("%1 media found: %2 %3").arg(files.size()).arg(m_request->getMethod()).arg(m_request->getArgument()));
-            m_request->setStatus("KO");
+            emit replyStatus("KO");
         }
 
     }
     else
     {
         m_log->Error("Unkown answer for: " + m_request->getMethod() + " " + m_request->getArgument());
-        m_request->setStatus("KO");
+        emit replyStatus("KO");
     }
 
-}
-
-void ReplyDlnaItemContent::runStreaming(DlnaItem* dlna)
-{
-    if (streamContent == 0) {
-        //set buffer size
-        if (dlna->bitrate()>0) {
-            // set buffer size to 10 seconds transcoding
-            maxBufferSize = dlna->bitrate()/8*10;
-        }
-
-        // recover resume time
-        long timeSeekRangeStart = m_request->getTimeSeekRangeStart();
-        long timeSeekRangeEnd = m_request->getTimeSeekRangeEnd();
-        qint64 resume = dlna->getResumeTime();
-        if (resume>0) {
-            timeSeekRangeStart = resume/1000 - 10;
-            clockSending.addMSec(timeSeekRangeStart*1000);
-        }
-
-        // get stream file
-        streamContent = dlna->getStream(m_request->getRange(), timeSeekRangeStart, timeSeekRangeEnd, this);
-
-        if (!streamContent) {
-            // No inputStream indicates that transcoding / remuxing probably crashed.
-            m_log->Error("There is no inputstream to return for " + dlna->getDisplayName());
-            m_request->setStatus("KO");
-        } else {
-            connect(streamContent, SIGNAL(destroyed()), this, SLOT(streamContentDestroyed()));
-
-            emit logText(QString("%1: Streaming started."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-            emit servingRenderer(m_request->getpeerAddress(), dlna->getDisplayName());
-
-            // Start timer to update periodically the status on streaming or transcoding
-            timerStatus.start(UPDATE_STATUS_PERIOD);
-
-            sendDataToClient();
-        }
-    } else {
-        m_log->Error(QString("Streaming already in progress"));
-        m_request->setStatus("KO");
-    }
-}
-
-void ReplyDlnaItemContent::runTranscoding(DlnaItem* dlna)
-{
-    if (transcodeProcess == 0) {
-        //set buffer size
-        if (dlna->bitrate()>0) {
-            // set buffer size to 10 seconds transcoding
-            maxBufferSize = dlna->bitrate()/8*10;
-        }
-
-        // recover resume time
-        long timeSeekRangeStart = m_request->getTimeSeekRangeStart();
-        long timeSeekRangeEnd = m_request->getTimeSeekRangeEnd();
-        qint64 resume = dlna->getResumeTime();
-        if (resume>0) {
-            timeSeekRangeStart = resume/1000 - 10;
-            clockSending.addMSec(timeSeekRangeStart*1000);
-        }
-
-        // get transcoding process
-        transcodeProcess = dlna->getTranscodeProcess(m_request->getRange(), timeSeekRangeStart, timeSeekRangeEnd, this);
-
-        if (transcodeProcess == 0) {
-            m_log->Error(QString("Cannot create transcoding process"));
-            m_request->setStatus("KO");
-
-        } else {
-            connect(transcodeProcess, SIGNAL(destroyed()), this, SLOT(transcodeProcessDestroyed()));
-            connect(transcodeProcess, SIGNAL(readyReadStandardOutput()), this, SLOT(sendDataToClient()));
-            connect(transcodeProcess, SIGNAL(receivedTranscodingLogMessage(QString)), this, SLOT(receivedTranscodingLogMessage(QString)));
-            connect(transcodeProcess, SIGNAL(finished(int)), this, SLOT(finishedTranscodeData(int)));
-
-            transcodeProcess->launch();
-            if (!transcodeProcess->waitForStarted()) {
-                m_log->Error(transcodeProcess->errorString());
-                m_request->setStatus("KO");
-            } else {
-                // transcoding process started
-                emit logText(QString("%1: Transcoding started."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-                emit servingRenderer(m_request->getpeerAddress(), dlna->getDisplayName());
-                m_request->setStatus("Transcoding");
-
-                // Start timer to update periodically the status on streaming or transcoding
-                timerStatus.start(UPDATE_STATUS_PERIOD);
-            }
-        }
-    } else {
-        m_log->Error(QString("Transcoding already in progress"));
-        m_request->setStatus("KO");
-    }
-}
-
-void ReplyDlnaItemContent::waitTranscodingFinished()
-{
-    if (transcodeProcess) {
-        // wait until process is finished
-        transcodeProcess->waitForFinished(-1);
-    }
 }
 
 void ReplyDlnaItemContent::sendDataToClient()
 {
     counter_sendDataToClient++;
 
-    if (streamContent) {
-        if (client == 0) {
+    if (streamContent)
+    {
+        if (client == 0)
+        {
             m_log->Error("HTTP Request: Unable to send content (client deleted).");
 
             close();
 
-            m_request->setStatus("KO");
-        } else {
+            emit replyStatus("KO");
+        }
+        else if (streamContent->bytesAvailable() > 0)
+        {
             int bytesToRead = maxBufferSize - client->bytesToWrite();
             if (bytesToRead > 0) {
                 // read the stream
                 QByteArray bytesToSend = streamContent->read(bytesToRead);
                 if (!bytesToSend.isEmpty()) {
                     sendHeader();
-                    if (client->write(bytesToSend)== -1) {
+                    if (client->write(bytesToSend)== -1)
                         m_log->Error("HTTP Request: Unable to send content.");
-
-                        close();
-
-                        m_request->setStatus("KO");
-                    }
                 }
             }
+
+            if (streamContent->atEnd())
+                closeClient();
         }
-    }
-
-    if (transcodeProcess) {
-
-        if (m_log->isLevel(DEBG))
-            emit logText(QString("%1: received %2 bytes transcoding data."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(transcodeProcess->bytesAvailable()));
-
-        if (transcodeProcess->bytesAvailable() > 0) {
-            if (client != 0) {
-                // send data to client
-                sendHeader();
-                if (client->write(transcodeProcess->readAllStandardOutput()) == -1) {
-                    m_log->Error("Unable to send transcoded data to client.");
-                } else if (transcodeProcess->state()==QProcess::Running) {
-                    // data sent and transcoding is in progress
-                    if (client->bytesToWrite() > maxBufferSize) {
-                        // pause transcoding process
-                        if (transcodeProcess->pause() == false)
-                            m_log->Error(QString("Unable to pause transcoding: pid=%1").arg(transcodeProcess->pid()));
-                    }
-                }
-            } else {
-                m_log->Error("Unable to send transcoded data to client (client deleted).");
-            }
-        }
-    }
-}
-
-void ReplyDlnaItemContent::finishedTranscodeData(const int &exitCode)
-{
-    if (transcodeProcess) {
-        if (m_log->isLevel(DEBG))
-            emit logText(QString("%1: finished transcoding, %2 remaining bytes."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(transcodeProcess->bytesAvailable()));
-
-        if (transcodeProcess->bytesAvailable() > 0) {
-            // send last transcoded data to client
-            sendHeader();
-            if (client && client->write(transcodeProcess->readAllStandardOutput()) == -1)
-                m_log->Error("Unable to send last transcoded data to client.");
-        }
-
-
-        if (transcodeProcess->isKilled() == false) {
-            if (exitCode != 0) {
-                // trancoding failed
-                m_request->setStatus("Transcoding failed.");
-            } else {
-                m_request->setStatus("Transcoding finished.");
-            }
-        } else {
-            m_request->setStatus("Transcoding aborted.");
-        }
-
-        closeClient();
     }
 }
 
@@ -393,9 +270,7 @@ void ReplyDlnaItemContent::updateStatus()
 
         if (qAbs(delta) > UPDATE_STATUS_PERIOD/10) {
             if (streamContent)
-                m_log->Info(QString("UPDATE STATUS delta %2 streaming <%1>").arg(mediaFilename).arg(delta));
-            else if (transcodeProcess)
-                m_log->Info(QString("UPDATE STATUS delta %2 transcoding <%1>").arg(mediaFilename).arg(delta));
+                m_log->Info(QString("UPDATE STATUS delta %2 <%1>").arg(mediaFilename).arg(delta));
             else
                 m_log->Info(QString("UPDATE STATUS delta %2 no streaming no transcoding <%1>").arg(mediaFilename).arg(delta));
         }
@@ -404,7 +279,7 @@ void ReplyDlnaItemContent::updateStatus()
     }
 
     if (streamContent)
-        m_request->setStatus(QString("Streaming (%1%)").arg(int(100.0*double(streamContent->pos())/double(streamContent->size()))));
+        emit replyStatus(QString("Streaming (%1%)").arg(int(100.0*double(streamContent->pos())/double(streamContent->size()))));
 
     if (!mediaFilename.isNull()) {
         if (clockSending.isValid())
@@ -445,13 +320,7 @@ void ReplyDlnaItemContent::bytesSent(const qint64 &size)
     networkBytesSent += size;
 
     if (!clockSending.isValid())
-        clockSending.start();   // start clock to measure time taken to stream or transcode
-
-    if (transcodeProcess && transcodeProcess->state() != QProcess::NotRunning && client && client->bytesToWrite() < (maxBufferSize*0.5)) {
-        // restart transcoding process
-        if (transcodeProcess->resume() == false)
-            m_log->Error(QString("Unable to restart transcoding: pid=%1").arg(transcodeProcess->pid()));
-    }
+        clockSending.start();   // start clock to measure time taken for streaming
 
     if (streamContent)
         sendDataToClient();
@@ -468,35 +337,17 @@ void ReplyDlnaItemContent::close()
         emit logText(QString("%3: Close Reply: %1 bytes sent, %2 taken to send data."+CRLF).arg(networkBytesSent).arg(QTime(0, 0).addMSecs(clockSending.elapsed()).toString("hh:mm:ss.zzz")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
     if (streamContent) {
-        if (streamContent->atEnd() && client && client->bytesToWrite() == 0) {
-            m_request->setStatus("Streaming finished.");
+        if (streamContent->atEnd() && !streamingWithErrors && client && client->bytesToWrite() == 0) {
+            emit replyStatus("Streaming finished.");
             emit servingFinished(mediaFilename, 0);
         } else {
-            m_request->setStatus("Streaming aborted.");
+            emit replyStatus("Streaming aborted.");
             emit servingFinished(mediaFilename, 1);
         }
 
+        streamContent->disconnect(this);
         streamContent->deleteLater();
-
-        emit stopServingRenderer(m_request->getpeerAddress());
-    }
-
-    if (transcodeProcess) {
-        if (transcodeProcess->state() != QProcess::NotRunning) {
-            m_request->setStatus("Transcoding aborted.");
-            if (!transcodeProcess->disconnect(this))
-                m_log->Error("Unable to disconnect signals coming from transcoding process.");
-            transcodeProcess->killProcess();
-            if (!transcodeProcess->waitForFinished(1000))
-                m_log->Warning("Unable to kill process before process deletion.");
-        }
-
-        if (!transcodeProcess->isKilled() && transcodeProcess->transcodeExitCode()==0 && client && client->bytesToWrite() == 0)
-            emit servingFinished(mediaFilename, 0);
-        else
-            emit servingFinished(mediaFilename, 1);
-
-        transcodeProcess->deleteLater();
+        streamContent = 0;
 
         emit stopServingRenderer(m_request->getpeerAddress());
     }
@@ -514,18 +365,15 @@ void ReplyDlnaItemContent::close()
     if (client)
         emit logText(QString("%2: Remaining data to send: %1"+CRLF).arg(client->bytesToWrite()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
-    emit finished();
+    closeClient();
 }
 
 void ReplyDlnaItemContent::closeClient()
 {
     if (m_request->isHttp10() or m_request->getHttpConnection().toLower() == "close")
     {
-        if (transcodeProcess && m_log->isLevel(DEBG))
-            emit logText(QString("%3: closeclient, state transcodeprocess %1, client valid? %2"+CRLF).arg(transcodeProcess->state()).arg(client != 0).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-
-        if (!keepSocketOpened and (transcodeProcess == 0 or transcodeProcess->state() != QProcess::Running) and (streamContent == 0 or streamContent->atEnd())) {
-            // No streaming or transcoding in progress
+        if (!keepSocketOpened and (streamContent == 0 or streamContent->atEnd())) {
+            // No streaming in progress
             if (client != 0) {
                 emit logText(QString("%2: Close client (%1)"+CRLF).arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
@@ -535,6 +383,6 @@ void ReplyDlnaItemContent::closeClient()
         }
     }
 
-    if (!keepSocketOpened and transcodeProcess == 0 and streamContent == 0)
+    if (!keepSocketOpened and streamContent == 0)
         emit finished();
 }

@@ -40,26 +40,16 @@ public slots:
     void updateStatus();
 
     void sendDataToClient();
-    void receivedTranscodingLogMessage(const QString &msg) { emit logText(msg); }
-    void finishedTranscodeData(const int &exitCode);
 
     void streamContentDestroyed()    { streamContent = 0; }
-    void transcodeProcessDestroyed() { transcodeProcess = 0; }
 
 
 private:
     // close the client
     virtual void closeClient();
 
-    // streaming
-    void runStreaming(DlnaItem *dlna);
-
-    // transcoding
-    void runTranscoding(DlnaItem *dlna);
-
-    // wait transcoding is finished
-    void waitTranscodingFinished();
-
+private slots:
+    void streamingError(const QString &error) { Q_UNUSED(error) streamingWithErrors = true; }
 
 private:
     static const int UPDATE_STATUS_PERIOD;
@@ -71,8 +61,8 @@ private:
     QElapsedTimer clockUpdateStatus; // clock to check UpdateStatus period
 
     QString mediaFilename;
-    StreamingFile *streamContent;
-    TranscodeProcess *transcodeProcess;
+    QIODevice *streamContent;
+    bool streamingWithErrors;
     int maxBufferSize;
 
     long counter_bytesSent;

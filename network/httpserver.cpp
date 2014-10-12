@@ -119,6 +119,7 @@ void HttpServer::readyToReply()
         reply = new Reply(m_log, request, rootFolder, request);
     }
 
+    connect(reply, SIGNAL(replyStatus(QString)), request, SLOT(setStatus(QString)));
     connect(reply, SIGNAL(logText(QString)), request, SLOT(appendLog(QString)));
     connect(reply, SIGNAL(finished()), request, SLOT(replyFinished()));
     connect(reply, SIGNAL(finished()), reply, SLOT(deleteLater()));

@@ -179,7 +179,7 @@ void Reply::run() {
 
         sendAnswer(answerContent.toUtf8());
 
-        m_request->setStatus("OK");
+        emit replyStatus("OK");
     }
     else if (m_request->getMethod() == "POST" && m_request->getArgument().endsWith("upnp/control/connection_manager")) {
 
@@ -199,7 +199,7 @@ void Reply::run() {
 
             sendAnswer(answerContent.toUtf8());
 
-            m_request->setStatus("OK");
+            emit replyStatus("OK");
         }
 
     }
@@ -224,7 +224,7 @@ void Reply::run() {
 
             sendAnswer(answerContent.toUtf8());
 
-            m_request->setStatus("OK");
+            emit replyStatus("OK");
 
         } else if (!soapaction.isEmpty() && soapaction.indexOf("ContentDirectory:1#GetSortCapabilities") > -1) {
             answerContent.append(XML_HEADER);
@@ -238,7 +238,7 @@ void Reply::run() {
 
             sendAnswer(answerContent.toUtf8());
 
-            m_request->setStatus("OK");
+            emit replyStatus("OK");
 
         } else if (!soapaction.isEmpty() && soapaction.indexOf("ContentDirectory:1#X_GetFeatureList") > -1) {
             // Added for Samsung 2012 TVs
@@ -253,7 +253,7 @@ void Reply::run() {
 
             sendAnswer(answerContent.toUtf8());
 
-            m_request->setStatus("OK");
+            emit replyStatus("OK");
 
         } else if (!soapaction.isEmpty()  && soapaction.indexOf("ContentDirectory:1#GetSearchCapabilities") > -1) {
             answerContent.append(XML_HEADER);
@@ -267,7 +267,7 @@ void Reply::run() {
 
             sendAnswer(answerContent.toUtf8());
 
-            m_request->setStatus("OK");
+            emit replyStatus("OK");
 
         } else if (m_rootFolder && !soapaction.isEmpty() && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
 
@@ -467,9 +467,9 @@ void Reply::run() {
             //send the answer to client
             sendAnswer(xml.toString(-1).toUtf8());
 
-            m_request->setStatus("OK");
+            emit replyStatus("OK");
         } else {
-            m_request->setStatus("KO");
+            emit replyStatus("KO");
         }
     } else if (m_request->getMethod() == "SUBSCRIBE" && !soapaction.isEmpty()) {
         setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
@@ -504,7 +504,7 @@ void Reply::run() {
         }
         else {
             m_log->Error(QString("Cannot connect to %1").arg(cb));
-            m_request->setStatus("ERROR");
+            emit replyStatus("ERROR");
             return;
         }
 
@@ -526,7 +526,7 @@ void Reply::run() {
 
             sendAnswer(answerContent.toUtf8());
 
-            m_request->setStatus("OK");
+            emit replyStatus("OK");
 
         } else if (m_request->getArgument().contains("content_directory")) {
             setParamHeader("Server", m_request->getServername());
@@ -539,10 +539,10 @@ void Reply::run() {
 
             sendAnswer(answerContent.toUtf8());
 
-            m_request->setStatus("OK");
+            emit replyStatus("OK");
         } else {
             closeClient();
-            m_request->setStatus("Unknown argument");
+            emit replyStatus("Unknown argument");
         }
     }
     else if ((m_request->getMethod() == "GET" || m_request->getMethod() == "HEAD") && (m_request->getArgument().toLower().endsWith(".png") || m_request->getArgument().toLower().endsWith(".jpg") || m_request->getArgument().toLower().endsWith(".jpeg"))) {
@@ -574,11 +574,11 @@ void Reply::run() {
 
         sendAnswer(answerContent);
 
-        m_request->setStatus("OK");
+        emit replyStatus("OK");
     }
     else {
         m_log->Error("Unkown answer for: " + m_request->getMethod() + " " + m_request->getArgument());
-        m_request->setStatus("KO");
+        emit replyStatus("KO");
     }
 
 }

@@ -26,6 +26,8 @@ signals:
 
     void logText(const QString &text);
 
+    void replyStatus(const QString &status);
+
 
 public slots:
     void logDestroyed()        { m_log = new Logger(this); }
@@ -33,6 +35,8 @@ public slots:
     void rootFolderDestroyed() { m_rootFolder = 0; }
     void clientDestroyed()     { client = 0;
                                  emit logText(QString("%1: Client destroyed (reply)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
+
+    void LogMessage(const QString &msg) { emit logText(msg); }
 
 
 protected:
