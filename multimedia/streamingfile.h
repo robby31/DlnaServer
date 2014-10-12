@@ -5,30 +5,28 @@
 #include <QDebug>
 #include <httprange.h>
 
-class StreamingFile : public QObject
+class StreamingFile : public QFile
 {
     Q_OBJECT
 
 public:
     explicit StreamingFile(QString filename, QObject *parent = 0);
 
-    bool open(const QIODevice::OpenMode &mode) { return file.open(mode); }
-    bool isOpen() const { return file.isOpen(); }
+    virtual qint64 size() const;
+    virtual bool atEnd() const;
 
-    qint64 pos() const { return file.pos(); }
-    qint64 size() const;
-    bool atEnd() const;
-
-    QByteArray read(const qint64 &maxSize);
+    virtual qint64 readData(char *data, qint64 maxlen);
 
     void setRange(HttpRange *range);
 
 signals:
+    void LogMessage(const QString &msg);
+    void status(const QString &status);
+    void errorRaised(const QString &errorString);
 
 public slots:
 
 private:
-    QFile file;
     HttpRange *m_range;
 };
 
