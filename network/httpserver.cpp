@@ -68,7 +68,8 @@ HttpServer::~HttpServer()
     batchThread.quit();
     if (batch != 0)
         batch->quit();
-    batchThread.wait();
+    if (!batchThread.wait(1000))
+        m_log->Error("Unable to stop batch process in HttpServer.");
 
     m_log->Trace("Close HTTP server.");
     close();

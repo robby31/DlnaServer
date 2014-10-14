@@ -22,7 +22,8 @@ TranscodeProcess::~TranscodeProcess()
     if (state() == QProcess::Running)
     {
         kill();
-        waitForFinished(1000);
+        if (!waitForFinished(1000))
+            m_log->Error("Unable to stop TranscodeProcess.");
     }
 }
 
