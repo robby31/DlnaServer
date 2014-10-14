@@ -38,9 +38,10 @@ void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
     }
 }
 
-QIODevice *DlnaItem::getStream(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent) {
-    if (toTranscode()) {
-
+QIODevice *DlnaItem::getStream(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent)
+{
+    if (toTranscode())
+    {
         // DLNA node shall be transcoded
         TranscodeProcess* process = getTranscodeProcess(range, timeseek_start, timeseek_end, parent != 0 ? parent : this);
 
@@ -48,25 +49,20 @@ QIODevice *DlnaItem::getStream(HttpRange *range, long timeseek_start, long times
         process->setBufferSize(bitrate()/8*10);
 
         process->launch();
-        if (!process->waitForStarted())
+
+        return process;
+    }
+    else
+    {
+        StreamingFile* tmp = new StreamingFile(getSystemName(),
+                                               parent != 0 ? parent : this);
+
+        if (!tmp->open(QIODevice::ReadOnly))
         {
-            log->Error(process->errorString());
-            process->deleteLater();
             return 0;
         }
         else
         {
-            return process;
-        }
-    } else {
-
-        StreamingFile* tmp = new StreamingFile(getSystemName(),
-                                               parent != 0 ? parent : this);
-
-        if (!tmp->open(QIODevice::ReadOnly)) {
-            return 0;
-        }
-        else {
             tmp->setRange(range);
             return tmp;
         }
