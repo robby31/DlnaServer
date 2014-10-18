@@ -80,8 +80,7 @@ void Request::setParamHeader(const QString &param, const QString &value)
 {
     if (m_params.contains(param))
         log->Error(QString("Param %1 is defined several times in header.").arg(param));
-    else
-        m_params[param] = value;
+    m_params[param] = value;
 }
 
 int Request::getReceivedContentLength() const
