@@ -21,7 +21,8 @@ SOURCES += tst_request.cpp \
     tst_dlnafolder.cpp \
     tst_dlnamusictrack.cpp \
     tst_dlnavideoitem.cpp \
-    tst_dlnacachedresources.cpp
+    tst_dlnacachedresources.cpp \
+    tst_dlnayoutubevideo.cpp
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 DEFINES += PROFILING
@@ -36,4 +37,5 @@ HEADERS += \
     tst_dlnafolder.h \
     tst_dlnamusictrack.h \
     tst_dlnavideoitem.h \
-    tst_dlnacachedresources.h
+    tst_dlnacachedresources.h \
+    tst_dlnayoutubevideo.h

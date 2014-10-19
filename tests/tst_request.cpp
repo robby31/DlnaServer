@@ -11,9 +11,8 @@ void TestRequest::testCase_request()
 {
     Logger log;
     DlnaRootFolder rootFolder(&log, "host", 400);
-    MediaRendererModel renderersModel;
     QTcpSocket client;
-    Request request(&log, &client, "uuid", "server name", "host IP", 56, &rootFolder, &renderersModel);
+    Request request(&log, &client, "uuid", "server name", "host IP", 56);
 
     QVERIFY2(request.getHost() == "host IP", "Failure with function getHost()");
     QVERIFY(request.getArgument() == "");
@@ -23,17 +22,17 @@ void TestRequest::testCase_request()
     QVERIFY(request.getTextHeader() == "");
     QVERIFY(request.getTextContent() == "");
     QVERIFY(request.isHttp10() == false);
-    QVERIFY(request.getUserAgent() == "");
+    QVERIFY(request.getParamHeader("USER-AGENT") == "");
     QVERIFY(request.getReceivedContentLength() == -1);
     QVERIFY(request.getTransferMode() == "");
     QVERIFY(request.getContentFeatures() == "");
 
-    QVERIFY(request.getSoapaction() == "");
+    QVERIFY(request.getParamHeader("SOAPACTION") == "");
     QVERIFY(request.appendHeader("CALLBACK: field_callback") == true);
-    QVERIFY(request.getSoapaction() == "field_callback");
+    QVERIFY(request.getParamHeader("SOAPACTION") == "field_callback");
 
     QVERIFY(request.appendHeader("SOAPACTION: field_soapaction") == true);
-    QVERIFY(request.getSoapaction() == "field_soapaction");
+    QVERIFY2(request.getParamHeader("SOAPACTION") == "field_soapaction", request.getParamHeader("SOAPACTION").toUtf8().constData());
 
     QVERIFY(request.appendHeader("") == false);
     QVERIFY(request.appendHeader("METHOD") == false);
@@ -44,7 +43,7 @@ void TestRequest::testCase_request()
     QVERIFY(request.isHttp10() == true);
 
     QVERIFY(request.appendHeader("User-Agent: DLNADOC/1.50") == true);
-    QVERIFY(request.getUserAgent() == "DLNADOC/1.50");
+    QVERIFY(request.getParamHeader("USER-AGENT") == "DLNADOC/1.50");
 
     QVERIFY(request.appendHeader("CONTENT-LENGTH: 632") == true);
     QVERIFY(request.getReceivedContentLength() == 632);
