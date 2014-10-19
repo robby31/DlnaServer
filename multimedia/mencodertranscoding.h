@@ -10,15 +10,27 @@ class MencoderTranscoding : public TranscodeProcess
 public:
     explicit MencoderTranscoding(Logger* log, QObject *parent = 0);
 
-    // initialize program pathname and arguments of the QProcess
-    bool initialize(HttpRange* range, const long &timeseek_start, const long &timeseek_end,
-                    const QString &filePath, const int &lengthInSeconds, const TranscodeFormatAvailable &transcodeFormat, const int &bitrate,
-                    const QStringList &audioLanguages, const QStringList &subtitleLanguages, const QString &framerate);
+    void setLengthInSeconds(const qint64 length)            { m_lengthInSeconds = length;       updateArguments(); }
+    void setFormat(const TranscodeFormatAvailable &format)  { m_format = format;                updateArguments(); }
+    void setBitrate(const qint64 &bitrate)                  { m_bitrate = bitrate;              updateArguments(); }
+    void setAudioLanguages(const QStringList &languages)    { m_audioLanguages = languages;     updateArguments(); }
+    void setSubtitleLanguages(const QStringList &languages) { m_subtitleLanguages = languages;  updateArguments(); }
+    void setFrameRate(const QString &rate)                  { m_frameRate = rate;               updateArguments(); }
+
+private:
+    virtual void updateArguments();
 
 signals:
 
 public slots:
 
+private:
+    qint64 m_lengthInSeconds;
+    TranscodeFormatAvailable m_format;
+    qint64 m_bitrate;
+    QStringList m_audioLanguages;
+    QStringList m_subtitleLanguages;
+    QString m_frameRate;
 };
 
 #endif // MENCODERTRANSCODING_H

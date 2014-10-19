@@ -165,8 +165,8 @@ void ReplyDlnaItemContent::run()
 
                     if (streamContent == 0) {
                         // recover resume time
-                        long timeSeekRangeStart = m_request->getTimeSeekRangeStart();
-                        long timeSeekRangeEnd = m_request->getTimeSeekRangeEnd();
+                        qint64 timeSeekRangeStart = m_request->getTimeSeekRangeStart();
+                        qint64 timeSeekRangeEnd = m_request->getTimeSeekRangeEnd();
                         qint64 resume = dlna->getResumeTime();
                         if (resume>0) {
                             timeSeekRangeStart = resume/1000 - 10;
@@ -176,8 +176,11 @@ void ReplyDlnaItemContent::run()
                         // get stream file
                         streamContent = dlna->getStream(m_request->getRange(), timeSeekRangeStart, timeSeekRangeEnd, this);
 
-                        if (!streamContent)
+                        if (!streamContent or !streamContent->open(QIODevice::ReadOnly))
                         {
+                            if (streamContent)
+                                streamContent->deleteLater();
+
                             // No inputStream indicates that transcoding / remuxing probably crashed.
                             m_log->Error("There is no inputstream to return for " + dlna->getDisplayName());
                             emit replyStatus("KO");

@@ -2,16 +2,10 @@
 
 StreamingFile::StreamingFile(QString filename, QObject *parent) :
     QFile(filename, parent),
-    m_range(0)
+    m_range(0),
+    timeseek_start(-1),
+    timeseek_end(-1)
 {
-}
-
-void StreamingFile::setRange(HttpRange *range)
-{
-    m_range = range;
-
-    if (m_range && m_range->getStartByte()>0)
-        seek(m_range->getStartByte());
 }
 
 qint64 StreamingFile::size() const
@@ -32,6 +26,9 @@ bool StreamingFile::atEnd() const
 
 qint64 StreamingFile::readData(char *data, qint64 maxlen)
 {
+    if (m_range && pos() < m_range->getStartByte())
+        seek(m_range->getStartByte());
+
     if (m_range && m_range->getEndByte()>0)
     {
         int bytesToRead = m_range->getEndByte() - pos() + 1;

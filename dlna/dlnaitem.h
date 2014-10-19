@@ -26,7 +26,7 @@ public:
     virtual qint64 getResumeTime() const { return 0; }
 
     // Returns an InputStream of this DLNA node.
-    QIODevice *getStream(HttpRange* range=0, long timeseek_start=-1, long timeseek_end=-1, QObject *parent = 0);
+    QIODevice *getStream(HttpRange* range=0, qint64 timeseek_start=-1, qint64 timeseek_end=-1, QObject *parent = 0);
 
     // return true if the track shall be transcoded
     virtual bool toTranscode() const = 0;
@@ -79,7 +79,7 @@ public:
 
 protected:
     // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range=0, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0) = 0;
+    virtual TranscodeProcess* getTranscodeProcess(QObject *parent=0) = 0;
 
 private:
     virtual void updateDLNAOrgPn() = 0;

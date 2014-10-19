@@ -50,7 +50,7 @@ public:
 
 protected:
     // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess(HttpRange* range, long timeseek_start=-1, long timeseek_end=-1, QObject *parent=0);
+    virtual TranscodeProcess* getTranscodeProcess(QObject *parent=0);
 
     MediaLibrary* library;
     int idMedia;

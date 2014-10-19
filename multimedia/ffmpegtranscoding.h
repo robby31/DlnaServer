@@ -10,16 +10,23 @@ class FfmpegTranscoding : public TranscodeProcess
 public:
     explicit FfmpegTranscoding(Logger* log, QObject *parent = 0);
 
-    // initialize program pathname and arguments of the QProcess
-    bool initialize(HttpRange* range, const long &timeseek_start, const long &timeseek_end,
-                    const QString &filePath, const int &lengthInSeconds, const TranscodeFormatAvailable &transcodeFormat, const int &bitrate);
+    void setLengthInSeconds(const qint64 length)            { m_lengthInSeconds = length;   updateArguments(); }
+    void setFormat(const TranscodeFormatAvailable &format)  { m_format = format;            updateArguments(); }
+    void setBitrate(const qint64 &bitrate)                  { m_bitrate = bitrate;          updateArguments(); }
 
     static const QString PROGRAM;
+
+private:
+    virtual void updateArguments();
 
 signals:
 
 public slots:
 
+private:
+    qint64 m_lengthInSeconds;
+    TranscodeFormatAvailable m_format;
+    qint64 m_bitrate;
 };
 
 #endif // FFMPEGTRANSCODING_H

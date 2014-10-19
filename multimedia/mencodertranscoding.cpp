@@ -1,28 +1,35 @@
 #include "mencodertranscoding.h"
 
 MencoderTranscoding::MencoderTranscoding(Logger *log, QObject *parent) :
-    TranscodeProcess(log, parent)
+    TranscodeProcess(log, parent),
+    m_lengthInSeconds(-1),
+    m_format(MPEG2_AC3),          // Default format
+    m_bitrate(-1),
+    m_audioLanguages(),
+    m_subtitleLanguages(),
+    m_frameRate("25.000")
 {
+    QString program = "/Users/doudou/workspaceQT/DLNA_server/exe/mencoder";
+    setProgram(program);
 }
 
-bool MencoderTranscoding::initialize(HttpRange *range, const long &timeseek_start, const long &timeseek_end, const QString &filePath, const int &lengthInSeconds, const TranscodeFormatAvailable &transcodeFormat, const int &bitrate, const QStringList &audioLanguages, const QStringList &subtitleLanguages, const QString &framerate) {
-
-    QString program = "/Users/doudou/workspaceQT/DLNA_server/exe/mencoder";
+void MencoderTranscoding::updateArguments()
+{
     QString fontFile = "/Users/doudou/workspaceQT/DLNA_server/exe/LucidaSansRegular.ttf";
 
     QStringList arguments;
-    if (range != 0 && !range->isNull()) {
-        if (range->getStartByte() > 0) {
-            double start_position = double(range->getStartByte())/double(range->getSize())*double(lengthInSeconds);
+    if (range() != 0 && !range()->isNull()) {
+        if (range()->getStartByte() > 0 && m_lengthInSeconds > 0) {
+            double start_position = double(range()->getStartByte())/double(range()->getSize())*double(m_lengthInSeconds);
             arguments << "-ss" << QString("%1.0").arg(long(start_position));
         }
-    } else if (timeseek_start > 0) {
-        arguments << "-ss" << QString("%1.0").arg(timeseek_start);
+    } else if (timeSeekStart() > 0) {
+        arguments << "-ss" << QString("%1.0").arg(timeSeekStart());
     }
 
-    arguments << filePath;
+    arguments << url();
 
-    if (transcodeFormat == MPEG2_AC3) {
+    if (m_format == MPEG2_AC3) {
 
         // set container format to MPEG
         arguments << "-of" << "mpeg";
@@ -46,22 +53,22 @@ bool MencoderTranscoding::initialize(HttpRange *range, const long &timeseek_star
         arguments << "-ass-force-style" << QString("FontName=%1,Outline=1,Shadow=1,MarginV=10").arg(fontFile);
 
         // choose audio and subtitle language
-        if (audioLanguages.contains("fre")) {
-            arguments << "-aid" << QString("%1").arg(audioLanguages.indexOf("fre"));
+        if (m_audioLanguages.contains("fre")) {
+            arguments << "-aid" << QString("%1").arg(m_audioLanguages.indexOf("fre"));
             arguments << "-nosub";
         } else {
-            if (subtitleLanguages.contains("fre")) {
-                arguments << "-noautosub" << "-sid" << QString("%1").arg(subtitleLanguages.indexOf("fre"));
-            } else if (subtitleLanguages.contains("eng")) {
-                arguments << "-noautosub" << "-sid" << QString("%1").arg(subtitleLanguages.indexOf("eng"));
+            if (m_subtitleLanguages.contains("fre")) {
+                arguments << "-noautosub" << "-sid" << QString("%1").arg(m_subtitleLanguages.indexOf("fre"));
+            } else if (m_subtitleLanguages.contains("eng")) {
+                arguments << "-noautosub" << "-sid" << QString("%1").arg(m_subtitleLanguages.indexOf("eng"));
             }
         }
 
         // set frame rate
-        if (!framerate.isEmpty()) {
-            if (framerate == "23.976") {
+        if (!m_frameRate.isEmpty()) {
+            if (m_frameRate == "23.976") {
                 arguments << "-ofps" << "24000/1001";
-            } else if (framerate == "29.970") {
+            } else if (m_frameRate == "29.970") {
                 arguments << "-ofps" << "30000/1001";
             } else {
                 // default framerate output
@@ -73,23 +80,22 @@ bool MencoderTranscoding::initialize(HttpRange *range, const long &timeseek_star
         }
 
     } else {
-        // invalid transcode format
-        return false;
+        m_log->Error(QString("Invalid format: %1").arg(m_format));
     }
 
-    if (range != 0 && !range->isNull()) {
-        if (range->getLength() > 0) {
-            if (range->getHighRange() >= 0) {
+    if (range() != 0 && !range()->isNull()) {
+        if (range()->getLength() > 0) {
+            if (range()->getHighRange() >= 0 && m_lengthInSeconds > 0) {
                 // calculate the endpos in seconds
-                double endpos = double(range->getLength())/double(range->getSize())*double(lengthInSeconds);
+                double endpos = double(range()->getLength())/double(range()->getSize())*double(m_lengthInSeconds);
                 arguments << "-endpos" << QString("%1").arg(long(endpos));
             }
         } else {
             // invalid length
             arguments << "-endpos 0";
         }
-    } else if (timeseek_end > 0) {
-        arguments << "-endpos" << QString("%1").arg(timeseek_end);
+    } else if (timeSeekEnd() > 0) {
+        arguments << "-endpos" << QString("%1").arg(timeSeekEnd());
     }
 
     // set output = pipe
@@ -99,8 +105,5 @@ bool MencoderTranscoding::initialize(HttpRange *range, const long &timeseek_star
     arguments << "-really-quiet";
     arguments << "-msglevel" << "statusline=2";
 
-    setProgram(program);
     setArguments(arguments);
-
-    return true;
 }

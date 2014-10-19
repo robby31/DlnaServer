@@ -39,8 +39,8 @@ public:
     QString getUuid() const { return uuid; }
 
     HttpRange *getRange() const { return range; }
-    long getTimeSeekRangeStart() const { return timeSeekRangeStart; }
-    long getTimeSeekRangeEnd() const { return timeSeekRangeEnd; }
+    qint64 getTimeSeekRangeStart() const { return timeSeekRangeStart; }
+    qint64 getTimeSeekRangeEnd() const { return timeSeekRangeEnd; }
 
     QString getStatus() const { return m_status; }
 
@@ -155,8 +155,8 @@ private:
 
     // range requested
     HttpRange* range;
-    long timeSeekRangeStart;
-    long timeSeekRangeEnd;
+    qint64 timeSeekRangeStart;
+    qint64 timeSeekRangeEnd;
     bool http10;
 
     void setHttp10(const bool &http10) { this->http10 = http10; }

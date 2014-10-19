@@ -192,28 +192,13 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
     return xml_obj;
 }
 
-FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent) {
-
-    if (!toTranscode()) {
-
-        // use getStream instead of transcoding
-        return 0;
-
-    } else {
-
-        FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log, parent != 0 ? parent : this);
-
-        if (transcodeProcess->initialize(range, timeseek_start, timeseek_end, getSystemName(), getLengthInSeconds(), transcodeFormat, bitrate())) {
-
-            log->Debug(QString("Audio Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
-            return transcodeProcess;
-
-        } else {
-
-            return 0;
-
-        }
-    }
+FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess(QObject *parent)
+{
+    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log, parent != 0 ? parent : this);
+    transcodeProcess->setLengthInSeconds(getLengthInSeconds());
+    transcodeProcess->setFormat(transcodeFormat);
+    transcodeProcess->setBitrate(bitrate());
+    return transcodeProcess;
 }
 
 QString DlnaMusicTrack::mimeType() const {

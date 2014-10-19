@@ -14,27 +14,16 @@ DlnaVideoFile::~DlnaVideoFile() {
 
 }
 
-TranscodeProcess *DlnaVideoFile::getTranscodeProcess(HttpRange *range, long timeseek_start, long timeseek_end, QObject *parent) {
-    if (!toTranscode()) {
-
-        // use getStream instead of transcoding
-        return 0;
-
-    } else {
-
-        MencoderTranscoding* transcodeProcess = new MencoderTranscoding(log, parent != 0 ? parent : this);
-
-        if (transcodeProcess->initialize(range, timeseek_start, timeseek_end, getSystemName(), getLengthInSeconds(), transcodeFormat, bitrate(), audioLanguages(), subtitleLanguages(), framerate())) {
-
-            log->Debug(QString("Video Transcoding process %1 %2").arg(transcodeProcess->program()).arg(transcodeProcess->arguments().join(' ')));
-            return transcodeProcess;
-
-        } else {
-
-            return 0;
-
-        }
-    }
+TranscodeProcess *DlnaVideoFile::getTranscodeProcess(QObject *parent)
+{
+    MencoderTranscoding* transcodeProcess = new MencoderTranscoding(log, parent != 0 ? parent : this);
+    transcodeProcess->setLengthInSeconds(getLengthInSeconds());
+    transcodeProcess->setFormat(transcodeFormat);
+    transcodeProcess->setBitrate(bitrate());
+    transcodeProcess->setAudioLanguages(audioLanguages());
+    transcodeProcess->setSubtitleLanguages(subtitleLanguages());
+    transcodeProcess->setFrameRate(framerate());
+    return transcodeProcess;
 }
 
 QString DlnaVideoFile::metaDataTitle() const {

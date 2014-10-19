@@ -5,6 +5,10 @@ const QString TranscodeProcess::CRLF = "\r\n";
 TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
     QProcess(parent),
     m_log(log != 0 ? log : new Logger(this)),
+    m_url(),
+    m_range(0),
+    timeseek_start(-1),
+    timeseek_end(-1),
     m_pos(0),
     transcodeClock(),
     killTranscodeProcess(false),
@@ -14,6 +18,7 @@ TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
     connect(this, SIGNAL(readyReadStandardOutput()), this, SLOT(dataAvailable()));
     connect(this, SIGNAL(readyReadStandardError()), this, SLOT(appendTranscodingLogMessage()));
     connect(this, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorTrancodedData(QProcess::ProcessError)));
+    connect(this, SIGNAL(started()), this, SLOT(processStarted()));
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedTranscodeData(int)));
 }
 
@@ -25,6 +30,16 @@ TranscodeProcess::~TranscodeProcess()
         if (!waitForFinished(1000))
             m_log->Error("Unable to stop TranscodeProcess.");
     }
+}
+
+void TranscodeProcess::setRange(HttpRange *range)
+{
+    m_range = range;
+
+//    if (m_range && m_range->getStartByte()>0)
+//        seek(m_range->getStartByte());
+
+    updateArguments();
 }
 
 void TranscodeProcess::dataAvailable()
@@ -126,13 +141,12 @@ void TranscodeProcess::finishedTranscodeData(const int &exitCode) {
     }
 }
 
-void TranscodeProcess::launch() {
+void TranscodeProcess::processStarted() {
+    m_log->Debug(QString("Transcoding process %1 %2").arg(program()).arg(arguments().join(' ')));
     appendLog(program()+' ');
     appendLog(arguments().join(' ')+CRLF);
 
     transcodeClock.start();
-
-    start();
 }
 
 void TranscodeProcess::killProcess() {

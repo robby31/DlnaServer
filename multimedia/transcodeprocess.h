@@ -20,13 +20,21 @@ public:
     explicit TranscodeProcess(Logger* log, QObject *parent = 0);
     virtual ~TranscodeProcess();
 
-    virtual void launch();
-
     bool isKilled() const { return killTranscodeProcess; }
     void killProcess();
 
     virtual int transcodeExitCode() const { return exitCode(); }
     void setBufferSize(const qint64 &size) { if (size>0) maxBufferSize = size; }
+
+    void setUrl(const QString &url)                             { m_url = url;                                  updateArguments(); }
+    QString url() const { return m_url; }
+
+    void setRange(HttpRange *range);
+    HttpRange * range() const { return m_range; }
+
+    void setTimeSeek(qint64 start, qint64 end)                  { timeseek_start = start; timeseek_end = end;   updateArguments();}
+    qint64 timeSeekStart() const { return timeseek_start; }
+    qint64 timeSeekEnd() const { return timeseek_end; }
 
     virtual bool atEnd() const;
 
@@ -35,6 +43,8 @@ public:
 
 
 private:
+    virtual void updateArguments() = 0;
+
     bool pause();
     bool resume();
 
@@ -44,6 +54,7 @@ signals:
     void errorRaised(const QString &errorString);
 
 private slots:
+    void processStarted();
     void dataAvailable();
     void errorTrancodedData(const QProcess::ProcessError &error);
     void appendTranscodingLogMessage();
@@ -57,6 +68,11 @@ protected:
 private:
     // Carriage return and line feed.
     static const QString CRLF;
+
+    QString m_url;
+    HttpRange *m_range;
+    qint64 timeseek_start;
+    qint64 timeseek_end;
 
     qint64 m_pos;
 
