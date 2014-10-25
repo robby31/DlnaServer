@@ -9,7 +9,6 @@
 #include <QThread>
 
 #include "httpserver.h"
-#include "upnphelper.h"
 #include "logger.h"
 #include "requestlistmodel.h"
 #include "mediarenderermodel.h"
@@ -68,6 +67,8 @@ public slots:
     // quit the application
     void quit();
 
+private slots:
+    void serverStarted();
 
 private:
     QSettings settings;
@@ -80,8 +81,6 @@ private:
     QThread worker;
 
     HttpServer *server;
-
-    UPNPHelper *upnp;
 
     // list of requests received by server
     RequestListModel *m_requestsModel;

@@ -8,10 +8,11 @@ Application::Application(int &argc, char **argv):
     log(this),
     worker(this),
     server(0),
-    upnp(0),
     m_requestsModel(0),
     m_renderersModel(0)
 {
+    thread()->setObjectName("QML APPLICATION THREAD");
+    worker.setObjectName("WORKER APPLICATION");
     log.setLevel(INF);
 
     server = new HttpServer(&log);
@@ -22,11 +23,8 @@ Application::Application(int &argc, char **argv):
 
     setRequestsModel(new RequestListModel(this));
 
-    upnp = new UPNPHelper(&log, server);
-    upnp->moveToThread(&worker);
-    connect(&worker, SIGNAL(finished()), upnp, SLOT(deleteLater()));
-
-    connect(this, SIGNAL(addFolder(QString)), server, SLOT(addFolder(QString)));
+    connect(server, SIGNAL(serverStarted()), this, SLOT(serverStarted()));
+    connect(this, SIGNAL(addFolder(QString)), server, SLOT(_addFolder(QString)));
     connect(server, SIGNAL(folderAdded(QString)), this, SLOT(folderAdded(QString)));
     connect(server, SIGNAL(error_addFolder(QString)), this, SLOT(folderNotAdded(QString)));
 
@@ -34,10 +32,15 @@ Application::Application(int &argc, char **argv):
     connect(server, SIGNAL(linkAdded(QString)), this, SLOT(linkAdded(QString)));
     connect(server, SIGNAL(error_addNetworkLink(QString)), this, SLOT(linkNotAdded(QString)));
 
-    connect(this, SIGNAL(checkNetworkLink()), server, SLOT(checkNetworkLink()));
+    connect(this, SIGNAL(checkNetworkLink()), server, SLOT(_checkNetworkLink()));
 
     worker.start();
 
+    server->start();
+}
+
+void Application::serverStarted()
+{
     // load the settings
     loadSettings();
 //    emit checkNetworkLink();

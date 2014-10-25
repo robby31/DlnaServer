@@ -4,6 +4,7 @@
 #include <QTcpServer>
 
 #include "logger.h"
+#include "upnphelper.h"
 #include "cached/dlnacachedrootfolder.h"
 #include "cached/batchedrootfolder.h"
 #include "reply.h"
@@ -17,12 +18,13 @@ public:
     HttpServer(Logger* log, QObject *parent = 0);
     virtual ~HttpServer();
 
-    QHostAddress getHost() const { return hostaddress; }
-    int getPort() const { return serverPort(); }
-    QString getURL() const;
+    QHostAddress getHost()  const { return hostaddress; }
+    int getPort()           const { return serverPort(); }
+    QString getURL()        const { return "http://" + getHost().toString() + ":" + QString("%1").arg(getPort()); }
 
     DlnaRootFolder* getRootFolder() const { return rootFolder; }
 
+    void start() { emit startSignal(); }
     bool resetLibrary() { return batch->resetLibrary(); }
 
     // identifier of the render (unique)
@@ -34,7 +36,12 @@ public:
     // Server port
     static const int SERVERPORT;
 
+protected:
+    virtual void incomingConnection(qintptr socketDescriptor);
+
 signals:
+    void startSignal();
+    void serverStarted();
     void batched_addFolder(const QString &folder);
     void progressUpdate(const int &value);
 
@@ -54,23 +61,25 @@ signals:
 
 public slots:
     bool addNetworkLink(const QString url);
-    void checkNetworkLink();
 
 
-private slots :
-    void acceptConnection();                                             // new connection detected
-    void newConnectionError(const QAbstractSocket::SocketError &error);  // error during new connection
-    void readyToReply();                                                 // reply shall be sent
+private slots:
+    void _checkNetworkLink();
 
-    void servingProgress(const QString &filename, const int &playedDurationInMs);
-    void servingFinished(const QString &filename, const int &status);
+    void _startServer();
+    void _newConnectionError(const QAbstractSocket::SocketError &error);  // error during new connection
+    void _readyToReply();                                                 // reply shall be sent
 
-    void addFolder(const QString &folder);
+    void _servingProgress(const QString &filename, const int &playedDurationInMs);
+    void _servingFinished(const QString &filename, const int &status);
+
+    void _addFolder(const QString &folder);
 
 
 private :
     Logger* m_log;
 
+    UPNPHelper upnp;
     QHostAddress hostaddress;
     int serverport;
 
