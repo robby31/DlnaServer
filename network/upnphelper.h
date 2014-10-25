@@ -7,47 +7,64 @@
 #include <QUdpSocket>
 
 #include "logger.h"
-#include "httpserver.h"
 
 class UPNPHelper : public QObject
 {
     Q_OBJECT
 
 public:
-    UPNPHelper(Logger* log, HttpServer *server, QObject *parent = 0);
+    UPNPHelper(Logger* log, QObject *parent = 0);
     virtual ~UPNPHelper();
 
+    void start() { emit startSignal(); }
     void close();
 
+    void setUuid(const QString &uuid)       { m_uuid = uuid;        }
+    void setServerName(const QString &name) { m_servername = name;  }
+    void setServerUrl(const QString &url)   { m_serverurl = url;    }
+
 private:
+    void logTrace(const QString &message);
+    void logDebug(const QString &message);
+    void logError(const QString &message);
+
     // Build a UPnP message string based on a message.
-    QByteArray buildMsg(const QString &nt, const QString &message);
+    QByteArray _buildMsg(const QString &nt, const QString &message);
 
     // Send the provided message to the socket.
-    void sendMessage(const QString &nt, const QString &message);
+    void _sendMessage(const QString &nt, const QString &message);
 
     // Send UPnP discovery search message to discover devices of interest on the network.
-    void sendDiscover(const QHostAddress &host, const int &port, const QString &st);
+    void _sendDiscover(const QHostAddress &host, const int &port, const QString &st);
 
     // Send reply.
-    void sendReply(const QHostAddress &host, const int &port, const QByteArray &msg);
+    void _sendReply(const QHostAddress &host, const int &port, const QByteArray &msg);
 
     // Send the UPnP BYEBYE message.
-    void sendByeBye();
+    void _sendByeBye();
+
+signals:
+    void startSignal();
 
 private slots:
+    void _logDestroyed()        { m_log = 0; }
+
+    void _start();
+
     // Send Alive for broadcasting
-    void sendAlive();
+    void _sendAlive();
 
     // Function called when a request is received
-    void processPendingDatagrams();
+    void _processPendingDatagrams();
 
-    void serverDestroyed() { close(); server = 0; }
 
 private:
     Logger* m_log;
 
-    HttpServer *server;
+    QString m_uuid;
+    QString m_servername;
+    QString m_serverurl;
+
     QUdpSocket udpSocketBroadcast;
     QUdpSocket udpSocketReceiver;
 
@@ -60,13 +77,13 @@ private:
     // The Constant ALIVE.
     static const QString ALIVE;
 
-    /**
+    /*
      * IPv4 Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).
      * MUST be 239.255.255.250.
      */
     static const QHostAddress IPV4_UPNP_HOST;
 
-    /**
+    /*
      * Multicast channel reserved for SSDP by Internet Assigned Numbers Authority (IANA).
      * MUST be 1900.
      */
