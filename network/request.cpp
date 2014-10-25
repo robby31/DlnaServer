@@ -3,10 +3,11 @@
 const QString Request::CRLF = "\r\n";
 
 
-Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString servername, QString host, int port, QObject *parent):
+Request::Request(Logger* log, qintptr socketDescriptor, QString uuid, QString servername, QString host, int port, QObject *parent):
     QObject(parent),
     log(log),
-    m_client(client),
+    worker(this),
+    m_client(0),
     replyNumber(0),
     replyInProgress(false),  // by default no reply is in progress, we wait a request
     flagHeaderReading(true), // by default the header has not been received
@@ -18,13 +19,17 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     servername(servername),
     m_host(),
     port(port),
-    socket(-1),
+    socket(socketDescriptor),
     m_content(""),
     range(0),
     timeSeekRangeStart(-1),
     timeSeekRangeEnd(-1),
     http10(false)
 {
+    worker.setObjectName("Request Thread");
+    this->moveToThread(&worker);
+    worker.start();
+
     clock.invalidate();
 
     setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
@@ -32,28 +37,49 @@ Request::Request(Logger* log, QTcpSocket* client, QString uuid, QString serverna
     setHost(host);
     setNetworkStatus("connected");
 
-    if (client) {
-        setPeerAddress(client->peerAddress().toString());
-        socket = client->socketDescriptor();
-
-        if (client->isOpen()) {
-            setNetworkStatus("opened");
-        } else {
-            setNetworkStatus("not connected");
-        }
-
-        connect(client, SIGNAL(readyRead()), this, SLOT(readSocket()));
-        connect(client, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(clientError(QAbstractSocket::SocketError)));
-        connect(client, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(stateChanged(QAbstractSocket::SocketState)));
-        connect(client, SIGNAL(destroyed()), this, SLOT(clientDestroyed()));
-    }
+    connect(this, SIGNAL(newSocketDescriptor()), this, SLOT(createTcpSocket()));
+    emit newSocketDescriptor();
 
     log->Trace("Request: receiving a request from " + getpeerAddress());
 }
 
 Request::~Request() {
+    worker.quit();
+    if (!worker.wait(1000))
+        qWarning() << "Unable to stop Request Thread" << this;
+
     if (range)
         delete range;
+
+    if (m_client)
+        m_client->deleteLater();
+}
+
+void Request::createTcpSocket()
+{
+    m_client = new QTcpSocket();
+
+    if (!m_client->setSocketDescriptor(socket))
+    {
+        clientError(m_client->error());
+        m_client->deleteLater();
+        qWarning() << "unable to create TCPSOCKET" << socket << m_client->errorString();
+    }
+    else
+    {
+        setPeerAddress(m_client->peerAddress().toString());
+
+        if (m_client->isOpen()) {
+            setNetworkStatus("opened");
+        } else {
+            setNetworkStatus("not connected");
+        }
+
+        connect(m_client, SIGNAL(readyRead()), this, SLOT(readSocket()));
+        connect(m_client, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(clientError(QAbstractSocket::SocketError)));
+        connect(m_client, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(stateChanged(QAbstractSocket::SocketState)));
+        connect(m_client, SIGNAL(destroyed()), this, SLOT(clientDestroyed()));
+    }
 }
 
 void Request::setArgument(const QString &argument)

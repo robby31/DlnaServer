@@ -4,6 +4,7 @@
 #include <QTcpSocket>
 #include <QHostAddress>
 #include <QElapsedTimer>
+#include <QThread>
 
 #include "logger.h"
 #include "httprange.h"
@@ -16,7 +17,7 @@ class Request: public QObject
 
 public:
     Request(Logger *log,
-            QTcpSocket *client, QString uuid,
+            qintptr socketDescriptor, QString uuid,
             QString servername, QString host, int port,
             QObject *parent = 0);
     virtual ~Request();
@@ -80,6 +81,8 @@ public:
 
 
 signals:
+    void newSocketDescriptor();
+
     // emit signal when data changed
     void dataChanged(const QString &roleChanged);
 
@@ -104,10 +107,9 @@ public slots:
 
 
 private slots:
+    void createTcpSocket();
     void setStatus(const QString &status) { m_status = status; emit dataChanged("status"); }
 
-
-private slots:
     // slots for incoming data
     void readSocket();
     void stateChanged(const QAbstractSocket::SocketState &state);
@@ -118,6 +120,7 @@ private:
     static const QString CRLF;
 
     Logger* log;
+    QThread worker;
     QString requestLog;  // internal log
 
     QTcpSocket* m_client;
