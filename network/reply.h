@@ -14,13 +14,12 @@ class Reply : public QObject
 public:
     explicit Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, QObject *parent = 0);
 
-    // Construct a proper HTTP response to a received request
-    // and provide answer to the client on the request
-    // See "http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html" for HTTP header field definitions.
-    virtual void run();
+    void run() { emit runSignal(); }
 
 
 signals:
+    void runSignal();
+
     // emit signal when reply is done
     void finished();
 
@@ -38,6 +37,12 @@ public slots:
 
     void LogMessage(const QString &msg) { emit logText(msg); }
 
+
+private slots:
+    // Construct a proper HTTP response to a received request
+    // and provide answer to the client on the request
+    // See "http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html" for HTTP header field definitions.
+    virtual void _run();
 
 protected:
     void sendLine(QTcpSocket *client, const QString &msg);

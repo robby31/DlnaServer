@@ -33,6 +33,8 @@ Reply::Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, QObject 
     keepSocketOpened(false),
     m_rootFolder(rootFolder)
 {
+    connect(this, SIGNAL(runSignal()), this, SLOT(_run()));
+
     if (m_log==0)
         m_log = new Logger(this);
     else
@@ -140,7 +142,7 @@ void Reply::sendAnswer(const QByteArray &contentAnswer)
 }
 
 
-void Reply::run() {
+void Reply::_run() {
     if (!m_request)
         return;
 
