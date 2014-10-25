@@ -21,8 +21,9 @@ public:
     // Returns album art in jpeg format
     virtual QImage getAlbumArt() const { return QImage(); }
 
-    QString getHost() const { return host; }
-    int getPort() const { return port; }
+    void setHost(const QString &hostname) { host = hostname; }
+    QString getHost()               const { return host; }
+    int getPort()                   const { return port; }
 
 protected:
     QString host;

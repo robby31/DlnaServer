@@ -48,12 +48,13 @@ void BatchedRootFolder::readDirectory(QDir folder, bool flag_root) {
         QString currentPath = fileinfo.absoluteFilePath();
         if(fileinfo.isDir())
             readDirectory(currentPath, false);
-        else if (fileinfo.isFile())
+        else if (m_root && fileinfo.isFile())
             m_root->addResource(fileinfo);
 
         if (stop)
             break;
     }
 
-    m_root->refreshLastAddedMedia();
+    if (m_root)
+        m_root->refreshLastAddedMedia();
 }
