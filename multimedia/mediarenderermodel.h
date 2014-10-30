@@ -1,6 +1,7 @@
 #ifndef MEDIARENDERERMODEL_H
 #define MEDIARENDERERMODEL_H
 
+#include <QDebug>
 #include <QAbstractTableModel>
 #include "mediarenderer.h"
 

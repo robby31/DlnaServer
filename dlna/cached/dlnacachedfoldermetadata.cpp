@@ -36,7 +36,7 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
 
         // metaData is null ?
         if (query.value(0).isNull())
-            child = new DlnaCachedFolder(log, library,
+            child = new DlnaCachedFolder(log(), library,
                                          QString("type=\"%2\" and %1 is null %3").arg(metaData).arg(typeMedia).arg(whereQuery),
                                          m_orderedParam,
                                          m_sortOption,
@@ -45,7 +45,7 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
                                          false,
                                          parent != 0 ? parent : this);
         else
-            child = new DlnaCachedFolder(log, library,
+            child = new DlnaCachedFolder(log(), library,
                                          QString("type=\"%3\" and %1=\"%2\" %4").arg(metaData).arg(query.value(0).toString()).arg(typeMedia).arg(whereQuery),
                                          m_orderedParam,
                                          m_sortOption,

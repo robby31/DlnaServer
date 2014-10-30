@@ -66,21 +66,21 @@ DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
     }
 
     if (type_media == "audio") {
-        child = new DlnaCachedMusicTrack(log, library, id_media, host, port,
+        child = new DlnaCachedMusicTrack(log(), library, id_media, host, port,
                                          parent != 0 ? parent : this);
 
     } else if (type_media == "video") {
         QString url(library->getmetaData("filename", id_media).toString());
 
         if (url.startsWith("http"))
-            child = new DlnaCachedNetworkVideo(log, library, id_media, host, port,
+            child = new DlnaCachedNetworkVideo(log(), library, id_media, host, port,
                                                parent != 0 ? parent : this);
         else
-            child = new DlnaCachedVideo(log, library, id_media, host, port,
+            child = new DlnaCachedVideo(log(), library, id_media, host, port,
                                         parent != 0 ? parent : this);
 
     } else {
-        log->Warning(QString("Unkwown format %1: %2").arg(type_media).arg(filename));
+        logWarning(QString("Unkwown format %1: %2").arg(type_media).arg(filename));
     }
 
 

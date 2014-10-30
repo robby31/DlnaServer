@@ -1,19 +1,19 @@
 #ifndef UPNPHELPER_H
 #define UPNPHELPER_H
 
-#include <QObject>
 #include <QHostAddress>
 #include <QTimer>
 #include <QUdpSocket>
+#include <QDateTime>
 
-#include "logger.h"
+#include "logobject.h"
 
-class UPNPHelper : public QObject
+class UPNPHelper : public LogObject
 {
     Q_OBJECT
 
 public:
-    UPNPHelper(Logger* log, QObject *parent = 0);
+    explicit UPNPHelper(Logger* log, QObject *parent = 0);
     virtual ~UPNPHelper();
 
     void start() { emit startSignal(); }
@@ -24,10 +24,6 @@ public:
     void setServerUrl(const QString &url)   { m_serverurl = url;    }
 
 private:
-    void logTrace(const QString &message);
-    void logDebug(const QString &message);
-    void logError(const QString &message);
-
     // Build a UPnP message string based on a message.
     QByteArray _buildMsg(const QString &nt, const QString &message);
 
@@ -47,8 +43,6 @@ signals:
     void startSignal();
 
 private slots:
-    void _logDestroyed()        { m_log = 0; }
-
     void _start();
 
     // Send Alive for broadcasting
@@ -59,8 +53,6 @@ private slots:
 
 
 private:
-    Logger* m_log;
-
     QString m_uuid;
     QString m_servername;
     QString m_serverurl;

@@ -15,7 +15,7 @@ class HttpServer : public QTcpServer
     Q_OBJECT
 
 public:
-    HttpServer(Logger* log, QObject *parent = 0);
+    explicit HttpServer(Logger* log, QObject *parent = 0);
     virtual ~HttpServer();
 
     QHostAddress getHost()  const { return hostaddress; }
@@ -64,6 +64,8 @@ public slots:
 
 
 private slots:
+    void _logDestroyed() { m_log = 0; }
+
     void _checkNetworkLink();
 
     void _startServer();
@@ -74,6 +76,15 @@ private slots:
     void _servingFinished(const QString &filename, const int &status);
 
     void _addFolder(const QString &folder);
+
+
+private:
+    bool isLogLevel(const LogLevel &level) const { return m_log ? m_log->isLevel(level) : false; }
+    void logError(const QString &message)  const { if (m_log) m_log->Error(message); }
+    void logDebug(const QString &message)  const { if (m_log) m_log->Debug(message); }
+    void logInfo(const QString &message)   const { if (m_log) m_log->Info(message); }
+    void logTrace(const QString &message)  const { if (m_log) m_log->Trace(message); }
+
 
 
 private :

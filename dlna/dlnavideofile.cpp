@@ -16,7 +16,7 @@ DlnaVideoFile::~DlnaVideoFile() {
 
 TranscodeProcess *DlnaVideoFile::getTranscodeProcess(QObject *parent)
 {
-    MencoderTranscoding* transcodeProcess = new MencoderTranscoding(log, parent != 0 ? parent : this);
+    MencoderTranscoding* transcodeProcess = new MencoderTranscoding(log(), parent != 0 ? parent : this);
     transcodeProcess->setLengthInSeconds(getLengthInSeconds());
     transcodeProcess->setFormat(transcodeFormat);
     transcodeProcess->setBitrate(bitrate());

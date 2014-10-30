@@ -1,13 +1,12 @@
 #ifndef REPLY_H
 #define REPLY_H
 
-#include <QObject>
-#include "logger.h"
+#include "logobject.h"
 #include "request.h"
 #include "dlnarootfolder.h"
 #include "elapsedtimer.h"
 
-class Reply : public QObject
+class Reply : public LogObject
 {
     Q_OBJECT
 
@@ -27,9 +26,10 @@ signals:
 
     void replyStatus(const QString &status);
 
+    void appendAnswer(const QString &msg);
+
 
 public slots:
-    void logDestroyed()        { m_log = new Logger(this); }
     void requestDestroyed()    { m_request = 0; }
     void rootFolderDestroyed() { m_rootFolder = 0; }
     void clientDestroyed()     { client = 0;
@@ -63,7 +63,6 @@ private:
 
 
 protected:
-    Logger* m_log;
     Request* m_request;
 
     QHash<QString, QString> m_params;  // header for the reply

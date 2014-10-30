@@ -43,6 +43,12 @@ public:
 
 
 private:
+    bool isLogLevel(const LogLevel &level) const { return m_log ? m_log->isLevel(level) : false; }
+    void logError(const QString &message)  const { if (m_log) m_log->Error(message); }
+    void logDebug(const QString &message)  const { if (m_log) m_log->Debug(message); }
+    void logInfo(const QString &message)   const { if (m_log) m_log->Info(message); }
+    void logTrace(const QString &message)  const { if (m_log) m_log->Trace(message); }
+
     virtual void updateArguments() = 0;
 
     bool pause();
@@ -54,6 +60,8 @@ signals:
     void errorRaised(const QString &errorString);
 
 private slots:
+    void _logDestroyed() { m_log = 0; }
+
     void processStarted();
     void dataAvailable();
     void errorTrancodedData(const QProcess::ProcessError &error);

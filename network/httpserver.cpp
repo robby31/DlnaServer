@@ -13,7 +13,7 @@ const int HttpServer::SERVERPORT = 5002;
 
 HttpServer::HttpServer(Logger* log, QObject *parent):
     QTcpServer(parent),
-    m_log(log != 0 ? log : new Logger(this)),
+    m_log(log),
     upnp(m_log, this),
     hostaddress(),
     serverport(SERVERPORT),
@@ -22,6 +22,11 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
     batch(0),
     batchThread(this)
 {
+    if (!m_log)
+        qWarning() << "log is not available for" << this;
+
+    connect(m_log, SIGNAL(destroyed()), this, SLOT(_logDestroyed()));
+
     upnp.setUuid(UUID);
     upnp.setServerName(SERVERNAME);
 
@@ -47,9 +52,9 @@ HttpServer::~HttpServer()
     if (batch != 0)
         batch->quit();
     if (!batchThread.wait(1000))
-        m_log->Error("Unable to stop batch process in HttpServer.");
+        logError("Unable to stop batch process in HttpServer.");
 
-    m_log->Trace("Close HTTP server.");
+    logTrace("Close HTTP server.");
     close();
 }
 
@@ -75,17 +80,17 @@ void HttpServer::_startServer()
 
     if (hostaddress.isNull())
     {
-        m_log->Error("HTTP server: unable to define host ip address.");
+        logError("HTTP server: unable to define host ip address.");
     }
     else
     {
         if (!listen(hostaddress, serverport))
         {
-            m_log->Error("HTTP server: " + errorString());
+            logError("HTTP server: " + errorString());
         }
         else
         {
-            m_log->Trace("HTTP server: listen " + getHost().toString() + ":" + QString("%1").arg(getPort()));
+            logTrace("HTTP server: listen " + getHost().toString() + ":" + QString("%1").arg(getPort()));
 
             // initialize the root folder
             if (rootFolder)
@@ -104,7 +109,7 @@ void HttpServer::_startServer()
 
 void HttpServer::incomingConnection(qintptr socketDescriptor)
 {
-    m_log->Trace("HTTP server: new connection");
+    logTrace("HTTP server: new connection");
 
     Request *request = new Request(m_log,
                                    socketDescriptor,
@@ -118,7 +123,7 @@ void HttpServer::incomingConnection(qintptr socketDescriptor)
 }
 
 void HttpServer::_newConnectionError(const QAbstractSocket::SocketError &error) {
-    m_log->Error(QString("HTTP server: error at new connection (%1).").arg(error));
+    logError(QString("HTTP server: error at new connection (%1).").arg(error));
 }
 
 void HttpServer::_readyToReply()
@@ -141,6 +146,7 @@ void HttpServer::_readyToReply()
 
     reply->moveToThread(request->thread());
 
+    connect(reply, SIGNAL(appendAnswer(QString)), request, SLOT(appendAnswer(QString)));
     connect(reply, SIGNAL(replyStatus(QString)), request, SLOT(setStatus(QString)));
     connect(reply, SIGNAL(logText(QString)), request, SLOT(appendLog(QString)));
     connect(reply, SIGNAL(finished()), request, SLOT(replyFinished()));
@@ -183,7 +189,7 @@ bool HttpServer::addNetworkLink(const QString url)
 void HttpServer::_checkNetworkLink()
 {
     int nb = 0;
-    m_log->Info("CHECK NETWORK LINK started");
+    logInfo("CHECK NETWORK LINK started");
 
     if (rootFolder)
     {
@@ -191,11 +197,11 @@ void HttpServer::_checkNetworkLink()
         while (query.next()) {
             ++nb;
             if (!rootFolder->networkLinkIsValid(query.value("filename").toString()))
-                m_log->Error(QString("link %1 is broken, title: %2").arg(query.value("filename").toString()).arg(query.value("title").toString()));
+                logError(QString("link %1 is broken, title: %2").arg(query.value("filename").toString()).arg(query.value("title").toString()));
         }
     }
 
-    m_log->Info(QString("%1 links checked.").arg(nb));
+    logInfo(QString("%1 links checked.").arg(nb));
 }
 
 void HttpServer::_servingProgress(const QString &filename, const int &playedDurationInMs)
@@ -207,7 +213,7 @@ void HttpServer::_servingProgress(const QString &filename, const int &playedDura
         if (playedDurationInMs>0)
             data.insert("progress_played", playedDurationInMs);
         if (!rootFolder->updateLibrary(filename, data))
-            m_log->Error(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
+            logError(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
     }
 }
 
@@ -216,7 +222,7 @@ void HttpServer::_servingFinished(const QString &filename, const int &status)
     if (status==0 && rootFolder)
     {
         if (!rootFolder->incrementCounterPlayed(filename))
-            m_log->Error(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
+            logError(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
     }
 }
 

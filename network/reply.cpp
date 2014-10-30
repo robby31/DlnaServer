@@ -24,8 +24,7 @@ const QString Reply::EVENT_FOOTER = "</e:propertyset>";
 
 
 Reply::Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, QObject *parent):
-    QObject(parent),
-    m_log(log),
+    LogObject(log, parent),
     m_request(request),
     m_params(),
     headerSent(false),
@@ -34,11 +33,6 @@ Reply::Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, QObject 
     m_rootFolder(rootFolder)
 {
     connect(this, SIGNAL(runSignal()), this, SLOT(_run()));
-
-    if (m_log==0)
-        m_log = new Logger(this);
-    else
-        connect(m_log, SIGNAL(destroyed()), this, SLOT(logDestroyed()));
 
     connect(m_request, SIGNAL(destroyed()), this, SLOT(requestDestroyed()));
     connect(m_rootFolder, SIGNAL(destroyed()), this, SLOT(rootFolderDestroyed()));
@@ -55,7 +49,7 @@ QString Reply::getParamHeader(const QString &param) const
 void Reply::setParamHeader(const QString &param, const QString &value)
 {
     if (m_params.contains(param))
-        m_log->Error(QString("Param %1 is defined several times in header: %2 - %3.").arg(param).arg(m_params[param]).arg(value));
+        logError(QString("Param %1 is defined several times in header: %2 - %3.").arg(param).arg(m_params[param]).arg(value));
     else
         m_params[param] = value;
 }
@@ -63,19 +57,19 @@ void Reply::setParamHeader(const QString &param, const QString &value)
 void Reply::sendLine(QTcpSocket *client, const QString &msg)
 {
     if (client == 0) {
-        m_log->Error("Unable to send line (client deleted).");
+        logError("Unable to send line (client deleted).");
     } else {
         QByteArray tmp;
 
         tmp.append(msg.toUtf8()).append(CRLF.toUtf8());
 
         if (client->write(tmp) == -1) {
-            m_log->Error("HTTP Request: Unable to send line: " + msg);
+            logError("HTTP Request: Unable to send line: " + msg);
         }
 
-        if (m_request)
-            m_request->appendAnswer(msg+CRLF);
-        m_log->Debug("Wrote on socket: " + msg);
+        emit appendAnswer(msg+CRLF);
+
+        logDebug("Wrote on socket: " + msg);
     }
 }
 
@@ -83,7 +77,7 @@ void Reply::sendHeader()
 {
     if (!headerSent && m_request)
     {
-        m_log->Debug("Send header.");
+        logDebug("Send header.");
         emit logText(QString("%1: Send header."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
         if (m_request->getRange())
@@ -112,7 +106,7 @@ void Reply::sendHeader()
 void Reply::sendAnswer(const QByteArray &contentAnswer)
 {
     if (client == 0) {
-        m_log->Error("Unable to send answer (client deleted).");
+        logError("Unable to send answer (client deleted).");
     } else {
         if (!contentAnswer.isNull())
             setParamHeader("Content-Length", QString("%1").arg(contentAnswer.size()));
@@ -124,16 +118,16 @@ void Reply::sendAnswer(const QByteArray &contentAnswer)
         if (m_request && m_request->getMethod() != "HEAD" && !contentAnswer.isNull())
         {
             // send the content
-            m_request->appendAnswer(QString("content size: %1%2").arg(contentAnswer.size()).arg(CRLF));
-            m_request->appendAnswer(contentAnswer);
+            emit appendAnswer(QString("content size: %1%2").arg(contentAnswer.size()).arg(CRLF));
+            emit appendAnswer(contentAnswer);
 
             if (client->write(contentAnswer) == -1) {
 
-                m_log->Error("HTTP request: Unable to send content.");
+                logError("HTTP request: Unable to send content.");
 
             } else {
-                m_log->Debug(QString("Send content (%1 bytes).").arg(contentAnswer.size()));
-                m_log->Trace("Wrote on socket content: " + contentAnswer);
+                logDebug(QString("Send content (%1 bytes).").arg(contentAnswer.size()));
+                logTrace("Wrote on socket content: " + contentAnswer);
             }
         }
 
@@ -149,7 +143,7 @@ void Reply::_run() {
     // prepare data and send answer
     QString soapaction = m_request->getSoapaction();
 
-    m_log->Trace("ANSWER: " + m_request->getMethod() + " " + m_request->getArgument());
+    logTrace("ANSWER: " + m_request->getMethod() + " " + m_request->getArgument());
 
     if ((m_request->getMethod() == "GET" || m_request->getMethod() == "HEAD") && (m_request->getArgument() == "description/fetch" || m_request->getArgument().endsWith("1.0.xml"))) {
 
@@ -176,7 +170,7 @@ void Reply::_run() {
             answerContent.replace(QString("[port]"), QString("%1").arg(m_request->getPort()));
         }
         else {
-            m_log->Error("Unable to read PMS.xml for description/fetch answer.");
+            logError("Unable to read PMS.xml for description/fetch answer.");
         }
 
         sendAnswer(answerContent.toUtf8());
@@ -505,7 +499,7 @@ void Reply::_run() {
             sendLine(&sock, "Content-Type: text/xml; charset=\"utf-8\"");
         }
         else {
-            m_log->Error(QString("Cannot connect to %1").arg(cb));
+            logError(QString("Cannot connect to %1").arg(cb));
             emit replyStatus("ERROR");
             return;
         }
@@ -571,7 +565,7 @@ void Reply::_run() {
 
         }
         else {
-            m_log->Error(QString("Unable to read %1 for %2 answer.").arg(m_request->getArgument()).arg(m_request->getMethod()));
+            logError(QString("Unable to read %1 for %2 answer.").arg(m_request->getArgument()).arg(m_request->getMethod()));
         }
 
         sendAnswer(answerContent);
@@ -579,7 +573,7 @@ void Reply::_run() {
         emit replyStatus("OK");
     }
     else {
-        m_log->Error("Unkown answer for: " + m_request->getMethod() + " " + m_request->getArgument());
+        logError("Unkown answer for: " + m_request->getMethod() + " " + m_request->getArgument());
         emit replyStatus("KO");
     }
 
@@ -591,7 +585,7 @@ void Reply::closeClient() {
         if (!keepSocketOpened)
         {
             // No streaming or transcoding in progress
-            m_log->Trace("Close client connection in request");
+            logTrace("Close client connection in request");
             if (client)
             {
                 client->disconnectFromHost();

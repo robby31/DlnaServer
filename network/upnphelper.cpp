@@ -1,5 +1,4 @@
 #include "upnphelper.h"
-#include <QDateTime>
 
 const QString UPNPHelper::CRLF = "\r\n";
 
@@ -13,8 +12,7 @@ const QString UPNPHelper::BYEBYE = "ssdp:byebye";
 
 
 UPNPHelper::UPNPHelper(Logger* log, QObject *parent):
-    QObject(parent),
-    m_log(log != 0 ? log : new Logger(this)),
+    LogObject(log, parent),
     m_uuid(),
     m_servername(),
     m_serverurl(),
@@ -31,31 +29,12 @@ UPNPHelper::UPNPHelper(Logger* log, QObject *parent):
     connect(&udpSocketReceiver, SIGNAL(readyRead()), this, SLOT(_processPendingDatagrams()));
     connect(&timerAlive, SIGNAL(timeout()), this, SLOT(_sendAlive()));
     connect(this, SIGNAL(startSignal()), this, SLOT(_start()));
-    connect(m_log, SIGNAL(destroyed()), this, SLOT(_logDestroyed()));
 }
 
 UPNPHelper::~UPNPHelper()
 {
     logTrace("Close UPNPHelper.");
     close();
-}
-
-void UPNPHelper::logTrace(const QString &message)
-{
-    if (m_log)
-        m_log->Trace(message);
-}
-
-void UPNPHelper::logDebug(const QString &message)
-{
-    if (m_log)
-        m_log->Debug(message);
-}
-
-void UPNPHelper::logError(const QString &message)
-{
-    if (m_log)
-        m_log->Error(message);
 }
 
 void UPNPHelper::_start()

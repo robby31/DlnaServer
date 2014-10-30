@@ -140,7 +140,7 @@ QString DlnaVideoItem::mimeType() const {
             return MPEG_TYPEMIME;
 
         } else {
-            log->Error("Unable to define mimeType of DlnaVideoItem: " + getSystemName());
+            logError("Unable to define mimeType of DlnaVideoItem: " + getSystemName());
 
             // returns unknown mimeType
             return UNKNOWN_VIDEO_TYPEMIME;
@@ -154,7 +154,7 @@ QString DlnaVideoItem::mimeType() const {
             return MATROSKA_TYPEMIME;
 
         } else {
-            log->Error("Unable to define mimeType of DlnaVideoItem: " + format + " " + getSystemName());
+            logError("Unable to define mimeType of DlnaVideoItem: " + format + " " + getSystemName());
 
             // returns unknown mimeType
             return UNKNOWN_VIDEO_TYPEMIME;

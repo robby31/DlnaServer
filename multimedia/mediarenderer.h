@@ -3,14 +3,13 @@
 
 #include <QObject>
 
-#include "logger.h"
 
 class MediaRenderer : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit MediaRenderer(Logger* log, const QString &ip, const int &port, const QString &userAgent, QObject *parent = 0);
+    explicit MediaRenderer(const QString &ip, const int &port, const QString &userAgent, QObject *parent = 0);
 
     QString getStatus() const { return status; }
     void setStatus(const QString &status) { this->status = status; emit dataChanged("status"); }
@@ -28,7 +27,6 @@ signals:
 public slots:
 
 private:
-    Logger* log;
     QString ip;
     int port;
     QString userAgent;

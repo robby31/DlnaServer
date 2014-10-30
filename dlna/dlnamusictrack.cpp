@@ -194,7 +194,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
 FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess(QObject *parent)
 {
-    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log, parent != 0 ? parent : this);
+    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log(), parent != 0 ? parent : this);
     transcodeProcess->setLengthInSeconds(getLengthInSeconds());
     transcodeProcess->setFormat(transcodeFormat);
     transcodeProcess->setBitrate(bitrate());
@@ -209,7 +209,7 @@ QString DlnaMusicTrack::mimeType() const {
         } else if (transcodeFormat == LPCM) {
             return AUDIO_LPCM_TYPEMIME;
         } else {
-            log->Error("Unable to define mimeType of DlnaMusicTrack Transcoding: " + getSystemName());
+            logError("Unable to define mimeType of DlnaMusicTrack Transcoding: " + getSystemName());
         }
     } else {
         QString format = metaDataFormat();
@@ -218,7 +218,7 @@ QString DlnaMusicTrack::mimeType() const {
         } else if (format == "aac") {
             return AUDIO_MP4_TYPEMIME;
         } else {
-            log->Error(QString("Unable to define mimeType of DlnaMusicTrack: %1 from format <%2>").arg(getSystemName()).arg(format));
+            logError(QString("Unable to define mimeType of DlnaMusicTrack: %1 from format <%2>").arg(getSystemName()).arg(format));
         }
     }
 

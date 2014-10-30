@@ -50,7 +50,7 @@ public:
 
 protected:
     // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess(QObject *parent=0) { return new YouTubeTranscoding(log, parent != 0 ? parent : this); }
+    virtual TranscodeProcess* getTranscodeProcess(QObject *parent=0) { return new YouTubeTranscoding(log(), parent != 0 ? parent : this); }
 
 signals:
 

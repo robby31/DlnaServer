@@ -1,8 +1,7 @@
 #include "dlnaresource.h"
 
 DlnaResource::DlnaResource(Logger *log, QObject *parent):
-    QObject(parent),
-    log(log != 0 ? log : new Logger(this)),
+    LogObject(log, parent),
     id(),
     dlnaParent(0),
     m_needRefresh(false),

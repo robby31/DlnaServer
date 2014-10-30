@@ -1,7 +1,6 @@
 #ifndef DLNAITEM_H
 #define DLNAITEM_H
 
-#include "logger.h"
 #include "dlnaresource.h"
 
 #include "transcodeprocess.h"

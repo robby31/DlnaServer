@@ -4,8 +4,7 @@ const QString Request::CRLF = "\r\n";
 
 
 Request::Request(Logger* log, qintptr socketDescriptor, QString uuid, QString servername, QString host, int port, QObject *parent):
-    QObject(parent),
-    log(log),
+    LogObject(log, parent),
     worker(this),
     m_client(0),
     replyNumber(0),
@@ -40,7 +39,7 @@ Request::Request(Logger* log, qintptr socketDescriptor, QString uuid, QString se
     connect(this, SIGNAL(newSocketDescriptor()), this, SLOT(createTcpSocket()));
     emit newSocketDescriptor();
 
-    log->Trace("Request: receiving a request from " + getpeerAddress());
+    logTrace("Request: receiving a request from " + getpeerAddress());
 }
 
 Request::~Request() {
@@ -88,7 +87,7 @@ void Request::setArgument(const QString &argument)
 
     if (argument.startsWith("/"))
     {
-        log->Trace("Stripping preceding slash from: " + argument);
+        logTrace("Stripping preceding slash from: " + argument);
         m_argument = m_argument.remove(0, 1);
     }
 
@@ -105,7 +104,7 @@ QString Request::getParamHeader(const QString &param) const
 void Request::setParamHeader(const QString &param, const QString &value)
 {
     if (m_params.contains(param))
-        log->Error(QString("Param %1 is defined several times in header.").arg(param));
+        logError(QString("Param %1 is defined several times in header.").arg(param));
     m_params[param] = value;
 }
 
@@ -141,7 +140,7 @@ bool Request::appendHeader(const QString &headerLine)
             if (range)
             {
                 // range already read, ignore it
-                log->Error("A range has already been read in the request");
+                logError("A range has already been read in the request");
                 return false;
             }
             else
@@ -151,7 +150,7 @@ bool Request::appendHeader(const QString &headerLine)
                     // invalid range, ignore it
                     delete range;
                     range = 0;
-                    log->Error("Invalid range in request: " + headerLine);
+                    logError("Invalid range in request: " + headerLine);
                     return false;
                 }
             }
@@ -169,7 +168,7 @@ bool Request::appendHeader(const QString &headerLine)
             }
             else
             {
-                log->Error(QString("Invalid param TimeSeekRange %1").arg(headerLine.trimmed()));
+                logError(QString("Invalid param TimeSeekRange %1").arg(headerLine.trimmed()));
                 return false;
             }
         }
@@ -215,7 +214,7 @@ void Request::readSocket()
     QTcpSocket* client = (QTcpSocket*)sender();
 
     if (client == 0) {
-        log->Error("data received but client is deleted.");
+        logError("data received but client is deleted.");
 
     } else if (!replyInProgress) {
         if (flagHeaderReading) {
@@ -232,16 +231,16 @@ void Request::readSocket()
 
                         if (getArgument() == "description/fetch") {
                             // new renderer is connecting to server
-                            MediaRenderer *renderer = new MediaRenderer(log, getpeerAddress(), getPort(), getParamHeader("USER-AGENT"));
+                            MediaRenderer *renderer = new MediaRenderer(getpeerAddress(), getPort(), getParamHeader("USER-AGENT"));
                             emit newRenderer(renderer);
                         }
                     } else {
-                        log->Trace("Request: Received on socket: " + headerLine);
+                        logTrace("Request: Received on socket: " + headerLine);
                         appendHeader(headerLine);
                     }
                 } else {
                     if (getReceivedContentLength() <= 0)
-                        log->Error("Unable to detect end request (content length is invalid).");
+                        logError("Unable to detect end request (content length is invalid).");
 
                     // read the content
                     m_content.append(headerLine);
@@ -250,7 +249,7 @@ void Request::readSocket()
             }
 
             if (flagHeaderReading)
-                log->Error("HEADER NOT READ");
+                logError("HEADER NOT READ");
 
             if ((getReceivedContentLength() <= 0) || (m_content.size() == getReceivedContentLength())) {
                 // prepare and send answer
@@ -264,13 +263,13 @@ void Request::readSocket()
             emit dataChanged("content");
 
             if (getReceivedContentLength() <= 0) {
-                log->Error("Unable to detect end request (content length is invalid).");
+                logError("Unable to detect end request (content length is invalid).");
 
             } else if (m_content.size() == getReceivedContentLength())
             {
                 setStatus("content read");
-                log->Trace("Bytes Read: " + QString("%1").arg(m_content.size()));
-                log->Trace("Data Read: " + m_content);
+                logTrace("Bytes Read: " + QString("%1").arg(m_content.size()));
+                logTrace("Data Read: " + m_content);
 
                 // prepare and send answer
                 replyInProgress = true;

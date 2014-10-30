@@ -81,10 +81,10 @@ bool DlnaCachedRootFolder::addFolder(QString path) {
             QString typeMedia = query.value(1).toString();
 
             if (typeMedia == "audio") {
-                DlnaCachedMusicFolder* child = new DlnaCachedMusicFolder(log, &library, host, port, id_type, this);
+                DlnaCachedMusicFolder* child = new DlnaCachedMusicFolder(log(), &library, host, port, id_type, this);
                 addChild(child);
             } else {
-                DlnaCachedFolder* child = new DlnaCachedFolder(log, &library,
+                DlnaCachedFolder* child = new DlnaCachedFolder(log(), &library,
                                                                QString("type='%1'").arg(id_type),
                                                                QString("title"),
                                                                QString("ASC"),
@@ -113,7 +113,7 @@ bool DlnaCachedRootFolder::addNetworkLink(const QString &url)
 
 bool DlnaCachedRootFolder::networkLinkIsValid(const QString &url)
 {
-    DlnaYouTubeVideo movie(log, url, host, port);
+    DlnaYouTubeVideo movie(log(), url, host, port);
     return !movie.metaDataTitle().isEmpty();
 }
 
@@ -126,7 +126,7 @@ bool DlnaCachedRootFolder::addResource(QUrl url)
 //    data.insert("mime_type", mime_type);
 //    data.insert("last_modified", fileinfo.lastModified());
 
-    DlnaYouTubeVideo movie(log, url.toString(), host, port);
+    DlnaYouTubeVideo movie(log(), url.toString(), host, port);
     data.insert("title", movie.metaDataTitle());
     data.insert("duration", movie.metaDataDuration());
     data.insert("resolution", movie.resolution());
@@ -139,17 +139,17 @@ bool DlnaCachedRootFolder::addResource(QUrl url)
     data.insert("format", movie.metaDataFormat());
 
     if (movie.metaDataTitle().isEmpty()) {
-        log->Error(QString("unable to add resource %1, title is empty").arg(url.toString()));
+        logError(QString("unable to add resource %1, title is empty").arg(url.toString()));
     } else {
         if (movie.metaDataDuration()<=0)
-            log->Warning(QString("invalid duration %3 for %1 (%2).").arg(movie.metaDataTitle()).arg(url.toString()).arg(movie.metaDataDuration()));
+            logWarning(QString("invalid duration %3 for %1 (%2).").arg(movie.metaDataTitle()).arg(url.toString()).arg(movie.metaDataDuration()));
         if (movie.resolution().isEmpty())
-            log->Warning(QString("invalid resolution %3 for %1 (%2).").arg(movie.metaDataTitle()).arg(url.toString()).arg(movie.resolution()));
+            logWarning(QString("invalid resolution %3 for %1 (%2).").arg(movie.metaDataTitle()).arg(url.toString()).arg(movie.resolution()));
 
         if (!data.isEmpty()) {
-            log->Debug(QString("Resource to add: %1").arg(movie.metaDataTitle()));
+            logDebug(QString("Resource to add: %1").arg(movie.metaDataTitle()));
             if (!library.add_media(data)) {
-                log->Error(QString("unable to add or update resource %1 (%2)").arg(url.toString().arg("video")));
+                logError(QString("unable to add or update resource %1 (%2)").arg(url.toString().arg("video")));
             } else {
                 return true;
             }
@@ -176,7 +176,7 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
 
         if (mime_type.startsWith("audio/"))
         {
-            DlnaMusicTrackFile track(log, fileinfo.absoluteFilePath(), host, port);
+            DlnaMusicTrackFile track(log(), fileinfo.absoluteFilePath(), host, port);
 
             data.insert("title", track.metaDataTitle());
             data.insert("album", track.metaDataAlbum());
@@ -193,7 +193,7 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
         }
         else if (mime_type.startsWith("video/"))
         {
-            DlnaVideoFile movie(log, fileinfo.absoluteFilePath(), host, port);
+            DlnaVideoFile movie(log(), fileinfo.absoluteFilePath(), host, port);
 
             data.insert("duration", movie.metaDataDuration());
             data.insert("resolution", movie.resolution());
@@ -208,14 +208,14 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
         }
         else
         {
-            log->Debug("resource not added to library: " + mime_type + ", " + fileinfo.absoluteFilePath());
+            logDebug("resource not added to library: " + mime_type + ", " + fileinfo.absoluteFilePath());
             data.clear();
         }
 
         if (!data.isEmpty())
         {
             if (!library.add_media(data))
-                log->Error(QString("unable to add or update resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type));
+                logError(QString("unable to add or update resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type));
         }
     }
 }

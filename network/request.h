@@ -6,20 +6,20 @@
 #include <QElapsedTimer>
 #include <QThread>
 
-#include "logger.h"
+#include "logobject.h"
 #include "httprange.h"
 #include "mediarenderer.h"
 
 
-class Request: public QObject
+class Request: public LogObject
 {
     Q_OBJECT
 
 public:
-    Request(Logger *log,
-            qintptr socketDescriptor, QString uuid,
-            QString servername, QString host, int port,
-            QObject *parent = 0);
+    explicit Request(Logger *log,
+                     qintptr socketDescriptor, QString uuid,
+                     QString servername, QString host, int port,
+                     QObject *parent = 0);
     virtual ~Request();
 
     bool isHttp10() const { return http10; }
@@ -77,8 +77,6 @@ public:
 
     void setNetworkStatus(const QString &status) { m_networkStatus = status; emit dataChanged("network_status"); }
 
-    void appendAnswer(const QString &string) { m_stringAnswer.append(string); emit dataChanged("answer"); }
-
 
 signals:
     void newSocketDescriptor();
@@ -114,12 +112,13 @@ private slots:
     void readSocket();
     void stateChanged(const QAbstractSocket::SocketState &state);
 
+    void appendAnswer(const QString &string) { m_stringAnswer.append(string); emit dataChanged("answer"); }
+
 
 private:
     // Carriage return and line feed.
     static const QString CRLF;
 
-    Logger* log;
     QThread worker;
     QString requestLog;  // internal log
 

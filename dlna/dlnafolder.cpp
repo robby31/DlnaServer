@@ -25,7 +25,7 @@ DlnaFolder::DlnaFolder(Logger* log, QString filename, QString host, int port, QO
             children.append(new_file);
         }
         else {
-            log->Warning(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath()));
+            logWarning(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath()));
         }
     }
 }
@@ -42,19 +42,19 @@ DlnaResource *DlnaFolder::getChild(int index, QObject *parent)  {
         QMimeDatabase mimeDb;
 
         if (fileinfo.isDir()) {
-            child = new DlnaFolder(log, fileinfo.absoluteFilePath(), host, port,
+            child = new DlnaFolder(log(), fileinfo.absoluteFilePath(), host, port,
                                    parent != 0 ? parent : this);
         }
         else if (mimeDb.mimeTypeForFile(fileinfo).name().startsWith("audio/")) {
-            child = new DlnaMusicTrackFile(log, fileinfo.absoluteFilePath(), host, port,
+            child = new DlnaMusicTrackFile(log(), fileinfo.absoluteFilePath(), host, port,
                                            parent != 0 ? parent : this);
         }
         else if (mimeDb.mimeTypeForFile(fileinfo).name().startsWith("video/")) {
-            child = new DlnaVideoFile(log, fileinfo.absoluteFilePath(), host, port,
+            child = new DlnaVideoFile(log(), fileinfo.absoluteFilePath(), host, port,
                                       parent != 0 ? parent : this);
         }
         else {
-            log->Warning(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(fileinfo).name()).arg(fileinfo.absoluteFilePath()));
+            logWarning(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(fileinfo).name()).arg(fileinfo.absoluteFilePath()));
         }
     }
 

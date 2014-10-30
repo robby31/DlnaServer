@@ -5,14 +5,14 @@
 #include <QtXml>
 #include <QImage>
 
-#include "logger.h"
+#include "logobject.h"
 
 /*
  * Represents any item which can be browsed via the UPNP ContentDirectory service.
  * It may be a folder, an audio track or a video.
  */
 
-class DlnaResource: public QObject
+class DlnaResource: public LogObject
 {
     Q_OBJECT
 
@@ -78,13 +78,8 @@ public:
     virtual QImage getAlbumArt() const = 0;
     QByteArray getByteAlbumArt() const;
 
-    Logger* getLog() const { return log; }
-
 private:
     virtual void refreshContent() { qWarning() << "Resource" << getName() << "shall be refreshed, please define function refreshContent() herited from DlnaResource to do it."; }
-
-protected:
-    Logger* log;
 
 private:
     // id of this resource based on the index in its parent container.

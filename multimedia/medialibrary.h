@@ -4,10 +4,10 @@
 #include <QObject>
 #include <QtSql>
 
-#include "logger.h"
+#include "logobject.h"
 #include "acoustid.h"
 
-class MediaLibrary : public QObject
+class MediaLibrary : public LogObject
 {
     Q_OBJECT
 
@@ -56,7 +56,6 @@ signals:
 public slots:
 
 private:
-    Logger* log;
     QSqlDatabase *db;
 
     QHash<QString, QHash<QString, QHash<QString, QString> > > foreignKeys;
