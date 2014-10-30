@@ -53,7 +53,7 @@ signals:
     void checkNetworkLink();
 
 
-public slots:
+private slots:
     void setsharedFolderModel(const QStringList &model) { m_sharedFolderModel = model; emit sharedFolderModelChanged(); }
     void setRequestsModel(RequestListModel *model);
     void setRenderersModel(MediaRendererModel *model);
@@ -67,7 +67,6 @@ public slots:
     // quit the application
     void quit();
 
-private slots:
     void serverStarted();
 
 private:
