@@ -51,7 +51,7 @@ public:
 
 protected:
     // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess(QObject *parent=0);
+    virtual TranscodeProcess* getTranscodeProcess();
 
 private:
     QFileInfo fileinfo;

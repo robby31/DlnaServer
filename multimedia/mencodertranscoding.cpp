@@ -4,7 +4,6 @@ MencoderTranscoding::MencoderTranscoding(Logger *log, QObject *parent) :
     TranscodeProcess(log, parent),
     m_lengthInSeconds(-1),
     m_format(MPEG2_AC3),          // Default format
-    m_bitrate(-1),
     m_audioLanguages(),
     m_subtitleLanguages(),
     m_frameRate("25.000")

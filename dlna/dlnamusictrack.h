@@ -38,7 +38,7 @@ public:
 
 protected:
     // Returns the process for transcoding
-    virtual FfmpegTranscoding* getTranscodeProcess(QObject *parent=0);
+    virtual FfmpegTranscoding* getTranscodeProcess();
 
 private:
     virtual void updateDLNAOrgPn();

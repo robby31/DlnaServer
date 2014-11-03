@@ -5,8 +5,7 @@ const QString FfmpegTranscoding::PROGRAM = QString("/opt/local/bin/ffmpeg");
 FfmpegTranscoding::FfmpegTranscoding(Logger *log, QObject *parent) :
     TranscodeProcess(log, parent),
     m_lengthInSeconds(-1),
-    m_format(MP3),          // Default format
-    m_bitrate(-1)
+    m_format(MP3)          // Default format
 {
     setProgram(PROGRAM);
 }
@@ -37,8 +36,8 @@ void FfmpegTranscoding::updateArguments()
     {
         arguments << "-f" << "mp3";
         arguments << "-map_metadata" << "-1";
-        if (m_bitrate > 0)
-            arguments << "-ab" << QString("%1").arg(m_bitrate);
+        if (bitrate() > 0)
+            arguments << "-ab" << QString("%1").arg(bitrate());
 
     }
     else if (m_format == LPCM)
