@@ -3,9 +3,8 @@
 const QString Request::CRLF = "\r\n";
 
 
-Request::Request(Logger* log, qintptr socketDescriptor, QString uuid, QString servername, QString host, int port, QObject *parent):
+Request::Request(Logger* log, QThread *worker, qintptr socketDescriptor, QString uuid, QString servername, QString host, int port, QObject *parent):
     LogObject(log, parent),
-    worker(this),
     m_client(0),
     replyNumber(0),
     replyInProgress(false),  // by default no reply is in progress, we wait a request
@@ -25,9 +24,7 @@ Request::Request(Logger* log, qintptr socketDescriptor, QString uuid, QString se
     timeSeekRangeEnd(-1),
     http10(false)
 {
-    worker.setObjectName("Request Thread");
-    this->moveToThread(&worker);
-    worker.start();
+    this->moveToThread(worker);
 
     clock.invalidate();
 
@@ -43,10 +40,6 @@ Request::Request(Logger* log, qintptr socketDescriptor, QString uuid, QString se
 }
 
 Request::~Request() {
-    worker.quit();
-    if (!worker.wait(1000))
-        qWarning() << "Unable to stop Request Thread" << this;
-
     if (range)
         delete range;
 
@@ -277,7 +270,7 @@ void Request::readSocket()
             }
         }
     } else {
-        qWarning() << "unable to read request, a reply is in progress.";
+        qWarning() << QString("unable to read request (socket %1), a reply is in progress.").arg(socket).toUtf8().constData();
     }
 }
 

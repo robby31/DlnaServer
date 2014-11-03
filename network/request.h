@@ -17,6 +17,7 @@ class Request: public LogObject
 
 public:
     explicit Request(Logger *log,
+                     QThread *worker,
                      qintptr socketDescriptor, QString uuid,
                      QString servername, QString host, int port,
                      QObject *parent = 0);
@@ -119,7 +120,6 @@ private:
     // Carriage return and line feed.
     static const QString CRLF;
 
-    QThread worker;
     QString requestLog;  // internal log
 
     QTcpSocket* m_client;
