@@ -11,10 +11,13 @@ class StreamingFile : public QFile
 
 public:
     explicit StreamingFile(QString filename, QObject *parent = 0);
+    virtual ~StreamingFile() { qWarning() << "DELETE" << this; }
 
     virtual qint64 size() const;
     virtual bool atEnd() const;
+    virtual qint64 bytesAvailable() const;
 
+    virtual bool open(OpenMode mode);
     virtual qint64 readData(char *data, qint64 maxlen);
 
     void setRange(HttpRange *range)            { m_range = range; }

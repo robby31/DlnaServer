@@ -9,12 +9,17 @@ TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
     m_range(0),
     timeseek_start(-1),
     timeseek_end(-1),
+    m_bitrate(-1),
     m_pos(0),
+    m_size(-1),
     transcodeClock(),
     killTranscodeProcess(false),
     m_paused(false),
-    maxBufferSize(1024*1024*100)  // 100 MBytes
+    m_maxBufferSize(1024*1024*100),   // 100 MBytes by default when bitrate is unknown
+    m_durationBuffer(10)
 {
+    qWarning() << "NEW" << this;
+
     if (!m_log)
         qWarning() << "log is not available for" << this;
 
@@ -22,15 +27,21 @@ TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
     connect(this, SIGNAL(readyReadStandardOutput()), this, SLOT(dataAvailable()));
     connect(this, SIGNAL(readyReadStandardError()), this, SLOT(appendTranscodingLogMessage()));
     connect(this, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorTrancodedData(QProcess::ProcessError)));
+    qRegisterMetaType<OpenMode>("OpenMode");
+    connect(this, SIGNAL(openSignal(OpenMode)), this, SLOT(_open(OpenMode)));
     connect(this, SIGNAL(started()), this, SLOT(processStarted()));
     connect(this, SIGNAL(finished(int)), this, SLOT(finishedTranscodeData(int)));
+    connect(this, SIGNAL(pauseSignal()), this, SLOT(_pause()));
+    connect(this, SIGNAL(resumeSignal()), this, SLOT(_resume()));
 }
 
 TranscodeProcess::~TranscodeProcess()
 {
+    qWarning() << "DELETE" << this;
+
     if (state() == QProcess::Running)
     {
-        kill();
+        killProcess();
         if (!waitForFinished(1000))
             logError("Unable to stop TranscodeProcess.");
     }
@@ -51,18 +62,25 @@ void TranscodeProcess::dataAvailable()
     if (isLogLevel(DEBG))
         appendLog(QString("%1: received %2 bytes transcoding data."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
 
+    if (objectName().isEmpty() && bytesAvailable() > maxBufferSize())
+        setObjectName("device opened");
+
     // manage buffer
     if (state() == QProcess::Running) {
-        if (bytesAvailable() > maxBufferSize && !m_paused)
-        {
-            // pause transcoding process
-            if (pause() == false)
-                logError(QString("Unable to pause transcoding: pid=%1").arg(pid()));
-
-            if (isLogLevel(DEBG))
-                appendLog(QString("%1: PAUSE TRANSCODING").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-        }
+        if (bytesAvailable() > maxBufferSize() && !m_paused)
+            pause();
     }
+}
+
+qint64 TranscodeProcess::size() const
+{
+    if (m_range && m_range->getLength()!=-1)
+        return m_range->getLength();
+
+    if (m_size!=-1)
+        return m_size;
+
+    return QProcess::size();
 }
 
 bool TranscodeProcess::atEnd() const
@@ -70,7 +88,10 @@ bool TranscodeProcess::atEnd() const
 //    if (m_range && m_range->getEndByte()!=-1)
 //        return pos() > m_range->getEndByte();
 
-    if (state() == QProcess::Running)
+    if (bytesAvailable()>0)
+        return false;
+
+    if (m_paused or state() == QProcess::Running)
         return false;
     else
         return QProcess::atEnd();
@@ -85,17 +106,13 @@ qint64 TranscodeProcess::readData(char *data, qint64 maxlen)
     //            return QFile::read(bytesToRead);
     //    }
 
-    qint64 bytes = QProcess::readData(data, maxlen);
+    qint64 bytes = 0;
+     if (objectName() == "device opened")
+         bytes = QProcess::readData(data, maxlen);
     m_pos += bytes;
 
-    if (m_paused && state() != QProcess::NotRunning && bytesAvailable() < (maxBufferSize*0.5))
-    {
-        if (resume() == false)   // restart transcoding process
-            logError(QString("Unable to restart transcoding: pid=%1").arg(pid()));
-
-        if (isLogLevel(DEBG))
-            appendLog(QString("%1: RESUME TRANSCODING").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-    }
+    if (m_paused && state() != QProcess::NotRunning && bytesAvailable() < (maxBufferSize()*0.5))
+        resume();
 
     return bytes;
 }
@@ -121,6 +138,11 @@ void TranscodeProcess::errorTrancodedData(const ProcessError &error) {
 void TranscodeProcess::finishedTranscodeData(const int &exitCode) {
     appendLog(QString("%2: TRANSCODE FINISHED with exitCode %1."+CRLF).arg(exitCode).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
     appendLog(QString("%2: TRANSCODING DONE in %1 ms."+CRLF).arg(QTime(0, 0).addMSecs(transcodeClock.elapsed()).toString("hh:mm:ss")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+
+    if (objectName().isEmpty())
+        setObjectName("device opened");
+
+    m_paused = false;
 
     if (isLogLevel(DEBG))
         appendLog(QString("%1: finished transcoding, %2 remaining bytes."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
@@ -161,9 +183,11 @@ void TranscodeProcess::killProcess() {
     }
 }
 
-bool TranscodeProcess::pause() {
+void TranscodeProcess::_pause() {
     if (!m_paused && state() != QProcess::NotRunning) {
         logDebug(QString("Pause transcoding"));
+        if (isLogLevel(DEBG))
+            appendLog(QString("%1: PAUSE TRANSCODING"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
         QStringList arguments;
         arguments << "-STOP" << QString("%1").arg(pid());
@@ -173,12 +197,13 @@ bool TranscodeProcess::pause() {
         pauseTrancodeProcess.start();
         m_paused = pauseTrancodeProcess.waitForFinished();
     }
-    return m_paused;
 }
 
-bool TranscodeProcess::resume() {
+void TranscodeProcess::_resume() {
     if (m_paused && state() != QProcess::NotRunning) {
         logDebug(QString("Restart transcoding"));
+        if (isLogLevel(DEBG))
+            appendLog(QString("%1: RESUME TRANSCODING"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
         QStringList arguments;
         arguments << "-CONT" << QString("%1").arg(pid());
@@ -188,5 +213,4 @@ bool TranscodeProcess::resume() {
         continueTrancodeProcess.start();
         m_paused = !continueTrancodeProcess.waitForFinished();
     }
-    return !m_paused;
 }
