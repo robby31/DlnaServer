@@ -17,6 +17,8 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
     upnp(m_log, this),
     hostaddress(),
     serverport(SERVERPORT),
+    workerNetwork(this),
+    workerStreaming(this),
     database(QSqlDatabase::addDatabase("QSQLITE")),
     rootFolder(0),
     batch(0),
@@ -43,6 +45,12 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
     connect(this, SIGNAL(batched_addFolder(QString)), batch, SLOT(addFolder(QString)));
     connect(batch, SIGNAL(progress(int)), this, SIGNAL(progressUpdate(int)));
     batchThread.start();
+
+    workerNetwork.setObjectName("Network, request, reply Thread");
+    workerNetwork.start();
+
+    workerStreaming.setObjectName("Streaming Thread");
+    workerStreaming.start();
 }
 
 HttpServer::~HttpServer()
@@ -53,6 +61,16 @@ HttpServer::~HttpServer()
         batch->quit();
     if (!batchThread.wait(1000))
         logError("Unable to stop batch process in HttpServer.");
+
+    // stop network thread
+    workerNetwork.quit();
+    if (!workerNetwork.wait(1000))
+        logError("Unable to stop request thread in HttpServer.");
+
+    // stop streaming thread
+    workerStreaming.quit();
+    if (!workerStreaming.wait(1000))
+        logError("Unable to stop request thread in HttpServer.");
 
     logTrace("Close HTTP server.");
     close();
@@ -112,6 +130,7 @@ void HttpServer::incomingConnection(qintptr socketDescriptor)
     logTrace("HTTP server: new connection");
 
     Request *request = new Request(m_log,
+                                   &workerNetwork,
                                    socketDescriptor,
                                    UUID, QString("%1").arg(SERVERNAME),
                                    getHost().toString(), getPort());
@@ -133,7 +152,7 @@ void HttpServer::_readyToReply()
 
     if ((request->getMethod() == "GET" || request->getMethod() == "HEAD") && request->getArgument().startsWith("get/"))
     {
-        reply = new ReplyDlnaItemContent(m_log, request, rootFolder);
+        reply = new ReplyDlnaItemContent(m_log, request, &workerStreaming, rootFolder);
         connect(reply, SIGNAL(servingRenderer(QString,QString)), this, SIGNAL(servingRenderer(QString,QString)));
         connect(reply, SIGNAL(stopServingRenderer(QString)), this, SIGNAL(stopServingRenderer(QString)));
         connect(reply, SIGNAL(serving(QString,int)), this, SLOT(_servingProgress(QString,int)));

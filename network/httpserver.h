@@ -2,6 +2,7 @@
 #define HTTPSERVER_H
 
 #include <QTcpServer>
+#include <QThread>
 
 #include "logger.h"
 #include "upnphelper.h"
@@ -86,13 +87,15 @@ private:
     void logTrace(const QString &message)  const { if (m_log) m_log->Trace(message); }
 
 
-
 private :
     Logger* m_log;
 
     UPNPHelper upnp;
     QHostAddress hostaddress;
     int serverport;
+
+    QThread workerNetwork;
+    QThread workerStreaming;
 
     // root folder containing DLNA nodes
     QSqlDatabase database;

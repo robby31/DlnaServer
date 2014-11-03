@@ -588,8 +588,15 @@ void Reply::closeClient() {
             logTrace("Close client connection in request");
             if (client)
             {
-                client->disconnectFromHost();
-                emit logText(QString("%2: Close client (%1)"+CRLF).arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                if (client->socketDescriptor() == -1)
+                {
+                    emit logText(QString("%1: client already disconnected."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                }
+                else
+                {
+                    client->disconnectFromHost();
+                    emit logText(QString("%2: Close client (%1)"+CRLF).arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                }
             }
             else
             {

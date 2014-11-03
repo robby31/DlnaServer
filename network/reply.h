@@ -29,7 +29,7 @@ signals:
     void appendAnswer(const QString &msg);
 
 
-public slots:
+private slots:
     void requestDestroyed()    { m_request = 0; }
     void rootFolderDestroyed() { m_rootFolder = 0; }
     void clientDestroyed()     { client = 0;
@@ -37,8 +37,6 @@ public slots:
 
     void LogMessage(const QString &msg) { emit logText(msg); }
 
-
-private slots:
     // Construct a proper HTTP response to a received request
     // and provide answer to the client on the request
     // See "http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html" for HTTP header field definitions.
