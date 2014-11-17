@@ -6,7 +6,6 @@ StreamingFile::StreamingFile(QString filename, QObject *parent) :
     timeseek_start(-1),
     timeseek_end(-1)
 {
-    qWarning() << "NEW" << this;
 }
 
 qint64 StreamingFile::size() const

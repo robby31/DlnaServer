@@ -25,7 +25,7 @@ public:
     //returns the size of the source
     virtual qint64 sourceSize() const { return -1; }
 
-    virtual int metaDataBitrate()              const { return -1; }
+    virtual int metaDataBitrate()              const { return m_bitrate; }
     virtual int metaDataDuration()             const { return m_durationInMs; }
     virtual QString metaDataTitle()            const { return m_title; }
     virtual QString metaDataGenre()            const { return QString(); }
@@ -65,6 +65,7 @@ private:
     QString m_title;
     int m_durationInMs;
     QString m_resolution;
+    int m_bitrate;
 
     QString programYouTube;
     QString programFfmpeg;
