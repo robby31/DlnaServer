@@ -98,7 +98,7 @@ signals:
 public slots:
     void replyFinished();
 
-    void clientError(QAbstractSocket::SocketError error) { appendLog(QString("%2: Network Error: %1"+CRLF).arg(error).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
+    void clientError(QAbstractSocket::SocketError error) { appendLog(QString("%2: Network Error: %1, %3"+CRLF).arg(error).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(m_client->errorString())); }
     void clientDestroyed() { m_client = 0;
                              appendLog(QString("%1: Client destroyed (request)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
 

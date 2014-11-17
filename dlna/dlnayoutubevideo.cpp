@@ -6,6 +6,7 @@ DlnaYouTubeVideo::DlnaYouTubeVideo(Logger *log, QUrl url, QString host, int port
     m_title(),
     m_durationInMs(-1),
     m_resolution(),
+    m_bitrate(-1),
     programYouTube("/usr/local/bin/youtube-dl"),
     programFfmpeg("/Users/doudou/workspaceQT/DLNA_server/exe/ffmpeg")
 {
@@ -54,7 +55,6 @@ void DlnaYouTubeVideo::requestVideoInfo()
         QRegExp duration_bitrate("Duration:\\s*(\\S*),\\s*start:\\s*(\\S*),\\s*bitrate:\\s*(\\S*)");
         if (duration_bitrate.indexIn(answer) != -1) {
             QString duration(duration_bitrate.cap(1));
-            QString bitrate(duration_bitrate.cap(3));
             QTime time = QTime::fromString(duration, "hh:mm:ss.z");
             m_durationInMs = (time.hour()*3600+time.minute()*60+time.second())*1000+time.msec();
         }

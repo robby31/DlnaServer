@@ -51,7 +51,7 @@ public:
     //returns the channel number of the audio track
     virtual int channelCount() const = 0;
 
-    // returns the bitrate of the audio track
+    // returns the bitrate in bits/sec
     virtual int bitrate() const = 0;
 
     virtual int metaDataBitrate() const = 0;
