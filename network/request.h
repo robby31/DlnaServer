@@ -1,12 +1,12 @@
 #ifndef REQUEST_H
 #define REQUEST_H
 
-#include <QTcpSocket>
 #include <QHostAddress>
 #include <QElapsedTimer>
 #include <QThread>
 
 #include "logobject.h"
+#include "httpclient.h"
 #include "httprange.h"
 #include "mediarenderer.h"
 
@@ -35,7 +35,6 @@ public:
     QString getHost() const { return m_host; }
     QString getpeerAddress() const { return m_peerAddress; }
     qintptr socketDescriptor() const { return socket; }
-    QTcpSocket *getClient() const { return m_client; }
     QString getServername() const { return servername; }
     int getPort() const { return port; }
     QString getUuid() const { return uuid; }
@@ -76,8 +75,6 @@ public:
 
     bool appendHeader(const QString &headerLine);
 
-    void setNetworkStatus(const QString &status) { m_networkStatus = status; emit dataChanged("network_status"); }
-
 
 signals:
     void newSocketDescriptor();
@@ -94,20 +91,32 @@ signals:
     // emit signal to add a new renderer
     void newRenderer(MediaRenderer *renderer);
 
+    void startServingRendererSignal(const QString &ip, const QString &mediaName);
+    void stopServingRendererSignal(const QString &ip);
+
+    void closeClientSignal();
+    void sendTextLineSignal(const QString &msg);
+    void sendHeaderSignal(const QString &httpType, const QHash<QString, QString> &header);
+    void sendDataSignal(const QByteArray &data);
+    void http10Signal(const bool &http10);
+    void connectionTypeSignal(const QString &connection);
+
+    void clientDisconnected();
+    void bytesSent(const qint64 &size, const qint64 &bytesToWrite);
+    void deleteClient();
 
 public slots:
     void replyFinished();
 
-    void clientError(QAbstractSocket::SocketError error) { appendLog(QString("%2: Network Error: %1, %3"+CRLF).arg(error).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(m_client->errorString())); }
-    void clientDestroyed() { m_client = 0;
-                             appendLog(QString("%1: Client destroyed (request)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
-
     void appendLog(const QString &msg) { requestLog.append(msg); emit dataChanged("transcode_log"); }
+
+    void sendHeader(const QHash<QString, QString> &header);
 
 
 private slots:
     void createTcpSocket();
     void setStatus(const QString &status) { m_status = status; emit dataChanged("status"); }
+    void setNetworkStatus(const QString &status) { m_networkStatus = status; emit dataChanged("network_status"); }
 
     // slots for incoming data
     void readSocket();
@@ -115,14 +124,22 @@ private slots:
 
     void appendAnswer(const QString &string) { m_stringAnswer.append(string); emit dataChanged("answer"); }
 
+    void startServingRenderer(const QString &mediaName) { emit startServingRendererSignal(getpeerAddress(), mediaName); }
+    void stopServingRenderer()                          { emit stopServingRendererSignal(getpeerAddress()); }
+
 
 private:
     // Carriage return and line feed.
     static const QString CRLF;
 
+    static const QString HTTP_200_OK;
+    static const QString HTTP_500;
+    static const QString HTTP_206_OK;
+    static const QString HTTP_200_OK_10;
+    static const QString HTTP_206_OK_10;
+
     QString requestLog;  // internal log
 
-    QTcpSocket* m_client;
     int replyNumber;
     bool replyInProgress;   // flag to know a reply is preparing to be sent
     bool flagHeaderReading; // flag to know if the header has been received or not
@@ -178,6 +195,8 @@ private:
     void setTextContent(const QString &content) { m_content = content; emit dataChanged("content"); }
 
     void setParamHeader(const QString &param, const QString &value);
+
+    void requestReceived();
 };
 
 #endif // REQUEST_H

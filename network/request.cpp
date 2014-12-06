@@ -2,10 +2,14 @@
 
 const QString Request::CRLF = "\r\n";
 
+const QString Request::HTTP_200_OK = "HTTP/1.1 200 OK";
+const QString Request::HTTP_500 = "HTTP/1.1 500 Internal Server Error";
+const QString Request::HTTP_206_OK = "HTTP/1.1 206 Partial Content";
+const QString Request::HTTP_200_OK_10 = "HTTP/1.0 200 OK";
+const QString Request::HTTP_206_OK_10 = "HTTP/1.0 206 Partial Content";
 
 Request::Request(Logger* log, QThread *worker, qintptr socketDescriptor, QString uuid, QString servername, QString host, int port, QObject *parent):
     LogObject(log, parent),
-    m_client(0),
     replyNumber(0),
     replyInProgress(false),  // by default no reply is in progress, we wait a request
     flagHeaderReading(true), // by default the header has not been received
@@ -22,7 +26,7 @@ Request::Request(Logger* log, QThread *worker, qintptr socketDescriptor, QString
     range(0),
     timeSeekRangeStart(-1),
     timeSeekRangeEnd(-1),
-    http10(false)
+    http10(true)
 {
     this->moveToThread(worker);
 
@@ -42,35 +46,39 @@ Request::Request(Logger* log, QThread *worker, qintptr socketDescriptor, QString
 Request::~Request() {
     if (range)
         delete range;
-
-    if (m_client)
-        m_client->deleteLater();
 }
 
 void Request::createTcpSocket()
 {
-    m_client = new QTcpSocket();
+    HttpClient *client = new HttpClient(log(), this);
 
-    if (!m_client->setSocketDescriptor(socket))
+    if (!client->setSocketDescriptor(socket))
     {
-        clientError(m_client->error());
-        m_client->deleteLater();
-        qWarning() << "unable to create TCPSOCKET" << socket << m_client->errorString();
+        logError(QString("unable to create TCPSOCKET (%1): %2").arg(socket).arg(client->errorString()));
     }
     else
     {
-        setPeerAddress(m_client->peerAddress().toString());
+        setPeerAddress(client->peerAddress().toString());
 
-        if (m_client->isOpen()) {
+        if (client->isOpen()) {
             setNetworkStatus("opened");
         } else {
             setNetworkStatus("not connected");
         }
 
-        connect(m_client, SIGNAL(readyRead()), this, SLOT(readSocket()));
-        connect(m_client, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(clientError(QAbstractSocket::SocketError)));
-        connect(m_client, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(stateChanged(QAbstractSocket::SocketState)));
-        connect(m_client, SIGNAL(destroyed()), this, SLOT(clientDestroyed()));
+        connect(this, SIGNAL(closeClientSignal()), client, SLOT(closeClient()));
+        connect(this, SIGNAL(http10Signal(bool)), client, SLOT(setHttp10(bool)));
+        connect(this, SIGNAL(connectionTypeSignal(QString)), client, SLOT(setConnectionType(QString)));
+        connect(client, SIGNAL(appendLogSignal(QString)), this, SLOT(appendLog(QString)));
+        connect(client, SIGNAL(appendAnswerSignal(QString)), this, SLOT(appendAnswer(QString)));
+        connect(client, SIGNAL(readyRead()), this, SLOT(readSocket()));
+        connect(this, SIGNAL(sendDataSignal(QByteArray)), client, SLOT(sendData(QByteArray)));
+        connect(this, SIGNAL(sendHeaderSignal(QString, QHash<QString,QString>)), client, SLOT(sendHeader(QString, QHash<QString,QString>)));
+        connect(this, SIGNAL(sendTextLineSignal(QString)), client, SLOT(sendTextLine(QString)));
+        connect(client, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(stateChanged(QAbstractSocket::SocketState)));
+        connect(client, SIGNAL(disconnected()), this, SIGNAL(clientDisconnected()));
+        connect(client, SIGNAL(bytesSent(qint64,qint64)), this, SIGNAL(bytesSent(qint64,qint64)));
+        connect(this, SIGNAL(deleteClient()), client, SLOT(deleteLater()));
     }
 }
 
@@ -204,7 +212,7 @@ void Request::readSocket()
         setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
     }
 
-    QTcpSocket* client = (QTcpSocket*)sender();
+    HttpClient* client = qobject_cast<HttpClient*>(sender());
 
     if (client == 0) {
         logError("data received but client is deleted.");
@@ -244,11 +252,8 @@ void Request::readSocket()
             if (flagHeaderReading)
                 logError("HEADER NOT READ");
 
-            if ((getReceivedContentLength() <= 0) || (m_content.size() == getReceivedContentLength())) {
-                // prepare and send answer
-                replyInProgress = true;
-                emit readyToReply();
-            }
+            if ((getReceivedContentLength() <= 0) || (m_content.size() == getReceivedContentLength()))
+                requestReceived();
 
         } else {
             // read the content
@@ -264,14 +269,23 @@ void Request::readSocket()
                 logTrace("Bytes Read: " + QString("%1").arg(m_content.size()));
                 logTrace("Data Read: " + m_content);
 
-                // prepare and send answer
-                replyInProgress = true;
-                emit readyToReply();
+                requestReceived();
             }
         }
     } else {
         qWarning() << QString("unable to read request (socket %1), a reply is in progress.").arg(socket).toUtf8().constData();
     }
+}
+
+void Request::requestReceived()
+{
+    // prepare and send answer
+    emit http10Signal(isHttp10());
+    emit connectionTypeSignal(getHttpConnection());
+
+    replyInProgress = true;
+
+    emit readyToReply();
 }
 
 void Request::stateChanged(const QAbstractSocket::SocketState &state)
@@ -304,4 +318,24 @@ void Request::replyFinished()
     {
         appendLog(QString("%1: Reply finished but not yet started"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
     }
+}
+
+void Request::sendHeader(const QHash<QString, QString> &header)
+{
+    QString httpType;
+    if (getRange())
+    {
+        // partial content requested (range is present in the header)
+        httpType = isHttp10() ? HTTP_206_OK_10 : HTTP_206_OK;
+
+    } else {
+        if (getSoapaction().contains("X_GetFeatureList")) {
+            //  If we don't return a 500 error, Samsung 2012 TVs time out.
+            httpType = HTTP_500;
+        } else {
+            httpType = isHttp10() ? HTTP_200_OK_10 : HTTP_200_OK;
+        }
+    }
+
+    emit sendHeaderSignal(httpType, header);
 }
