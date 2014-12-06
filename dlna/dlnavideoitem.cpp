@@ -128,7 +128,7 @@ int DlnaVideoItem::bitrate() const {
     // returns bitrate in bits/sec
     if (toTranscode()) {
         // variable bitrate
-        return -1;
+        return 5448000;
     } else {
         return metaDataBitrate();
     }
