@@ -9,7 +9,8 @@ HEADERS += \
     ../network/httprange.h \
     ../network/elapsedtimer.h \
     ../network/reply.h \
-    ../network/replydlnaitemcontent.h
+    ../network/replydlnaitemcontent.h \
+    $$PWD/httpclient.h
 
 SOURCES += \
     $$PWD/upnphelper.cpp \
@@ -19,6 +20,7 @@ SOURCES += \
     ../network/httprange.cpp \
     ../network/elapsedtimer.cpp \
     ../network/reply.cpp \
-    ../network/replydlnaitemcontent.cpp
+    ../network/replydlnaitemcontent.cpp \
+    $$PWD/httpclient.cpp
 
 include (../dlna/dlna.pri)
