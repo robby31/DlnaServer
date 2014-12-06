@@ -1,4 +1,4 @@
-import QtQuick 2.1
+import QtQuick 2.3
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.2
 import QtWebKit 3.0
