@@ -7,21 +7,17 @@ ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, Request *request, QThrea
     Reply(log, request, rootFolder, parent),
     m_closed(false),
     timerStatus(this),
+    bytesToWrite(0),
     networkBytesSent(0),
     lastNetBytesSent(-1),
     streamThread(streamThread),
     streamContent(0),
     streamingWithErrors(false),
-    m_maxBufferSize(1024*1024*100),   // 100 MBytes by default when bitrate is unknown
+    m_maxBufferSize(1024*1024*10),   // 10 MBytes by default when bitrate is unknown
     durationBuffer(10),
-    counter_bytesSent(0),
-    timeElapsed_bytesSent(0),
     counter_sendDataToClient(0),
     timeElapsed_sendDataToClient(0)
 {
-    connect(client, SIGNAL(bytesWritten(qint64)), this, SLOT(bytesSent(qint64)));
-    connect(client, SIGNAL(disconnected()), this, SLOT(close()));
-
     timerStatus.setTimerType(Qt::PreciseTimer);
     timerStatus.setInterval(UPDATE_STATUS_PERIOD);
     connect(&timerStatus, SIGNAL(timeout()), this, SLOT(updateStatus()));
@@ -34,30 +30,28 @@ ReplyDlnaItemContent::~ReplyDlnaItemContent()
     close();
 }
 
-void ReplyDlnaItemContent::nameChanged(QString name)
+void ReplyDlnaItemContent::streamOpened()
 {
-    emit logText(QString("%1: name changed --> %2."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(name));
+    // Start timer to update periodically the status on streaming
+    timerStatus.start();
+    clockUpdateStatus.start();
+    emit logTextSignal(QString("%1: periodic timer started? %3, %2."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(UPDATE_STATUS_PERIOD).arg(timerStatus.isActive()));
 
-    if (name == "device opened")
-    {
-        // Start timer to update periodically the status on streaming
-        timerStatus.start();
-        clockUpdateStatus.start();
-        emit logText(QString("%1: periodic timer started? %3, %2."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(UPDATE_STATUS_PERIOD).arg(timerStatus.isActive()));
-
-        // start sending when device is opened
-        sendDataToClient();
-    }
+    // start sending when device is opened
+    sendDataToClient();
 }
 
-void ReplyDlnaItemContent::_run()
+void ReplyDlnaItemContent::_run(const QString &method, const QString &argument)
 {
+    if (!m_request)
+        return;
+
     // prepare data and send answer
     HttpRange *range = m_request->getRange();
 
-    logTrace("ANSWER: " + m_request->getMethod() + " " + m_request->getArgument());
+    logTrace("ANSWER: " + method + " " + argument);
 
-    if (m_rootFolder && (m_request->getMethod() == "GET" || m_request->getMethod() == "HEAD") && m_request->getArgument().startsWith("get/"))
+    if (m_rootFolder && (method == "GET" || method == "HEAD") && argument.startsWith("get/"))
     {
         // Request to retrieve a file
 
@@ -68,7 +62,7 @@ void ReplyDlnaItemContent::_run()
         QRegExp rxId("get/([\\d$]+)/(.+)");
         QString id;
         QString fileName;
-        if (rxId.indexIn(m_request->getArgument()) != -1) {
+        if (rxId.indexIn(argument) != -1) {
             id = rxId.capturedTexts().at(1);
             fileName = rxId.capturedTexts().at(2);
         }
@@ -78,7 +72,9 @@ void ReplyDlnaItemContent::_run()
 
         // Retrieve the DLNAresource itself.
         QObject context_object;
-        QList<DlnaResource*> files = m_rootFolder->getDLNAResources(id, false, 0, 0, "", &context_object);
+        QList<DlnaResource*> files;
+        if (m_rootFolder)
+            files = m_rootFolder->getDLNAResources(id, false, 0, 0, "", &context_object);
 
         if (!m_request->getTransferMode().isNull())
             setParamHeader("TransferMode.dlna.org", m_request->getTransferMode());
@@ -105,10 +101,10 @@ void ReplyDlnaItemContent::_run()
                 QByteArray answerContent = dlna->getByteAlbumArt();
                 if (answerContent.isNull()) {
                     logError("Unable to get thumbnail: " + dlna->getDisplayName());
-                    emit replyStatus("KO");
+                    emit replyStatusSignal("KO");
                 } else {
                     sendAnswer(answerContent);
-                    emit replyStatus("OK");
+                    emit replyStatusSignal("OK");
                 }
 
             } else if (fileName.indexOf("subtitle0000") > -1) {
@@ -177,13 +173,13 @@ void ReplyDlnaItemContent::_run()
 
                 if (m_request->getMethod() == "HEAD") {
                     sendAnswer(QByteArray());
-                    emit replyStatus("OK");
+                    emit replyStatusSignal("OK");
 
                 } else {
-                    emit logText(QString("%3: %1 bytes to send in %2."+CRLF).arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                    emit logTextSignal(QString("%3: %1 bytes to send in %2."+CRLF).arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
                     mediaFilename = dlna->getSystemName();
-                    emit serving(mediaFilename, 0);
+                    emit servingSignal(mediaFilename, 0);
 
                     if (streamContent == 0) {
                         // recover resume time
@@ -196,14 +192,14 @@ void ReplyDlnaItemContent::_run()
                         }
 
                         // get stream file
-                        streamContent = dlna->getStream(m_request->getRange(), timeSeekRangeStart, timeSeekRangeEnd);
+                        streamContent = dlna->getStream(range, timeSeekRangeStart, timeSeekRangeEnd);
 //                        streamContent->moveToThread(streamThread);
 
                         if (!streamContent)
                         {
                             // No inputStream indicates that transcoding / remuxing probably crashed.
                             logError("There is no inputstream to return for " + dlna->getDisplayName());
-                            emit replyStatus("KO");
+                            emit replyStatusSignal("KO");
                         }
                         else
                         {
@@ -212,36 +208,35 @@ void ReplyDlnaItemContent::_run()
 
                             connect(streamContent, SIGNAL(destroyed()), this, SLOT(streamContentDestroyed()));
                             connect(this, SIGNAL(destroyed()), streamContent, SLOT(deleteLater()));
-                            connect(streamContent, SIGNAL(objectNameChanged(QString)), this, SLOT(nameChanged(QString)));
-                            connect(streamContent, SIGNAL(status(QString)), this, SIGNAL(replyStatus(QString)));
+                            connect(streamContent, SIGNAL(openedSignal()), this, SLOT(streamOpened()));
+                            connect(streamContent, SIGNAL(status(QString)), this, SIGNAL(replyStatusSignal(QString)));
                             connect(streamContent, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
                             connect(streamContent, SIGNAL(errorRaised(QString)), this, SLOT(streamingError(QString)));
 
-                            if (streamContent->open(QIODevice::ReadOnly))
+                            if (streamContent->open())
                             {
-                                emit logText(QString("%1: Streaming started, %2 bytes to send."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(streamContent->size()));
-                                emit servingRenderer(m_request->getpeerAddress(), dlna->getDisplayName());
-                                emit replyStatus("Streaming");
+                                emit logTextSignal(QString("%1: Streaming started, %2 bytes to send."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(streamContent->size()));
+                                emit startServingRendererSignal(dlna->getDisplayName());
                             }
                         }
                     } else {
                         logError(QString("Streaming already in progress"));
-                        emit replyStatus("KO");
+                        emit replyStatusSignal("KO");
                     }
                 }
             }
         }
         else
         {
-            logError(QString("%1 media found: %2 %3").arg(files.size()).arg(m_request->getMethod()).arg(m_request->getArgument()));
-            emit replyStatus("KO");
+            logError(QString("%1 media found: %2 %3").arg(files.size()).arg(method).arg(argument));
+            emit replyStatusSignal("KO");
         }
 
     }
     else
     {
-        logError("Unkown answer for: " + m_request->getMethod() + " " + m_request->getArgument());
-        emit replyStatus("KO");
+        logError("Unkown answer for: " + method + " " + argument);
+        emit replyStatusSignal("KO");
     }
 
     if (streamContent == 0)
@@ -257,33 +252,29 @@ void ReplyDlnaItemContent::sendDataToClient()
 
     if (streamContent && !streamContent->atEnd())
     {
-        if (client == 0)
-        {
-            logError("HTTP Request: Unable to send content (client deleted).");
+        if (streamContent->bytesAvailable() > 0)
+        {        
+            if (!clockSending.isValid())
+                clockSending.start();   // start clock to measure time taken for streaming
 
-            close();
+            sendHeader();
 
-            emit replyStatus("KO");
-        }
-        else if (streamContent->bytesAvailable() > 0)
-        {
-            int bytesToRead = maxBufferSize() - client->bytesToWrite();
+            int bytesToRead = 0;
+            bytesToRead = maxBufferSize() - bytesToWrite;
             if (bytesToRead > 0) {
                 // read the stream
                 QByteArray bytesToSend = streamContent->read(bytesToRead);
-                if (!bytesToSend.isEmpty()) {
-                    sendHeader();
-                    if (client->write(bytesToSend)== -1)
-                        logError("HTTP Request: Unable to send content.");
-                }
+                if (!bytesToSend.isEmpty())
+                    emit sendDataToClientSignal(bytesToSend);
             }
 
             if (streamContent->atEnd())
-                closeClient();
+                emit closeClientSignal();
         }
         else
         {
-            emit logText(QString("%1: sendDataToClient no data available"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+            if (isLogLevel(DEBG))
+                emit logTextSignal(QString("%1: sendDataToClient no data available"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
         }
     }
 
@@ -296,44 +287,43 @@ void ReplyDlnaItemContent::updateStatus()
         int delta = clockUpdateStatus.restart() - UPDATE_STATUS_PERIOD;
 
         if (qAbs(delta) > UPDATE_STATUS_PERIOD/10) {
+            QString msg;
             if (streamContent)
-                logInfo(QString("UPDATE STATUS delta %2 <%1>").arg(mediaFilename).arg(delta));
+                msg = QString("UPDATE STATUS delta %2 <%1>").arg(mediaFilename).arg(delta);
             else
-                logInfo(QString("UPDATE STATUS delta %2 no streaming no transcoding <%1>").arg(mediaFilename).arg(delta));
+                msg = QString("UPDATE STATUS delta %2 no streaming no transcoding <%1>").arg(mediaFilename).arg(delta);
+
+            logInfo(msg);
+            emit logTextSignal(QString("%1: %2").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(msg)+CRLF);
         }
     } else {
         clockUpdateStatus.start();
     }
 
-    if (streamContent)
-        emit logText(QString("%1: UPDATE STATUS, stream opened?%2 bytes available?%3"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(streamContent->isOpen()).arg(streamContent->bytesAvailable()));
+    if (isLogLevel(DEBG) && streamContent)
+        emit logTextSignal(QString("%1: UPDATE STATUS, bytes available?%2 bytes sent?%3 bytes to send?%4"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(streamContent->bytesAvailable()).arg(networkBytesSent).arg(bytesToWrite));
 
     if (streamContent && streamContent->isOpen())
     {
-        int size = streamContent->size();
-        if (size > 0)
-            emit replyStatus(QString("Streaming (%1%)").arg(int(100.0*double(streamContent->pos())/double(size))));
-        else
-            emit replyStatus("Streaming");
-
-        if (int(100.0*double(client->bytesToWrite())/double(maxBufferSize())) < 50)
+        if (!streamContent->atEnd() && int(100.0*double(bytesToWrite)/double(maxBufferSize())) < 50)
             sendDataToClient();
     }
 
     if (!mediaFilename.isNull()) {
         if (clockSending.isValid())
-            emit serving(mediaFilename, clockSending.elapsedFromBeginning());
+            emit servingSignal(mediaFilename, clockSending.elapsedFromBeginning());
         else
-            emit serving(mediaFilename, 0);
+            emit servingSignal(mediaFilename, 0);
 
-        if (client && clockSending.isValid() && maxBufferSize() != 0) {
+        if (clockSending.isValid() && maxBufferSize() != 0) {
             // display the network buffer and network speed
             int networkSpeed = int((double(networkBytesSent)/1024.0)/(double(clockSending.elapsed())/1000.0));
             int bufferTime = 0;
             if (networkSpeed!=0)
                 bufferTime = maxBufferSize()/(networkSpeed*1024);
-            m_request->setNetworkStatus(QString("Time: %5 Buffer: %1% (%4 KB - %3 seconds), Speed: %2 KB/s").arg(int(100.0*double(client->bytesToWrite())/double(maxBufferSize()))).arg(networkSpeed).arg(bufferTime).arg(maxBufferSize()/1024).arg(QTime(0, 0).addMSecs(clockSending.elapsedFromBeginning()).toString("hh:mm:ss")));
+            emit networkStatusSignal(QString("Time: %5 Buffer: %1% (%4 KB - %3 seconds), Speed: %2 KB/s").arg(int(100.0*double(bytesToWrite)/double(maxBufferSize()))).arg(networkSpeed).arg(bufferTime).arg(maxBufferSize()/1024).arg(QTime(0, 0).addMSecs(clockSending.elapsedFromBeginning()).toString("hh:mm:ss")));
         }
+
 
         if (lastNetBytesSent!=-1 && lastNetBytesSent==networkBytesSent)
             clockSending.pause();
@@ -344,109 +334,55 @@ void ReplyDlnaItemContent::updateStatus()
     }
 }
 
-void ReplyDlnaItemContent::bytesSent(const qint64 &size)
-{
-    QElapsedTimer timer;
-    timer.start();
-
-    counter_bytesSent++;
-
-    if (isLogLevel(DEBG))
-    {
-        if (client)
-            emit logText(QString("%2: %3 bytes sent (socket %1)"+CRLF).arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
-        else
-            emit logText(QString("%1: %2 bytes sent (client deleted)"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
-    }
-
-    networkBytesSent += size;
-
-    if (!clockSending.isValid())
-        clockSending.start();   // start clock to measure time taken for streaming
-
-    if (client && streamContent && streamContent->isOpen() && !streamContent->atEnd())
-    {
-        int size = streamContent->size();
-        int progress = 0;
-        if (size>0)
-            progress = int(100.0*double(streamContent->pos())/double(size));
-        int buffer = int(100.0*double(client->bytesToWrite())/double(maxBufferSize()));
-        if (buffer < 5)
-        {
-            QString msg = QString("%1: streaming(%3%), low buffer (%2%), force sending data over network.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(buffer).arg(progress);
-            logWarning(msg);
-            emit logText(msg+CRLF);
-            sendDataToClient();
-        }
-    }
-
-    timeElapsed_bytesSent += timer.elapsed();
-}
-
 void ReplyDlnaItemContent::close()
 {
     if (m_closed)
         return;
 
     if (isLogLevel(DEBG))
-        emit logText(QString("%1: Close reply."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        emit logTextSignal(QString("%1: Close reply."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
     timerStatus.stop();
 
     if (clockSending.isValid())
-        emit logText(QString("%3: Close Reply: %1 bytes sent, %2 taken to send data."+CRLF).arg(networkBytesSent).arg(QTime(0, 0).addMSecs(clockSending.elapsed()).toString("hh:mm:ss.zzz")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        emit logTextSignal(QString("%3: Close Reply: %1 bytes sent, %2 taken to send data."+CRLF).arg(networkBytesSent).arg(QTime(0, 0).addMSecs(clockSending.elapsed()).toString("hh:mm:ss.zzz")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
-    if (streamContent) {
-        if (streamContent->atEnd() && !streamingWithErrors && client && client->bytesToWrite() == 0) {
-            emit replyStatus("Streaming finished.");
-            emit servingFinished(mediaFilename, 0);
-            emit logText(QString("%1: Streaming finished."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+    if (streamContent)
+    {
+        if (streamContent->atEnd() && !streamingWithErrors && bytesToWrite == 0) {
+            emit replyStatusSignal("Streaming finished.");
+            emit servingFinishedSignal(mediaFilename, 0);
+            emit logTextSignal(QString("%1: Streaming finished."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
         } else {
-            emit replyStatus("Streaming aborted.");
-            emit servingFinished(mediaFilename, 1);
-            emit logText(QString("%1: Streaming aborted."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+            emit replyStatusSignal("Streaming aborted.");
+            emit servingFinishedSignal(mediaFilename, 1);
+            emit logTextSignal(QString("%1: Streaming aborted."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
         }
 
-        emit stopServingRenderer(m_request->getpeerAddress());
+        emit stopServingRendererSignal();
     }
 
-    emit logText(QString("%1: Reply closed, %2 call to bytesSent, %3 call to sendDataToClient."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(counter_bytesSent).arg(counter_sendDataToClient));
-    if (counter_bytesSent!=0)
-        emit logText(QString("%1: bytesSent called every %2 ms, total duration %3 ms."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(clockSending.elapsed()/counter_bytesSent).arg(timeElapsed_bytesSent));
+    emit logTextSignal(QString("%1: Reply closed, %2 call to sendDataToClient."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(counter_sendDataToClient));
     if (counter_sendDataToClient!=0)
-        emit logText(QString("%1: sendDataToClient called every %2 ms, total duration %3 ms."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(clockSending.elapsed()/counter_sendDataToClient).arg(timeElapsed_sendDataToClient));
+        emit logTextSignal(QString("%1: sendDataToClient called every %2 ms, total duration %3 ms."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(clockSending.elapsed()/counter_sendDataToClient).arg(timeElapsed_sendDataToClient));
+
+    if (clockSending.isValid())
+    {
+        int networkSpeed = int((double(networkBytesSent)/1024.0)/(double(clockSending.elapsed())/1000.0));
+        emit logTextSignal(QString("%1: network speed %2 KB/s, %3 b/s"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(networkSpeed).arg(networkSpeed*1024*8));
+    }
 
     // invalidate clock
     clockSending.invalidate();
     clockUpdateStatus.invalidate();
 
-    if (client)
-        emit logText(QString("%2: Remaining data to send: %1"+CRLF).arg(client->bytesToWrite()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+    emit logTextSignal(QString("%2: Remaining data to send: %1"+CRLF).arg(bytesToWrite).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
-    closeClient();
+    emit closeClientSignal();
 
-    emit logText(QString("%1: Reply finished."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+    emit logTextSignal(QString("%1: Reply finished."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
-    emit finished();
+    emit finishedSignal();
 
     m_closed = true;
-}
-
-void ReplyDlnaItemContent::closeClient()
-{
-    if (m_request->isHttp10() or m_request->getHttpConnection().toLower() == "close")
-    {
-        if (client != 0) {
-            if (client->socketDescriptor() == -1)
-            {
-                emit logText(QString("%1: Client already disconnected."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-            }
-            else
-            {
-                emit logText(QString("%2: Close client (%1)"+CRLF).arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-                client->disconnectFromHost();
-            }
-        } else
-            emit logText(QString("%1: Unable to close client (client deleted)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-    }
 }

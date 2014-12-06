@@ -13,47 +13,50 @@ public:
 
 
 signals:
-    void servingRenderer(const QString &ip, const QString &mediaName);
-    void stopServingRenderer(const QString &ip);
+    void startServingRendererSignal(const QString &mediaName);
+    void stopServingRendererSignal();
 
     // emit signal to provide progress on serving media
-    void serving(QString filename, int playedDurationInMs);
+    void servingSignal(QString filename, int playedDurationInMs);
 
     // emit signal when serving is finished
     //   status = 0 if serving finished successfully
     //   status = 1 if error occurs
-    void servingFinished(QString filename, int status);
+    void servingFinishedSignal(QString filename, int status);
 
 
 private:
-    // close the client
-    virtual void closeClient();
-
     void setMaxBufferSize(const qint64 &size) { if (size>0) m_maxBufferSize = size; }
     qint64 maxBufferSize() { return m_maxBufferSize; }
 
 private slots:
-    void bytesSent(const qint64 &size);
-
     // close the request
     void close();
 
     // slot to update status on streaming or transcoding
     void updateStatus();
 
-    void nameChanged(QString name);
+    void streamOpened();
     void sendDataToClient();
 
     void streamContentDestroyed()    { streamContent = 0;
-                                       emit logText(QString("%1: Stream removed."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                                       emit logTextSignal(QString("%1: Stream removed."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
                                      }
 
     void streamingError(const QString &error) { Q_UNUSED(error) streamingWithErrors = true; }
 
+    void bytesSent(const qint64 &size, const qint64 &towrite) { networkBytesSent += size; bytesToWrite = towrite;
+                                                                if (towrite==0)
+                                                                {
+                                                                    emit logTextSignal(QString("%1: low buffer."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+                                                                    sendDataToClient();
+                                                                }
+                                                              }
+
     // Construct a proper HTTP response to a received request
     // and provide answer to the client on the request
     // See "http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html" for HTTP header field definitions.
-    virtual void _run();
+    virtual void _run(const QString &method, const QString &argument);
 
 
 private:
@@ -62,6 +65,7 @@ private:
     bool m_closed;
 
     QTimer timerStatus;                 // timer used to update periodically the status on streaming or transcoding
+    qint64 bytesToWrite;
     long networkBytesSent;
     long lastNetBytesSent;
     ElapsedTimer clockSending;          // clock to mesure time taken to send streamed or transcoded data.
@@ -69,13 +73,11 @@ private:
 
     QString mediaFilename;
     QThread *streamThread;
-    QIODevice *streamContent;
+    Device *streamContent;
     bool streamingWithErrors;
     qint64 m_maxBufferSize;
     int durationBuffer;                 // when bitrate is known, m_maxBufferSize is set to durationBuffer seconds of streaming
 
-    long counter_bytesSent;
-    qint64 timeElapsed_bytesSent;
     long counter_sendDataToClient;
     qint64 timeElapsed_sendDataToClient;
 };

@@ -13,34 +13,38 @@ class Reply : public LogObject
 public:
     explicit Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, QObject *parent = 0);
 
-    void run() { emit runSignal(); }
+    void run(const QString &method, const QString &argument) { emit runSignal(method, argument); }
 
 
 signals:
-    void runSignal();
+    void runSignal(const QString &method, const QString &argument);
 
     // emit signal when reply is done
-    void finished();
+    void finishedSignal();
 
-    void logText(const QString &text);
+    void logTextSignal(const QString &text);
 
-    void replyStatus(const QString &status);
+    void replyStatusSignal(const QString &status);
+    void networkStatusSignal(const QString &status);
 
-    void appendAnswer(const QString &msg);
+    void appendAnswerSignal(const QString &msg);
+
+    void closeClientSignal();
+    void sendTextLineToClientSignal(const QString &msg);
+    void sendHeaderSignal(const QHash<QString, QString> &header);
+    void sendDataToClientSignal(const QByteArray &data);
 
 
 private slots:
     void requestDestroyed()    { m_request = 0; }
     void rootFolderDestroyed() { m_rootFolder = 0; }
-    void clientDestroyed()     { client = 0;
-                                 emit logText(QString("%1: Client destroyed (reply)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"))); }
 
-    void LogMessage(const QString &msg) { emit logText(msg); }
+    void LogMessage(const QString &msg) { emit logTextSignal(msg); }
 
     // Construct a proper HTTP response to a received request
     // and provide answer to the client on the request
     // See "http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html" for HTTP header field definitions.
-    virtual void _run();
+    virtual void _run(const QString &method, const QString &argument);
 
 protected:
     void sendLine(QTcpSocket *client, const QString &msg);
@@ -55,19 +59,11 @@ protected:
     QString getParamHeader(const QString &param) const;
 
 
-private:
-    // close the client
-    virtual void closeClient();
-
-
 protected:
     Request* m_request;
 
     QHash<QString, QString> m_params;  // header for the reply
     bool headerSent;
-
-    QTcpSocket *client;
-    bool keepSocketOpened;  // flag to not close automatically the client socket when answer is sent
 
     DlnaRootFolder *m_rootFolder;
 
@@ -76,12 +72,6 @@ protected:
 
 
 private:
-    static const QString HTTP_200_OK;
-    static const QString HTTP_500;
-    static const QString HTTP_206_OK;
-    static const QString HTTP_200_OK_10;
-    static const QString HTTP_206_OK_10;
-
     static const QString XML_HEADER;
     static const QString SOAP_ENCODING_HEADER;
     static const QString PROTOCOLINFO_RESPONSE;

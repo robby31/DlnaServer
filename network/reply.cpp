@@ -2,12 +2,6 @@
 
 const QString Reply::CRLF = "\r\n";
 
-const QString Reply::HTTP_200_OK = "HTTP/1.1 200 OK";
-const QString Reply::HTTP_500 = "HTTP/1.1 500 Internal Server Error";
-const QString Reply::HTTP_206_OK = "HTTP/1.1 206 Partial Content";
-const QString Reply::HTTP_200_OK_10 = "HTTP/1.0 200 OK";
-const QString Reply::HTTP_206_OK_10 = "HTTP/1.0 206 Partial Content";
-
 const QString Reply::XML_HEADER = "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
 const QString Reply::SOAP_ENCODING_HEADER = "<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" + CRLF + "<s:Body>";
 const QString Reply::PROTOCOLINFO_RESPONSE =  "<u:GetProtocolInfoResponse xmlns:u=\"urn:schemas-upnp-org:service:ConnectionManager:1\"><Source>http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_SM,http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_MED,http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_LRG,http-get:*:audio/mpeg:DLNA.ORG_PN=MP3,http-get:*:audio/L16:DLNA.ORG_PN=LPCM,http-get:*:video/mpeg:DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO;SONY.COM_PN=AVC_TS_HD_24_AC3_ISO,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_HD_24_AC3;SONY.COM_PN=AVC_TS_HD_24_AC3,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_HD_24_AC3_T;SONY.COM_PN=AVC_TS_HD_24_AC3_T,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_PS_PAL,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_PS_NTSC,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_SD_50_L2_T,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_SD_60_L2_T,http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_TS_SD_EU_ISO,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_SD_EU,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_SD_EU_T,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_SD_50_AC3_T,http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_TS_HD_50_L2_ISO;SONY.COM_PN=HD2_50_ISO,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_SD_60_AC3_T,http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_TS_HD_60_L2_ISO;SONY.COM_PN=HD2_60_ISO,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_50_L2_T;SONY.COM_PN=HD2_50_T,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_60_L2_T;SONY.COM_PN=HD2_60_T,http-get:*:video/mpeg:DLNA.ORG_PN=AVC_TS_HD_50_AC3_ISO;SONY.COM_PN=AVC_TS_HD_50_AC3_ISO,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_HD_50_AC3;SONY.COM_PN=AVC_TS_HD_50_AC3,http-get:*:video/mpeg:DLNA.ORG_PN=AVC_TS_HD_60_AC3_ISO;SONY.COM_PN=AVC_TS_HD_60_AC3_ISO,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_HD_60_AC3;SONY.COM_PN=AVC_TS_HD_60_AC3,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_HD_50_AC3_T;SONY.COM_PN=AVC_TS_HD_50_AC3_T,http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_HD_60_AC3_T;SONY.COM_PN=AVC_TS_HD_60_AC3_T,http-get:*:video/x-mp2t-mphl-188:*,http-get:*:*:*,http-get:*:video/*:*,http-get:*:audio/*:*,http-get:*:image/*:*</Source><Sink></Sink></u:GetProtocolInfoResponse>";
@@ -28,15 +22,12 @@ Reply::Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, QObject 
     m_request(request),
     m_params(),
     headerSent(false),
-    client(request->getClient()),
-    keepSocketOpened(false),
     m_rootFolder(rootFolder)
 {
-    connect(this, SIGNAL(runSignal()), this, SLOT(_run()));
+    connect(this, SIGNAL(runSignal(QString,QString)), this, SLOT(_run(QString,QString)));
 
     connect(m_request, SIGNAL(destroyed()), this, SLOT(requestDestroyed()));
     connect(m_rootFolder, SIGNAL(destroyed()), this, SLOT(rootFolderDestroyed()));
-    connect(client, SIGNAL(destroyed()), this, SLOT(clientDestroyed()));
 }
 
 QString Reply::getParamHeader(const QString &param) const
@@ -67,7 +58,7 @@ void Reply::sendLine(QTcpSocket *client, const QString &msg)
             logError("HTTP Request: Unable to send line: " + msg);
         }
 
-        emit appendAnswer(msg+CRLF);
+        emit appendAnswerSignal(msg+CRLF);
 
         logDebug("Wrote on socket: " + msg);
     }
@@ -75,77 +66,36 @@ void Reply::sendLine(QTcpSocket *client, const QString &msg)
 
 void Reply::sendHeader()
 {
-    if (!headerSent && m_request)
+    if (!headerSent)
     {
-        logDebug("Send header.");
-        emit logText(QString("%1: Send header."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-
-        if (m_request->getRange())
-        {
-            // partial content requested (range is present in the header)
-            sendLine(client, m_request->isHttp10() ? HTTP_206_OK_10 : HTTP_206_OK);
-
-        } else {
-            if (m_request->getSoapaction().contains("X_GetFeatureList")) {
-                //  If we don't return a 500 error, Samsung 2012 TVs time out.
-                sendLine(client, HTTP_500);
-            } else {
-                sendLine(client, m_request->isHttp10() ? HTTP_200_OK_10 : HTTP_200_OK);
-            }
-        }
-
-        foreach (const QString &param, m_params.keys())
-            sendLine(client, QString("%1: %2").arg(param).arg(m_params[param]).toUtf8());
-
-        sendLine(client, "");
-
         headerSent = true;
+        emit sendHeaderSignal(m_params);
     }
 }
 
 void Reply::sendAnswer(const QByteArray &contentAnswer)
 {
-    if (client == 0) {
-        logError("Unable to send answer (client deleted).");
-    } else {
-        if (!contentAnswer.isNull())
-            setParamHeader("Content-Length", QString("%1").arg(contentAnswer.size()));
+    if (!contentAnswer.isNull())
+        setParamHeader("Content-Length", QString("%1").arg(contentAnswer.size()));
 
-        // send the header
-        sendHeader();
+    // send the header
+    sendHeader();
 
-        // HEAD requests only require headers to be set, no need to set contents.
-        if (m_request && m_request->getMethod() != "HEAD" && !contentAnswer.isNull())
-        {
-            // send the content
-            emit appendAnswer(QString("content size: %1%2").arg(contentAnswer.size()).arg(CRLF));
-            emit appendAnswer(contentAnswer);
-
-            if (client->write(contentAnswer) == -1) {
-
-                logError("HTTP request: Unable to send content.");
-
-            } else {
-                logDebug(QString("Send content (%1 bytes).").arg(contentAnswer.size()));
-                logTrace("Wrote on socket content: " + contentAnswer);
-            }
-        }
-
-        closeClient();
-    }
+    // HEAD requests only require headers to be set, no need to set contents.
+    if (m_request && m_request->getMethod() != "HEAD" && !contentAnswer.isNull())
+        emit sendDataToClientSignal(contentAnswer);
 }
 
-
-void Reply::_run() {
+void Reply::_run(const QString &method, const QString &argument) {
     if (!m_request)
         return;
 
     // prepare data and send answer
     QString soapaction = m_request->getSoapaction();
 
-    logTrace("ANSWER: " + m_request->getMethod() + " " + m_request->getArgument());
+    logTrace("ANSWER: " + method + " " + argument);
 
-    if ((m_request->getMethod() == "GET" || m_request->getMethod() == "HEAD") && (m_request->getArgument() == "description/fetch" || m_request->getArgument().endsWith("1.0.xml"))) {
+    if ((method == "GET" || method == "HEAD") && (argument == "description/fetch" || argument.endsWith("1.0.xml"))) {
 
         setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
         setParamHeader("Cache-Control", "no-cache");
@@ -175,9 +125,9 @@ void Reply::_run() {
 
         sendAnswer(answerContent.toUtf8());
 
-        emit replyStatus("OK");
+        emit replyStatusSignal("OK");
     }
-    else if (m_request->getMethod() == "POST" && m_request->getArgument().endsWith("upnp/control/connection_manager")) {
+    else if (method == "POST" && argument.endsWith("upnp/control/connection_manager")) {
 
         if (!soapaction.isEmpty() && soapaction.indexOf("ConnectionManager:1#GetProtocolInfo") > -1) {
             setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
@@ -195,11 +145,11 @@ void Reply::_run() {
 
             sendAnswer(answerContent.toUtf8());
 
-            emit replyStatus("OK");
+            emit replyStatusSignal("OK");
         }
 
     }
-    else if (m_request->getMethod() == "POST" && m_request->getArgument().endsWith("upnp/control/content_directory")) {
+    else if (method == "POST" && argument.endsWith("upnp/control/content_directory")) {
         setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
         setParamHeader("Server", m_request->getServername());
 
@@ -220,7 +170,7 @@ void Reply::_run() {
 
             sendAnswer(answerContent.toUtf8());
 
-            emit replyStatus("OK");
+            emit replyStatusSignal("OK");
 
         } else if (!soapaction.isEmpty() && soapaction.indexOf("ContentDirectory:1#GetSortCapabilities") > -1) {
             answerContent.append(XML_HEADER);
@@ -234,7 +184,7 @@ void Reply::_run() {
 
             sendAnswer(answerContent.toUtf8());
 
-            emit replyStatus("OK");
+            emit replyStatusSignal("OK");
 
         } else if (!soapaction.isEmpty() && soapaction.indexOf("ContentDirectory:1#X_GetFeatureList") > -1) {
             // Added for Samsung 2012 TVs
@@ -249,7 +199,7 @@ void Reply::_run() {
 
             sendAnswer(answerContent.toUtf8());
 
-            emit replyStatus("OK");
+            emit replyStatusSignal("OK");
 
         } else if (!soapaction.isEmpty()  && soapaction.indexOf("ContentDirectory:1#GetSearchCapabilities") > -1) {
             answerContent.append(XML_HEADER);
@@ -263,7 +213,7 @@ void Reply::_run() {
 
             sendAnswer(answerContent.toUtf8());
 
-            emit replyStatus("OK");
+            emit replyStatusSignal("OK");
 
         } else if (m_rootFolder && !soapaction.isEmpty() && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
 
@@ -463,11 +413,11 @@ void Reply::_run() {
             //send the answer to client
             sendAnswer(xml.toString(-1).toUtf8());
 
-            emit replyStatus("OK");
+            emit replyStatusSignal("OK");
         } else {
-            emit replyStatus("KO");
+            emit replyStatusSignal("KO");
         }
-    } else if (m_request->getMethod() == "SUBSCRIBE" && !soapaction.isEmpty()) {
+    } else if (method == "SUBSCRIBE" && !soapaction.isEmpty()) {
         setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
         setParamHeader("Content-Length", "0");
         setParamHeader("Connection",  "close");
@@ -475,11 +425,7 @@ void Reply::_run() {
         setParamHeader("Server", m_request->getServername());
         setParamHeader("Timeout", "Second-1800");
 
-        keepSocketOpened = true;
         sendAnswer();
-        if (client != 0) {
-            client->flush();
-        }
 
         QString cb = soapaction.replace("<", "").replace(">", "");
 
@@ -490,7 +436,7 @@ void Reply::_run() {
         QTcpSocket sock;
         sock.connectToHost(addr, port);
         if (sock.waitForConnected()) {
-            sendLine(&sock, "NOTIFY /" + m_request->getArgument() + " HTTP/1.1");
+            sendLine(&sock, "NOTIFY /" + argument + " HTTP/1.1");
             sendLine(&sock, QString("SID: uuid:%1").arg(m_request->getUuid()));
             sendLine(&sock, "SEQ: 0");
             sendLine(&sock, "NT: upnp:event");
@@ -500,18 +446,17 @@ void Reply::_run() {
         }
         else {
             logError(QString("Cannot connect to %1").arg(cb));
-            emit replyStatus("ERROR");
+            emit replyStatusSignal("ERROR");
             return;
         }
 
         sock.close();
 
         QString answerContent;
-        keepSocketOpened = false;
         m_params.clear();
         headerSent = false;
 
-        if (m_request->getArgument().contains("connection_manager")) {
+        if (argument.contains("connection_manager")) {
             setParamHeader("Server", m_request->getServername());
 
             answerContent.append(EVENT_Header.arg("urn:schemas-upnp-org:service:ConnectionManager:1"));
@@ -522,9 +467,9 @@ void Reply::_run() {
 
             sendAnswer(answerContent.toUtf8());
 
-            emit replyStatus("OK");
+            emit replyStatusSignal("OK");
 
-        } else if (m_request->getArgument().contains("content_directory")) {
+        } else if (argument.contains("content_directory")) {
             setParamHeader("Server", m_request->getServername());
 
             answerContent.append(EVENT_Header.arg("urn:schemas-upnp-org:service:ContentDirectory:1"));
@@ -535,15 +480,14 @@ void Reply::_run() {
 
             sendAnswer(answerContent.toUtf8());
 
-            emit replyStatus("OK");
+            emit replyStatusSignal("OK");
         } else {
-            closeClient();
-            emit replyStatus("Unknown argument");
+            emit replyStatusSignal("Unknown argument");
         }
     }
-    else if ((m_request->getMethod() == "GET" || m_request->getMethod() == "HEAD") && (m_request->getArgument().toLower().endsWith(".png") || m_request->getArgument().toLower().endsWith(".jpg") || m_request->getArgument().toLower().endsWith(".jpeg"))) {
+    else if ((method == "GET" || method == "HEAD") && (argument.toLower().endsWith(".png") || argument.toLower().endsWith(".jpg") || argument.toLower().endsWith(".jpeg"))) {
 
-        if (m_request->getArgument().toLower().endsWith(".png")) {
+        if (argument.toLower().endsWith(".png")) {
             setParamHeader("Content-Type", "image/png");
         } else {
             setParamHeader("Content-Type", "image/jpeg");
@@ -558,53 +502,25 @@ void Reply::_run() {
         QByteArray answerContent;
 
         // read the image file
-        QFile inputStream(":/" + m_request->getArgument());
+        QFile inputStream(":/" + argument);
         if (inputStream.open(QFile::ReadOnly)) {
             answerContent = inputStream.readAll();
             inputStream.close();
 
         }
         else {
-            logError(QString("Unable to read %1 for %2 answer.").arg(m_request->getArgument()).arg(m_request->getMethod()));
+            logError(QString("Unable to read %1 for %2 answer.").arg(argument).arg(method));
         }
 
         sendAnswer(answerContent);
 
-        emit replyStatus("OK");
+        emit replyStatusSignal("OK");
     }
     else {
-        logError("Unkown answer for: " + m_request->getMethod() + " " + m_request->getArgument());
-        emit replyStatus("KO");
+        logError("Unkown answer for: " + method + " " + argument);
+        emit replyStatusSignal("KO");
     }
 
-}
-
-void Reply::closeClient() {
-    if (!m_request or m_request->isHttp10() or m_request->getHttpConnection().toLower() == "close")
-    {
-        if (!keepSocketOpened)
-        {
-            // No streaming or transcoding in progress
-            logTrace("Close client connection in request");
-            if (client)
-            {
-                if (client->socketDescriptor() == -1)
-                {
-                    emit logText(QString("%1: client already disconnected."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-                }
-                else
-                {
-                    client->disconnectFromHost();
-                    emit logText(QString("%2: Close client (%1)"+CRLF).arg(client->socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-                }
-            }
-            else
-            {
-                emit logText(QString("%1: Unable to close client (client deleted)."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-            }
-        }
-    }
-
-    if (!keepSocketOpened)
-        emit finished();
+    emit closeClientSignal();
+    emit finishedSignal();
 }
