@@ -38,7 +38,7 @@ void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
     }
 }
 
-QIODevice *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 timeseek_end)
+Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 timeseek_end)
 {
     if (toTranscode())
     {
@@ -53,7 +53,7 @@ QIODevice *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 t
     }
     else
     {
-        StreamingFile* tmp = new StreamingFile(getSystemName());
+        StreamingFile* tmp = new StreamingFile(getSystemName(), log());
         tmp->setRange(range);
         tmp->setTimeSeek(timeseek_start, timeseek_end);
         return tmp;

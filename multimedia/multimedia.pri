@@ -12,7 +12,8 @@ HEADERS += \
     ../multimedia/mediarenderermodel.h \
     ../multimedia/medialibrary.h \
     ../multimedia/streamingfile.h \
-    ../multimedia/youtubetranscoding.h
+    ../multimedia/youtubetranscoding.h \
+    $$PWD/device.h
 
 SOURCES += \
     ../multimedia/transcodeprocess.cpp \
@@ -22,7 +23,8 @@ SOURCES += \
     ../multimedia/mediarenderermodel.cpp \
     ../multimedia/medialibrary.cpp \
     ../multimedia/streamingfile.cpp \
-    ../multimedia/youtubetranscoding.cpp
+    ../multimedia/youtubetranscoding.cpp \
+    $$PWD/device.cpp
 
 
 

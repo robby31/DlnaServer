@@ -1,56 +1,61 @@
 #include "streamingfile.h"
 
-StreamingFile::StreamingFile(QString filename, QObject *parent) :
-    QFile(filename, parent),
-    m_range(0),
-    timeseek_start(-1),
-    timeseek_end(-1)
+StreamingFile::StreamingFile(QString filename, Logger *log, QObject *parent) :
+    Device(log, parent),
+    m_file(filename, parent)
 {
 }
 
 qint64 StreamingFile::size() const
 {
-    if (m_range && m_range->getLength()!=-1)
-        return m_range->getLength();
+    if (range() && range()->getLength()!=-1)
+        return range()->getLength();
 
-    return QFile::size();
+    return m_file.size();
 }
 
 qint64 StreamingFile::bytesAvailable() const
 {
-    if (m_range && m_range->getEndByte()!=-1)
-        return m_range->getEndByte() - pos() + 1;
+    if (range() && range()->getEndByte()!=-1)
+        return range()->getEndByte() - pos() + 1;
 
-    return QFile::bytesAvailable();
+    return m_file.bytesAvailable();
 }
 
 bool StreamingFile::atEnd() const
 {
-    if (m_range && m_range->getEndByte()!=-1)
-        return pos() > m_range->getEndByte();
+    if (range() && range()->getEndByte()!=-1)
+        return pos() > range()->getEndByte();
 
-    return QFile::atEnd();
+    return m_file.atEnd();
 }
 
-qint64 StreamingFile::readData(char *data, qint64 maxlen)
+QByteArray StreamingFile::read(qint64 maxlen)
 {
-    if (m_range && pos() < m_range->getStartByte())
-        seek(m_range->getStartByte());
+    QByteArray res;
 
-    if (m_range && m_range->getEndByte()>0)
+    if (range() && pos() < range()->getStartByte())
+        m_file.seek(range()->getStartByte());
+
+    if (range() && range()->getEndByte()>0)
     {
-        int bytesToRead = m_range->getEndByte() - pos() + 1;
+        int bytesToRead = range()->getEndByte() - pos() + 1;
         if (bytesToRead>=0 && bytesToRead<maxlen)
-            return QFile::readData(data, bytesToRead);
+            res = m_file.read(bytesToRead);
     }
 
-    return QFile::readData(data, maxlen);
+    if (res.isNull())
+        res = m_file.read(maxlen);
+
+    emit status(QString("Streaming (%1%)").arg(progress()));
+
+    return res;
 }
 
-bool StreamingFile::open(OpenMode mode)
+bool StreamingFile::open()
 {
-    bool res = QFile::open(mode);
+    bool res = m_file.open(QIODevice::ReadOnly);
     if (res)
-        setObjectName("device opened");
+        emit openedSignal();
     return res;
 }

@@ -25,7 +25,7 @@ public:
     virtual qint64 getResumeTime() const { return 0; }
 
     // Returns an InputStream of this DLNA node.
-    QIODevice *getStream(HttpRange* range=0, qint64 timeseek_start=-1, qint64 timeseek_end=-1);
+    Device *getStream(HttpRange* range=0, qint64 timeseek_start=-1, qint64 timeseek_end=-1);
 
     // return true if the track shall be transcoded
     virtual bool toTranscode() const = 0;

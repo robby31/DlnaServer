@@ -5,15 +5,13 @@
 #include <QElapsedTimer>
 #include <QDebug>
 #include <QDateTime>
-#include <QThread>
 
-#include "logger.h"
-#include "httprange.h"
+#include "device.h"
 
 // Format available for transcoding
 enum TranscodeFormatAvailable {UNKNOWN, MP3, LPCM, MPEG2_AC3};
 
-class TranscodeProcess : public QProcess
+class TranscodeProcess : public Device
 {
     Q_OBJECT
 
@@ -22,9 +20,6 @@ public:
     virtual ~TranscodeProcess();
 
     bool isKilled() const { return killTranscodeProcess; }
-    void killProcess();
-
-    virtual int transcodeExitCode() const { return exitCode(); }
 
     void setBitrate(const qint64 &bitrate)                  { m_bitrate = bitrate;
                                                               setMaxBufferSize(m_bitrate/8*m_durationBuffer);
@@ -36,77 +31,63 @@ public:
     void setUrl(const QString &url)                             { m_url = url;                                  updateArguments(); }
     QString url() const { return m_url; }
 
-    void setRange(HttpRange *range);
-    HttpRange * range() const { return m_range; }
-
-    void setTimeSeek(qint64 start, qint64 end)                  { timeseek_start = start; timeseek_end = end;   updateArguments();}
-    qint64 timeSeekStart() const { return timeseek_start; }
-    qint64 timeSeekEnd() const { return timeseek_end; }
-
     void setSize(const qint64 size) { m_size = size; }
     virtual qint64 size() const;
 
     virtual bool atEnd() const;
+    virtual qint64 bytesAvailable() const   { return m_process.bytesAvailable(); }
+    virtual qint64 pos() const              { return m_pos; }
 
-    virtual bool open(OpenMode mode) { emit openSignal(mode); return true; }
-    virtual qint64 pos() const { return m_pos; }
-    virtual qint64 readData(char *data, qint64 maxlen);
+    virtual bool open()         { emit openSignal(QIODevice::ReadOnly); return true; }
+    virtual bool isOpen() const { return m_process.isOpen(); }
 
+    virtual QByteArray read(qint64 maxlen);
+
+
+protected:
+    void setProgram(const QString &program)         { m_process.setProgram(program);        }
+    void setArguments(const QStringList &arguments) { m_process.setArguments(arguments);    }
 
 private:
-    bool isLogLevel(const LogLevel &level) const { return m_log ? m_log->isLevel(level) : false; }
-    void logError(const QString &message)  const { if (m_log) m_log->Error(message); }
-    void logDebug(const QString &message)  const { if (m_log) m_log->Debug(message); }
-    void logInfo(const QString &message)   const { if (m_log) m_log->Info(message); }
-    void logTrace(const QString &message)  const { if (m_log) m_log->Trace(message); }
-
-    void setMaxBufferSize(const qint64 &size) { if (size>0) m_maxBufferSize = size; }
-
-    virtual void updateArguments() = 0;
+    void setMaxBufferSize(const qint64 &size)       { if (size>0) m_maxBufferSize = size;   }
 
     void pause()    { emit pauseSignal();  }
     void resume()   { emit resumeSignal(); }
 
 signals:
-    void LogMessage(const QString &msg);
-    void status(const QString &status);
-    void errorRaised(const QString &errorString);
-
-    void openSignal(const OpenMode &open);
+    void openSignal(const QIODevice::OpenMode &open);
     void pauseSignal();
     void resumeSignal();
 
 private slots:
-    void _logDestroyed() { m_log = 0; }
-
-    void _open(const OpenMode &open) { QProcess::open(open); }
+    void _open(const QIODevice::OpenMode &open) { m_process.open(open); }
     void processStarted();
     void dataAvailable();
     void errorTrancodedData(const QProcess::ProcessError &error);
     void appendTranscodingLogMessage();
     void finishedTranscodeData(const int &exitCode);
+    void killProcess();
 
     void _pause();
     void _resume();
+    void _pause_resume_done(const int &exitCode);
+    void _pause_resume_error(const QProcess::ProcessError &error);
 
-protected:
-    void appendLog(const QString &msg) { emit LogMessage(msg); }
-
-    Logger *m_log;
 
 private:
     // Carriage return and line feed.
     static const QString CRLF;
 
+    QProcess m_process;
+    bool m_opened;
     QString m_url;
-    HttpRange *m_range;
-    qint64 timeseek_start;
-    qint64 timeseek_end;
+
     qint64 m_bitrate;
 
     qint64 m_pos;
     qint64 m_size;
 
+    QProcess processPauseResume;
     QElapsedTimer transcodeClock;
     bool killTranscodeProcess;  // true if the application aborts the transcoding
     bool m_paused;              // true if the transcoding has been paused
