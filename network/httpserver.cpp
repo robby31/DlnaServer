@@ -137,6 +137,8 @@ void HttpServer::incomingConnection(qintptr socketDescriptor)
 
     connect(request, SIGNAL(readyToReply()), this, SLOT(_readyToReply()));
     connect(request, SIGNAL(newRenderer(MediaRenderer*)), this, SIGNAL(newRenderer(MediaRenderer*)));
+    connect(request, SIGNAL(startServingRendererSignal(QString,QString)), this, SIGNAL(servingRenderer(QString,QString)));
+    connect(request, SIGNAL(stopServingRendererSignal(QString)), this, SIGNAL(stopServingRenderer(QString)));
 
     emit newRequest(request);
 }
@@ -153,10 +155,12 @@ void HttpServer::_readyToReply()
     if ((request->getMethod() == "GET" || request->getMethod() == "HEAD") && request->getArgument().startsWith("get/"))
     {
         reply = new ReplyDlnaItemContent(m_log, request, &workerStreaming, rootFolder);
-        connect(reply, SIGNAL(servingRenderer(QString,QString)), this, SIGNAL(servingRenderer(QString,QString)));
-        connect(reply, SIGNAL(stopServingRenderer(QString)), this, SIGNAL(stopServingRenderer(QString)));
-        connect(reply, SIGNAL(serving(QString,int)), this, SLOT(_servingProgress(QString,int)));
-        connect(reply, SIGNAL(servingFinished(QString, int)), this, SLOT(_servingFinished(QString, int)));
+        connect(reply, SIGNAL(startServingRendererSignal(QString)), request, SLOT(startServingRenderer(QString)));
+        connect(reply, SIGNAL(stopServingRendererSignal()), request, SLOT(stopServingRenderer()));
+        connect(reply, SIGNAL(servingSignal(QString,int)), this, SLOT(_servingProgress(QString,int)));
+        connect(reply, SIGNAL(servingFinishedSignal(QString, int)), this, SLOT(_servingFinished(QString, int)));
+        connect(request, SIGNAL(clientDisconnected()), reply, SLOT(close()));
+        connect(request, SIGNAL(bytesSent(qint64,qint64)), reply, SLOT(bytesSent(qint64,qint64)));
     }
     else
     {
@@ -165,13 +169,23 @@ void HttpServer::_readyToReply()
 
     reply->moveToThread(request->thread());
 
-    connect(reply, SIGNAL(appendAnswer(QString)), request, SLOT(appendAnswer(QString)));
-    connect(reply, SIGNAL(replyStatus(QString)), request, SLOT(setStatus(QString)));
-    connect(reply, SIGNAL(logText(QString)), request, SLOT(appendLog(QString)));
-    connect(reply, SIGNAL(finished()), request, SLOT(replyFinished()));
-    connect(reply, SIGNAL(finished()), reply, SLOT(deleteLater()));
+    connect(reply, SIGNAL(closeClientSignal()), request, SIGNAL(closeClientSignal()));
+    connect(reply, SIGNAL(destroyed()), request, SIGNAL(deleteClient()));
 
-    reply->run();
+    connect(reply, SIGNAL(sendTextLineToClientSignal(QString)), request, SIGNAL(sendTextLineSignal(QString)));
+    connect(reply, SIGNAL(sendHeaderSignal(QHash<QString,QString>)), request, SLOT(sendHeader(QHash<QString,QString>)));
+    connect(reply, SIGNAL(sendDataToClientSignal(QByteArray)), request, SIGNAL(sendDataSignal(QByteArray)));
+
+    connect(reply, SIGNAL(appendAnswerSignal(QString)), request, SLOT(appendAnswer(QString)));
+    connect(reply, SIGNAL(logTextSignal(QString)), request, SLOT(appendLog(QString)));
+
+    connect(reply, SIGNAL(replyStatusSignal(QString)), request, SLOT(setStatus(QString)));
+    connect(reply, SIGNAL(networkStatusSignal(QString)), request, SLOT(setNetworkStatus(QString)));
+
+    connect(reply, SIGNAL(finishedSignal()), request, SLOT(replyFinished()));
+    connect(reply, SIGNAL(finishedSignal()), reply, SLOT(deleteLater()));
+
+    reply->run(request->getMethod(), request->getArgument());
 }
 
 void HttpServer::_addFolder(const QString &folder)
