@@ -39,6 +39,11 @@ Application::Application(int &argc, char **argv):
     server->start();
 }
 
+Application::~Application()
+{
+
+}
+
 void Application::serverStarted()
 {
     // load the settings

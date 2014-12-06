@@ -23,6 +23,7 @@ class Application : public QApplication
 
 public:
     explicit Application(int &argc, char **argv);
+    virtual ~Application();
 
     // load the qml file describing the HMI
     int load(const QUrl &url);
