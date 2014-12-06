@@ -79,7 +79,7 @@ void MencoderTranscoding::updateArguments()
         }
 
     } else {
-        m_log->Error(QString("Invalid format: %1").arg(m_format));
+        logError(QString("Invalid format: %1").arg(m_format));
     }
 
     if (range() != 0 && !range()->isNull()) {

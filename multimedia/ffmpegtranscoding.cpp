@@ -13,11 +13,12 @@ FfmpegTranscoding::FfmpegTranscoding(Logger *log, QObject *parent) :
 void FfmpegTranscoding::updateArguments()
 {
     QStringList arguments;
+    arguments << "-loglevel" << "warning";
     if (timeSeekStart() > 0)
     {
         arguments << "-ss" << QString("%1").arg(timeSeekStart());
         if (range())
-            m_log->Warning("timeseek and range are used in the same time, only timeseek is taken into account.");
+            logWarning("timeseek and range are used in the same time, only timeseek is taken into account.");
     }
     else if (range() != 0 && !range()->isNull())
     {
@@ -35,7 +36,7 @@ void FfmpegTranscoding::updateArguments()
     if (m_format == MP3)
     {
         arguments << "-f" << "mp3";
-        arguments << "-map_metadata" << "-1";
+//        arguments << "-map_metadata" << "-1";
         if (bitrate() > 0)
             arguments << "-ab" << QString("%1").arg(bitrate());
 
@@ -46,7 +47,7 @@ void FfmpegTranscoding::updateArguments()
     }
     else
     {
-        m_log->Error(QString("Invalid format: %1").arg(m_format));
+        logError(QString("Invalid format: %1").arg(m_format));
     }
 
     if (range() != 0 && !range()->isNull())
