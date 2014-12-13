@@ -132,6 +132,8 @@ bool Request::appendHeader(const QString &headerLine)
         setArgument(rxDefinition.cap(2));
         if (rxDefinition.cap(3)=="1.0")
             setHttp10(true);
+        else
+            setHttp10(false);
     }
     else if (rxParam.indexIn(headerLine.trimmed()) != -1)
     {
@@ -208,7 +210,7 @@ void Request::readSocket()
         }
         timeSeekRangeStart = -1;
         timeSeekRangeEnd = -1;
-        setHttp10(false);
+        setHttp10(true);
         setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
     }
 
