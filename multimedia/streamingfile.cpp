@@ -34,9 +34,6 @@ QByteArray StreamingFile::read(qint64 maxlen)
 {
     QByteArray res;
 
-    if (range() && pos() < range()->getStartByte())
-        m_file.seek(range()->getStartByte());
-
     if (range() && range()->getEndByte()>0)
     {
         int bytesToRead = range()->getEndByte() - pos() + 1;
@@ -55,6 +52,11 @@ QByteArray StreamingFile::read(qint64 maxlen)
 bool StreamingFile::open()
 {
     bool res = m_file.open(QIODevice::ReadOnly);
+
+    if (range() && pos() < range()->getStartByte())
+        if (!m_file.seek(range()->getStartByte()))
+            logError("Cannot seek file");
+
     if (res)
         emit openedSignal();
     return res;
