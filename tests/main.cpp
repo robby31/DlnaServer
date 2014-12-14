@@ -3,6 +3,7 @@
 #include "tst_dlnafolder.h"
 #include "tst_dlnamusictrack.h"
 #include "tst_dlnavideoitem.h"
+#include "tst_dlnayoutubevideo.h"
 #include "tst_request.h"
 #include "tst_dlnacachedresources.h"
 #include <iostream>
@@ -28,14 +29,17 @@ int main(int argc, char *argv[])
     tst_dlnafolder test3;
     executeTest(&test3, &testsSummary, argc, argv);
 
+    TestRequest test6;
+    executeTest(&test6, &testsSummary, argc, argv);
+
+    tst_dlnayoutubevideo test5_1;
+    executeTest(&test5_1, &testsSummary, argc, argv);
+
     tst_dlnamusictrack test4;
     executeTest(&test4, &testsSummary, argc, argv);
 
     tst_dlnavideoitem test5;
     executeTest(&test5, &testsSummary, argc, argv);
-
-    TestRequest test6;
-    executeTest(&test6, &testsSummary, argc, argv);
 
     tst_dlnacachedresources test7;
     executeTest(&test7, &testsSummary, argc, argv);

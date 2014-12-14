@@ -12,7 +12,7 @@ void TestRequest::testCase_request()
     Logger log;
     DlnaRootFolder rootFolder(&log, "host", 400);
     QTcpSocket client;
-    Request request(&log, &client, "uuid", "server name", "host IP", 56);
+    Request request(&log, 0, client.socketDescriptor(), "uuid", "server name", "host IP", 56);
 
     QVERIFY2(request.getHost() == "host IP", "Failure with function getHost()");
     QVERIFY(request.getArgument() == "");
@@ -21,7 +21,7 @@ void TestRequest::testCase_request()
     QVERIFY(request.getStatus() == "init");
     QVERIFY(request.getTextHeader() == "");
     QVERIFY(request.getTextContent() == "");
-    QVERIFY(request.isHttp10() == false);
+    QVERIFY(request.isHttp10() == true);
     QVERIFY(request.getParamHeader("USER-AGENT") == "");
     QVERIFY(request.getReceivedContentLength() == -1);
     QVERIFY(request.getTransferMode() == "");
@@ -37,10 +37,11 @@ void TestRequest::testCase_request()
     QVERIFY(request.appendHeader("") == false);
     QVERIFY(request.appendHeader("METHOD") == false);
 
-    QVERIFY(request.appendHeader("GET /get/0$4$1$9$2$11/thumbnail00001-11+Tout+sauf+toi.mp3 HTTP/1.0") == true);
+    QVERIFY(request.isHttp10() == true);
+    QVERIFY(request.appendHeader("GET /get/0$4$1$9$2$11/thumbnail00001-11+Tout+sauf+toi.mp3 HTTP/1.1") == true);
     QVERIFY(request.getMethod() == "GET");
     QVERIFY(request.getArgument() == "get/0$4$1$9$2$11/thumbnail00001-11+Tout+sauf+toi.mp3");
-    QVERIFY(request.isHttp10() == true);
+    QVERIFY(request.isHttp10() == false);
 
     QVERIFY(request.appendHeader("User-Agent: DLNADOC/1.50") == true);
     QVERIFY(request.getParamHeader("USER-AGENT") == "DLNADOC/1.50");
@@ -75,6 +76,11 @@ void TestRequest::testCase_request()
 
     QVERIFY(request.appendHeader("Icy-MetaData: 1") == true);
 
+    QVERIFY(request.isHttp10() == false);
+    QVERIFY(request.appendHeader("GET /get/0$4$1$9$2$11/thumbnail00001-11+Tout+sauf+toi.mp3 HTTP/1.0") == true);
+    QVERIFY(request.getMethod() == "GET");
+    QVERIFY(request.getArgument() == "get/0$4$1$9$2$11/thumbnail00001-11+Tout+sauf+toi.mp3");
+    QVERIFY(request.isHttp10() == true);
 }
 
 //void TestRequest::testCase_DlnaMusicTrack_MP3_streaming() {

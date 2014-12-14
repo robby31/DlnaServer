@@ -24,7 +24,7 @@ private Q_SLOTS:
     void testCase_DlnaVideoItem_MKV();
 
 private:
-    QProcess* transcodeProcess;
+    TranscodeProcess* transcodeProcess;
     long transcodedSize;
 };
 

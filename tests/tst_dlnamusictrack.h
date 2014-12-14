@@ -29,7 +29,7 @@ private Q_SLOTS:
     void testCase_DlnaMusicTrack_WAV_Transcoding_LPCM();
 
 private:
-    QProcess* transcodeProcess;
+    TranscodeProcess* transcodeProcess;
     QByteArray transcodedBytes;
 };
 

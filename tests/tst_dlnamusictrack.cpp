@@ -8,8 +8,8 @@ tst_dlnamusictrack::tst_dlnamusictrack(QObject *parent) :
 
 void tst_dlnamusictrack::receivedTranscodedData() {
     if (transcodeProcess != 0) {
-        QByteArray bytes = transcodeProcess->readAllStandardOutput();
-        transcodedBytes.append(bytes);
+        while (transcodeProcess->isOpen() && transcodeProcess->bytesAvailable()>0)
+            transcodedBytes.append(transcodeProcess->read(1024*1024));
     }
 }
 
@@ -83,11 +83,12 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     QVERIFY(track.getAlbumArt().isNull() == true);
     QVERIFY(track.getByteAlbumArt().isNull() == true);
 
-    QIODevice* stream = track.getStream();
+    Device* stream = track.getStream();
     QVERIFY(stream != 0);
-    QVERIFY(stream->open(QIODevice::ReadOnly) == true);
+    QVERIFY(stream->open() == true);
     QVERIFY(stream->isOpen() == true);
     QVERIFY(stream->size() == 376593);
+    QVERIFY(stream->atEnd() == false);
 
     QByteArray data;
     int readSize = 0;
@@ -106,9 +107,10 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     range->setSize(track.size());
     stream = track.getStream(range);
     QVERIFY(stream != 0);
-    QVERIFY(stream->open(QIODevice::ReadOnly) == true);
+    QVERIFY(stream->open() == true);
     QVERIFY(stream->isOpen() == true);
     QVERIFY(stream->size() == 376593);
+    QVERIFY(stream->atEnd() == false);
 
     readSize = 0;
     while (!stream->atEnd())
@@ -127,9 +129,10 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     range->setSize(track.size());
     stream = track.getStream(range);
     QVERIFY(stream != 0);
-    QVERIFY(stream->open(QIODevice::ReadOnly) == true);
+    QVERIFY(stream->open() == true);
     QVERIFY(stream->isOpen() == true);
     QVERIFY2(stream->size() == 5001, QString("%1").arg(stream->size()).toUtf8().constData());
+    QVERIFY(stream->atEnd() == false);
 
     readSize = 0;
     while (!stream->atEnd())
@@ -148,9 +151,10 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     range->setSize(track.size());
     stream = track.getStream(range);
     QVERIFY(stream != 0);
-    QVERIFY(stream->open(QIODevice::ReadOnly) == true);
+    QVERIFY(stream->open() == true);
     QVERIFY(stream->isOpen() == true);
     QVERIFY2(stream->size() == 4001, QString("%1").arg(stream->size()).toUtf8().constData());
+    QVERIFY(stream->atEnd() == false);
 
     readSize = 0;
     while (!stream->atEnd())
@@ -239,11 +243,12 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
     int size = track.getByteAlbumArt().size();
     QVERIFY2(size == 16814, QString("%1").arg(size).toUtf8());
 
-    QIODevice* stream = track.getStream();
+    Device* stream = track.getStream();
     QVERIFY(stream != 0);
-    QVERIFY(stream->open(QIODevice::ReadOnly) == true);
+    QVERIFY(stream->open() == true);
     QVERIFY(stream->isOpen() == true);
     QVERIFY(stream->size() == 845029);
+    QVERIFY(stream->atEnd() == false);
     delete stream;
 }
 
@@ -319,11 +324,12 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
     QVERIFY(track.getAlbumArt().size().height() == 300);
     QVERIFY2(track.getByteAlbumArt().size() == 5360, QString("%1").arg(track.getByteAlbumArt().size()).toUtf8());
 
-    QIODevice* stream = track.getStream();
+    Device* stream = track.getStream();
     QVERIFY(stream != 0);
-    QVERIFY(stream->open(QIODevice::ReadOnly) == true);
+    QVERIFY(stream->open() == true);
     QVERIFY(stream->isOpen() == true);
     QVERIFY(stream->size() == 3841064);
+    QVERIFY(stream->atEnd() == false);
     delete stream;
 }
 
@@ -407,15 +413,17 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
     range->setSize(track.size());
     QVERIFY(transcodeProcess == 0);
     transcodedBytes.clear();
-    QIODevice *device = track.getStream(range);
+    Device *device = track.getStream(range);
     QVERIFY(device != 0);
-    QVERIFY(device->open(QIODevice::ReadOnly) == true);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     QVERIFY(transcodeProcess != 0);
+    QVERIFY(transcodeProcess->atEnd() == false);
+    QVERIFY(transcodeProcess->open() == true);
     QVERIFY(transcodeProcess->waitForFinished(-1) == true);
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY2(transcodedBytes.size() == 7558835, QString("%1").arg(transcodedBytes.size()).toUtf8().constData());
+    QVERIFY2(transcodedBytes.size() == 7560412, QString("%1").arg(transcodedBytes.size()).toUtf8().constData());
+    QVERIFY(transcodeProcess->atEnd() == true);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -494,16 +502,18 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
 
     // Test getStream and getTranscodeProcess
     HttpRange* range = 0;
-    QIODevice *device = track.getStream(range);
+    Device *device = track.getStream(range);
     QVERIFY(device != 0);
-    QVERIFY(device->open(QIODevice::ReadOnly) == true);
+    QVERIFY(device->open() == true);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     QVERIFY(transcodeProcess != 0);
+    QVERIFY(transcodeProcess->atEnd()==false);
     transcodedBytes.clear();
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY2(transcodedBytes.size() == 21786284, QString("%1").arg(transcodedBytes.size()).toUtf8().constData());
+    QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -513,14 +523,16 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     range->setSize(track.size());
     device = track.getStream(range);
     QVERIFY(device != 0);
-    QVERIFY(device->open(QIODevice::ReadOnly) == true);
+    QVERIFY(device->open() == true);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     QVERIFY(transcodeProcess != 0);
     transcodedBytes.clear();
+    QVERIFY(transcodeProcess->atEnd()==false);
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodedBytes.size() == 21786284);
+    QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -530,14 +542,16 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     range->setSize(track.size());
     device = track.getStream(range);
     QVERIFY(device != 0);
-    QVERIFY(device->open(QIODevice::ReadOnly) == true);
+    QVERIFY(device->open() == true);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     QVERIFY(transcodeProcess != 0);
     transcodedBytes.clear();
+    QVERIFY(transcodeProcess->atEnd()==false);
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY2(transcodedBytes.size() == 44, QString("%1").arg(transcodedBytes.size()).toUtf8().constData());
+    QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -547,14 +561,16 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     range->setSize(track.size());
     device = track.getStream(range);
     QVERIFY(device != 0);
-    QVERIFY(device->open(QIODevice::ReadOnly) == true);
+    QVERIFY(device->open() == true);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     QVERIFY(transcodeProcess != 0);
     transcodedBytes.clear();
+    QVERIFY(transcodeProcess->atEnd()==false);
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY2(transcodedBytes.size() == 10026284, QString("%1").arg(transcodedBytes.size()).toUtf8().constData());
+    QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -564,14 +580,16 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     range->setSize(track.size());
     device = track.getStream(range);
     QVERIFY(device != 0);
-    QVERIFY(device->open(QIODevice::ReadOnly) == true);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     QVERIFY(transcodeProcess != 0);
     transcodedBytes.clear();
+    QVERIFY(transcodeProcess->open() == true);
+    QVERIFY(transcodeProcess->atEnd()==true);
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 1);
     QVERIFY2(transcodedBytes.size() == 0, QString("%1").arg(transcodedBytes.size()).toUtf8().constData());
+    QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -581,14 +599,16 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     range->setSize(track.size());
     device = track.getStream(range);
     QVERIFY(device != 0);
-    QVERIFY(device->open(QIODevice::ReadOnly) == true);
+    QVERIFY(device->open() == true);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     QVERIFY(transcodeProcess != 0);
     transcodedBytes.clear();
+    QVERIFY(transcodeProcess->atEnd()==false);
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY2(transcodedBytes.size() == 3884, QString("%1").arg(transcodedBytes.size()).toUtf8().constData());
+    QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -670,16 +690,18 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
 
     // Test getStream and getTranscodeProcess
     HttpRange* range = 0;
-    QIODevice *device = track.getStream(range);
+    Device *device = track.getStream(range);
     QVERIFY(device != 0);
-    QVERIFY(device->open(QIODevice::ReadOnly) == true);
+    QVERIFY(device->open() == true);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     QVERIFY(transcodeProcess != 0);
     transcodedBytes.clear();
+    QVERIFY(transcodeProcess->atEnd()==false);
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodedBytes.size() == 104568320);
+    QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -689,14 +711,16 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     range->setSize(track.size());
     device = track.getStream(range);
     QVERIFY(device != 0);
-    QVERIFY(device->open(QIODevice::ReadOnly) == true);
+    QVERIFY(device->open() == true);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     QVERIFY(transcodeProcess != 0);
     transcodedBytes.clear();
+    QVERIFY(transcodeProcess->atEnd()==false);
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodedBytes.size() == 104568320);
+    QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -706,14 +730,16 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     range->setSize(track.size());
     device = track.getStream(range);
     QVERIFY(device != 0);
-    QVERIFY(device->open(QIODevice::ReadOnly) == true);
+    QVERIFY(device->open() == true);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     QVERIFY(transcodeProcess != 0);
     transcodedBytes.clear();
+    QVERIFY(transcodeProcess->atEnd()==false);
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodedBytes.size() == 4096);
+    QVERIFY2(transcodedBytes.size() == 4096, QString("%1").arg(transcodedBytes.size()).toUtf8().constData());
+    QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -723,14 +749,16 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     range->setSize(track.size());
     device = track.getStream(range);
     QVERIFY(device != 0);
-    QVERIFY(device->open(QIODevice::ReadOnly) == true);
+    QVERIFY(device->open() == true);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     QVERIFY(transcodeProcess != 0);
     transcodedBytes.clear();
+    QVERIFY(transcodeProcess->atEnd()==false);
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodedBytes.size() == 92856320);
+    QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -740,14 +768,16 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     range->setSize(track.size());
     device = track.getStream(range);
     QVERIFY(device != 0);
-    QVERIFY(device->open(QIODevice::ReadOnly) == true);
+    QVERIFY(device->open() == true);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     QVERIFY(transcodeProcess != 0);
     transcodedBytes.clear();
+    QVERIFY(transcodeProcess->atEnd()==true);
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 1);
     QVERIFY(transcodedBytes.size() == 0);
+    QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -757,14 +787,16 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     range->setSize(track.size());
     device = track.getStream(range);
     QVERIFY(device != 0);
-    QVERIFY(device->open(QIODevice::ReadOnly) == true);
+    QVERIFY(device->open() == true);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     QVERIFY(transcodeProcess != 0);
     transcodedBytes.clear();
+    QVERIFY(transcodeProcess->atEnd()==false);
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodedBytes.size() == 4096);
+    QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;

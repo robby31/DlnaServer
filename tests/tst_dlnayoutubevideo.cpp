@@ -10,12 +10,13 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
     Logger log;
     DlnaYouTubeVideo video(&log, QUrl("http://www.youtube.com/watch?v=fiore9Z5iUg"), "host", 600);
     QVERIFY(video.getSystemName() == "http://www.youtube.com/watch?v=fiore9Z5iUg");
-    QVERIFY(video.getName() == "Lilly Wood & The Prick and Robin Schulz - Prayer In C (Robin Schulz Remix) (Official)");
+    QVERIFY2(video.getName() == "Lilly Wood & The Prick and Robin Schulz - Prayer In C (Robin Schulz Remix) (Official)", video.getName().toUtf8().constData());
     QVERIFY(video.getDisplayName() == "Lilly Wood & The Prick and Robin Schulz - Prayer In C (Robin Schulz Remix) (Official)");
 
     QVERIFY(video.metaDataTitle() == "Lilly Wood & The Prick and Robin Schulz - Prayer In C (Robin Schulz Remix) (Official)");
     QVERIFY(video.metaDataDuration() == 193540);
     QVERIFY(video.resolution() == "1280x720");
+    QVERIFY(video.bitrate() == 5857280);
 }
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo2()
@@ -29,6 +30,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo2()
     QVERIFY(video.metaDataTitle() == "Muse - Exogenesis- Symphony Part 1 (Overture)");
     QVERIFY(video.metaDataDuration() == 258460);
     QVERIFY(video.resolution() == "638x360");
+    QVERIFY(video.bitrate() == 5448000);
 }
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
@@ -42,4 +44,5 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
     QVERIFY(video.metaDataTitle() == "Lilly Wood & The Prick - Let's Not Pretend [Clip Officiel]");
     QVERIFY(video.metaDataDuration() == 220170);
     QVERIFY(video.resolution() == "1280x720");
+    QVERIFY(video.bitrate() == 5448000);
 }

@@ -41,7 +41,7 @@ private Q_SLOTS:
     void testCase_Library_NbPictureWithNoAlbum();
 
 private:
-    QProcess* transcodeProcess;
+    TranscodeProcess* transcodeProcess;
     long transcodedSize;
     QSqlDatabase db;
 

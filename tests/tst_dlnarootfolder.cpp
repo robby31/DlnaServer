@@ -49,7 +49,7 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     node = xml_res.elementsByTagName("container").at(0);
     QVERIFY(node.attributes().namedItem("id").nodeValue() == "");
     QVERIFY(node.attributes().namedItem("parentID").nodeValue() == "-1");
-    QVERIFY2(node.attributes().namedItem("childCount").nodeValue() == "605", QString("%1").arg(node.attributes().namedItem("childCount").nodeValue()).toUtf8().constData());
+    QVERIFY2(node.attributes().namedItem("childCount").nodeValue() == "608", QString("%1").arg(node.attributes().namedItem("childCount").nodeValue()).toUtf8().constData());
     QVERIFY(node.attributes().namedItem("restricted").nodeValue() == "true");
     QVERIFY(xml_res.elementsByTagName("dc:title").size() == 1);
     QVERIFY(xml_res.elementsByTagName("dc:title").at(0).firstChild().nodeValue() == "Music");
@@ -74,7 +74,7 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     node = xml_res.elementsByTagName("container").at(0);
     QVERIFY(node.attributes().namedItem("id").nodeValue() == "0$1");
     QVERIFY(node.attributes().namedItem("parentID").nodeValue() == "0");
-    QVERIFY(node.attributes().namedItem("childCount").nodeValue() == "605");
+    QVERIFY(node.attributes().namedItem("childCount").nodeValue() == "608");
     QVERIFY(node.attributes().namedItem("restricted").nodeValue() == "true");
     QVERIFY(xml_res.elementsByTagName("dc:title").size() == 1);
     QVERIFY(xml_res.elementsByTagName("dc:title").at(0).firstChild().nodeValue() == "Music");
