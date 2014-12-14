@@ -1,6 +1,8 @@
 TEMPLATE = subdirs
 CONFIG += ordered
-SUBDIRS = app tests
+SUBDIRS = app  \
+          tests  \
+          #HomeControlClient
 
 
 
