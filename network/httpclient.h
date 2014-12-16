@@ -9,6 +9,7 @@
 class HttpClient : public QTcpSocket
 {
     Q_OBJECT
+
 public:
     explicit HttpClient(Logger *log, QObject *parent = 0);
     virtual ~HttpClient();
