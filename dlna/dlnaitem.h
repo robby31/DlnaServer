@@ -9,6 +9,7 @@
 
 class DlnaItem : public DlnaResource
 {
+    Q_OBJECT
 
 public:
     explicit DlnaItem(Logger* log, QString host, int port, QObject *parent = 0);

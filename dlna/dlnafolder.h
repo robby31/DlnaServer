@@ -9,6 +9,7 @@
 
 class DlnaFolder : public DlnaStorageFolder
 {
+    Q_OBJECT
 
 public:
     explicit DlnaFolder(Logger* log, QString filename, QString host, int port, QObject *parent = 0);

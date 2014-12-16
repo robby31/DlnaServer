@@ -6,6 +6,7 @@
 
 class DlnaMusicTrack : public DlnaItem
 {
+    Q_OBJECT
 
 public:
     DlnaMusicTrack(Logger* log, QString host, int port, QObject *parent = 0);

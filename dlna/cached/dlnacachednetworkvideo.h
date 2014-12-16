@@ -6,6 +6,8 @@
 
 class DlnaCachedNetworkVideo : public DlnaCachedVideo
 {
+    Q_OBJECT
+
 public:
     explicit DlnaCachedNetworkVideo(Logger* log, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent = 0);
 

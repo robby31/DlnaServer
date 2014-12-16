@@ -8,6 +8,7 @@
 
 class DlnaCachedMusicFolder : public DlnaStorageFolder
 {
+    Q_OBJECT
 
 public:
     explicit DlnaCachedMusicFolder(Logger* log, MediaLibrary* library, QString host, int port, int idType, QObject *parent = 0);

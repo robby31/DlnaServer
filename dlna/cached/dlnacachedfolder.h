@@ -12,6 +12,7 @@
 
 class DlnaCachedFolder : public DlnaStorageFolder
 {
+    Q_OBJECT
 
 public:
     explicit DlnaCachedFolder(Logger* log,

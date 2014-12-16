@@ -8,6 +8,8 @@
 
 class DlnaCachedGroupedFolderMetaData : public DlnaStorageFolder
 {
+    Q_OBJECT
+
 public:
     DlnaCachedGroupedFolderMetaData(Logger* log, MediaLibrary* library, QString host, int port, QString name, int idType, QString where, QObject *parent = 0);
 

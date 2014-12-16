@@ -8,6 +8,7 @@
 
 class DlnaMusicTrackFile : public DlnaMusicTrack
 {
+    Q_OBJECT
 
 public:
     explicit DlnaMusicTrackFile(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
