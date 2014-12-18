@@ -2,11 +2,12 @@
 #define DLNACACHEDVIDEO_H
 
 #include "dlnavideoitem.h"
-#include "mencodertranscoding.h"
+#include "ffmpegtranscoding.h"
 #include "medialibrary.h"
 
 class DlnaCachedVideo : public DlnaVideoItem
 {
+    Q_OBJECT
 
 public:
     explicit DlnaCachedVideo(Logger* log, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent = 0);
@@ -38,15 +39,15 @@ public:
     virtual QString metaDataLastModifiedDate() const { if (library != 0) return library->getmetaData("last_modified", idMedia).toString(); else return QString(); }
 
     // returns the samplerate of the video track
-    virtual int samplerate() const { if (library != 0) return library->getmetaData("samplerate", idMedia).toInt(); else return -1; }
+    virtual int samplerate() const;
 
     //returns the channel number of the video track
-    virtual int channelCount() const { if (library != 0) return library->getmetaData("channelcount", idMedia).toInt(); else return -1; }
+    virtual int channelCount() const;
 
     virtual QString resolution()            const { if (library != 0) return library->getmetaData("resolution", idMedia).toString(); else return QString(); }
     virtual QStringList subtitleLanguages() const { if (library != 0) return library->getmetaData("subtitlelanguages", idMedia).toString().split(","); else return QStringList(); }
     virtual QStringList audioLanguages()    const { if (library != 0) return library->getmetaData("audiolanguages", idMedia).toString().split(","); else return QStringList(); }
-    virtual QString framerate()             const { if (library != 0) return library->getmetaData("framerate", idMedia).toString(); else return QString(); }
+    virtual QString framerate()             const;
 
 protected:
     // Returns the process for transcoding
