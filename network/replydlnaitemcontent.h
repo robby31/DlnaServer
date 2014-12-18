@@ -8,7 +8,7 @@ class ReplyDlnaItemContent : public Reply
     Q_OBJECT
 
 public:
-    explicit ReplyDlnaItemContent(Logger *log, Request *request, QThread *streamThread, DlnaRootFolder *rootFolder, QObject *parent = 0);
+    explicit ReplyDlnaItemContent(Logger *log, Request *request, QThread *streamThread, QObject *parent = 0);
     virtual ~ReplyDlnaItemContent();
 
 
@@ -58,6 +58,8 @@ private slots:
     // See "http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html" for HTTP header field definitions.
     virtual void _run(const QString &method, const QString &argument);
 
+    virtual void dlnaResources(QObject* requestor, QList<DlnaResource*> resources);
+
 
 private:
     static const int UPDATE_STATUS_PERIOD;
@@ -71,6 +73,7 @@ private:
     ElapsedTimer clockSending;          // clock to mesure time taken to send streamed or transcoded data.
     QElapsedTimer clockUpdateStatus;    // clock to check UpdateStatus period
 
+    QString requestFilename;
     QString mediaFilename;
     QThread *streamThread;
     Device *streamContent;

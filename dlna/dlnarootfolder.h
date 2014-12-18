@@ -7,6 +7,7 @@
 
 class DlnaRootFolder : public DlnaStorageFolder
 {
+    Q_OBJECT
 
 public:
     explicit DlnaRootFolder(Logger* log, QString host, int port, QObject *parent = 0);
@@ -21,18 +22,32 @@ public:
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName() const { return getName(); }
 
+    virtual int getChildrenSize() const { return children.size(); }
+    virtual DlnaResource* getChild(int index, QObject *parent = 0);
+
     /*
      * Adds a new DLNAResource to the child list.
      * Only useful if this object is of the container type.
      */
-    void addChild(DlnaResource *child);
-    void clearChildren() { children.clear(); }
+    void addChild(DlnaResource *child)  { emit addChildSignal(child); }
+    void clearChildren()                { emit clearChildrenSignal(); }
 
-    virtual int getChildrenSize() const { return children.size(); }
-    virtual DlnaResource* getChild(int index, QObject *parent = 0) { Q_UNUSED(parent) return children.at(index); }
+    void addFolder(QString path) { emit addFolderSignal(path); }
 
+signals:
+    void addFolderSignal(const QString &path);
+    void folderAddedSignal(const QString &folder);
+    void error_addFolder(QString folder);
+
+    void addChildSignal(DlnaResource *child);
+    void clearChildrenSignal();
+
+private slots:
     // returns true if the folder is added to Root.
-    virtual bool addFolder(QString folder);
+    virtual bool addFolderSlot(QString folder);
+
+    void addChildSlot(DlnaResource *child);
+    void clearChildrenSlot() { children.clear(); }
 
 private:
     QList<DlnaResource*> children;

@@ -7,6 +7,7 @@ DlnaResource::DlnaResource(Logger *log, QObject *parent):
     m_needRefresh(false),
     updateId(1)
 {
+    qRegisterMetaType<QList<DlnaResource*> >("QList<DlnaResource*>");
 }
 
 DlnaResource::~DlnaResource() {
@@ -131,4 +132,32 @@ void DlnaResource::updateXmlContentDirectory(QDomDocument *xml, QDomElement *xml
 
         xml_obj->setAttribute("restricted", "true");
     }
+}
+
+void DlnaResource::change_parent(QObject *old_parent, QObject *new_parent)
+{
+    if (new_parent && parent() == old_parent)
+    {
+        setParent(0);
+        moveToThread(new_parent->thread());
+        setParent(new_parent);
+
+        if (getDlnaParent())
+            getDlnaParent()->change_parent(old_parent, new_parent);
+    }
+}
+
+void DlnaResource::requestDlnaResources(QObject *sender, QString objectId, bool returnChildren, int start, int count, QString searchStr)
+{
+    QObject context;
+    QList<DlnaResource*> res = getDLNAResources(objectId, returnChildren, start, count, searchStr, &context);
+
+    for (int index=0;index<res.count();++index)
+    {
+        DlnaResource *item = res.at(index);
+        if (item)
+            item->change_parent(&context, sender);
+    }
+
+    emit dlnaResources(sender, res);
 }

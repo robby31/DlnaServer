@@ -11,7 +11,7 @@ class Reply : public LogObject
     Q_OBJECT
 
 public:
-    explicit Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, QObject *parent = 0);
+    explicit Reply(Logger *log, Request *request, QObject *parent = 0);
 
     void run(const QString &method, const QString &argument) { emit runSignal(method, argument); }
 
@@ -34,10 +34,11 @@ signals:
     void sendHeaderSignal(const QHash<QString, QString> &header);
     void sendDataToClientSignal(const QByteArray &data);
 
+    void getDLNAResourcesSignal(QString objectId, bool returnChildren, int start, int count, QString searchStr);
+
 
 private slots:
     void requestDestroyed()    { m_request = 0; }
-    void rootFolderDestroyed() { m_rootFolder = 0; }
 
     void LogMessage(const QString &msg) { emit logTextSignal(msg); }
 
@@ -45,6 +46,9 @@ private slots:
     // and provide answer to the client on the request
     // See "http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html" for HTTP header field definitions.
     virtual void _run(const QString &method, const QString &argument);
+
+    virtual void dlnaResources(QObject* requestor, QList<DlnaResource*> resources);
+
 
 protected:
     void sendLine(QTcpSocket *client, const QString &msg);
@@ -58,6 +62,8 @@ protected:
     void setParamHeader(const QString &param, const QString &value);
     QString getParamHeader(const QString &param) const;
 
+    void replyDone(const QString &status);
+
 
 protected:
     Request* m_request;
@@ -65,7 +71,8 @@ protected:
     QHash<QString, QString> m_params;  // header for the reply
     bool headerSent;
 
-    DlnaRootFolder *m_rootFolder;
+    QDomDocument doc;
+    QDomDocument xml;
 
     // Carriage return and line feed.
     static const QString CRLF;

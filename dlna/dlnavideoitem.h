@@ -5,6 +5,7 @@
 
 class DlnaVideoItem : public DlnaItem
 {
+    Q_OBJECT
 
 public:
     DlnaVideoItem(Logger* log, QString host, int port, QObject *parent = 0);
@@ -28,11 +29,16 @@ public:
     // Returns album art in jpeg format
     virtual QImage getAlbumArt() const { return QImage(); }
 
+    // returns the samplerate of the video track
+    virtual int samplerate() const;
+
+    //returns the channel number of the video track
+    virtual int channelCount() const;
 
     virtual QString resolution() const = 0;
     virtual QStringList subtitleLanguages() const = 0;
     virtual QStringList audioLanguages() const = 0;
-    virtual QString framerate() const = 0;
+    virtual QString framerate() const;
 
     static const QString UNKNOWN_VIDEO_TYPEMIME;
     static const QString MPEG_TYPEMIME;

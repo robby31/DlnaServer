@@ -10,12 +10,6 @@ class MencoderTranscoding : public TranscodeProcess
 public:
     explicit MencoderTranscoding(Logger* log, QObject *parent = 0);
 
-    void setLengthInSeconds(const qint64 length)            { m_lengthInSeconds = length;       updateArguments(); }
-    void setFormat(const TranscodeFormatAvailable &format)  { m_format = format;                updateArguments(); }
-    void setAudioLanguages(const QStringList &languages)    { m_audioLanguages = languages;     updateArguments(); }
-    void setSubtitleLanguages(const QStringList &languages) { m_subtitleLanguages = languages;  updateArguments(); }
-    void setFrameRate(const QString &rate)                  { m_frameRate = rate;               updateArguments(); }
-
 private:
     virtual void updateArguments();
 
@@ -24,11 +18,7 @@ signals:
 public slots:
 
 private:
-    qint64 m_lengthInSeconds;
-    TranscodeFormatAvailable m_format;
-    QStringList m_audioLanguages;
-    QStringList m_subtitleLanguages;
-    QString m_frameRate;
+    static const QString PROGRAM;
 };
 
 #endif // MENCODERTRANSCODING_H

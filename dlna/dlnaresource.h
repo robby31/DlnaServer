@@ -78,8 +78,16 @@ public:
     virtual QImage getAlbumArt() const = 0;
     QByteArray getByteAlbumArt() const;
 
+signals:
+    void dlnaResources(QObject* sender, QList<DlnaResource*>);
+
+private slots:
+    void requestDlnaResources(QObject *sender, QString objectId, bool returnChildren, int start, int count, QString searchStr);
+
 private:
     virtual void refreshContent() { qWarning() << "Resource" << getName() << "shall be refreshed, please define function refreshContent() herited from DlnaResource to do it."; }
+
+    void change_parent(QObject *old_parent, QObject *new_parent);
 
 private:
     // id of this resource based on the index in its parent container.

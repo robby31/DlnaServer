@@ -3,8 +3,8 @@
 // call updateStatus function every second
 const int ReplyDlnaItemContent::UPDATE_STATUS_PERIOD = 1000;
 
-ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, Request *request, QThread *streamThread, DlnaRootFolder *rootFolder, QObject *parent):
-    Reply(log, request, rootFolder, parent),
+ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, Request *request, QThread *streamThread, QObject *parent):
+    Reply(log, request, parent),
     m_closed(false),
     timerStatus(this),
     bytesToWrite(0),
@@ -47,11 +47,9 @@ void ReplyDlnaItemContent::_run(const QString &method, const QString &argument)
         return;
 
     // prepare data and send answer
-    HttpRange *range = m_request->getRange();
-
     logTrace("ANSWER: " + method + " " + argument);
 
-    if (m_rootFolder && (method == "GET" || method == "HEAD") && argument.startsWith("get/"))
+    if ((method == "GET" || method == "HEAD") && argument.startsWith("get/"))
     {
         // Request to retrieve a file
 
@@ -61,186 +59,26 @@ void ReplyDlnaItemContent::_run(const QString &method, const QString &argument)
         */
         QRegExp rxId("get/([\\d$]+)/(.+)");
         QString id;
-        QString fileName;
         if (rxId.indexIn(argument) != -1) {
             id = rxId.capturedTexts().at(1);
-            fileName = rxId.capturedTexts().at(2);
+            requestFilename = rxId.capturedTexts().at(2);
         }
 
         // Some clients escape the separators in their request: unescape them.
         id = id.replace("%24", "$");
 
-        // Retrieve the DLNAresource itself.
-        QObject context_object;
-        QList<DlnaResource*> files;
-        if (m_rootFolder)
-            files = m_rootFolder->getDLNAResources(id, false, 0, 0, "", &context_object);
-
         if (!m_request->getTransferMode().isNull())
             setParamHeader("TransferMode.dlna.org", m_request->getTransferMode());
 
-        if (files.size() == 1)
-        {
-            // DLNAresource was found.
-            DlnaItem *dlna = static_cast<DlnaItem*>(files.at(0));
-
-            if (range != 0) {
-                // update range with size of dlna object
-                range->setSize(dlna->size());
-            }
-
-            if (fileName.startsWith("thumbnail0000")) {
-                // This is a request for a thumbnail file.
-                setParamHeader("Content-Type", "image/jpeg");
-                setParamHeader("Accept-Ranges", "bytes");
-//                setParamHeader("Expires", getFUTUREDATE() + " GMT");
-                if (!m_request->isHttp10())
-                    setParamHeader("Connection", "keep-alive");
-                setParamHeader("Server", m_request->getServername());
-
-                QByteArray answerContent = dlna->getByteAlbumArt();
-                if (answerContent.isNull()) {
-                    logError("Unable to get thumbnail: " + dlna->getDisplayName());
-                    emit replyStatusSignal("KO");
-                } else {
-                    sendAnswer(answerContent);
-                    emit replyStatusSignal("OK");
-                }
-
-            } else if (fileName.indexOf("subtitle0000") > -1) {
-                // This is a request for a subtitle file
-                /*output(output, "Content-Type: text/plain");
-                output(output, "Expires: " + getFUTUREDATE() + " GMT");
-                List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
-
-                if (subs != null && !subs.isEmpty()) {
-                    // TODO: maybe loop subs to get the requested subtitle type instead of using the first one
-                    DLNAMediaSubtitle sub = subs.get(0);
-
-                    try {
-                        // XXX external file is null if the first subtitle track is embedded:
-                        // http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
-                        if (sub.isExternal()) {
-                            inputStream = new java.io.FileInputStream(sub.getExternalFile());
-                        }
-                    } catch (NullPointerException npe) {
-                        LOGGER.trace("Could not find external subtitles: " + sub);
-                    }
-                }*/
-            } else {
-                // This is a request for a regular file.
-                setParamHeader("Content-Type", dlna->mimeType());
-
-                if (!m_request->getContentFeatures().isNull())
-                    setParamHeader("contentFeatures.dlna.org", dlna->getDlnaContentFeatures());
-
-                if (!m_request->getMediaInfoSec().isNull())
-                    setParamHeader("MediaInfo.sec", QString("SEC_Duration=%1").arg(dlna->getLengthInMilliSeconds()));
-
-                if (dlna->getdlnaOrgOpFlags().at(1) == '1')
-                    setParamHeader("Accept-Ranges", "bytes");
-
-                if (!m_request->isHttp10())
-                    setParamHeader("Connection", "keep-alive");
-
-                setParamHeader("Server", m_request->getServername());
-
-                if (m_request->getTimeSeekRangeStart() >= 0 && dlna->getLengthInMilliSeconds() > 0) {
-                    QTime start_time(0, 0, 0);
-                    start_time = start_time.addSecs(m_request->getTimeSeekRangeStart());
-
-                    QTime end_time(0, 0, 0);
-                    if (m_request->getTimeSeekRangeEnd() != -1) {
-                        end_time = end_time.addSecs(m_request->getTimeSeekRangeEnd());
-                    } else {
-                        end_time = end_time.addMSecs(dlna->getLengthInMilliSeconds());
-                    }
-
-                    QTime length_time(0, 0, 0);
-                    length_time = length_time.addMSecs(dlna->getLengthInMilliSeconds());
-
-                    setParamHeader("TimeSeekRange.dlna.org", QString("npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z")).arg(end_time.toString("hh:mm:ss,z")).arg(length_time.toString("hh:mm:ss,z")));
-                    setParamHeader("X-Seek-Range", QString("npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z")).arg(end_time.toString("hh:mm:ss,z")).arg(length_time.toString("hh:mm:ss,z")));
-                    setParamHeader("X-AvailableSeekRange", QString("1 npt=%1-%2").arg(0).arg(dlna->getLengthInSeconds()));
-                }
-
-                if (dlna->size() > 0)
-                {
-                    setParamHeader("Content-Length", QString("%1").arg(dlna->size()));
-                    if (range)
-                        setParamHeader("Content-Range", QString("bytes %1-%2/%3").arg(range->getStartByte()).arg(range->getEndByte()).arg(dlna->size()));
-                }
-
-                if (m_request->getMethod() == "HEAD") {
-                    sendAnswer(QByteArray());
-                    emit replyStatusSignal("OK");
-
-                } else {
-                    emit logTextSignal(QString("%3: %1 bytes to send in %2."+CRLF).arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-
-                    mediaFilename = dlna->getSystemName();
-                    emit servingSignal(mediaFilename, 0);
-
-                    if (streamContent == 0) {
-                        // recover resume time
-                        qint64 timeSeekRangeStart = m_request->getTimeSeekRangeStart();
-                        qint64 timeSeekRangeEnd = m_request->getTimeSeekRangeEnd();
-                        qint64 resume = dlna->getResumeTime();
-                        if (resume>0) {
-                            timeSeekRangeStart = resume/1000 - 10;
-                            clockSending.addMSec(timeSeekRangeStart*1000);
-                        }
-
-                        // get stream file
-                        streamContent = dlna->getStream(range, timeSeekRangeStart, timeSeekRangeEnd);
-//                        streamContent->moveToThread(streamThread);
-
-                        if (!streamContent)
-                        {
-                            // No inputStream indicates that transcoding / remuxing probably crashed.
-                            logError("There is no inputstream to return for " + dlna->getDisplayName());
-                            emit replyStatusSignal("KO");
-                        }
-                        else
-                        {
-                            if (dlna->bitrate()>0)
-                                setMaxBufferSize(dlna->bitrate()/8*durationBuffer);  // set Max buffer size if bitrate is available
-
-                            connect(streamContent, SIGNAL(destroyed()), this, SLOT(streamContentDestroyed()));
-                            connect(this, SIGNAL(destroyed()), streamContent, SLOT(deleteLater()));
-                            connect(streamContent, SIGNAL(openedSignal()), this, SLOT(streamOpened()));
-                            connect(streamContent, SIGNAL(status(QString)), this, SIGNAL(replyStatusSignal(QString)));
-                            connect(streamContent, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-                            connect(streamContent, SIGNAL(errorRaised(QString)), this, SLOT(streamingError(QString)));
-
-                            if (streamContent->open())
-                            {
-                                emit logTextSignal(QString("%1: Streaming started, %2 bytes to send."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(streamContent->size()));
-                                emit startServingRendererSignal(dlna->getDisplayName());
-                            }
-                        }
-                    } else {
-                        logError(QString("Streaming already in progress"));
-                        emit replyStatusSignal("KO");
-                    }
-                }
-            }
-        }
-        else
-        {
-            logError(QString("%1 media found: %2 %3").arg(files.size()).arg(method).arg(argument));
-            emit replyStatusSignal("KO");
-        }
-
+        // Retrieve the DLNAresource itself.
+        emit getDLNAResourcesSignal(id, false, 0, 0, "");
     }
     else
     {
         logError("Unkown answer for: " + method + " " + argument);
         emit replyStatusSignal("KO");
-    }
-
-    if (streamContent == 0)
         close();
+    }
 }
 
 void ReplyDlnaItemContent::sendDataToClient()
@@ -385,4 +223,170 @@ void ReplyDlnaItemContent::close()
     emit finishedSignal();
 
     m_closed = true;
+}
+
+void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource *> resources)
+{
+    if (requestor != this)
+        return;
+
+    if (resources.size() == 1)
+    {
+        // DLNAresource was found.
+        DlnaItem *dlna = qobject_cast<DlnaItem*>(resources.at(0));
+
+        HttpRange *range = m_request->getRange();
+        if (range != 0) {
+            // update range with size of dlna object
+            range->setSize(dlna->size());
+        }
+
+        if (requestFilename.startsWith("thumbnail0000")) {
+            // This is a request for a thumbnail file.
+            setParamHeader("Content-Type", "image/jpeg");
+            setParamHeader("Accept-Ranges", "bytes");
+//                setParamHeader("Expires", getFUTUREDATE() + " GMT");
+            if (!m_request->isHttp10())
+                setParamHeader("Connection", "keep-alive");
+            setParamHeader("Server", m_request->getServername());
+
+            QByteArray answerContent = dlna->getByteAlbumArt();
+            if (answerContent.isNull()) {
+                logError("Unable to get thumbnail: " + dlna->getDisplayName());
+                emit replyStatusSignal("KO");
+                close();
+            } else {
+                sendAnswer(answerContent);
+                emit replyStatusSignal("OK");
+                close();
+            }
+
+        } else if (requestFilename.indexOf("subtitle0000") > -1) {
+            // This is a request for a subtitle file
+            /*output(output, "Content-Type: text/plain");
+            output(output, "Expires: " + getFUTUREDATE() + " GMT");
+            List<DLNAMediaSubtitle> subs = dlna.getMedia().getSubtitleTracksList();
+
+            if (subs != null && !subs.isEmpty()) {
+                // TODO: maybe loop subs to get the requested subtitle type instead of using the first one
+                DLNAMediaSubtitle sub = subs.get(0);
+
+                try {
+                    // XXX external file is null if the first subtitle track is embedded:
+                    // http://www.ps3mediaserver.org/forum/viewtopic.php?f=3&t=15805&p=75534#p75534
+                    if (sub.isExternal()) {
+                        inputStream = new java.io.FileInputStream(sub.getExternalFile());
+                    }
+                } catch (NullPointerException npe) {
+                    LOGGER.trace("Could not find external subtitles: " + sub);
+                }
+            }*/
+        } else {
+            // This is a request for a regular file.
+            setParamHeader("Content-Type", dlna->mimeType());
+
+            if (!m_request->getContentFeatures().isNull())
+                setParamHeader("contentFeatures.dlna.org", dlna->getDlnaContentFeatures());
+
+            if (!m_request->getMediaInfoSec().isNull())
+                setParamHeader("MediaInfo.sec", QString("SEC_Duration=%1").arg(dlna->getLengthInMilliSeconds()));
+
+            if (dlna->getdlnaOrgOpFlags().at(1) == '1')
+                setParamHeader("Accept-Ranges", "bytes");
+
+            if (!m_request->isHttp10())
+                setParamHeader("Connection", "keep-alive");
+
+            setParamHeader("Server", m_request->getServername());
+
+            if (m_request->getTimeSeekRangeStart() >= 0 && dlna->getLengthInMilliSeconds() > 0) {
+                QTime start_time(0, 0, 0);
+                start_time = start_time.addSecs(m_request->getTimeSeekRangeStart());
+
+                QTime end_time(0, 0, 0);
+                if (m_request->getTimeSeekRangeEnd() != -1) {
+                    end_time = end_time.addSecs(m_request->getTimeSeekRangeEnd());
+                } else {
+                    end_time = end_time.addMSecs(dlna->getLengthInMilliSeconds());
+                }
+
+                QTime length_time(0, 0, 0);
+                length_time = length_time.addMSecs(dlna->getLengthInMilliSeconds());
+
+                setParamHeader("TimeSeekRange.dlna.org", QString("npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z")).arg(end_time.toString("hh:mm:ss,z")).arg(length_time.toString("hh:mm:ss,z")));
+                setParamHeader("X-Seek-Range", QString("npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z")).arg(end_time.toString("hh:mm:ss,z")).arg(length_time.toString("hh:mm:ss,z")));
+                setParamHeader("X-AvailableSeekRange", QString("1 npt=%1-%2").arg(0).arg(dlna->getLengthInSeconds()));
+            }
+
+            if (dlna->size() > 0)
+            {
+                setParamHeader("Content-Length", QString("%1").arg(dlna->size()));
+                if (range)
+                    setParamHeader("Content-Range", QString("bytes %1-%2/%3").arg(range->getStartByte()).arg(range->getEndByte()).arg(dlna->size()));
+            }
+
+            if (m_request->getMethod() == "HEAD") {
+                sendAnswer(QByteArray());
+                emit replyStatusSignal("OK");
+                close();
+
+            } else {
+                emit logTextSignal(QString("%3: %1 bytes to send in %2."+CRLF).arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+
+                mediaFilename = dlna->getSystemName();
+                emit servingSignal(mediaFilename, 0);
+
+                if (streamContent == 0) {
+                    // recover resume time
+                    qint64 timeSeekRangeStart = m_request->getTimeSeekRangeStart();
+                    qint64 timeSeekRangeEnd = m_request->getTimeSeekRangeEnd();
+                    qint64 resume = dlna->getResumeTime();
+                    if (resume>0) {
+                        timeSeekRangeStart = resume/1000 - 10;
+                        clockSending.addMSec(timeSeekRangeStart*1000);
+                    }
+
+                    // get stream file
+                    streamContent = dlna->getStream(range, timeSeekRangeStart, timeSeekRangeEnd);
+//                        streamContent->moveToThread(streamThread);
+
+                    if (!streamContent)
+                    {
+                        // No inputStream indicates that transcoding / remuxing probably crashed.
+                        logError("There is no inputstream to return for " + dlna->getDisplayName());
+                        emit replyStatusSignal("KO");
+                        close();
+                    }
+                    else
+                    {
+                        if (dlna->bitrate()>0)
+                            setMaxBufferSize(dlna->bitrate()/8*durationBuffer);  // set Max buffer size if bitrate is available
+
+                        connect(streamContent, SIGNAL(destroyed()), this, SLOT(streamContentDestroyed()));
+                        connect(this, SIGNAL(destroyed()), streamContent, SLOT(deleteLater()));
+                        connect(streamContent, SIGNAL(openedSignal()), this, SLOT(streamOpened()));
+                        connect(streamContent, SIGNAL(status(QString)), this, SIGNAL(replyStatusSignal(QString)));
+                        connect(streamContent, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+                        connect(streamContent, SIGNAL(errorRaised(QString)), this, SLOT(streamingError(QString)));
+
+                        if (streamContent->open())
+                        {
+                            emit logTextSignal(QString("%1: Streaming started, %2 bytes to send."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(streamContent->size()));
+                            emit startServingRendererSignal(dlna->getDisplayName());
+                        }
+                    }
+                } else {
+                    logError(QString("Streaming already in progress"));
+                    emit replyStatusSignal("KO");
+                    close();
+                }
+            }
+        }
+    }
+    else
+    {
+        logError(QString("%1 media found").arg(resources.size()));
+        emit replyStatusSignal("KO");
+        close();
+    }
 }

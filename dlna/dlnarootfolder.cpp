@@ -4,6 +4,10 @@ DlnaRootFolder::DlnaRootFolder(Logger* log, QString host, int port, QObject *par
     DlnaStorageFolder(log, host, port, parent),
     children()
 {
+    connect(this, SIGNAL(addFolderSignal(QString)), this, SLOT(addFolderSlot(QString)));
+    connect(this, SIGNAL(addChildSignal(DlnaResource*)), this, SLOT(addChildSlot(DlnaResource*)));
+    connect(this, SIGNAL(clearChildrenSignal()), this, SLOT(clearChildrenSlot()));
+
     // For root node, id=0
     setId("0");
 }
@@ -12,7 +16,7 @@ DlnaRootFolder::~DlnaRootFolder() {
 
 }
 
-void DlnaRootFolder::addChild(DlnaResource *child) {
+void DlnaRootFolder::addChildSlot(DlnaResource *child) {
 
     if (child == 0) {
         logError(QString("Child is null, unable to append child to node %1").arg(getName()));
@@ -32,7 +36,7 @@ void DlnaRootFolder::addChild(DlnaResource *child) {
 
 }
 
-bool DlnaRootFolder::addFolder(QString folder) {
+bool DlnaRootFolder::addFolderSlot(QString folder) {
 
     if (QFileInfo(folder).isDir()) {
         DlnaFolder* child = new DlnaFolder(log(), folder, host, port, this);
@@ -41,4 +45,14 @@ bool DlnaRootFolder::addFolder(QString folder) {
     }
 
     return false;
+}
+
+DlnaResource *DlnaRootFolder::getChild(int index, QObject *parent)
+{
+    Q_UNUSED(parent)
+
+    if (index>=0 && index<children.size())
+        return children.at(index);
+    else
+        return 0;
 }

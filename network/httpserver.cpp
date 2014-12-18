@@ -19,10 +19,7 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
     serverport(SERVERPORT),
     workerNetwork(this),
     workerStreaming(this),
-    database(QSqlDatabase::addDatabase("QSQLITE")),
-    rootFolder(0),
-    batch(0),
-    batchThread(this)
+    database(QSqlDatabase::addDatabase("QSQLITE"))
 {
     if (!m_log)
         qWarning() << "log is not available for" << this;
@@ -39,13 +36,6 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
 
     database.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
 
-    batch = new BatchedRootFolder(rootFolder);
-    batch->moveToThread(&batchThread);
-    connect(&batchThread, SIGNAL(finished()), batch, SLOT(deleteLater()));
-    connect(this, SIGNAL(batched_addFolder(QString)), batch, SLOT(addFolder(QString)));
-    connect(batch, SIGNAL(progress(int)), this, SIGNAL(progressUpdate(int)));
-    batchThread.start();
-
     workerNetwork.setObjectName("Network, request, reply Thread");
     workerNetwork.start();
 
@@ -55,13 +45,6 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
 
 HttpServer::~HttpServer()
 {
-    // stop batch processes
-    batchThread.quit();
-    if (batch != 0)
-        batch->quit();
-    if (!batchThread.wait(1000))
-        logError("Unable to stop batch process in HttpServer.");
-
     // stop network thread
     workerNetwork.quit();
     if (!workerNetwork.wait(1000))
@@ -78,6 +61,9 @@ HttpServer::~HttpServer()
 
 void HttpServer::_startServer()
 {
+    if (isListening())
+        stop();
+
     // read the LocalIpAddress
     QList<QHostAddress> ipAddressesList = QNetworkInterface::allAddresses();
 
@@ -111,11 +97,26 @@ void HttpServer::_startServer()
             logTrace("HTTP server: listen " + getHost().toString() + ":" + QString("%1").arg(getPort()));
 
             // initialize the root folder
-            if (rootFolder)
-                rootFolder->deleteLater();
-            rootFolder = new DlnaCachedRootFolder(m_log, &database, hostaddress.toString(), serverport, this);
+            DlnaCachedRootFolder *rootFolder = new DlnaCachedRootFolder(m_log, &database, hostaddress.toString(), serverport, this);
 
-            batch->setRootFolder(rootFolder);
+            connect(this, SIGNAL(destroyed()), rootFolder, SLOT(deleteLater()));
+            connect(this, SIGNAL(stopSignal()), rootFolder, SLOT(deleteLater()));
+
+            connect(this, SIGNAL(addFolderSignal(QString)), rootFolder, SLOT(addFolderSlot(QString)));
+            connect(rootFolder, SIGNAL(folderAddedSignal(QString)), this, SIGNAL(folderAdded(QString)));
+            connect(rootFolder, SIGNAL(error_addFolder(QString)), this, SIGNAL(error_addFolder(QString)));
+
+            connect(this, SIGNAL(addNetworkLinkSignal(QString)), rootFolder, SLOT(addNetworkLink(QString)));
+            connect(rootFolder, SIGNAL(linkAdded(QString)), this, SIGNAL(linkAdded(QString)));
+            connect(rootFolder, SIGNAL(error_addNetworkLink(QString)), this, SIGNAL(error_addNetworkLink(QString)));
+
+            connect(this, SIGNAL(checkNetworkLinkSignal()), rootFolder, SLOT(checkNetworkLink()));
+
+            connect(this, SIGNAL(incrementCounterPlayedSignal(QString)), rootFolder, SLOT(incrementCounterPlayed(QString)));
+            connect(this, SIGNAL(updateMediaData(QString,QHash<QString,QVariant>)), rootFolder, SLOT(updateLibrary(QString,QHash<QString,QVariant>)));
+
+            connect(this, SIGNAL(getDLNAResourcesSignal(QObject*, QString,bool,int,int,QString)), rootFolder, SLOT(requestDlnaResources(QObject*, QString,bool,int,int,QString)));
+            connect(rootFolder, SIGNAL(dlnaResources(QObject*,QList<DlnaResource*>)), this, SIGNAL(dlnaResources(QObject*,QList<DlnaResource*>)));
 
             upnp.setServerUrl(getURL());
             upnp.start();
@@ -154,7 +155,7 @@ void HttpServer::_readyToReply()
 
     if ((request->getMethod() == "GET" || request->getMethod() == "HEAD") && request->getArgument().startsWith("get/"))
     {
-        reply = new ReplyDlnaItemContent(m_log, request, &workerStreaming, rootFolder);
+        reply = new ReplyDlnaItemContent(m_log, request, &workerStreaming);
         connect(reply, SIGNAL(startServingRendererSignal(QString)), request, SLOT(startServingRenderer(QString)));
         connect(reply, SIGNAL(stopServingRendererSignal()), request, SLOT(stopServingRenderer()));
         connect(reply, SIGNAL(servingSignal(QString,int)), this, SLOT(_servingProgress(QString,int)));
@@ -164,10 +165,13 @@ void HttpServer::_readyToReply()
     }
     else
     {
-        reply = new Reply(m_log, request, rootFolder);
+        reply = new Reply(m_log, request);
     }
 
     reply->moveToThread(request->thread());
+
+    connect(reply, SIGNAL(getDLNAResourcesSignal(QString,bool,int,int,QString)), this, SLOT(requestDLNAResourcesSignal(QString,bool,int,int,QString)));
+    connect(this, SIGNAL(dlnaResources(QObject*,QList<DlnaResource*>)), reply, SLOT(dlnaResources(QObject*,QList<DlnaResource*>)));
 
     connect(reply, SIGNAL(closeClientSignal()), request, SIGNAL(closeClientSignal()));
     connect(reply, SIGNAL(destroyed()), request, SIGNAL(deleteClient()));
@@ -190,72 +194,24 @@ void HttpServer::_readyToReply()
 
 void HttpServer::_addFolder(const QString &folder)
 {
-    if (QFileInfo(folder).isDir()) {
-        if (rootFolder) {
-            DlnaRootFolder *obj = rootFolder->getRootFolder();
-            if (obj and obj->addFolder(folder)) {
-                emit batched_addFolder(folder);
-                emit folderAdded(folder);
-            } else {
-                emit error_addFolder(folder);
-            }
-        } else {
-            emit error_addFolder(folder);
-        }
-    } else {
-        // error folder is not a directory
-        emit error_addFolder(folder);
-    }
-}
-
-bool HttpServer::addNetworkLink(const QString url)
-{
-    if (rootFolder && rootFolder->addNetworkLink(url)) {
-        emit linkAdded(url);
-        return true;
-    } else {
-        emit error_addNetworkLink(url);
-        return false;
-    }
-}
-
-void HttpServer::_checkNetworkLink()
-{
-    int nb = 0;
-    logInfo("CHECK NETWORK LINK started");
-
-    if (rootFolder)
-    {
-        QSqlQuery query = rootFolder->getAllNetworkLinks();
-        while (query.next()) {
-            ++nb;
-            if (!rootFolder->networkLinkIsValid(query.value("filename").toString()))
-                logError(QString("link %1 is broken, title: %2").arg(query.value("filename").toString()).arg(query.value("title").toString()));
-        }
-    }
-
-    logInfo(QString("%1 links checked.").arg(nb));
+    if (QFileInfo(folder).isDir())
+        emit addFolderSignal(folder);
+    else
+        emit error_addFolder(folder);   // error folder is not a directory
 }
 
 void HttpServer::_servingProgress(const QString &filename, const int &playedDurationInMs)
 {
-    if (rootFolder)
-    {
-        QHash<QString, QVariant> data;
-        data.insert("last_played", QDateTime::currentDateTime());
-        if (playedDurationInMs>0)
-            data.insert("progress_played", playedDurationInMs);
-        if (!rootFolder->updateLibrary(filename, data))
-            logError(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
-    }
+    QHash<QString, QVariant> data;
+    data.insert("last_played", QDateTime::currentDateTime());
+    if (playedDurationInMs>0)
+        data.insert("progress_played", playedDurationInMs);
+    emit updateMediaData(filename, data);
 }
 
 void HttpServer::_servingFinished(const QString &filename, const int &status)
 {
-    if (status==0 && rootFolder)
-    {
-        if (!rootFolder->incrementCounterPlayed(filename))
-            logError(QString("HTTP SERVER: unable to update library for media %1").arg(filename));
-    }
+    if (status == 0)
+        emit incrementCounterPlayedSignal(filename);
 }
 

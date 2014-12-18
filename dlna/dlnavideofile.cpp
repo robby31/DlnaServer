@@ -16,13 +16,15 @@ DlnaVideoFile::~DlnaVideoFile() {
 
 TranscodeProcess *DlnaVideoFile::getTranscodeProcess()
 {
-    MencoderTranscoding* transcodeProcess = new MencoderTranscoding(log());
+    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log());
     transcodeProcess->setLengthInSeconds(getLengthInSeconds());
     transcodeProcess->setFormat(transcodeFormat);
     transcodeProcess->setBitrate(bitrate());
     transcodeProcess->setAudioLanguages(audioLanguages());
     transcodeProcess->setSubtitleLanguages(subtitleLanguages());
     transcodeProcess->setFrameRate(framerate());
+    transcodeProcess->setAudioChannelCount(channelCount());
+    transcodeProcess->setAudioSampleRate(samplerate());
     return transcodeProcess;
 }
 
@@ -68,11 +70,17 @@ int DlnaVideoFile::metaDataBitrate() const {
 }
 
 int DlnaVideoFile::channelCount() const {
-    return ffmpeg.getAudioChannelCount();
+    if (toTranscode())
+        return DlnaVideoItem::channelCount();
+    else
+        return ffmpeg.getAudioChannelCount();
 }
 
 int DlnaVideoFile::samplerate() const {
-    return ffmpeg.getAudioSamplerate();
+    if (toTranscode())
+        return DlnaVideoItem::samplerate();
+    else
+        return ffmpeg.getAudioSamplerate();
 }
 
 QString DlnaVideoFile::resolution() const {
@@ -88,5 +96,8 @@ QStringList DlnaVideoFile::subtitleLanguages() const {
 }
 
 QString DlnaVideoFile::framerate() const {
-    return QString().sprintf("%2.3f", ffmpeg.getVideoFrameRate());
+    if (toTranscode())
+        return DlnaVideoItem::framerate();
+    else
+        return QString().sprintf("%2.3f", ffmpeg.getVideoFrameRate());
 }

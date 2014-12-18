@@ -12,11 +12,10 @@ public:
     explicit Device(Logger *log, QObject *parent = 0);
     virtual ~Device();
 
-    void setRange(HttpRange *range)             { m_range = range; updateArguments(); }
+    void setRange(HttpRange *range)             { m_range = range; }
     HttpRange * range() const                   { return m_range; }
 
     void setTimeSeek(qint64 start, qint64 end) { timeseek_start = start; timeseek_end = end;
-                                                 updateArguments();
                                                  if (timeseek_start != -1 or timeseek_end != -1)
                                                      qWarning() << "TimeSeek Option not taken into account for media" << this; }
     qint64 timeSeekStart() const { return timeseek_start; }

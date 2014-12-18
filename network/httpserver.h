@@ -7,7 +7,6 @@
 #include "logger.h"
 #include "upnphelper.h"
 #include "cached/dlnacachedrootfolder.h"
-#include "cached/batchedrootfolder.h"
 #include "reply.h"
 #include "replydlnaitemcontent.h"
 
@@ -23,10 +22,9 @@ public:
     int getPort()           const { return serverPort(); }
     QString getURL()        const { return "http://" + getHost().toString() + ":" + QString("%1").arg(getPort()); }
 
-    DlnaRootFolder* getRootFolder() const { return rootFolder; }
-
     void start() { emit startSignal(); }
-    bool resetLibrary() { return batch->resetLibrary(); }
+    void stop()  { emit stopSignal();  }
+//    bool resetLibrary() { return batch->resetLibrary(); }
 
     // identifier of the render (unique)
     static const QString UUID;
@@ -42,13 +40,16 @@ protected:
 
 signals:
     void startSignal();
+    void stopSignal();
     void serverStarted();
-    void batched_addFolder(const QString &folder);
     void progressUpdate(const int &value);
 
+    void addFolderSignal(QString folder);
     void folderAdded(QString folder);
     void error_addFolder(QString folder);
 
+    void checkNetworkLinkSignal();
+    void addNetworkLinkSignal(const QString url);
     void linkAdded(QString url);
     void error_addNetworkLink(QString url);
     void brokenLink(QString url, QString title);
@@ -59,15 +60,14 @@ signals:
     void newRequest(Request *request);
     void newRenderer(MediaRenderer *renderer);
 
+    void updateMediaData(const QString &filename, const QHash<QString, QVariant> &data);
+    void incrementCounterPlayedSignal(const QString &filename);
 
-public slots:
-    bool addNetworkLink(const QString url);
-
+    void getDLNAResourcesSignal(QObject *sender, QString objectId, bool returnChildren, int start, int count, QString searchStr);
+    void dlnaResources(QObject* sender, QList<DlnaResource*>);
 
 private slots:
     void _logDestroyed() { m_log = 0; }
-
-    void _checkNetworkLink();
 
     void _startServer();
     void _newConnectionError(const QAbstractSocket::SocketError &error);  // error during new connection
@@ -77,6 +77,8 @@ private slots:
     void _servingFinished(const QString &filename, const int &status);
 
     void _addFolder(const QString &folder);
+
+    void requestDLNAResourcesSignal(QString objectId, bool returnChildren, int start, int count, QString searchStr) { emit getDLNAResourcesSignal(sender(), objectId, returnChildren, start, count, searchStr); }
 
 
 private:
@@ -99,9 +101,6 @@ private :
 
     // root folder containing DLNA nodes
     QSqlDatabase database;
-    DlnaCachedRootFolder* rootFolder;
-    BatchedRootFolder* batch;
-    QThread batchThread;
 };
 
 #endif // HTTPSERVER_H

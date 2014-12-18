@@ -17,17 +17,17 @@ const QString Reply::EVENT_Prop = "<e:property><%1>%2</%1></e:property>";
 const QString Reply::EVENT_FOOTER = "</e:propertyset>";
 
 
-Reply::Reply(Logger *log, Request *request, DlnaRootFolder *rootFolder, QObject *parent):
+Reply::Reply(Logger *log, Request *request, QObject *parent):
     LogObject(log, parent),
     m_request(request),
     m_params(),
     headerSent(false),
-    m_rootFolder(rootFolder)
+    doc(),
+    xml()
 {
     connect(this, SIGNAL(runSignal(QString,QString)), this, SLOT(_run(QString,QString)));
 
     connect(m_request, SIGNAL(destroyed()), this, SLOT(requestDestroyed()));
-    connect(m_rootFolder, SIGNAL(destroyed()), this, SLOT(rootFolderDestroyed()));
 }
 
 QString Reply::getParamHeader(const QString &param) const
@@ -125,7 +125,7 @@ void Reply::_run(const QString &method, const QString &argument) {
 
         sendAnswer(answerContent.toUtf8());
 
-        emit replyStatusSignal("OK");
+        replyDone("OK");
     }
     else if (method == "POST" && argument.endsWith("upnp/control/connection_manager")) {
 
@@ -145,7 +145,7 @@ void Reply::_run(const QString &method, const QString &argument) {
 
             sendAnswer(answerContent.toUtf8());
 
-            emit replyStatusSignal("OK");
+            replyDone("OK");
         }
 
     }
@@ -170,7 +170,7 @@ void Reply::_run(const QString &method, const QString &argument) {
 
             sendAnswer(answerContent.toUtf8());
 
-            emit replyStatusSignal("OK");
+            replyDone("OK");
 
         } else if (!soapaction.isEmpty() && soapaction.indexOf("ContentDirectory:1#GetSortCapabilities") > -1) {
             answerContent.append(XML_HEADER);
@@ -184,7 +184,7 @@ void Reply::_run(const QString &method, const QString &argument) {
 
             sendAnswer(answerContent.toUtf8());
 
-            emit replyStatusSignal("OK");
+            replyDone("OK");
 
         } else if (!soapaction.isEmpty() && soapaction.indexOf("ContentDirectory:1#X_GetFeatureList") > -1) {
             // Added for Samsung 2012 TVs
@@ -199,7 +199,7 @@ void Reply::_run(const QString &method, const QString &argument) {
 
             sendAnswer(answerContent.toUtf8());
 
-            emit replyStatusSignal("OK");
+            replyDone("OK");
 
         } else if (!soapaction.isEmpty()  && soapaction.indexOf("ContentDirectory:1#GetSearchCapabilities") > -1) {
             answerContent.append(XML_HEADER);
@@ -213,12 +213,11 @@ void Reply::_run(const QString &method, const QString &argument) {
 
             sendAnswer(answerContent.toUtf8());
 
-            emit replyStatusSignal("OK");
+            replyDone("OK");
 
-        } else if (m_rootFolder && !soapaction.isEmpty() && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
+        } else if (!soapaction.isEmpty() && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
 
             // read the content of the received request
-            QDomDocument doc;
             doc.setContent(m_request->getTextContent());
 
             QString objectID;
@@ -274,44 +273,6 @@ void Reply::_run(const QString &method, const QString &argument) {
                 browseFlag = list.at(0).toElement().text();
             }
 
-            QStringList filter;
-            list = doc.elementsByTagName("Filter");
-            if (list.length() > 0) {
-                filter = list.at(0).toElement().text().split(",");
-            }
-
-            // prepare the answer to send
-            QDomDocument xml;
-
-            // set the header
-            xml.appendChild(xml.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"utf-8\""));
-
-            // set envelope and body
-            QDomElement envelope = xml.createElementNS("http://schemas.xmlsoap.org/soap/envelope/", "s:Envelope");
-            envelope.setAttribute("s:encodingStyle", "http://schemas.xmlsoap.org/soap/encoding/");
-            QDomElement body = xml.createElement("s:Body");
-            envelope.appendChild(body);
-            xml.appendChild(envelope);
-
-            QDomElement browse_search;
-            if (!soapaction.isNull() && soapaction.contains("ContentDirectory:1#Search")) {
-                browse_search = xml.createElementNS("urn:schemas-upnp-org:service:ContentDirectory:1", "u:SearchResponse");
-            } else {
-                browse_search = xml.createElementNS("urn:schemas-upnp-org:service:ContentDirectory:1", "u:BrowseResponse");
-                body.appendChild(browse_search);
-            }
-
-            // set results
-            QDomElement result = xml.createElement("Result");
-            browse_search.appendChild(result);
-
-            // set DIDL header
-            QDomDocument didlDoc;
-            QDomElement didlLite = didlDoc.createElementNS("urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/", "DIDL-Lite");
-            didlLite.setAttribute("xmlns:dc", "http://purl.org/dc/elements/1.1/");
-            didlLite.setAttribute("xmlns:upnp", "urn:schemas-upnp-org:metadata-1-0/upnp/");
-            didlDoc.appendChild(didlLite);
-
             if (!soapaction.isNull() && soapaction.contains("ContentDirectory:1#Search")) {
                 browseFlag = "BrowseDirectChildren";
             }
@@ -324,98 +285,13 @@ void Reply::_run(const QString &method, const QString &argument) {
                 }
             }
 
-            QObject context_object;
-            QList<DlnaResource*> files = m_rootFolder->getDLNAResources(objectID,
-                                                                        !browseFlag.isNull() && browseFlag == "BrowseDirectChildren",
-                                                                        startingIndex,
-                                                                        requestCount,
-                                                                        searchCriteria,
-                                                                        &context_object);
-
-            /*if (searchCriteria != null && files != null) {
-                searchCriteria = searchCriteria.toLowerCase();
-
-                for (int i = files.size() - 1; i >= 0; i--) {
-                    DLNAResource res = files.get(i);
-
-                    if (res.isSearched()) {
-                        continue;
-                    }
-
-                    boolean keep = res.getName().toLowerCase().indexOf(searchCriteria) != -1;
-                    final DLNAMediaInfo media = res.getMedia();
-
-                    if (media!=null) {
-                        for (int j = 0;j < media.getAudioTracksList().size(); j++) {
-                            DLNAMediaAudio audio = media.getAudioTracksList().get(j);
-                            keep |= audio.getAlbum().toLowerCase().indexOf(searchCriteria) != -1;
-                            keep |= audio.getArtist().toLowerCase().indexOf(searchCriteria) != -1;
-                            keep |= audio.getSongname().toLowerCase().indexOf(searchCriteria) != -1;
-                        }
-                    }
-
-                    if (!keep) { // dump it
-                        files.remove(i);
-                    }
-                }
-            }*/
-
-            int minus = 0;
-            if (!files.isEmpty()) {
-                foreach (DlnaResource* uf, files) {
-                    //if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
-                    didlLite.appendChild(uf->getXmlContentDirectory(&didlDoc, filter));
-                    //} else {
-                    //    minus++;
-                    //}
-                }
-            }
-
-            // add DIDL string
-            result.appendChild(xml.createTextNode(didlDoc.toString(-1)));
-
-            int filessize = files.size();
-
-            // set number of returned results
-            QDomElement nbReturned = xml.createElement("NumberReturned");
-            nbReturned.appendChild(xml.createTextNode(QString("%1").arg(filessize - minus)));
-            browse_search.appendChild(nbReturned);
-
-            DlnaResource *parentFolder = 0;
-            if (filessize > 0) {
-                parentFolder = files.at(0)->getDlnaParent();
-            }
-
-            // set number of total results
-            QDomElement totalMatches = xml.createElement("TotalMatches");
-            browse_search.appendChild(totalMatches);
-            if (!browseFlag.isNull() && browseFlag == "BrowseDirectChildren") {
-                if (parentFolder != 0) {
-                    totalMatches.appendChild(xml.createTextNode(QString("%1").arg(parentFolder->getChildrenSize() - minus)));
-                }
-                else {
-                    totalMatches.appendChild(xml.createTextNode(QString("%1").arg(filessize - minus)));
-                }
-            } else {
-                // From upnp spec: If BrowseMetadata is specified in the BrowseFlags then TotalMatches = 1
-                totalMatches.appendChild(xml.createTextNode("1"));
-            }
-
-            // set update ID
-            QDomElement updateID = xml.createElement("UpdateID");
-            browse_search.appendChild(updateID);
-            if (parentFolder != 0) {
-                updateID.appendChild(xml.createTextNode(QString("%1").arg(parentFolder->getUpdateId())));
-            } else {
-                updateID.appendChild(xml.createTextNode("1"));
-            }
-
-            //send the answer to client
-            sendAnswer(xml.toString(-1).toUtf8());
-
-            emit replyStatusSignal("OK");
+            emit getDLNAResourcesSignal(objectID,
+                                        !browseFlag.isNull() && browseFlag == "BrowseDirectChildren",
+                                        startingIndex,
+                                        requestCount,
+                                        searchCriteria);
         } else {
-            emit replyStatusSignal("KO");
+            replyDone("KO");
         }
     } else if (method == "SUBSCRIBE" && !soapaction.isEmpty()) {
         setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
@@ -446,7 +322,7 @@ void Reply::_run(const QString &method, const QString &argument) {
         }
         else {
             logError(QString("Cannot connect to %1").arg(cb));
-            emit replyStatusSignal("ERROR");
+            replyDone("ERROR");
             return;
         }
 
@@ -467,7 +343,7 @@ void Reply::_run(const QString &method, const QString &argument) {
 
             sendAnswer(answerContent.toUtf8());
 
-            emit replyStatusSignal("OK");
+            replyDone("OK");
 
         } else if (argument.contains("content_directory")) {
             setParamHeader("Server", m_request->getServername());
@@ -480,9 +356,9 @@ void Reply::_run(const QString &method, const QString &argument) {
 
             sendAnswer(answerContent.toUtf8());
 
-            emit replyStatusSignal("OK");
+            replyDone("OK");
         } else {
-            emit replyStatusSignal("Unknown argument");
+            replyDone("Unknown argument");
         }
     }
     else if ((method == "GET" || method == "HEAD") && (argument.toLower().endsWith(".png") || argument.toLower().endsWith(".jpg") || argument.toLower().endsWith(".jpeg"))) {
@@ -514,13 +390,154 @@ void Reply::_run(const QString &method, const QString &argument) {
 
         sendAnswer(answerContent);
 
-        emit replyStatusSignal("OK");
+        replyDone("OK");
     }
     else {
         logError("Unkown answer for: " + method + " " + argument);
-        emit replyStatusSignal("KO");
+        replyDone("KO");
     }
+}
 
+void Reply::replyDone(const QString &status)
+{
+    emit replyStatusSignal(status);
     emit closeClientSignal();
     emit finishedSignal();
+}
+
+void Reply::dlnaResources(QObject *requestor, QList<DlnaResource *> resources)
+{
+    if (requestor != this)
+        return;  // ignore resources
+
+    QString soapaction = m_request->getSoapaction();
+
+    // prepare the answer to send
+    QStringList filter;
+    QDomNodeList list = doc.elementsByTagName("Filter");
+    if (list.length() > 0) {
+        filter = list.at(0).toElement().text().split(",");
+    }
+
+    QString browseFlag;
+    list = doc.elementsByTagName("BrowseFlag");
+    if (list.length() > 0) {
+        browseFlag = list.at(0).toElement().text();
+    }
+
+    if (!soapaction.isNull() && soapaction.contains("ContentDirectory:1#Search")) {
+        browseFlag = "BrowseDirectChildren";
+    }
+
+    // set the header
+    xml.appendChild(xml.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"utf-8\""));
+
+    // set envelope and body
+    QDomElement envelope = xml.createElementNS("http://schemas.xmlsoap.org/soap/envelope/", "s:Envelope");
+    envelope.setAttribute("s:encodingStyle", "http://schemas.xmlsoap.org/soap/encoding/");
+    QDomElement body = xml.createElement("s:Body");
+    envelope.appendChild(body);
+    xml.appendChild(envelope);
+
+    QDomElement browse_search;
+    if (!soapaction.isNull() && soapaction.contains("ContentDirectory:1#Search")) {
+        browse_search = xml.createElementNS("urn:schemas-upnp-org:service:ContentDirectory:1", "u:SearchResponse");
+    } else {
+        browse_search = xml.createElementNS("urn:schemas-upnp-org:service:ContentDirectory:1", "u:BrowseResponse");
+        body.appendChild(browse_search);
+    }
+
+    // set results
+    QDomElement result = xml.createElement("Result");
+    browse_search.appendChild(result);
+
+    // set DIDL header
+    QDomDocument didlDoc;
+    QDomElement didlLite = didlDoc.createElementNS("urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/", "DIDL-Lite");
+    didlLite.setAttribute("xmlns:dc", "http://purl.org/dc/elements/1.1/");
+    didlLite.setAttribute("xmlns:upnp", "urn:schemas-upnp-org:metadata-1-0/upnp/");
+    didlDoc.appendChild(didlLite);
+
+    /*if (searchCriteria != null && files != null) {
+        searchCriteria = searchCriteria.toLowerCase();
+
+        for (int i = files.size() - 1; i >= 0; i--) {
+            DLNAResource res = files.get(i);
+
+            if (res.isSearched()) {
+                continue;
+            }
+
+            boolean keep = res.getName().toLowerCase().indexOf(searchCriteria) != -1;
+            final DLNAMediaInfo media = res.getMedia();
+
+            if (media!=null) {
+                for (int j = 0;j < media.getAudioTracksList().size(); j++) {
+                    DLNAMediaAudio audio = media.getAudioTracksList().get(j);
+                    keep |= audio.getAlbum().toLowerCase().indexOf(searchCriteria) != -1;
+                    keep |= audio.getArtist().toLowerCase().indexOf(searchCriteria) != -1;
+                    keep |= audio.getSongname().toLowerCase().indexOf(searchCriteria) != -1;
+                }
+            }
+
+            if (!keep) { // dump it
+                files.remove(i);
+            }
+        }
+    }*/
+
+    int minus = 0;
+    if (!resources.isEmpty()) {
+        foreach (DlnaResource* uf, resources) {
+            //if (uf.isCompatible(mediaRenderer) && (uf.getPlayer() == null || uf.getPlayer().isPlayerCompatible(mediaRenderer))) {
+            didlLite.appendChild(uf->getXmlContentDirectory(&didlDoc, filter));
+            //} else {
+            //    minus++;
+            //}
+        }
+    }
+
+    // add DIDL string
+    result.appendChild(xml.createTextNode(didlDoc.toString(-1)));
+
+    int filessize = resources.size();
+
+    // set number of returned results
+    QDomElement nbReturned = xml.createElement("NumberReturned");
+    nbReturned.appendChild(xml.createTextNode(QString("%1").arg(filessize - minus)));
+    browse_search.appendChild(nbReturned);
+
+    DlnaResource *parentFolder = 0;
+    if (filessize > 0) {
+        parentFolder = resources.at(0)->getDlnaParent();
+    }
+
+    // set number of total results
+    QDomElement totalMatches = xml.createElement("TotalMatches");
+    browse_search.appendChild(totalMatches);
+    if (!browseFlag.isNull() && browseFlag == "BrowseDirectChildren") {
+        if (parentFolder != 0) {
+            totalMatches.appendChild(xml.createTextNode(QString("%1").arg(parentFolder->getChildrenSize() - minus)));
+        }
+        else {
+            totalMatches.appendChild(xml.createTextNode(QString("%1").arg(filessize - minus)));
+        }
+    } else {
+        // From upnp spec: If BrowseMetadata is specified in the BrowseFlags then TotalMatches = 1
+        totalMatches.appendChild(xml.createTextNode("1"));
+    }
+
+    // set update ID
+    QDomElement updateID = xml.createElement("UpdateID");
+    browse_search.appendChild(updateID);
+    if (parentFolder != 0) {
+        updateID.appendChild(xml.createTextNode(QString("%1").arg(parentFolder->getUpdateId())));
+    } else {
+        updateID.appendChild(xml.createTextNode("1"));
+    }
+
+    //send the answer to client
+    sendAnswer(xml.toString(-1).toUtf8());
+
+    replyDone("OK");
 }

@@ -4,7 +4,7 @@ const QString TranscodeProcess::CRLF = "\r\n";
 
 TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
     Device(log, parent),
-    m_process(parent),
+    m_process(this),
     m_opened(false),
     m_url(),
     m_bitrate(-1),
@@ -15,7 +15,14 @@ TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
     killTranscodeProcess(false),
     m_paused(false),
     m_maxBufferSize(1024*1024*10),   // 10 MBytes by default when bitrate is unknown
-    m_durationBuffer(10)
+    m_durationBuffer(10),
+    m_lengthInSeconds(-1),
+    m_format(UNKNOWN),
+    m_audioLanguages(),
+    m_subtitleLanguages(),
+    m_frameRate(""),
+    m_audioChannelCount(-1),
+    m_audioSampleRate(-1)
 {
     connect(&m_process, SIGNAL(readyReadStandardOutput()), this, SLOT(dataAvailable()));
     connect(&m_process, SIGNAL(readyReadStandardError()), this, SLOT(appendTranscodingLogMessage()));
@@ -33,12 +40,34 @@ TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
 
 TranscodeProcess::~TranscodeProcess()
 {
+    if (processPauseResume.state() == QProcess::Running)
+    {
+        processPauseResume.kill();
+        if (!processPauseResume.waitForFinished(1000))
+            logError("Unable to stop pause/resume for TranscodeProcess.");
+    }
+
     if (m_process.state() == QProcess::Running)
     {
         killProcess();
         if (!m_process.waitForFinished(1000))
             logError("Unable to stop TranscodeProcess.");
     }
+}
+
+void TranscodeProcess::_open(const QIODevice::OpenMode &open)
+{
+    updateArguments();
+
+//    if (range())
+//    {
+//        if (range()->getStartByte() >= 0)
+//            m_pos = range()->getStartByte();
+//        else
+//            m_pos = range()->getEndByte() + 1;   // invalid range
+//    }
+
+    m_process.open(open);
 }
 
 void TranscodeProcess::dataAvailable()
@@ -57,6 +86,9 @@ void TranscodeProcess::dataAvailable()
         if (bytesAvailable() > maxBufferSize() && !m_paused)
             pause();
     }
+
+    if (m_opened)
+        emit readyRead();
 }
 
 qint64 TranscodeProcess::size() const
@@ -72,13 +104,10 @@ qint64 TranscodeProcess::size() const
 
 bool TranscodeProcess::atEnd() const
 {
-//    if (m_range && m_range->getEndByte()!=-1)
-//        return pos() > m_range->getEndByte();
+//    if (range() && range()->getEndByte()!=-1)
+//        return pos() > range()->getEndByte();
 
-    if (bytesAvailable()>0)
-        return false;
-
-    if (m_paused or m_process.state() == QProcess::Running)
+    if (!isOpen() or bytesAvailable()>0 or m_process.state() == QProcess::Running)
         return false;
     else
         return m_process.atEnd();
@@ -86,21 +115,18 @@ bool TranscodeProcess::atEnd() const
 
 QByteArray TranscodeProcess::read(qint64 maxlen)
 {
-    //    if (m_range && m_range->getEndByte()>0)
-    //    {
-    //        int bytesToRead = m_range->getEndByte() - pos() + 1;
-    //        if (bytesToRead>=0 && bytesToRead<maxSize)
-    //            return QFile::read(bytesToRead);
-    //    }
+    if (processPauseResume.state()!=QProcess::NotRunning)
+        processPauseResume.waitForFinished(200);
 
     QByteArray data;
      if (m_opened)
          data = m_process.read(maxlen);
-    m_pos += data.size();
-    emit status(QString("Transcoding (%1%)").arg(progress()));
+     m_pos += data.size();
 
     if (m_paused && m_process.state() != QProcess::NotRunning && bytesAvailable() < (maxBufferSize()*0.5))
         resume();
+
+    emit status(QString("Transcoding (%1%)").arg(progress()));
 
     return data;
 }
@@ -118,7 +144,6 @@ void TranscodeProcess::errorTrancodedData(const QProcess::ProcessError &error) {
     if (killTranscodeProcess == false) {
         // an error occured
         appendLog(QString("%2: ERROR Transcoding: %1."+CRLF).arg(m_process.errorString()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-//        m_process.setErrorString(m_process.errorString());
         emit errorRaised(m_process.errorString());
     }
 }
@@ -131,6 +156,7 @@ void TranscodeProcess::finishedTranscodeData(const int &exitCode) {
     {
         m_opened = true;
         emit openedSignal();
+        emit readyRead();
     }
 
     m_paused = false;
@@ -143,7 +169,6 @@ void TranscodeProcess::finishedTranscodeData(const int &exitCode) {
         if (exitCode != 0)
         {
             // trancoding failed
-//            m_process.setErrorString(QString("Transcoding finished with status %1").arg(exitCode));
             emit errorRaised(QString("Transcoding finished with status %1").arg(exitCode));
             emit status("Transcoding failed.");
         }
@@ -190,6 +215,7 @@ void TranscodeProcess::_pause()
             arguments << "-STOP" << QString("%1").arg(pid);
 
             processPauseResume.start("kill", arguments);
+            processPauseResume.waitForFinished(50);
         }
     }
 }
@@ -208,6 +234,7 @@ void TranscodeProcess::_resume()
             arguments << "-CONT" << QString("%1").arg(pid);
 
             processPauseResume.start("kill", arguments);
+            processPauseResume.waitForFinished(50);
         }
     }
 }

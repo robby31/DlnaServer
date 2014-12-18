@@ -128,7 +128,7 @@ int DlnaVideoItem::bitrate() const {
     // returns bitrate in bits/sec
     if (toTranscode()) {
         // variable bitrate
-        return 5448000;
+        return 5718800;
     } else {
         return metaDataBitrate();
     }
@@ -164,4 +164,25 @@ QString DlnaVideoItem::mimeType() const {
 
 void DlnaVideoItem::updateDLNAOrgPn() {
     setdlnaOrgPN("MPEG_PS_PAL");
+}
+
+int DlnaVideoItem::channelCount() const {
+    if (toTranscode())
+        return 6;
+    else
+        return -1;
+}
+
+int DlnaVideoItem::samplerate() const {
+    if (toTranscode())
+        return 48000;
+    else
+        return -1;
+}
+
+QString DlnaVideoItem::framerate() const {
+    if (toTranscode())
+        return "25.000";
+    else
+        return QString();
 }

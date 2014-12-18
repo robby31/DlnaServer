@@ -1,15 +1,11 @@
 #include "mencodertranscoding.h"
 
+const QString MencoderTranscoding::PROGRAM = QString("/Users/doudou/workspaceQT/DLNA_server/exe/mencoder");
+
 MencoderTranscoding::MencoderTranscoding(Logger *log, QObject *parent) :
-    TranscodeProcess(log, parent),
-    m_lengthInSeconds(-1),
-    m_format(MPEG2_AC3),          // Default format
-    m_audioLanguages(),
-    m_subtitleLanguages(),
-    m_frameRate("25.000")
+    TranscodeProcess(log, parent)
 {
-    QString program = "/Users/doudou/workspaceQT/DLNA_server/exe/mencoder";
-    setProgram(program);
+    setProgram(PROGRAM);
 }
 
 void MencoderTranscoding::updateArguments()
@@ -18,8 +14,8 @@ void MencoderTranscoding::updateArguments()
 
     QStringList arguments;
     if (range() != 0 && !range()->isNull()) {
-        if (range()->getStartByte() > 0 && m_lengthInSeconds > 0) {
-            double start_position = double(range()->getStartByte())/double(range()->getSize())*double(m_lengthInSeconds);
+        if (range()->getStartByte() > 0 && lengthInSeconds() > 0) {
+            double start_position = double(range()->getStartByte())/double(range()->getSize())*double(lengthInSeconds());
             arguments << "-ss" << QString("%1.0").arg(long(start_position));
         }
     } else if (timeSeekStart() > 0) {
@@ -28,7 +24,7 @@ void MencoderTranscoding::updateArguments()
 
     arguments << url();
 
-    if (m_format == MPEG2_AC3) {
+    if (format() == MPEG2_AC3) {
 
         // set container format to MPEG
         arguments << "-of" << "mpeg";
@@ -52,22 +48,22 @@ void MencoderTranscoding::updateArguments()
         arguments << "-ass-force-style" << QString("FontName=%1,Outline=1,Shadow=1,MarginV=10").arg(fontFile);
 
         // choose audio and subtitle language
-        if (m_audioLanguages.contains("fre")) {
-            arguments << "-aid" << QString("%1").arg(m_audioLanguages.indexOf("fre"));
+        if (audioLanguages().contains("fre")) {
+            arguments << "-aid" << QString("%1").arg(audioLanguages().indexOf("fre"));
             arguments << "-nosub";
         } else {
-            if (m_subtitleLanguages.contains("fre")) {
-                arguments << "-noautosub" << "-sid" << QString("%1").arg(m_subtitleLanguages.indexOf("fre"));
-            } else if (m_subtitleLanguages.contains("eng")) {
-                arguments << "-noautosub" << "-sid" << QString("%1").arg(m_subtitleLanguages.indexOf("eng"));
+            if (subtitleLanguages().contains("fre")) {
+                arguments << "-noautosub" << "-sid" << QString("%1").arg(subtitleLanguages().indexOf("fre"));
+            } else if (subtitleLanguages().contains("eng")) {
+                arguments << "-noautosub" << "-sid" << QString("%1").arg(subtitleLanguages().indexOf("eng"));
             }
         }
 
         // set frame rate
-        if (!m_frameRate.isEmpty()) {
-            if (m_frameRate == "23.976") {
+        if (!frameRate().isEmpty()) {
+            if (frameRate() == "23.976") {
                 arguments << "-ofps" << "24000/1001";
-            } else if (m_frameRate == "29.970") {
+            } else if (frameRate() == "29.970") {
                 arguments << "-ofps" << "30000/1001";
             } else {
                 // default framerate output
@@ -79,14 +75,14 @@ void MencoderTranscoding::updateArguments()
         }
 
     } else {
-        logError(QString("Invalid format: %1").arg(m_format));
+        logError(QString("Invalid format: %1").arg(format()));
     }
 
     if (range() != 0 && !range()->isNull()) {
         if (range()->getLength() > 0) {
-            if (range()->getHighRange() >= 0 && m_lengthInSeconds > 0) {
+            if (range()->getHighRange() >= 0 && lengthInSeconds() > 0) {
                 // calculate the endpos in seconds
-                double endpos = double(range()->getLength())/double(range()->getSize())*double(m_lengthInSeconds);
+                double endpos = double(range()->getLength())/double(range()->getSize())*double(lengthInSeconds());
                 arguments << "-endpos" << QString("%1").arg(long(endpos));
             }
         } else {

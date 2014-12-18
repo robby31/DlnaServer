@@ -2,7 +2,7 @@
 #define DLNAVIDEOFILE_H
 
 #include "dlnavideoitem.h"
-#include "mencodertranscoding.h"
+#include "ffmpegtranscoding.h"
 #include "qffmpeg.h"
 
 class DlnaVideoFile : public DlnaVideoItem
