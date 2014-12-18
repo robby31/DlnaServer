@@ -10,6 +10,8 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
     favoritesChild(0),
     lastAddedChild(0)
 {
+    connect(this, SIGNAL(resetLibrarySignal()), this, SLOT(resetLibrarySlot()));
+
     recentlyPlayedChild = new DlnaCachedFolder(log, &library,
                                                QString("last_played is not null"),
                                                QString("last_played"),
@@ -66,38 +68,18 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
     addChild(&rootFolder);
 }
 
-bool DlnaCachedRootFolder::addFolder(QString path) {
+bool DlnaCachedRootFolder::addFolderSlot(QString path)
+{
     if (QFileInfo(path).isDir()) {
         readDirectory(QDir(path));
 
         rootFolder.addFolder(path);
 
-        clearChildren();
-
-        QSqlQuery query = library.getMediaType();
-
-        while (query.next()) {
-            int id_type = query.value(0).toInt();
-            QString typeMedia = query.value(1).toString();
-
-            if (typeMedia == "audio") {
-                DlnaCachedMusicFolder* child = new DlnaCachedMusicFolder(log(), &library, host, port, id_type, this);
-                addChild(child);
-            } else {
-                DlnaCachedFolder* child = new DlnaCachedFolder(log(), &library,
-                                                               QString("type='%1'").arg(id_type),
-                                                               QString("title"),
-                                                               QString("ASC"),
-                                                               typeMedia, host, port, this);
-                addChild(child);
-            }
-        }
-
-        addChild(&rootFolder);
-
+        emit folderAddedSignal(path);
         return true;
     }
 
+    emit error_addFolder(path);
     return false;
 }
 
@@ -105,9 +87,11 @@ bool DlnaCachedRootFolder::addNetworkLink(const QString &url)
 {
     if (addResource(QUrl(url))) {
         lastAddedChild->needRefresh();
+        emit linkAdded(url);
         return true;
     }
 
+    emit error_addNetworkLink(url);
     return false;
 }
 
@@ -115,6 +99,21 @@ bool DlnaCachedRootFolder::networkLinkIsValid(const QString &url)
 {
     DlnaYouTubeVideo movie(log(), url, host, port);
     return !movie.metaDataTitle().isEmpty();
+}
+
+void DlnaCachedRootFolder::checkNetworkLink()
+{
+    int nb = 0;
+    logInfo("CHECK NETWORK LINK started");
+
+    QSqlQuery query = getAllNetworkLinks();
+    while (query.next()) {
+        ++nb;
+        if (!networkLinkIsValid(query.value("filename").toString()))
+            logError(QString("link %1 is broken, title: %2").arg(query.value("filename").toString()).arg(query.value("title").toString()));
+    }
+
+    logInfo(QString("%1 links checked.").arg(nb));
 }
 
 bool DlnaCachedRootFolder::addResource(QUrl url)
@@ -220,8 +219,8 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
     }
 }
 
-void DlnaCachedRootFolder::readDirectory(QDir folder) {
-
+void DlnaCachedRootFolder::readDirectory(QDir folder)
+{
     QFileInfoList files = folder.entryInfoList(QDir::NoDotAndDotDot|QDir::AllEntries);
 
     foreach(const QFileInfo &fileinfo, files) {
@@ -237,25 +236,25 @@ void DlnaCachedRootFolder::readDirectory(QDir folder) {
     lastAddedChild->needRefresh();
 }
 
-bool DlnaCachedRootFolder::updateLibrary(const QString &filename, const QHash<QString, QVariant> &data)
+void DlnaCachedRootFolder::updateLibrary(const QString &filename, const QHash<QString, QVariant> &data)
 {
-    bool ret = library.updateFromFilename(filename, data);
+    if (!library.updateFromFilename(filename, data))
+        logError(QString("Unable to update library: %1").arg(filename));
     recentlyPlayedChild->needRefresh();
     resumeChild->needRefresh();
     favoritesChild->needRefresh();
-    return ret;
 }
 
-bool DlnaCachedRootFolder::incrementCounterPlayed(const QString &filename)
+void DlnaCachedRootFolder::incrementCounterPlayed(const QString &filename)
 {
-    bool ret = library.incrementCounterPlayed(filename);
+    if (!library.incrementCounterPlayed(filename))
+        logError(QString("Unable to update counter played: %1").arg(filename));
     recentlyPlayedChild->needRefresh();
     resumeChild->needRefresh();
     favoritesChild->needRefresh();
-    return ret;
 }
 
-bool DlnaCachedRootFolder::resetLibrary()
+bool DlnaCachedRootFolder::resetLibrarySlot()
 {
     QString newDatabaseName = QString("%1.new").arg(library.getDatabase()->databaseName());
     return library.resetLibrary(newDatabaseName);

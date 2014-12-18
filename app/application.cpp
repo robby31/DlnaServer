@@ -28,11 +28,11 @@ Application::Application(int &argc, char **argv):
     connect(server, SIGNAL(folderAdded(QString)), this, SLOT(folderAdded(QString)));
     connect(server, SIGNAL(error_addFolder(QString)), this, SLOT(folderNotAdded(QString)));
 
-    connect(this, SIGNAL(addLink(QString)), server, SLOT(addNetworkLink(QString)));
+    connect(this, SIGNAL(addLink(QString)), server, SIGNAL(addNetworkLinkSignal(QString)));
     connect(server, SIGNAL(linkAdded(QString)), this, SLOT(linkAdded(QString)));
     connect(server, SIGNAL(error_addNetworkLink(QString)), this, SLOT(linkNotAdded(QString)));
 
-    connect(this, SIGNAL(checkNetworkLink()), server, SLOT(_checkNetworkLink()));
+    connect(this, SIGNAL(checkNetworkLink()), server, SIGNAL(checkNetworkLinkSignal()));
 
     worker.start();
 
@@ -197,17 +197,18 @@ bool Application::reloadLibrary()
         log.Error(QString("Unable to load network media: %1").arg(query.lastError().text()));
     }
 
-    if (server->resetLibrary()) {
-       bool res = true;
+//    if (server->resetLibrary()) {
+//       bool res = true;
 
         // load network media
-        foreach (const QString &url, networkMedia)
-            if (!server->addNetworkLink(url))
-                res = false;
+//        foreach (const QString &url, networkMedia)
+//            if (!server->addNetworkLink(url))
+//                res = false;
 
-        return loadSettings() && res;
-    } else {
-        log.Error("Unable to reload library");
-        return false;
-    }
+//        return loadSettings() && res;
+//    } else {
+//        log.Error("Unable to reload library");
+//        return false;
+//    }
+    return false;
 }

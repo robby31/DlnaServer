@@ -584,7 +584,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     QVERIFY(transcodeProcess != 0);
     transcodedBytes.clear();
     QVERIFY(transcodeProcess->open() == true);
-    QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(transcodeProcess->atEnd()==false);
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 1);
@@ -772,7 +772,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     QVERIFY(transcodeProcess != 0);
     transcodedBytes.clear();
-    QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(transcodeProcess->atEnd()==false);
     connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 1);

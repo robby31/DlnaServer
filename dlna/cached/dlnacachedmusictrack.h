@@ -6,6 +6,7 @@
 
 class DlnaCachedMusicTrack : public DlnaMusicTrack
 {
+    Q_OBJECT
 
 public:
     explicit DlnaCachedMusicTrack(Logger* log, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent = 0);
@@ -34,7 +35,7 @@ public:
     virtual int metaDataDisc()                 const { if (library != 0) return library->getmetaData("disc", idMedia).toInt(); else return 0; }
     virtual QString metaDataFormat()           const { if (library != 0) return library->getmetaData("format", idMedia).toString(); else return QString(); }
     virtual QByteArray metaDataPicture()       const { if (library != 0) return QByteArray::fromHex(library->getmetaData("picture", idMedia).toByteArray()); else return QByteArray(); }
-    virtual QString metaDataLastModifiedDate() const { if (library != 0) return library->getmetaData("last_modified", idMedia).toString(); else return QString(); }
+    virtual QString metaDataLastModifiedDate() const { if (library != 0) return library->getmetaData("last_modified", idMedia).toDateTime().toString("yyyy-MM-dd"); else return QString(); }
 
     // returns the samplerate of the audio track
     virtual int samplerate() const { if (library != 0) return library->getmetaData("samplerate", idMedia).toInt(); else return -1; }

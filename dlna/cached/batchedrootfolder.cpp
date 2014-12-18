@@ -7,15 +7,7 @@ BatchedRootFolder::BatchedRootFolder(DlnaCachedRootFolder* root, QObject *parent
 {
 }
 
-void BatchedRootFolder::addFolder(QString folder) {
-    readDirectory(QDir(folder));
-}
-
-void BatchedRootFolder::quit() {
-    stop = true;
-}
-
-int BatchedRootFolder::countDirectory(QDir folder) {
+int BatchedRootFolder::countDirectory(const QDir &folder) {
     QFileInfoList files = folder.entryInfoList(QDir::NoDotAndDotDot|QDir::AllEntries);
     int size = 0;
     foreach(const QFileInfo &fileinfo, files) {
@@ -30,7 +22,7 @@ int BatchedRootFolder::countDirectory(QDir folder) {
     return size;
 }
 
-void BatchedRootFolder::readDirectory(QDir folder, bool flag_root) {
+void BatchedRootFolder::readDirectory(const QDir &folder, const bool &flag_root) {
     static int index;
     static int size;
 

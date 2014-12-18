@@ -13,18 +13,18 @@ public:
     void setRootFolder(DlnaCachedRootFolder *root) { m_root = root; }
     bool resetLibrary() { if (m_root) return m_root->resetLibrary(); else return false; }
 
+    void quit() { stop = true; }
+
 private:
-    int countDirectory(QDir folder);
+    int countDirectory(const QDir &folder);
 
-    void readDirectory(QDir folder, bool flag_root=true);
-
-public slots:
-    void addFolder(QString folder);
-
-    void quit();
+    void readDirectory(const QDir &folder, const bool &flag_root=true);
 
 signals:
-    void progress(int value);
+    void progress(const int &value);
+
+private slots:
+    void addFolder(const QString &folder) { readDirectory(QDir(folder)); }
 
 private:
     DlnaCachedRootFolder *m_root;

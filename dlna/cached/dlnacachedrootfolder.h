@@ -17,31 +17,39 @@
 
 class DlnaCachedRootFolder : public DlnaRootFolder
 {
+    Q_OBJECT
 
 public:
     explicit DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, QString host, int port, QObject *parent = 0);
 
-    // returns true if the folder is added to Root.
-    virtual bool addFolder(QString path);
+    void resetLibrary() { emit resetLibrarySignal(); }
 
-    bool addNetworkLink(const QString &url);
-    QSqlQuery getAllNetworkLinks() { return library.getAllNetworkLinks(); }
-    bool networkLinkIsValid(const QString &url);
-
-    DlnaRootFolder* getRootFolder() { return &rootFolder; }
+private:
+    void readDirectory(QDir folder);
 
     void addResource(QFileInfo fileinfo);
     bool addResource(QUrl url);
 
-    QSqlDatabase *getDatabase() const { return library.getDatabase(); }
-    bool updateLibrary(const QString &filename, const QHash<QString, QVariant> &data);
-    bool incrementCounterPlayed(const QString &filename);
-    void refreshLastAddedMedia() { lastAddedChild->needRefresh(); }
+    QSqlQuery getAllNetworkLinks() { return library.getAllNetworkLinks(); }
+    bool networkLinkIsValid(const QString &url);
 
-    bool resetLibrary();
+signals:
+    void linkAdded(QString url);
+    void error_addNetworkLink(QString url);
 
-private:
-    void readDirectory(QDir folder);
+    void resetLibrarySignal();
+
+private slots:
+    bool resetLibrarySlot();
+
+    void updateLibrary(const QString &filename, const QHash<QString, QVariant> &data);
+    void incrementCounterPlayed(const QString &filename);
+
+    // returns true if the folder is added to Root.
+    virtual bool addFolderSlot(QString path);
+
+    bool addNetworkLink(const QString &url);
+    void checkNetworkLink();
 
 private:
     MediaLibrary library;

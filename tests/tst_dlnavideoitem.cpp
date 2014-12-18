@@ -237,8 +237,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
     QVERIFY(transcodeProcess->open() == true);
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY2(transcodedSize == 72380, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
-    qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
+    QVERIFY2(transcodedSize == 7126892, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 
