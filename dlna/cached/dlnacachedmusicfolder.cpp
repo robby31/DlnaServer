@@ -30,3 +30,13 @@ DlnaCachedMusicFolder::DlnaCachedMusicFolder(Logger* log, MediaLibrary *library,
     children.append(child);
     child->setDlnaParent(this);
 }
+
+DlnaResource *DlnaCachedMusicFolder::getChild(int index, QObject *parent)
+{
+    Q_UNUSED(parent)
+
+    if (index>=0 && index<children.count())
+        return children.at(index);
+    else
+        return 0;
+}

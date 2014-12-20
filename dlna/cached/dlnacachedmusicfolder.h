@@ -13,7 +13,7 @@ class DlnaCachedMusicFolder : public DlnaStorageFolder
 public:
     explicit DlnaCachedMusicFolder(Logger* log, MediaLibrary* library, QString host, int port, int idType, QObject *parent = 0);
 
-    virtual DlnaResource* getChild(int index, QObject *parent = 0) { Q_UNUSED(parent) return children.at(index); }
+    virtual DlnaResource* getChild(int index, QObject *parent = 0);
     virtual int getChildrenSize() const { return children.size(); }
 
     // Any resource needs to represent the container or item with a String.

@@ -33,3 +33,12 @@ DlnaCachedGroupedFolderMetaData::DlnaCachedGroupedFolderMetaData(Logger* log, Me
     child->setDlnaParent(this);
 }
 
+DlnaResource *DlnaCachedGroupedFolderMetaData::getChild(int index, QObject *parent)
+{
+    Q_UNUSED(parent)
+
+    if (index>=0 && index<children.count())
+        return children.at(index);
+    else
+        return 0;
+}
