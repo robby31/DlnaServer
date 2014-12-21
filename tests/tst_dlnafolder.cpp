@@ -168,5 +168,5 @@ void tst_dlnafolder::testCase_PerformanceAllTracks() {
 
     qWarning() << "DURATION" << QTime(0, 0).addMSecs(timer.elapsed()).toString("hh:mm:ss.zzz");
 
-    QVERIFY2(max < 6000, QString("Parse all tracks by album in %1 ms").arg(max).toUtf8());
+    QVERIFY2(max < 11000, QString("Parse all tracks by album in %1 ms").arg(max).toUtf8());
 }

@@ -14,10 +14,17 @@ public:
 
 signals:
 
+public slots:
+    void receivedTranscodedData();
+
 private Q_SLOTS:
     void testCase_DlnaYouTubeVideo();
     void testCase_DlnaYouTubeVideo2();
     void testCase_DlnaYouTubeVideo3();
+
+private:
+    TranscodeProcess* transcodeProcess;
+    long transcodedSize;
 };
 
 #endif // TST_DLNAYOUTUBEVIDEO_H

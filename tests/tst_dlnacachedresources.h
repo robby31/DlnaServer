@@ -16,6 +16,7 @@ public:
 
 private slots:
     void receivedTranscodedData();
+    void error_addFolder(const QString &folder) { folderKO = folder; }
 
 private Q_SLOTS:
     void testCase_DlnaCachedRootFolder();
@@ -44,6 +45,7 @@ private:
     TranscodeProcess* transcodeProcess;
     long transcodedSize;
     QSqlDatabase db;
+    QString folderKO;
 
     int parseFolder(QString resourceId, DlnaResource* resource);
 };
