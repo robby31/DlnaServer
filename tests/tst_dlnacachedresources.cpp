@@ -640,5 +640,5 @@ void tst_dlnacachedresources::testCase_PerformanceAllTracksByGenre() {
             qWarning() << "PERFO" << elapsed << genre->getResourceId() << genre->getSystemName() << genre->getChildrenSize() << "children";
         }
     }
-    QVERIFY2(max < 1600, QString("Parse all tracks by genre in %1 ms").arg(max).toUtf8());
+    QVERIFY2(max < 2000, QString("Parse all tracks by genre in %1 ms").arg(max).toUtf8());
 }

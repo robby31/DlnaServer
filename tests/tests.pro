@@ -6,7 +6,7 @@
 
 QT       += testlib network widgets qml quick xml sql
 
-QT       -= gui
+QT      -= gui
 
 TARGET = tst_request
 CONFIG   += console

@@ -137,10 +137,6 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QVERIFY(item_found->getDlnaContentFeatures() == "DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
     QVERIFY(item_found->getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_OP=01");
 
-//    int res;
-    rootFolder.addFolder("/Users/doudou/Music/iTunes/iTunes Media/Video");
-//    QVERIFY(res == false);
-
     rootFolder.addFolder("/Users/doudou/Movies");
     QVERIFY(rootFolder.getChild(0) != 0);
     QVERIFY(rootFolder.getChildrenSize() == 3);
