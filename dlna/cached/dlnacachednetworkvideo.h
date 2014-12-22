@@ -2,7 +2,7 @@
 #define DLNACACHEDNETWORKVIDEO_H
 
 #include "dlnacachedvideo.h"
-#include "youtubetranscoding.h"
+#include "ffmpegtranscoding.h"
 
 class DlnaCachedNetworkVideo : public DlnaCachedVideo
 {
@@ -21,7 +21,7 @@ public:
 
 protected:
     // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess() { return new YouTubeTranscoding(log()); }
+    virtual TranscodeProcess* getTranscodeProcess();
 
 };
 

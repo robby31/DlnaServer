@@ -13,8 +13,6 @@ const QString DlnaMusicTrack::AUDIO_TRANSCODE = "audio/transcode";
 DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString host, int port, QObject *parent):
     DlnaItem(log, host, port, parent)
 {
-    transcodeFormat = MP3;   // default transcode format
-    setdlnaOrgPN("MP3");
 }
 
 DlnaMusicTrack::~DlnaMusicTrack() {
@@ -22,11 +20,11 @@ DlnaMusicTrack::~DlnaMusicTrack() {
 }
 
 void DlnaMusicTrack::updateDLNAOrgPn() {
-    if (mimeType() == "audio/mpeg") {
+    if (mimeType() == AUDIO_MP3_TYPEMIME) {
         setdlnaOrgPN("MP3");
-    } else if (mimeType() == "audio/x-m4a") {
-        setdlnaOrgPN("AAC_ISO");
-    } else if (mimeType().contains("audio/L16")) {
+    } else if (mimeType() == AUDIO_MP4_TYPEMIME) {
+        setdlnaOrgPN("AAC");
+    } else if (mimeType() == AUDIO_LPCM_TYPEMIME) {
         setdlnaOrgPN("LPCM");
     }
 }
@@ -34,7 +32,7 @@ void DlnaMusicTrack::updateDLNAOrgPn() {
 int DlnaMusicTrack::bitrate() const {
     // returns bitrate in bits/sec
     if (toTranscode()) {
-        if (transcodeFormat == MP3) {
+        if (transcodeFormat == MP3 or transcodeFormat == AAC) {
             return 320000;
 
         } else if (transcodeFormat == LPCM) {
@@ -206,7 +204,9 @@ QString DlnaMusicTrack::mimeType() const {
         // Trancode music track
         if (transcodeFormat == MP3) {
             return AUDIO_MP3_TYPEMIME;
-        } else if (transcodeFormat == LPCM) {
+        } else if (transcodeFormat == AAC) {
+            return AUDIO_MP4_TYPEMIME;
+        }else if (transcodeFormat == LPCM) {
             return AUDIO_LPCM_TYPEMIME;
         } else {
             logError("Unable to define mimeType of DlnaMusicTrack Transcoding: " + getSystemName());

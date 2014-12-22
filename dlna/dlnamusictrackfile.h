@@ -28,7 +28,7 @@ public:
     virtual qint64 sourceSize() const { return fileinfo.size(); }
 
     // return true if the track shall be transcoded
-    virtual bool toTranscode() const { return mime_type.name() != "audio/mpeg"; }
+    virtual bool toTranscode() const { return mime_type.name() != AUDIO_MP3_TYPEMIME; }
 
     virtual int metaDataBitrate() const ;
     virtual int metaDataDuration() const ;

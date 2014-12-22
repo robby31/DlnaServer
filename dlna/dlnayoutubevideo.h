@@ -2,7 +2,7 @@
 #define DLNAYOUTUBEVIDEO_H
 
 #include "dlnavideoitem.h"
-#include "youtubetranscoding.h"
+#include "ffmpegtranscoding.h"
 #include <QProcess>
 #include <QTime>
 
@@ -46,11 +46,10 @@ public:
     virtual QString resolution() const { return m_resolution; }
     virtual QStringList subtitleLanguages() const { return QStringList(); }
     virtual QStringList audioLanguages() const { return QStringList(); }
-    virtual QString framerate() const { return QString(); }
 
 protected:
     // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess() { return new YouTubeTranscoding(log()); }
+    virtual TranscodeProcess* getTranscodeProcess();
 
 signals:
 

@@ -5,9 +5,15 @@ DlnaMusicTrackFile::DlnaMusicTrackFile(Logger* log, QString filename, QString ho
     fileinfo(filename),
     mime_type(),
     ffmpeg(filename, this)
-{
+{    
     QMimeDatabase db;
     mime_type = db.mimeTypeForFile(fileinfo);
+
+    setTranscodeFormat(MP3);   // default transcode format
+
+    if (toTranscode()) {
+        setdlnaOrgOpFlags("10");         // seek by time (exclusive)
+    }
 }
 
 QString DlnaMusicTrackFile::getDisplayName() const {

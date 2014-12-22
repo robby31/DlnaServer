@@ -44,7 +44,8 @@ Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 time
     {
         // DLNA node shall be transcoded
         TranscodeProcess* process = getTranscodeProcess();
-        process->setUrl(getSystemName());
+        if (process->url().isEmpty())
+            process->setUrl(getSystemName());
         process->setRange(range);
         process->setTimeSeek(timeseek_start, timeseek_end);
         process->setBitrate(bitrate());
@@ -80,7 +81,10 @@ QString DlnaItem::getDlnaContentFeatures() const {
     }
 
     result << QString("DLNA.ORG_OP=%1").arg(getdlnaOrgOpFlags());
-    result << "DLNA.ORG_CI=0";
+    if (toTranscode())
+        result << "DLNA.ORG_CI=1";
+    else
+        result << "DLNA.ORG_CI=0";
     result << "DLNA.ORG_FLAGS=01700000000000000000000000000000";
 
     return result.join(";");
