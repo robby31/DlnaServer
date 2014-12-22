@@ -40,7 +40,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars() {
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
     QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
-    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01700000000000000000000000000000");
     QVERIFY2(movie.getProtocolInfo() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10", movie.getProtocolInfo().toUtf8());
 
     QVERIFY(movie.getAlbumArt().isNull() == true);
@@ -74,7 +74,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper() {
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
     QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
-    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01700000000000000000000000000000");
     QVERIFY2(movie.getProtocolInfo() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10", movie.getProtocolInfo().toUtf8());
 
     QVERIFY(movie.getAlbumArt().isNull() == true);
@@ -154,7 +154,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
     QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
-    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01700000000000000000000000000000");
     QVERIFY(movie.getProtocolInfo() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10");
 
     QVERIFY(movie.getAlbumArt().isNull() == true);
@@ -206,7 +206,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
     QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
-    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01700000000000000000000000000000");
     QVERIFY(movie.getProtocolInfo() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10");
 
     QVERIFY(movie.getAlbumArt().isNull() == true);
