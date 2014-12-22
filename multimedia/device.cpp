@@ -29,3 +29,24 @@ void Device::deviceOpened()
     emit LogMessage(QString("%1: device opened, %2 bytes available."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
     emit status("Streaming");
 }
+
+void Device::requestData(const int &bytesToRead)
+{
+    if (!atEnd() && bytesAvailable() > 0)
+    {
+        if (bytesToRead > 0) {
+            // read the stream
+            QByteArray bytesToSend = read(bytesToRead);
+            if (!bytesToSend.isEmpty())
+                emit sendDataToClientSignal(bytesToSend);
+        }
+
+        if (atEnd())
+            emit endReached();
+    }
+    else
+    {
+        if (isLogLevel(DEBG))
+            appendLog(QString("%1: sendDataToClient no data available"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+    }
+}

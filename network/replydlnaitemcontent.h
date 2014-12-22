@@ -24,6 +24,8 @@ signals:
     //   status = 1 if error occurs
     void servingFinishedSignal(QString filename, int status);
 
+    void requestData(const int &bytesToRead);
+
 
 private:
     void setMaxBufferSize(const qint64 &size) { if (size>0) m_maxBufferSize = size; }
@@ -37,7 +39,6 @@ private slots:
     void updateStatus();
 
     void streamOpened();
-    void sendDataToClient();
 
     void streamContentDestroyed()    { streamContent = 0;
                                        emit logTextSignal(QString("%1: Stream removed."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
@@ -49,7 +50,7 @@ private slots:
                                                                 if (towrite==0)
                                                                 {
                                                                     emit logTextSignal(QString("%1: low buffer."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-                                                                    sendDataToClient();
+                                                                    emit requestData(maxBufferSize()-bytesToWrite);
                                                                 }
                                                               }
 
@@ -80,9 +81,6 @@ private:
     bool streamingWithErrors;
     qint64 m_maxBufferSize;
     int durationBuffer;                 // when bitrate is known, m_maxBufferSize is set to durationBuffer seconds of streaming
-
-    long counter_sendDataToClient;
-    qint64 timeElapsed_sendDataToClient;
 };
 
 #endif // REPLYDLNAITEMCONTENT_H

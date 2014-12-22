@@ -15,9 +15,7 @@ public:
     void setRange(HttpRange *range)             { m_range = range; }
     HttpRange * range() const                   { return m_range; }
 
-    void setTimeSeek(qint64 start, qint64 end) { timeseek_start = start; timeseek_end = end;
-                                                 if (timeseek_start != -1 or timeseek_end != -1)
-                                                     qWarning() << "TimeSeek Option not taken into account for media" << this; }
+    void setTimeSeek(qint64 start, qint64 end) { timeseek_start = start; timeseek_end = end; }
     qint64 timeSeekStart() const { return timeseek_start; }
     qint64 timeSeekEnd() const   { return timeseek_end; }
 
@@ -43,11 +41,14 @@ signals:
     void status(const QString &status);
     void errorRaised(const QString &errorString);
     void openedSignal();
+    void sendDataToClientSignal(const QByteArray &data);
+    void endReached();
 
 public slots:
 
 private slots:
     void deviceOpened();
+    void requestData(const int &bytesToRead);
 
 private:
     // Carriage return and line feed.
