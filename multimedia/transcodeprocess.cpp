@@ -265,3 +265,4 @@ void TranscodeProcess::_pause_resume_error(const QProcess::ProcessError &error)
 
     logError(processPauseResume.errorString());
 }
+

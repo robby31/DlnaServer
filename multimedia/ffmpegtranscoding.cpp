@@ -27,7 +27,7 @@ void FfmpegTranscoding::updateArguments()
     QStringList arguments;
     arguments << "-loglevel" << "warning";
 
-    if (!ssOption.isNull())
+    if (!ssOption.isEmpty())
         arguments << "-ss" << ssOption;
 
     if (!url().isEmpty())
@@ -42,6 +42,15 @@ void FfmpegTranscoding::updateArguments()
         if (bitrate() > 0)
             arguments << "-b:a" << QString("%1").arg(bitrate());
 
+    }
+    else if (format() == AAC)
+    {
+        arguments << "-map" <<  "0:a";
+
+        arguments << "-strict" << "-2" << "-f" << "mpegts" << "-codec:a" << "aac" << "-movflags" << "+faststart";
+
+        if (bitrate() > 0)
+            arguments << "-b:a" << QString("%1").arg(bitrate());
     }
     else if (format() == LPCM)
     {
@@ -65,7 +74,7 @@ void FfmpegTranscoding::updateArguments()
 
             if (subtitleStreamIndex >= 0)
             {
-                if (ssOption.isNull())
+                if (ssOption.isEmpty())
                     arguments << "-vf" << QString("subtitles=%1:si=%2").arg(url()).arg(subtitleStreamIndex);
                 else
                     arguments << "-vf" << QString("setpts=PTS+%3/TB,subtitles=%1:si=%2,setpts=PTS-STARTPTS").arg(url()).arg(subtitleStreamIndex).arg(ssOption);
@@ -101,9 +110,12 @@ void FfmpegTranscoding::updateArguments()
         // set video options
         int video_bitrate = (bitrate()-audio_bitrate)/1.09256;
         arguments << "-c:v" << "mpeg2video";
-        arguments << "-b:v" << QString("%1").arg(video_bitrate);
-        arguments << "-minrate" << QString("%1").arg(video_bitrate) << "-maxrate" << QString("%1").arg(video_bitrate);
-        arguments << "-bufsize" << QString("%1").arg(video_bitrate*3/25);   // bufsize = 3 * bitrate / fps
+        if (video_bitrate>0)
+        {
+            arguments << "-b:v" << QString("%1").arg(video_bitrate);
+            arguments << "-minrate" << QString("%1").arg(video_bitrate) << "-maxrate" << QString("%1").arg(video_bitrate);
+            arguments << "-bufsize" << QString("%1").arg(video_bitrate*3/25);   // bufsize = 3 * bitrate / fps
+        }
         if (!frameRate().isEmpty())
             arguments << "-r:v" << frameRate();
     }
