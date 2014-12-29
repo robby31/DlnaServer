@@ -94,7 +94,6 @@ private slots:
 
     void _pause();
     void _resume();
-    void _pause_resume_done(const int &exitCode);
     void _pause_resume_error(const QProcess::ProcessError &error);
 
 

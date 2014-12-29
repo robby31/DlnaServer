@@ -76,6 +76,28 @@ public:
     bool appendHeader(const QString &headerLine);
 
 
+private:
+    void setHttp10(const bool &http10) { this->http10 = http10; }
+
+    void setMethod(const QString &method) { m_method = method; emit dataChanged("method"); }
+
+    void setArgument(const QString &argument);
+
+    void setHost(const QString &host) { m_host = host; emit dataChanged("host"); }
+
+    void setPeerAddress(const QString &address) { m_peerAddress = address; emit dataChanged("peerAddress"); }
+
+    void setDuration(const qint64 &duration) { m_duration = duration; emit dataChanged("duration"); }
+
+    void setDate(const QString &date) { m_date = date; emit dataChanged("date"); }
+
+    void setTextContent(const QString &content) { m_content = content; emit dataChanged("content"); }
+
+    void setParamHeader(const QString &param, const QString &value);
+
+    void requestReceived();
+
+
 signals:
     void newSocketDescriptor();
 
@@ -177,26 +199,6 @@ private:
     qint64 timeSeekRangeStart;
     qint64 timeSeekRangeEnd;
     bool http10;
-
-    void setHttp10(const bool &http10) { this->http10 = http10; }
-
-    void setMethod(const QString &method) { m_method = method; emit dataChanged("method"); }
-
-    void setArgument(const QString &argument);
-
-    void setHost(const QString &host) { m_host = host; emit dataChanged("host"); }
-
-    void setPeerAddress(const QString &address) { m_peerAddress = address; emit dataChanged("peerAddress"); }
-
-    void setDuration(const qint64 &duration) { m_duration = duration; emit dataChanged("duration"); }
-
-    void setDate(const QString &date) { m_date = date; emit dataChanged("date"); }
-
-    void setTextContent(const QString &content) { m_content = content; emit dataChanged("content"); }
-
-    void setParamHeader(const QString &param, const QString &value);
-
-    void requestReceived();
 };
 
 #endif // REQUEST_H
