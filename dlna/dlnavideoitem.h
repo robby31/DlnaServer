@@ -38,7 +38,7 @@ public:
     virtual QString resolution() const = 0;
     virtual QStringList subtitleLanguages() const = 0;
     virtual QStringList audioLanguages() const = 0;
-    virtual QString framerate() const;
+    virtual QString framerate() const = 0;
 
     static const QString UNKNOWN_VIDEO_TYPEMIME;
     static const QString MPEG_TYPEMIME;

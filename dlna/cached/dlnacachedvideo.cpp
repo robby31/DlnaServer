@@ -39,8 +39,8 @@ int DlnaCachedVideo::channelCount() const
 
 QString DlnaCachedVideo::framerate() const
 {
-    if (!toTranscode() && library != 0)
+    if (library != 0)
         return library->getmetaData("framerate", idMedia).toString();
 
-    return DlnaVideoItem::framerate();
+    return QString();
 }

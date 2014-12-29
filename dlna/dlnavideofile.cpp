@@ -96,8 +96,5 @@ QStringList DlnaVideoFile::subtitleLanguages() const {
 }
 
 QString DlnaVideoFile::framerate() const {
-    if (toTranscode())
-        return DlnaVideoItem::framerate();
-    else
-        return QString().sprintf("%2.3f", ffmpeg.getVideoFrameRate());
+    return QString().sprintf("%2.3f", ffmpeg.getVideoFrameRate());
 }

@@ -179,10 +179,3 @@ int DlnaVideoItem::samplerate() const {
     else
         return -1;
 }
-
-QString DlnaVideoItem::framerate() const {
-    if (toTranscode())
-        return "25.000";
-    else
-        return QString();
-}
