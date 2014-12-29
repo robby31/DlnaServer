@@ -25,7 +25,9 @@ void FfmpegTranscoding::updateArguments()
     }
 
     QStringList arguments;
-    arguments << "-loglevel" << "warning";
+//    arguments << "-loglevel" << "warning";
+    arguments << "-hide_banner";
+    arguments << "-nostats";
 
     if (!ssOption.isEmpty())
         arguments << "-ss" << ssOption;
@@ -116,8 +118,6 @@ void FfmpegTranscoding::updateArguments()
             arguments << "-minrate" << QString("%1").arg(video_bitrate) << "-maxrate" << QString("%1").arg(video_bitrate);
             arguments << "-bufsize" << QString("%1").arg(video_bitrate*3/25);   // bufsize = 3 * bitrate / fps
         }
-        if (!frameRate().isEmpty())
-            arguments << "-r:v" << frameRate();
     }
     else
     {
