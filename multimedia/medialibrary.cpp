@@ -160,6 +160,20 @@ bool MediaLibrary::open()
 
 
 
+        /////////////////////////////////////////////////////////
+        // update youtube link broken
+
+//        if (query.exec("SELECT id, filename, title from media WHERE filename like '%youtube%' and title like '%prayer%'"))
+//            while (query.next())
+//                qWarning() << query.value("id") << query.value("filename") << query.value("title");
+
+
+//        if (!query.exec(QString("UPDATE media SET filename='https://www.youtube.com/watch?v=JrlfFTS9kGU' where id=60")))
+//            qWarning() << query.lastError();
+
+        /////////////////////////////////////////////////////////
+
+
 //        if (query.exec("SELECT filename, counter_played from media ORDER BY counter_played"))
 //            while (query.next())
 //                qWarning() << query.value("counter_played") << query.value("filename");
