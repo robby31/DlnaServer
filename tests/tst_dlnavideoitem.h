@@ -16,6 +16,8 @@ signals:
 
 public slots:
     void receivedTranscodedData();
+    void transcodingOpened();
+    void LogMessage(const QString &message);
 
 private Q_SLOTS:
     void testCase_DlnaVideoItem_AVI_Starwars();
@@ -26,6 +28,8 @@ private Q_SLOTS:
 private:
     TranscodeProcess* transcodeProcess;
     long transcodedSize;
+    QElapsedTimer transcodeTimer;
+    qint64 timeToOpenTranscoding;
 };
 
 #endif // TST_DLNAVIDEOITEM_H

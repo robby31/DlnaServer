@@ -91,7 +91,7 @@ void tst_dlnafolder::testCase_PerformanceAllArtists() {
 
     int duration = parseFolder("0$1", &music);
     qWarning() << "PERFO" << duration << music.getSystemName() << music.getChildrenSize() << "children";
-    QVERIFY2(duration < 200, QString("Parse all artists in %1 ms").arg(duration).toUtf8());
+    QVERIFY2(duration < 2500, QString("Parse all artists in %1 ms").arg(duration).toUtf8());
     QVERIFY(music.getChildrenSize() == 608);
 }
 
@@ -122,7 +122,7 @@ void tst_dlnafolder::testCase_PerformanceAllAlbums() {
         }
         delete artist;
     }
-    QVERIFY2(max < 400, QString("Parse all albums by artist in %1 ms").arg(max).toUtf8());
+    QVERIFY2(max < 1000, QString("Parse all albums by artist in %1 ms").arg(max).toUtf8());
 }
 
 void tst_dlnafolder::testCase_PerformanceAllTracks() {
@@ -168,5 +168,5 @@ void tst_dlnafolder::testCase_PerformanceAllTracks() {
 
     qWarning() << "DURATION" << QTime(0, 0).addMSecs(timer.elapsed()).toString("hh:mm:ss.zzz");
 
-    QVERIFY2(max < 11000, QString("Parse all tracks by album in %1 ms").arg(max).toUtf8());
+    QVERIFY2(max < 13000, QString("Parse all tracks by album in %1 ms").arg(max).toUtf8());
 }

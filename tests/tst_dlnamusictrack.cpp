@@ -434,10 +434,12 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
     QVERIFY(transcodeProcess->open() == true);
     QVERIFY(transcodeProcess->waitForFinished(-1) == true);
     qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 300, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 4000, QString("%1").arg(duration).toUtf8());
+    QVERIFY2(timeToOpenTranscoding < 400, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+    QVERIFY2(duration < 5000, QString("%1").arg(duration).toUtf8());
+    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY2(transcodedBytes == 7560412, QString("%1").arg(transcodedBytes).toUtf8().constData());
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
+    QVERIFY2(transcodedBytes == 7560413, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd() == true);
     delete transcodeProcess;
     transcodeProcess = 0;
@@ -530,10 +532,12 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     transcodeProcess->waitForFinished(-1);
     qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 300, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 13000, QString("%1").arg(duration).toUtf8());
+    QVERIFY2(timeToOpenTranscoding < 400, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+    QVERIFY2(duration < 16000, QString("%1").arg(duration).toUtf8());
+    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY2(transcodedBytes == 21786284, QString("%1").arg(transcodedBytes).toUtf8().constData());
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
+    QVERIFY2(transcodedBytes == 21786285, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
@@ -555,7 +559,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodedBytes == 21786284);
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
+    QVERIFY(transcodedBytes == 21786285);
     QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
@@ -577,7 +582,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY2(transcodedBytes == 44, QString("%1").arg(transcodedBytes).toUtf8().constData());
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
+    QVERIFY2(transcodedBytes == 45, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
@@ -599,7 +605,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY2(transcodedBytes == 10026284, QString("%1").arg(transcodedBytes).toUtf8().constData());
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
+    QVERIFY2(transcodedBytes == 10026285, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
@@ -619,6 +626,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 1);
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY2(transcodedBytes == 0, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
@@ -641,7 +649,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY2(transcodedBytes == 3884, QString("%1").arg(transcodedBytes).toUtf8().constData());
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
+    QVERIFY2(transcodedBytes == 3885, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;
@@ -737,9 +746,11 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     transcodeProcess->waitForFinished(-1);
     qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 50, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+    QVERIFY2(timeToOpenTranscoding < 80, QString("%1").arg(timeToOpenTranscoding).toUtf8());
     QVERIFY2(duration < 600, QString("%1").arg(duration).toUtf8());
+    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY(transcodeProcess->exitCode() == 0);
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY2(transcodedBytes == 104568320, QString("%1").arg(transcodedBytes).toUtf8());
     QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
@@ -762,6 +773,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY(transcodedBytes == 104568320);
     QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
@@ -784,6 +796,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY2(transcodedBytes == 4096, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
@@ -806,6 +819,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY(transcodedBytes == 92856320);
     QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
@@ -828,6 +842,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 1);
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY(transcodedBytes == 0);
     QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
@@ -850,6 +865,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY(transcodedBytes == 4096);
     QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
@@ -945,10 +961,12 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     transcodeProcess->waitForFinished(-1);
     qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 200, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+    QVERIFY2(timeToOpenTranscoding < 400, QString("%1").arg(timeToOpenTranscoding).toUtf8());
     QVERIFY2(duration < 10000, QString("%1").arg(duration).toUtf8());
+    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY2(transcodedBytes == 24926920, QString("%1").arg(transcodedBytes).toUtf8());
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
+    QVERIFY2(transcodedBytes == 24925228, QString("%1").arg(transcodedBytes).toUtf8());
     QVERIFY(transcodeProcess->atEnd()==true);
     delete transcodeProcess;
     transcodeProcess = 0;

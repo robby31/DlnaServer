@@ -126,16 +126,16 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QVERIFY(list_found.isEmpty() == false);
     DlnaItem* item_found = qobject_cast<DlnaItem*>(list_found.at(0));
     QVERIFY(item_found->getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Je dis aime/01 Monde virtuel.m4a");
-    QVERIFY(item_found->getdlnaOrgOpFlags() == "01");
+    QVERIFY(item_found->getdlnaOrgOpFlags() == "10");
     QVERIFY(item_found->getdlnaOrgPN() == "MP3");
-    QVERIFY(item_found->getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
-    QVERIFY(item_found->getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01");
+    QVERIFY(item_found->getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+    QVERIFY(item_found->getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10");
 
     item_found->setdlnaOrgPN(QString());
-    QVERIFY(item_found->getdlnaOrgOpFlags() == "01");
+    QVERIFY(item_found->getdlnaOrgOpFlags() == "10");
     QVERIFY(item_found->getdlnaOrgPN() == "");
-    QVERIFY(item_found->getDlnaContentFeatures() == "DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=01700000000000000000000000000000");
-    QVERIFY(item_found->getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_OP=01");
+    QVERIFY(item_found->getDlnaContentFeatures() == "DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+    QVERIFY(item_found->getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_OP=10");
 
     rootFolder.addFolder("/Users/doudou/Movies");
     QVERIFY(rootFolder.getChild(0) != 0);
