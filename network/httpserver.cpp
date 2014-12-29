@@ -7,7 +7,7 @@
 
 const QString HttpServer::UUID = "cdc79bcf-6985-4baf-b974-e83846efd903";
 
-const QString HttpServer::SERVERNAME = "Mac_OS_X-x86_64-10.9.1, UPnP/1.0, QMS/1.0";
+const QString HttpServer::SERVERNAME = "QMS/1.0";
 
 const int HttpServer::SERVERPORT = 5002;
 
@@ -155,7 +155,7 @@ void HttpServer::_readyToReply()
 
     if ((request->getMethod() == "GET" || request->getMethod() == "HEAD") && request->getArgument().startsWith("get/"))
     {
-        reply = new ReplyDlnaItemContent(m_log, request, &workerStreaming);
+        reply = new ReplyDlnaItemContent(m_log, request);
         connect(reply, SIGNAL(startServingRendererSignal(QString)), request, SLOT(startServingRenderer(QString)));
         connect(reply, SIGNAL(stopServingRendererSignal()), request, SLOT(stopServingRenderer()));
         connect(reply, SIGNAL(servingSignal(QString,int)), this, SLOT(_servingProgress(QString,int)));

@@ -8,7 +8,7 @@ class ReplyDlnaItemContent : public Reply
     Q_OBJECT
 
 public:
-    explicit ReplyDlnaItemContent(Logger *log, Request *request, QThread *streamThread, QObject *parent = 0);
+    explicit ReplyDlnaItemContent(Logger *log, Request *request, QObject *parent = 0);
     virtual ~ReplyDlnaItemContent();
 
 
@@ -40,17 +40,23 @@ private slots:
 
     void streamOpened();
 
-    void streamContentDestroyed()    { streamContent = 0;
+    void streamContentDestroyed()    {
                                        emit logTextSignal(QString("%1: Stream removed."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
                                      }
 
     void streamingError(const QString &error) { Q_UNUSED(error) streamingWithErrors = true; }
 
     void bytesSent(const qint64 &size, const qint64 &towrite) { networkBytesSent += size; bytesToWrite = towrite;
-                                                                if (towrite==0)
+                                                                if (!m_streamingCompleted && towrite==0)
                                                                 {
                                                                     emit logTextSignal(QString("%1: low buffer."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-                                                                    emit requestData(maxBufferSize()-bytesToWrite);
+
+                                                                    int bytesToRead = maxBufferSize() - bytesToWrite;
+                                                                    if (bytesToRead > 0)
+                                                                    {
+                                                                        bytesToWrite = maxBufferSize();
+                                                                        emit requestData(bytesToRead);
+                                                                    }
                                                                 }
                                                               }
 
@@ -60,6 +66,8 @@ private slots:
     virtual void _run(const QString &method, const QString &argument);
 
     virtual void dlnaResources(QObject* requestor, QList<DlnaResource*> resources);
+
+    void streamingCompleted() { m_streamingCompleted = true; emit closeClientSignal(); }
 
 
 private:
@@ -76,8 +84,7 @@ private:
 
     QString requestFilename;
     QString mediaFilename;
-    QThread *streamThread;
-    Device *streamContent;
+    bool m_streamingCompleted;
     bool streamingWithErrors;
     qint64 m_maxBufferSize;
     int durationBuffer;                 // when bitrate is known, m_maxBufferSize is set to durationBuffer seconds of streaming

@@ -3,15 +3,18 @@
 // call updateStatus function every second
 const int ReplyDlnaItemContent::UPDATE_STATUS_PERIOD = 1000;
 
-ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, Request *request, QThread *streamThread, QObject *parent):
+ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, Request *request, QObject *parent):
     Reply(log, request, parent),
     m_closed(false),
     timerStatus(this),
     bytesToWrite(0),
     networkBytesSent(0),
     lastNetBytesSent(-1),
-    streamThread(streamThread),
-    streamContent(0),
+    clockSending(),
+    clockUpdateStatus(),
+    requestFilename(),
+    mediaFilename(),
+    m_streamingCompleted(false),
     streamingWithErrors(false),
     m_maxBufferSize(1024*1024*10),   // 10 MBytes by default when bitrate is unknown
     durationBuffer(10)
@@ -41,7 +44,12 @@ void ReplyDlnaItemContent::streamOpened()
     sendHeader();
 
     // start sending when device is opened
-    emit requestData(maxBufferSize()-bytesToWrite);
+    int bytesToRead = maxBufferSize() - bytesToWrite;
+    if (bytesToRead > 0)
+    {
+        bytesToWrite = maxBufferSize();
+        emit requestData(bytesToRead);
+    }
 }
 
 void ReplyDlnaItemContent::_run(const QString &method, const QString &argument)
@@ -78,6 +86,7 @@ void ReplyDlnaItemContent::_run(const QString &method, const QString &argument)
     }
     else
     {
+        requestFilename.clear();
         logError("Unkown answer for: " + method + " " + argument);
         emit replyStatusSignal("KO");
         close();
@@ -98,13 +107,17 @@ void ReplyDlnaItemContent::updateStatus()
         clockUpdateStatus.start();
     }
 
-    if (isLogLevel(DEBG) && streamContent)
-        emit logTextSignal(QString("%1: UPDATE STATUS, bytes available?%2 bytes sent?%3 bytes to send?%4"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(streamContent->bytesAvailable()).arg(networkBytesSent).arg(bytesToWrite));
+    if (isLogLevel(DEBG))
+        emit logTextSignal(QString("%1: UPDATE STATUS, bytes sent?%2 bytes to send?%3"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(networkBytesSent).arg(bytesToWrite));
 
-    if (streamContent && streamContent->isOpen())
+    if (!m_streamingCompleted && int(100.0*double(bytesToWrite)/double(maxBufferSize())) < 50)
     {
-        if (!streamContent->atEnd() && int(100.0*double(bytesToWrite)/double(maxBufferSize())) < 50)
-            emit requestData(maxBufferSize()-bytesToWrite);
+        int bytesToRead = maxBufferSize() - bytesToWrite;
+        if (bytesToRead > 0)
+        {
+            bytesToWrite = maxBufferSize();
+            emit requestData(bytesToRead);
+        }
     }
 
     if (!mediaFilename.isNull()) {
@@ -137,6 +150,8 @@ void ReplyDlnaItemContent::close()
     if (m_closed)
         return;
 
+    m_closed = true;
+
     if (isLogLevel(DEBG))
         emit logTextSignal(QString("%1: Close reply."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
@@ -145,9 +160,9 @@ void ReplyDlnaItemContent::close()
     if (clockSending.isValid())
         emit logTextSignal(QString("%3: Close Reply: %1 bytes sent, %2 taken to send data."+CRLF).arg(networkBytesSent).arg(QTime(0, 0).addMSecs(clockSending.elapsed()).toString("hh:mm:ss.zzz")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
-    if (streamContent)
+    if (!requestFilename.isEmpty())
     {
-        if (streamContent->atEnd() && !streamingWithErrors && bytesToWrite == 0) {
+        if (m_streamingCompleted && !streamingWithErrors && bytesToWrite == 0) {
             emit replyStatusSignal("Streaming finished.");
             emit servingFinishedSignal(mediaFilename, 0);
             emit logTextSignal(QString("%1: Streaming finished."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
@@ -156,9 +171,9 @@ void ReplyDlnaItemContent::close()
             emit servingFinishedSignal(mediaFilename, 1);
             emit logTextSignal(QString("%1: Streaming aborted."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
         }
-
-        emit stopServingRendererSignal();
     }
+
+    emit stopServingRendererSignal();
 
     emit logTextSignal(QString("%1: Reply closed."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
@@ -179,8 +194,6 @@ void ReplyDlnaItemContent::close()
     emit logTextSignal(QString("%1: Reply finished."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
     emit finishedSignal();
-
-    m_closed = true;
 }
 
 void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource *> resources)
@@ -211,10 +224,12 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
             QByteArray answerContent = dlna->getByteAlbumArt();
             if (answerContent.isNull()) {
                 logError("Unable to get thumbnail: " + dlna->getDisplayName());
+                requestFilename.clear();
                 emit replyStatusSignal("KO");
                 close();
             } else {
                 sendAnswer(answerContent);
+                requestFilename.clear();
                 emit replyStatusSignal("OK");
                 close();
             }
@@ -285,6 +300,7 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
 
             if (m_request->getMethod() == "HEAD") {
                 sendAnswer(QByteArray());
+                requestFilename.clear();
                 emit replyStatusSignal("OK");
                 close();
 
@@ -294,52 +310,46 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                 mediaFilename = dlna->getSystemName();
                 emit servingSignal(mediaFilename, 0);
 
-                if (streamContent == 0) {
-                    // recover resume time
-                    qint64 timeSeekRangeStart = m_request->getTimeSeekRangeStart();
-                    qint64 timeSeekRangeEnd = m_request->getTimeSeekRangeEnd();
-                    qint64 resume = dlna->getResumeTime();
-                    if (resume>0) {
-                        timeSeekRangeStart = resume/1000 - 10;
-                        clockSending.addMSec(timeSeekRangeStart*1000);
-                    }
+                // recover resume time
+                qint64 timeSeekRangeStart = m_request->getTimeSeekRangeStart();
+                qint64 timeSeekRangeEnd = m_request->getTimeSeekRangeEnd();
+                qint64 resume = dlna->getResumeTime();
+                if (resume>0) {
+                    timeSeekRangeStart = resume/1000 - 10;
+                    clockSending.addMSec(timeSeekRangeStart*1000);
+                }
 
-                    // get stream file
-                    streamContent = dlna->getStream(range, timeSeekRangeStart, timeSeekRangeEnd);
-//                        streamContent->moveToThread(streamThread);
+                // get stream file
+                Device *streamContent = dlna->getStream(range, timeSeekRangeStart, timeSeekRangeEnd);
 
-                    if (!streamContent)
-                    {
-                        // No inputStream indicates that transcoding / remuxing probably crashed.
-                        logError("There is no inputstream to return for " + dlna->getDisplayName());
-                        emit replyStatusSignal("KO");
-                        close();
-                    }
-                    else
-                    {
-                        if (dlna->bitrate()>0)
-                            setMaxBufferSize(dlna->bitrate()/8*durationBuffer);  // set Max buffer size if bitrate is available
-
-                        connect(streamContent, SIGNAL(destroyed()), this, SLOT(streamContentDestroyed()));
-                        connect(this, SIGNAL(destroyed()), streamContent, SLOT(deleteLater()));
-                        connect(streamContent, SIGNAL(openedSignal()), this, SLOT(streamOpened()));
-                        connect(streamContent, SIGNAL(status(QString)), this, SIGNAL(replyStatusSignal(QString)));
-                        connect(streamContent, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-                        connect(streamContent, SIGNAL(errorRaised(QString)), this, SLOT(streamingError(QString)));
-                        connect(this, SIGNAL(requestData(int)), streamContent, SLOT(requestData(int)));
-                        connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), this, SIGNAL(sendDataToClientSignal(QByteArray)));
-                        connect(streamContent, SIGNAL(endReached()), this, SIGNAL(closeClientSignal()));
-
-                        if (streamContent->open())
-                        {
-                            emit logTextSignal(QString("%1: Streaming started, %2 bytes to send."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(streamContent->size()));
-                            emit startServingRendererSignal(dlna->getDisplayName());
-                        }
-                    }
-                } else {
-                    logError(QString("Streaming already in progress"));
+                if (!streamContent)
+                {
+                    // No inputStream indicates that transcoding / remuxing probably crashed.
+                    logError("There is no inputstream to return for " + dlna->getDisplayName());
+                    requestFilename.clear();
                     emit replyStatusSignal("KO");
                     close();
+                }
+                else
+                {
+                    if (dlna->bitrate()>0)
+                        setMaxBufferSize(dlna->bitrate()/8*durationBuffer);  // set Max buffer size if bitrate is available
+
+                    connect(streamContent, SIGNAL(destroyed()), this, SLOT(streamContentDestroyed()));
+                    connect(this, SIGNAL(destroyed()), streamContent, SLOT(deleteLater()));
+                    connect(streamContent, SIGNAL(openedSignal()), this, SLOT(streamOpened()));
+                    connect(streamContent, SIGNAL(status(QString)), this, SIGNAL(replyStatusSignal(QString)));
+                    connect(streamContent, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+                    connect(streamContent, SIGNAL(errorRaised(QString)), this, SLOT(streamingError(QString)));
+                    connect(this, SIGNAL(requestData(int)), streamContent, SLOT(requestData(int)));
+                    connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), this, SIGNAL(sendDataToClientSignal(QByteArray)));
+                    connect(streamContent, SIGNAL(endReached()), this, SLOT(streamingCompleted()));
+
+                    if (streamContent->open())
+                    {
+                        emit logTextSignal(QString("%1: Streaming started, %2 bytes to send."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(streamContent->size()));
+                        emit startServingRendererSignal(dlna->getDisplayName());
+                    }
                 }
             }
         }
@@ -347,6 +357,7 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
     else
     {
         logError(QString("%1 media found").arg(resources.size()));
+        requestFilename.clear();
         emit replyStatusSignal("KO");
         close();
     }
