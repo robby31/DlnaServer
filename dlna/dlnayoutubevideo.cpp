@@ -23,7 +23,15 @@ void DlnaYouTubeVideo::requestTitle()
         arg << m_url.toString();
         process.start(programYouTube, arg);
         if (process.waitForFinished())
+        {
             m_title = process.readAll().trimmed();
+        }
+        else
+        {
+            logError("ERROR: unable to get title.");
+            process.kill();
+            process.waitForFinished();
+        }
     }
 }
 
@@ -45,8 +53,6 @@ void DlnaYouTubeVideo::requestVideoInfo()
     ffmpeg.start(programFfmpeg, argFfmpeg);
 
     bool res = ffmpeg.waitForFinished();
-    youtube.kill();
-    youtube.waitForFinished();
 
     if (res) {
         QString answer(ffmpeg.readAllStandardError());
@@ -65,6 +71,15 @@ void DlnaYouTubeVideo::requestVideoInfo()
 //            qWarning() << "VIDEO INFO" << video.capturedTexts();
         }
     }
+    else
+    {
+        logError("ERROR: unable to get video info.");
+        ffmpeg.kill();
+        ffmpeg.waitForFinished();
+    }
+
+    youtube.kill();
+    youtube.waitForFinished();
 }
 
 TranscodeProcess *DlnaYouTubeVideo::getTranscodeProcess()
@@ -85,6 +100,12 @@ TranscodeProcess *DlnaYouTubeVideo::getTranscodeProcess()
             QString url = process.readAllStandardOutput().trimmed();
             if (url.startsWith("http"))
                 transcodeProcess->setUrl(url);
+        }
+        else
+        {
+            logError("ERROR: unable to get url.");
+            process.kill();
+            process.waitForFinished();
         }
     }
 

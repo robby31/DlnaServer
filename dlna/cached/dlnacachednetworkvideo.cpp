@@ -24,6 +24,12 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
             if (url.startsWith("http"))
                 transcodeProcess->setUrl(url);
         }
+        else
+        {
+            logError("ERROR: unable to get url.");
+            process.kill();
+            process.waitForFinished();
+        }
     }
 
     transcodeProcess->setLengthInSeconds(getLengthInSeconds());

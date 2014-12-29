@@ -46,6 +46,7 @@ public:
     virtual QString resolution() const { return m_resolution; }
     virtual QStringList subtitleLanguages() const { return QStringList(); }
     virtual QStringList audioLanguages() const { return QStringList(); }
+    virtual QString framerate() const { return QString(); }
 
 protected:
     // Returns the process for transcoding
@@ -53,7 +54,7 @@ protected:
 
 signals:
 
-public slots:
+private slots:
 
 private:
     void requestTitle();
