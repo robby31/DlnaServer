@@ -31,6 +31,7 @@ public:
     // return true if the track shall be transcoded
     virtual bool toTranscode() const = 0;
 
+    TranscodeFormatAvailable format() const { return transcodeFormat; }
     void setTranscodeFormat(TranscodeFormatAvailable format);
 
     // Returns the mimeType for this DLNA node.
