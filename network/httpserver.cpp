@@ -18,7 +18,6 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
     hostaddress(),
     serverport(SERVERPORT),
     workerNetwork(this),
-    workerStreaming(this),
     database(QSqlDatabase::addDatabase("QSQLITE"))
 {
     if (!m_log)
@@ -38,9 +37,6 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
 
     workerNetwork.setObjectName("Network, request, reply Thread");
     workerNetwork.start();
-
-    workerStreaming.setObjectName("Streaming Thread");
-    workerStreaming.start();
 }
 
 HttpServer::~HttpServer()
@@ -48,12 +44,7 @@ HttpServer::~HttpServer()
     // stop network thread
     workerNetwork.quit();
     if (!workerNetwork.wait(1000))
-        logError("Unable to stop request thread in HttpServer.");
-
-    // stop streaming thread
-    workerStreaming.quit();
-    if (!workerStreaming.wait(1000))
-        logError("Unable to stop request thread in HttpServer.");
+        logError("Unable to stop network, request and reply thread in HttpServer.");
 
     logTrace("Close HTTP server.");
     close();
@@ -140,6 +131,7 @@ void HttpServer::incomingConnection(qintptr socketDescriptor)
     connect(request, SIGNAL(newRenderer(MediaRenderer*)), this, SIGNAL(newRenderer(MediaRenderer*)));
     connect(request, SIGNAL(startServingRendererSignal(QString,QString)), this, SIGNAL(servingRenderer(QString,QString)));
     connect(request, SIGNAL(stopServingRendererSignal(QString)), this, SIGNAL(stopServingRenderer(QString)));
+    connect(request, SIGNAL(deleteRequest(Request*)), this, SIGNAL(deleteRequest(Request*)));
 
     emit newRequest(request);
 }
@@ -161,7 +153,7 @@ void HttpServer::_readyToReply()
         connect(reply, SIGNAL(servingSignal(QString,int)), this, SLOT(_servingProgress(QString,int)));
         connect(reply, SIGNAL(servingFinishedSignal(QString, int)), this, SLOT(_servingFinished(QString, int)));
         connect(request, SIGNAL(clientDisconnected()), reply, SLOT(close()));
-        connect(request, SIGNAL(bytesSent(qint64,qint64)), reply, SLOT(bytesSent(qint64,qint64)));
+        connect(request, SIGNAL(bytesSent(qint64,qint64)), reply, SIGNAL(bytesSent(qint64,qint64)));
     }
     else
     {

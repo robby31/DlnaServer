@@ -68,7 +68,7 @@ void HttpClient::sendData(const QByteArray &data)
 {
     // send the content
     if (write(data) == -1)
-        logError("HTTP request: Unable to send content.");
+        logError(QString("HTTP request: Unable to send content, %1").arg(errorString()));
     else if (isLogLevel(DEBG))
         appendLogSignal(QString("%1: bytes written?%2"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(data.size()));
 

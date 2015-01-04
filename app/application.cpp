@@ -85,6 +85,7 @@ void Application::setRequestsModel(RequestListModel *model)
     if (server)
     {
         connect(server, SIGNAL(newRequest(Request*)), m_requestsModel, SLOT(addRequestInModel(Request*)));
+        connect(server, SIGNAL(deleteRequest(Request*)), m_requestsModel, SLOT(requestDestroyed(Request*)));
     }
     else
     {

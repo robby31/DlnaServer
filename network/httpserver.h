@@ -58,6 +58,7 @@ signals:
     void stopServingRenderer(const QString &ip);
 
     void newRequest(Request *request);
+    void deleteRequest(Request *request);
     void newRenderer(MediaRenderer *renderer);
 
     void updateMediaData(const QString &filename, const QHash<QString, QVariant> &data);
@@ -97,7 +98,6 @@ private :
     int serverport;
 
     QThread workerNetwork;
-    QThread workerStreaming;
 
     // root folder containing DLNA nodes
     QSqlDatabase database;
