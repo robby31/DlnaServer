@@ -14,8 +14,11 @@ class tst_dlnacachedresources: public QObject
 public:
     explicit tst_dlnacachedresources(QObject *parent = 0);
 
+signals:
+    void bytesSent(const qint64 &size, const qint64 &towrite);
+
 private slots:
-    void receivedTranscodedData();
+    void receivedTranscodedData(const QByteArray &data);
     void error_addFolder(const QString &folder) { folderKO = folder; }
 
 private Q_SLOTS:

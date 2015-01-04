@@ -122,7 +122,7 @@ void tst_dlnafolder::testCase_PerformanceAllAlbums() {
         }
         delete artist;
     }
-    QVERIFY2(max < 1000, QString("Parse all albums by artist in %1 ms").arg(max).toUtf8());
+    QVERIFY2(max < 1100, QString("Parse all albums by artist in %1 ms").arg(max).toUtf8());
 }
 
 void tst_dlnafolder::testCase_PerformanceAllTracks() {

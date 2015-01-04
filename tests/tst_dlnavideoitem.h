@@ -13,17 +13,19 @@ public:
     explicit tst_dlnavideoitem(QObject *parent = 0);
 
 signals:
+    void bytesSent(const qint64 &size, const qint64 &towrite);
 
 public slots:
-    void receivedTranscodedData();
+    void receivedTranscodedData(const QByteArray &data);
     void transcodingOpened();
     void LogMessage(const QString &message);
 
 private Q_SLOTS:
-    void testCase_DlnaVideoItem_AVI_Starwars();
-    void testCase_DlnaVideoItem_MKV_Looper();
-    void testCase_DlnaVideoItem_AVI();
-    void testCase_DlnaVideoItem_MKV();
+    void testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC();
+    void testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3();
+    void testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3();
+    void testCase_DlnaVideoItem_AVI_MPEG2_AC3();
+    void testCase_DlnaVideoItem_MKV_MPEG2_AC3();
 
 private:
     TranscodeProcess* transcodeProcess;

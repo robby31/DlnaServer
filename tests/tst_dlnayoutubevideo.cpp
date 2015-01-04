@@ -29,7 +29,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
     QVERIFY(video.metaDataTitle() == "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]");
     QVERIFY2(video.metaDataDuration() == 193490, QString("%1").arg(video.metaDataDuration()).toUtf8());
     QVERIFY2(video.resolution() == "1280x720", QString("%1").arg(video.resolution()).toUtf8());
-    QVERIFY2(video.bitrate() == 5718800, QString("%1").arg(video.bitrate()).toUtf8());
+    QVERIFY2(video.bitrate() == 8718800, QString("%1").arg(video.bitrate()).toUtf8());
 
     qWarning() << "test done in" << timer.elapsed() << "ms.";
 }
@@ -50,10 +50,10 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo2()
     QVERIFY(video.metaDataTitle() == "Muse - Exogenesis- Symphony Part 1 (Overture)");
     QVERIFY(video.metaDataDuration() == 258460);
     QVERIFY(video.resolution() == "638x360");
-    QVERIFY(video.bitrate() == 5718800);
+    QVERIFY(video.bitrate() == 8718800);
     QVERIFY(video.toTranscode() == true);
     QVERIFY2(video.getLengthInMilliSeconds()==258460, QString("%1").arg(video.getLengthInMilliSeconds()).toUtf8());
-    QVERIFY2(video.size()==184760131, QString("%1").arg(video.size()).toUtf8());
+    QVERIFY2(video.size()==281682631, QString("%1").arg(video.size()).toUtf8());
     QVERIFY2(video.framerate() == "25.000", video.framerate().toUtf8());
 
     qWarning() << "test done in" << timer.elapsed() << "ms.";
@@ -101,7 +101,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
     QVERIFY(video.metaDataTitle() == "Lilly Wood & The Prick - Let's Not Pretend [Clip Officiel]");
     QVERIFY(video.metaDataDuration() == 220170);
     QVERIFY(video.resolution() == "1280x720");
-    QVERIFY(video.bitrate() == 5718800);
+    QVERIFY(video.bitrate() == 8718800);
 
     qWarning() << "test done in" << timer.elapsed() << "ms.";
 }

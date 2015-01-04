@@ -15,9 +15,10 @@ public:
     explicit tst_dlnamusictrack(QObject *parent = 0);
 
 signals:
+    void bytesSent(const qint64 &size, const qint64 &towrite);
 
 private slots:
-    void receivedTranscodedData();
+    void receivedTranscodedData(const QByteArray &data);
     void transcodingOpened();
 
 private Q_SLOTS:
@@ -32,7 +33,6 @@ private Q_SLOTS:
     void testCase_DlnaMusicTrack_WAV_Transcoding_AAC();
 
 private:
-    TranscodeProcess* transcodeProcess;
     qint64 transcodedBytes;
     QElapsedTimer transcodeTimer;
     qint64 timeToOpenTranscoding;

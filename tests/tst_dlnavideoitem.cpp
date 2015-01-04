@@ -8,17 +8,19 @@ tst_dlnavideoitem::tst_dlnavideoitem(QObject *parent) :
 {
 }
 
-void tst_dlnavideoitem::receivedTranscodedData() {
-    if (transcodeProcess != 0) {
-        while (transcodeProcess->isOpen() && transcodeProcess->bytesAvailable()>0)
-            transcodedSize += transcodeProcess->read(1024*1024).size();
-    }
+void tst_dlnavideoitem::receivedTranscodedData(const QByteArray &data)
+{
+    transcodedSize += data.size();
+    emit bytesSent(transcodedSize, 1);
 }
 
 void tst_dlnavideoitem::transcodingOpened()
 {
     if (transcodeTimer.isValid())
+    {
         timeToOpenTranscoding = transcodeTimer.elapsed();
+        qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms.";
+    }
 }
 
 void tst_dlnavideoitem::LogMessage(const QString &message)
@@ -26,17 +28,20 @@ void tst_dlnavideoitem::LogMessage(const QString &message)
     qWarning() << message;
 }
 
-void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars() {
+void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
 
     Logger log;
     log.setLevel(INF);
 
     DlnaVideoFile movie(&log, "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi", "host", 600);
+    movie.setTranscodeFormat(MPEG4_AAC);
+
     QVERIFY(movie.toTranscode()==true);
+    QVERIFY(movie.format() == MPEG4_AAC);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi");
-    QVERIFY2(movie.bitrate()==5718800, QString("%1").arg(movie.bitrate()).toUtf8().constData());
+    QVERIFY2(movie.bitrate()==4256000, QString("%1").arg(movie.bitrate()).toUtf8().constData());
     QVERIFY2(movie.getLengthInMilliSeconds()==8090173, QString("%1").arg(movie.getLengthInMilliSeconds()).toUtf8().constData());
-    QVERIFY2(movie.size()==5783260169, QString("%1").arg(movie.size()).toUtf8().constData());
+    QVERIFY2(movie.size()==4303972036, QString("%1").arg(movie.size()).toUtf8().constData());
     QVERIFY2(movie.framerate() == "23.976", movie.framerate().toUtf8());
 
     Device *device = movie.getStream(0, 0, -1);
@@ -44,21 +49,71 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
+    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
+    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(transcodeProcess->open() == true);
     transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 1500, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
+    QVERIFY2(timeToOpenTranscoding < 50, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+    QVERIFY2(duration < 900000, QString("%1").arg(duration).toUtf8());
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
+    QVERIFY2(transcodedSize == 3789040924, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    delete transcodeProcess;
+    transcodeProcess = 0;
+
+    QVERIFY(movie.getdlnaOrgOpFlags() == "10");
+    QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
+    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01700000000000000000000000000000");
+    QVERIFY2(movie.getProtocolInfo() == "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10", movie.getProtocolInfo().toUtf8());
+
+    QVERIFY(movie.getAlbumArt().isNull() == true);
+    QVERIFY(movie.getByteAlbumArt().isNull() == true);
+}
+
+void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
+
+    Logger log;
+    log.setLevel(INF);
+
+    DlnaVideoFile movie(&log, "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi", "host", 600);
+    movie.setTranscodeFormat(MPEG2_AC3);
+
+    QVERIFY(movie.toTranscode()==true);
+    QVERIFY(movie.format() == MPEG2_AC3);
+    QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi");
+    QVERIFY2(movie.bitrate()==8718800, QString("%1").arg(movie.bitrate()).toUtf8().constData());
+    QVERIFY2(movie.getLengthInMilliSeconds()==8090173, QString("%1").arg(movie.getLengthInMilliSeconds()).toUtf8().constData());
+    QVERIFY2(movie.size()==8817075044, QString("%1").arg(movie.size()).toUtf8().constData());
+    QVERIFY2(movie.framerate() == "23.976", movie.framerate().toUtf8());
+
+    Device *device = movie.getStream(0, 0, -1);
+    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
+    QVERIFY(transcodeProcess != 0);
+
+    transcodedSize = 0;
+    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
+    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+    transcodeTimer.start();
+    timeToOpenTranscoding = 0;
+    QVERIFY(transcodeProcess->open() == true);
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
+    qint64 duration = transcodeTimer.elapsed();
+    QVERIFY2(timeToOpenTranscoding < 50, QString("%1").arg(timeToOpenTranscoding).toUtf8());
     QVERIFY2(duration < 300000, QString("%1").arg(duration).toUtf8());
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-    QVERIFY2(transcodedSize == 5765412920, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 8767367028, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 
@@ -71,17 +126,20 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars() {
     QVERIFY(movie.getByteAlbumArt().isNull() == true);
 }
 
-void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper() {
+void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
 
     Logger log;
     log.setLevel(INF);
 
     DlnaVideoFile movie(&log, "/Users/doudou/Movies/Films/Action/Looper.2012.DVDRip.XviD-PTpOWeR.mkv", "host", 600);
+    movie.setTranscodeFormat(MPEG2_AC3);
+
     QVERIFY(movie.toTranscode()==true);
+    QVERIFY(movie.format() == MPEG2_AC3);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/Action/Looper.2012.DVDRip.XviD-PTpOWeR.mkv");
-    QVERIFY2(movie.bitrate()==5718800, QString("%1").arg(movie.bitrate()).toUtf8().constData());
+    QVERIFY2(movie.bitrate()==8718800, QString("%1").arg(movie.bitrate()).toUtf8().constData());
     QVERIFY2(movie.getLengthInMilliSeconds()==6825480, QString("%1").arg(movie.getLengthInMilliSeconds()).toUtf8().constData());
-    QVERIFY2(movie.size()==4879194378, QString("%1").arg(movie.size()).toUtf8().constData());
+    QVERIFY2(movie.size()==7438749378, QString("%1").arg(movie.size()).toUtf8().constData());
     QVERIFY(movie.framerate() == "25.000");
 
     Device *device = movie.getStream(0, 0, -1);
@@ -89,21 +147,22 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
+    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
+    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(transcodeProcess->open() == true);
     transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 3000, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+    QVERIFY2(timeToOpenTranscoding < 50, QString("%1").arg(timeToOpenTranscoding).toUtf8());
     QVERIFY2(duration < 300000, QString("%1").arg(duration).toUtf8());
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-    QVERIFY2(transcodedSize == 4878929000, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 7397383580, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 
@@ -116,12 +175,13 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper() {
     QVERIFY(movie.getByteAlbumArt().isNull() == true);
 }
 
-void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
+void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_MPEG2_AC3() {
 
     Logger log;
     log.setLevel(INF);
 
     DlnaVideoFile movie(&log, "/Users/doudou/Movies/Films/PLAYTIME (restored version 2002)_[Jacques_Tati]-1967.avi", "host", 600);
+    movie.setTranscodeFormat(MPEG2_AC3);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/PLAYTIME (restored version 2002)_[Jacques_Tati]-1967.avi");
 
     QStringList properties;
@@ -153,22 +213,23 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().size() == 8, QString("%1").arg(xml_res.elementsByTagName("res").at(0).attributes().size()).toUtf8().constData());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "5112035320", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8().constData());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "7793735320", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8().constData());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "01:59:11");
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "714850", xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue().toUtf8().constData());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "1089850", xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue().toUtf8().constData());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue() == "720x384");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "6");
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "2");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
     xml_res.clear();
 
     QVERIFY(movie.toTranscode() == true);
+    QVERIFY(movie.format() == MPEG2_AC3);
     QVERIFY(movie.mimeType() == "video/mpeg");
-    QVERIFY(movie.size() == 5112035320);
-    QVERIFY(movie.bitrate() == 5718800);
+    QVERIFY(movie.size() == 7793735320);
+    QVERIFY(movie.bitrate() == 8718800);
     QVERIFY(movie.getLengthInSeconds() == 7151);
     QVERIFY2(movie.getLengthInMilliSeconds() == 7151200, QString("%1").arg(movie.getLengthInMilliSeconds()).toUtf8());
     QVERIFY(movie.samplerate() == 48000);
-    QVERIFY(movie.channelCount() == 6);
+    QVERIFY(movie.channelCount() == 2);
     QVERIFY(movie.resolution() == "720x384");
     QVERIFY2(movie.audioLanguages() == QStringList() << "", movie.audioLanguages().join(',').toUtf8());
     QVERIFY2(movie.subtitleLanguages() == QStringList(), movie.subtitleLanguages().join(',').toUtf8());
@@ -181,21 +242,22 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
+    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
+    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(transcodeProcess->open() == true);
     transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 1000, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+    QVERIFY2(timeToOpenTranscoding < 50, QString("%1").arg(timeToOpenTranscoding).toUtf8());
     QVERIFY2(duration < 300000, QString("%1").arg(duration).toUtf8());
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-    QVERIFY2(transcodedSize == 5110745596, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 7750575044, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 
@@ -208,12 +270,13 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI() {
     QVERIFY(movie.getByteAlbumArt().isNull() == true);
 }
 
-void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
+void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
 
     Logger log;
     log.setLevel(INF);
 
     DlnaVideoFile movie(&log, "/Users/doudou/Movies/Films/District.9.2009.720p.BrRip.YIFY.mkv", "host", 600);
+    movie.setTranscodeFormat(MPEG2_AC3);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/District.9.2009.720p.BrRip.YIFY.mkv");
 
     QStringList properties;
@@ -245,11 +308,11 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 8);
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "4815108075", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8().constData());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "7341044325", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8().constData());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "01:52:16");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "714850");
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "1089850");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue() == "1280x688");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "6");
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "2");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
     xml_res.clear();
 
@@ -262,13 +325,14 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
     QVERIFY(movie.getByteAlbumArt().isNull() == true);
 
     QVERIFY(movie.toTranscode() == true);
+    QVERIFY(movie.format() == MPEG2_AC3);
     QVERIFY(movie.mimeType() == "video/mpeg");
-    QVERIFY(movie.size() == 4815108075);
-    QVERIFY(movie.bitrate() == 5718800);
+    QVERIFY(movie.size() == 7341044325);
+    QVERIFY(movie.bitrate() == 8718800);
     QVERIFY(movie.getLengthInSeconds() == 6736);
     QVERIFY2(movie.getLengthInMilliSeconds() == 6735830, QString("%1").arg(movie.getLengthInMilliSeconds()).toUtf8());
     QVERIFY(movie.samplerate() == 48000);
-    QVERIFY(movie.channelCount() == 6);
+    QVERIFY(movie.channelCount() == 2);
     QVERIFY(movie.resolution() == "1280x688");
     QVERIFY2(movie.audioLanguages() == QStringList() << "", movie.audioLanguages().join(',').toUtf8());
     QVERIFY2(movie.subtitleLanguages() == QStringList() << "eng", movie.subtitleLanguages().join(',').toUtf8());
@@ -282,20 +346,21 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
+    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
+    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(transcodeProcess->open() == true);
     transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 3000, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+    QVERIFY2(timeToOpenTranscoding < 50, QString("%1").arg(timeToOpenTranscoding).toUtf8());
     QVERIFY2(duration < 10000, QString("%1").arg(duration).toUtf8());
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedSize == 7115612, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 10818460, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 
@@ -307,21 +372,22 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
+    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
+    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
     connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(transcodeProcess->open()==true);
     transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 3000, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+    QVERIFY2(timeToOpenTranscoding < 50, QString("%1").arg(timeToOpenTranscoding).toUtf8());
     QVERIFY2(duration < 700000, QString("%1").arg(duration).toUtf8());
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-    QVERIFY2(transcodedSize == 4809323880, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 7302011744, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 }
