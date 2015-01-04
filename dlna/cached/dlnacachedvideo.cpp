@@ -23,23 +23,23 @@ TranscodeProcess *DlnaCachedVideo::getTranscodeProcess()
 
 int DlnaCachedVideo::samplerate() const
 {
-    if (!toTranscode() && library != 0)
+    if (library)
         return library->getmetaData("samplerate", idMedia).toInt();
 
-    return DlnaVideoItem::samplerate();
+    return -1;
 }
 
 int DlnaCachedVideo::channelCount() const
 {
-    if (!toTranscode() && library != 0)
+    if (library)
         return library->getmetaData("channelcount", idMedia).toInt();
 
-    return DlnaVideoItem::channelCount();
+    return -1;
 }
 
 QString DlnaCachedVideo::framerate() const
 {
-    if (library != 0)
+    if (library)
         return library->getmetaData("framerate", idMedia).toString();
 
     return QString();
