@@ -9,7 +9,7 @@
 #include "device.h"
 
 // Format available for transcoding
-enum TranscodeFormatAvailable {UNKNOWN, MP3, LPCM, AAC, MPEG2_AC3};
+enum TranscodeFormatAvailable {UNKNOWN, MP3, LPCM, AAC, MPEG2_AC3, MPEG4_AAC};
 
 class TranscodeProcess : public Device
 {
@@ -22,13 +22,6 @@ public:
     bool waitForFinished(int msecs = 30000) { return m_process.waitForFinished(msecs); }
     int exitCode()  const { return m_process.exitCode(); }
     bool isKilled() const { return killTranscodeProcess; }
-
-    void setBitrate(const qint64 &bitrate)                  { m_bitrate = bitrate;
-                                                              setMaxBufferSize(m_bitrate/8*m_durationBuffer);
-                                                             }
-    qint64 bitrate() const { return m_bitrate; }
-
-    qint64 maxBufferSize() { return m_maxBufferSize; }
 
     void setUrl(const QString &url)                             { m_url = url; }
     QString url() const { return m_url; }
@@ -59,7 +52,7 @@ public:
 
     virtual bool atEnd() const;
     virtual qint64 bytesAvailable() const   { return m_process.bytesAvailable(); }
-    virtual qint64 pos() const              { return m_pos; }
+    virtual qint64 pos() const              { return m_pos; }    // position in bytes of read data
 
     virtual bool open()         { emit openSignal(QIODevice::ReadOnly); return true; }
     virtual bool isOpen() const { return m_opened; }
@@ -72,16 +65,16 @@ protected:
     void setArguments(const QStringList &arguments) { m_process.setArguments(arguments);    }
 
 private:
-    void setMaxBufferSize(const qint64 &size)       { if (size>0) m_maxBufferSize = size;   }
-
     void pause()    { emit pauseSignal();  }
     void resume()   { emit resumeSignal(); }
+
+    qint64 transcodedPos() const { return pos() + bytesAvailable(); }  // position in bytes of transcoded data
+    qint64 transcodedProgress() const;
 
 signals:
     void openSignal(const QIODevice::OpenMode &open);
     void pauseSignal();
     void resumeSignal();
-    void readyRead();
 
 private slots:
     void _open(const QIODevice::OpenMode &open);
@@ -105,8 +98,6 @@ private:
     bool m_opened;
     QString m_url;
 
-    qint64 m_bitrate;
-
     qint64 m_pos;
     qint64 m_size;
 
@@ -114,8 +105,6 @@ private:
     QElapsedTimer transcodeClock;
     bool killTranscodeProcess;  // true if the application aborts the transcoding
     bool m_paused;              // true if the transcoding has been paused
-    qint64 m_maxBufferSize;
-    int m_durationBuffer;       // when bitrate is known, m_maxBufferSize is set to m_durationBuffer seconds of streaming
 
     qint64 m_lengthInSeconds;
     TranscodeFormatAvailable m_format;

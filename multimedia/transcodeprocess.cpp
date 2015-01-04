@@ -7,15 +7,12 @@ TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
     m_process(this),
     m_opened(false),
     m_url(),
-    m_bitrate(-1),
     m_pos(0),
     m_size(-1),
     processPauseResume(this),
     transcodeClock(),
     killTranscodeProcess(false),
     m_paused(false),
-    m_maxBufferSize(1024*1024*10),   // 10 MBytes by default when bitrate is unknown
-    m_durationBuffer(10),
     m_lengthInSeconds(-1),
     m_format(UNKNOWN),
     m_audioLanguages(),
@@ -58,14 +55,6 @@ void TranscodeProcess::_open(const QIODevice::OpenMode &open)
 {
     updateArguments();
 
-//    if (range())
-//    {
-//        if (range()->getStartByte() >= 0)
-//            m_pos = range()->getStartByte();
-//        else
-//            m_pos = range()->getEndByte() + 1;   // invalid range
-//    }
-
     m_process.open(open);
 }
 
@@ -103,9 +92,6 @@ qint64 TranscodeProcess::size() const
 
 bool TranscodeProcess::atEnd() const
 {
-//    if (range() && range()->getEndByte()!=-1)
-//        return pos() > range()->getEndByte();
-
     if (!isOpen() or bytesAvailable()>0 or m_process.state() == QProcess::Running)
         return false;
     else
@@ -141,17 +127,18 @@ void TranscodeProcess::errorTrancodedData(const QProcess::ProcessError &error)
     // trancoding failed
     if (killTranscodeProcess == false) {
         // an error occured
-        appendLog(QString("%2: ERROR Transcoding at %4% : error n°%3 - %1."+CRLF).arg(m_process.errorString()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(error).arg(progress()));
-        if (progress()<95)
+        appendLog(QString("%2: ERROR Transcoding at %4% : error n°%3 - %1."+CRLF).arg(m_process.errorString()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(error).arg(transcodedProgress()));
+        if (transcodedProgress()<95)
             emit errorRaised(m_process.errorString());
         else
             appendLog(QString("%1: ERROR ignored."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
     }
 }
 
-void TranscodeProcess::finishedTranscodeData(const int &exitCode) {
+void TranscodeProcess::finishedTranscodeData(const int &exitCode)
+{
     appendLog(QString("%2: TRANSCODING FINISHED with exitCode %1."+CRLF).arg(exitCode).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-    appendLog(QString("%2: %3% TRANSCODING DONE in %1 ms."+CRLF).arg(QTime(0, 0).addMSecs(transcodeClock.elapsed()).toString("hh:mm:ss")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(progress()));
+    appendLog(QString("%2: %3% TRANSCODING DONE in %1 ms."+CRLF).arg(QTime(0, 0).addMSecs(transcodeClock.elapsed()).toString("hh:mm:ss")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(transcodedProgress()));
 
     if (!m_opened)
     {
@@ -191,6 +178,12 @@ void TranscodeProcess::processStarted()
     appendLog(m_process.arguments().join(' ')+CRLF);
 
     transcodeClock.start();
+
+    if (!m_opened)
+    {
+        m_opened = true;
+        emit openedSignal();
+    }
 }
 
 void TranscodeProcess::killProcess()
@@ -267,3 +260,10 @@ void TranscodeProcess::_pause_resume_error(const QProcess::ProcessError &error)
     logError(processPauseResume.errorString());
 }
 
+qint64 TranscodeProcess::transcodedProgress() const
+{
+    if (size()==0)
+        return 0;
+    else
+        return qint64(100.0*double(transcodedPos())/double(size()));
+}

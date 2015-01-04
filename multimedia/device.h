@@ -27,7 +27,14 @@ public:
     virtual bool open() = 0;
     virtual bool isOpen() const = 0;
 
-    virtual QByteArray read(qint64 maxlen) = 0;
+    qint64 maxBufferSize() const { return m_maxBufferSize;  }
+    int durationBuffer()   const { return m_durationBuffer; }
+
+    void setBitrate(const qint64 &bitrate)                  { m_bitrate = bitrate;
+                                                              setMaxBufferSize(m_bitrate/8*durationBuffer());
+                                                             }
+    qint64 bitrate() const { return m_bitrate; }
+
 
 protected:
     virtual void updateArguments() = 0;
@@ -36,6 +43,13 @@ protected:
 
     qint64 progress();
 
+    void setMaxBufferSize(const qint64 &size)       { if (size>0) m_maxBufferSize = size; }
+
+
+private:
+    virtual QByteArray read(qint64 maxlen) = 0;
+
+
 signals:
     void LogMessage(const QString &msg);
     void status(const QString &status);
@@ -43,12 +57,14 @@ signals:
     void openedSignal();
     void sendDataToClientSignal(const QByteArray &data);
     void endReached();
+    void readyRead();
 
 public slots:
 
 private slots:
     void deviceOpened();
-    void requestData(const int &bytesToRead);
+    void requestData();
+    void bytesSent(const qint64 &size, const qint64 &towrite);
 
 private:
     // Carriage return and line feed.
@@ -57,6 +73,11 @@ private:
     HttpRange *m_range;
     qint64 timeseek_start;
     qint64 timeseek_end;
+
+    qint64 m_bitrate;
+    qint64 m_maxBufferSize;
+    int m_durationBuffer;       // when bitrate is known, m_maxBufferSize is set to m_durationBuffer seconds of streaming
+    qint64 bytesToWrite;
 };
 
 #endif // DEVICE_H
