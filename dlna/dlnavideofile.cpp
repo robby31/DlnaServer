@@ -69,18 +69,14 @@ int DlnaVideoFile::metaDataBitrate() const {
     return ffmpeg.getBitrate();
 }
 
-int DlnaVideoFile::channelCount() const {
-    if (toTranscode())
-        return DlnaVideoItem::channelCount();
-    else
-        return ffmpeg.getAudioChannelCount();
+int DlnaVideoFile::channelCount() const
+{
+    return ffmpeg.getAudioChannelCount();
 }
 
-int DlnaVideoFile::samplerate() const {
-    if (toTranscode())
-        return DlnaVideoItem::samplerate();
-    else
-        return ffmpeg.getAudioSamplerate();
+int DlnaVideoFile::samplerate() const
+{
+    return ffmpeg.getAudioSamplerate();
 }
 
 QString DlnaVideoFile::resolution() const {

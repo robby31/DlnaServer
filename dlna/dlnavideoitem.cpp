@@ -127,8 +127,10 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
 int DlnaVideoItem::bitrate() const {
     // returns bitrate in bits/sec
     if (toTranscode()) {
-        // variable bitrate
-        return 5718800;
+        if (format() == MPEG4_AAC)
+            return 4256000;
+        else
+            return 8718800;
     } else {
         return metaDataBitrate();
     }
@@ -136,10 +138,16 @@ int DlnaVideoItem::bitrate() const {
 
 QString DlnaVideoItem::mimeType() const {
     if (toTranscode()) {
-        if (transcodeFormat == MPEG2_AC3) {
+        if (transcodeFormat == MPEG2_AC3)
+        {
             return MPEG_TYPEMIME;
 
-        } else {
+        } else if (transcodeFormat == MPEG4_AAC)
+        {
+            return MP4_TYPEMIME;
+        }
+        else
+        {
             logError("Unable to define mimeType of DlnaVideoItem: " + getSystemName());
 
             // returns unknown mimeType
@@ -164,18 +172,4 @@ QString DlnaVideoItem::mimeType() const {
 
 void DlnaVideoItem::updateDLNAOrgPn() {
     setdlnaOrgPN("MPEG_PS_PAL");
-}
-
-int DlnaVideoItem::channelCount() const {
-    if (toTranscode())
-        return 6;
-    else
-        return -1;
-}
-
-int DlnaVideoItem::samplerate() const {
-    if (toTranscode())
-        return 48000;
-    else
-        return -1;
 }

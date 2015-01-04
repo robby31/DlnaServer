@@ -29,12 +29,6 @@ public:
     // Returns album art in jpeg format
     virtual QImage getAlbumArt() const { return QImage(); }
 
-    // returns the samplerate of the video track
-    virtual int samplerate() const;
-
-    //returns the channel number of the video track
-    virtual int channelCount() const;
-
     virtual QString resolution() const = 0;
     virtual QStringList subtitleLanguages() const = 0;
     virtual QStringList audioLanguages() const = 0;
