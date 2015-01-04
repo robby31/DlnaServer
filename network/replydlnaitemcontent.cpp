@@ -12,13 +12,15 @@ ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, Request *request, QObjec
     lastNetBytesSent(-1),
     clockSending(),
     clockUpdateStatus(),
+    m_requestResource(false),
     requestFilename(),
     mediaFilename(),
     m_streamingCompleted(false),
     streamingWithErrors(false),
-    m_maxBufferSize(1024*1024*10),   // 10 MBytes by default when bitrate is unknown
-    durationBuffer(10)
+    m_maxBufferSize(1024*1024*10)   // 10 MBytes by default when bitrate is unknown
 {
+    connect(this, SIGNAL(bytesSent(qint64,qint64)), this, SLOT(bytesSentSlot(qint64,qint64)));
+
     timerStatus.setTimerType(Qt::PreciseTimer);
     timerStatus.setInterval(UPDATE_STATUS_PERIOD);
     connect(&timerStatus, SIGNAL(timeout()), this, SLOT(updateStatus()));
@@ -42,14 +44,6 @@ void ReplyDlnaItemContent::streamOpened()
         clockSending.start();   // start clock to measure time taken for streaming
 
     sendHeader();
-
-    // start sending when device is opened
-    int bytesToRead = maxBufferSize() - bytesToWrite;
-    if (bytesToRead > 0)
-    {
-        bytesToWrite = maxBufferSize();
-        emit requestData(bytesToRead);
-    }
 }
 
 void ReplyDlnaItemContent::_run(const QString &method, const QString &argument)
@@ -82,6 +76,7 @@ void ReplyDlnaItemContent::_run(const QString &method, const QString &argument)
             setParamHeader("TransferMode.dlna.org", m_request->getTransferMode());
 
         // Retrieve the DLNAresource itself.
+        m_requestResource = true;
         emit getDLNAResourcesSignal(id, false, 0, 0, "");
     }
     else
@@ -110,29 +105,19 @@ void ReplyDlnaItemContent::updateStatus()
     if (isLogLevel(DEBG))
         emit logTextSignal(QString("%1: UPDATE STATUS, bytes sent?%2 bytes to send?%3"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(networkBytesSent).arg(bytesToWrite));
 
-    if (!m_streamingCompleted && int(100.0*double(bytesToWrite)/double(maxBufferSize())) < 50)
-    {
-        int bytesToRead = maxBufferSize() - bytesToWrite;
-        if (bytesToRead > 0)
-        {
-            bytesToWrite = maxBufferSize();
-            emit requestData(bytesToRead);
-        }
-    }
-
     if (!mediaFilename.isNull()) {
         if (clockSending.isValid())
             emit servingSignal(mediaFilename, clockSending.elapsedFromBeginning());
         else
             emit servingSignal(mediaFilename, 0);
 
-        if (clockSending.isValid() && maxBufferSize() != 0) {
+        if (clockSending.isValid() && m_maxBufferSize != 0) {
             // display the network buffer and network speed
             int networkSpeed = int((double(networkBytesSent)/1024.0)/(double(clockSending.elapsed())/1000.0));
             int bufferTime = 0;
             if (networkSpeed!=0)
-                bufferTime = maxBufferSize()/(networkSpeed*1024);
-            emit networkStatusSignal(QString("Time: %5 Buffer: %1% (%4 KB - %3 seconds), Speed: %2 KB/s").arg(int(100.0*double(bytesToWrite)/double(maxBufferSize()))).arg(networkSpeed).arg(bufferTime).arg(maxBufferSize()/1024).arg(QTime(0, 0).addMSecs(clockSending.elapsedFromBeginning()).toString("hh:mm:ss")));
+                bufferTime = m_maxBufferSize/(networkSpeed*1024);
+            emit networkStatusSignal(QString("Time: %5 Buffer: %1% (%4 KB - %3 seconds), Speed: %2 KB/s").arg(int(100.0*double(bytesToWrite)/double(m_maxBufferSize))).arg(networkSpeed).arg(bufferTime).arg(m_maxBufferSize/1024).arg(QTime(0, 0).addMSecs(clockSending.elapsedFromBeginning()).toString("hh:mm:ss")));
         }
 
 
@@ -193,13 +178,24 @@ void ReplyDlnaItemContent::close()
 
     emit logTextSignal(QString("%1: Reply finished."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 
-    emit finishedSignal();
+    if (m_requestResource)
+        logError(QString("%1: reply not finished, resource is expected.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+    else
+        emit finishedSignal();
 }
 
 void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource *> resources)
 {
     if (requestor != this)
         return;
+
+    m_requestResource = false;
+
+    if (m_closed)
+    {
+        logWarning(QString("%1: resource received but reply closed.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        emit finishedSignal();
+    }
 
     if (resources.size() == 1)
     {
@@ -333,7 +329,9 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                 else
                 {
                     if (dlna->bitrate()>0)
-                        setMaxBufferSize(dlna->bitrate()/8*durationBuffer);  // set Max buffer size if bitrate is available
+                        streamContent->setBitrate(dlna->bitrate());
+
+                    m_maxBufferSize = streamContent->maxBufferSize();
 
                     connect(streamContent, SIGNAL(destroyed()), this, SLOT(streamContentDestroyed()));
                     connect(this, SIGNAL(destroyed()), streamContent, SLOT(deleteLater()));
@@ -341,9 +339,10 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                     connect(streamContent, SIGNAL(status(QString)), this, SIGNAL(replyStatusSignal(QString)));
                     connect(streamContent, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
                     connect(streamContent, SIGNAL(errorRaised(QString)), this, SLOT(streamingError(QString)));
-                    connect(this, SIGNAL(requestData(int)), streamContent, SLOT(requestData(int)));
+                    connect(this, SIGNAL(bytesSent(qint64,qint64)), streamContent, SLOT(bytesSent(qint64,qint64)));
                     connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), this, SIGNAL(sendDataToClientSignal(QByteArray)));
                     connect(streamContent, SIGNAL(endReached()), this, SLOT(streamingCompleted()));
+                    connect(&timerStatus, SIGNAL(timeout()), streamContent, SLOT(requestData()));
 
                     if (streamContent->open())
                     {

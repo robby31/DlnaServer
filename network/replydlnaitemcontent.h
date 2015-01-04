@@ -24,12 +24,8 @@ signals:
     //   status = 1 if error occurs
     void servingFinishedSignal(QString filename, int status);
 
-    void requestData(const int &bytesToRead);
+    void bytesSent(const qint64 &size, const qint64 &towrite);
 
-
-private:
-    void setMaxBufferSize(const qint64 &size) { if (size>0) m_maxBufferSize = size; }
-    qint64 maxBufferSize() { return m_maxBufferSize; }
 
 private slots:
     // close the request
@@ -46,19 +42,7 @@ private slots:
 
     void streamingError(const QString &error) { Q_UNUSED(error) streamingWithErrors = true; }
 
-    void bytesSent(const qint64 &size, const qint64 &towrite) { networkBytesSent += size; bytesToWrite = towrite;
-                                                                if (!m_streamingCompleted && towrite==0)
-                                                                {
-                                                                    emit logTextSignal(QString("%1: low buffer."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-
-                                                                    int bytesToRead = maxBufferSize() - bytesToWrite;
-                                                                    if (bytesToRead > 0)
-                                                                    {
-                                                                        bytesToWrite = maxBufferSize();
-                                                                        emit requestData(bytesToRead);
-                                                                    }
-                                                                }
-                                                              }
+    void bytesSentSlot(const qint64 &size, const qint64 &towrite) { networkBytesSent += size; bytesToWrite = towrite; }
 
     // Construct a proper HTTP response to a received request
     // and provide answer to the client on the request
@@ -82,12 +66,12 @@ private:
     ElapsedTimer clockSending;          // clock to mesure time taken to send streamed or transcoded data.
     QElapsedTimer clockUpdateStatus;    // clock to check UpdateStatus period
 
+    bool m_requestResource;
     QString requestFilename;
     QString mediaFilename;
     bool m_streamingCompleted;
     bool streamingWithErrors;
     qint64 m_maxBufferSize;
-    int durationBuffer;                 // when bitrate is known, m_maxBufferSize is set to durationBuffer seconds of streaming
 };
 
 #endif // REPLYDLNAITEMCONTENT_H
