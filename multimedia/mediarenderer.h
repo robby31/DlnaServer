@@ -1,36 +1,38 @@
 #ifndef MEDIARENDERER_H
 #define MEDIARENDERER_H
 
-#include <QObject>
+#include "Models/listmodel.h"
 
 
-class MediaRenderer : public QObject
+class MediaRenderer : public ListItem
 {
     Q_OBJECT
 
 public:
+    explicit MediaRenderer(QObject *parent = 0);
     explicit MediaRenderer(const QString &ip, const int &port, const QString &userAgent, QObject *parent = 0);
 
-    QString getStatus() const { return status; }
-    void setStatus(const QString &status) { this->status = status; emit dataChanged("status"); }
+    enum Roles {
+        statusRole = Qt::UserRole+1,
+        nameRole,
+        networkAddressRole,
+        userAgentRole,
+    };
 
-    QString getName() const { return name; }
-
-    QString getNetworkAddress() const { return ip; }
-
-    QString getUserAgent() const { return userAgent; }
+    virtual QHash<int, QByteArray> roleNames() const { return m_roles; }
+    virtual QVariant data(int role) const;
+    virtual bool setData(const QVariant &value, const int &role);
 
 signals:
-    // emit signal when data changed
-    void dataChanged(const QString &roleChanged);
 
-public slots:
+private slots:
 
 private:
+    QHash<int, QByteArray> m_roles;
+
     QString ip;
     int port;
     QString userAgent;
-
     QString status;
     QString name;
 };

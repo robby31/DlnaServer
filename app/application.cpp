@@ -63,7 +63,7 @@ void Application::setRenderersModel(MediaRendererModel *model)
 
     if (server)
     {
-        connect(server, SIGNAL(newRenderer(MediaRenderer*)), m_renderersModel, SLOT(addRendererInModel(MediaRenderer*)));
+        connect(server, SIGNAL(newRenderer(QString,int,QString)), m_renderersModel, SLOT(addRenderer(QString,int,QString)));
         connect(server, SIGNAL(servingRenderer(QString,QString)), m_renderersModel, SLOT(serving(QString,QString)));
         connect(server, SIGNAL(stopServingRenderer(QString)), m_renderersModel, SLOT(stopServing(QString)));
     }
