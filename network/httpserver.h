@@ -59,7 +59,7 @@ signals:
 
     void newRequest(Request *request);
     void deleteRequest(Request *request);
-    void newRenderer(MediaRenderer *renderer);
+    void newRenderer(const QString &ip, const int &port, const QString &userAgent);
 
     void updateMediaData(const QString &filename, const QHash<QString, QVariant> &data);
     void incrementCounterPlayedSignal(const QString &filename);

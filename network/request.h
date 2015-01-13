@@ -8,7 +8,6 @@
 #include "logobject.h"
 #include "httpclient.h"
 #include "httprange.h"
-#include "mediarenderer.h"
 
 
 class Request: public LogObject
@@ -39,7 +38,7 @@ public:
     int getPort() const { return port; }
     QString getUuid() const { return uuid; }
 
-    HttpRange *getRange() const { return range; }
+    HttpRange *getRange() const { return m_range; }
     qint64 getTimeSeekRangeStart() const { return timeSeekRangeStart; }
     qint64 getTimeSeekRangeEnd() const { return timeSeekRangeEnd; }
 
@@ -59,8 +58,6 @@ public:
 
     QString getContentFeatures() const { return getParamHeader("GETCONTENTFEATURES.DLNA.ORG"); }
 
-    int getReceivedContentLength() const;
-
     QString getTextHeader() const { return m_header.join(""); }
 
     QString getMediaInfoSec() const { return getParamHeader("GETMEDIAINFO.SEC"); }
@@ -69,11 +66,7 @@ public:
 
     QString getLog() const { return requestLog; }
 
-    QString getHttpConnection() const { return getParamHeader("CONNECTION"); }
-
     QString getParamHeader(const QString &param) const;
-
-    bool appendHeader(const QString &headerLine);
 
 
 private:
@@ -81,7 +74,7 @@ private:
 
     void setMethod(const QString &method) { m_method = method; emit dataChanged("method"); }
 
-    void setArgument(const QString &argument);
+    void setArgument(const QString &argument) { m_argument = argument; emit dataChanged("argument"); }
 
     void setHost(const QString &host) { m_host = host; emit dataChanged("host"); }
 
@@ -92,10 +85,6 @@ private:
     void setDate(const QString &date) { m_date = date; emit dataChanged("date"); }
 
     void setTextContent(const QString &content) { m_content = content; emit dataChanged("content"); }
-
-    void setParamHeader(const QString &param, const QString &value);
-
-    void requestReceived();
 
 
 signals:
@@ -111,28 +100,26 @@ signals:
     void readyToReply();
 
     // emit signal to add a new renderer
-    void newRenderer(MediaRenderer *renderer);
+    void newRenderer(const QString &ip, const int &port, const QString &userAgent);
 
     void startServingRendererSignal(const QString &ip, const QString &mediaName);
     void stopServingRendererSignal(const QString &ip);
 
     void closeClientSignal();
     void sendTextLineSignal(const QString &msg);
-    void sendHeaderSignal(const QString &httpType, const QHash<QString, QString> &header);
+    void sendHeaderSignal(const QHash<QString, QString> &header);
     void sendDataSignal(const QByteArray &data);
-    void http10Signal(const bool &http10);
-    void connectionTypeSignal(const QString &connection);
 
     void clientDisconnected();
     void bytesSent(const qint64 &size, const qint64 &bytesToWrite);
     void deleteClient();
 
+    void deleteRequest(Request *request);
+
 public slots:
     void replyFinished();
 
     void appendLog(const QString &msg) { requestLog.append(msg); emit dataChanged("transcode_log"); }
-
-    void sendHeader(const QHash<QString, QString> &header);
 
 
 private slots:
@@ -141,7 +128,6 @@ private slots:
     void setNetworkStatus(const QString &status) { m_networkStatus = status; emit dataChanged("network_status"); }
 
     // slots for incoming data
-    void readSocket();
     void stateChanged(const QAbstractSocket::SocketState &state);
 
     void appendAnswer(const QString &string) { m_stringAnswer.append(string); emit dataChanged("answer"); }
@@ -149,22 +135,16 @@ private slots:
     void startServingRenderer(const QString &mediaName) { emit startServingRendererSignal(getpeerAddress(), mediaName); }
     void stopServingRenderer()                          { emit stopServingRendererSignal(getpeerAddress()); }
 
+    void requestReceived(const bool &is_http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd);
 
 private:
     // Carriage return and line feed.
     static const QString CRLF;
 
-    static const QString HTTP_200_OK;
-    static const QString HTTP_500;
-    static const QString HTTP_206_OK;
-    static const QString HTTP_200_OK_10;
-    static const QString HTTP_206_OK_10;
-
     QString requestLog;  // internal log
 
     int replyNumber;
     bool replyInProgress;   // flag to know a reply is preparing to be sent
-    bool flagHeaderReading; // flag to know if the header has been received or not
     QStringList m_stringAnswer;  // answer sent
 
     QElapsedTimer clock;  // clock to measure time taken to answer to the request
@@ -195,7 +175,7 @@ private:
     QString m_content;
 
     // range requested
-    HttpRange* range;
+    HttpRange* m_range;
     qint64 timeSeekRangeStart;
     qint64 timeSeekRangeEnd;
     bool http10;

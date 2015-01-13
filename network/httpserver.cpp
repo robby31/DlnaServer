@@ -128,7 +128,7 @@ void HttpServer::incomingConnection(qintptr socketDescriptor)
                                    getHost().toString(), getPort());
 
     connect(request, SIGNAL(readyToReply()), this, SLOT(_readyToReply()));
-    connect(request, SIGNAL(newRenderer(MediaRenderer*)), this, SIGNAL(newRenderer(MediaRenderer*)));
+    connect(request, SIGNAL(newRenderer(QString,int,QString)), this, SIGNAL(newRenderer(QString,int,QString)));
     connect(request, SIGNAL(startServingRendererSignal(QString,QString)), this, SIGNAL(servingRenderer(QString,QString)));
     connect(request, SIGNAL(stopServingRendererSignal(QString)), this, SIGNAL(stopServingRenderer(QString)));
     connect(request, SIGNAL(deleteRequest(Request*)), this, SIGNAL(deleteRequest(Request*)));
@@ -169,7 +169,7 @@ void HttpServer::_readyToReply()
     connect(reply, SIGNAL(destroyed()), request, SIGNAL(deleteClient()));
 
     connect(reply, SIGNAL(sendTextLineToClientSignal(QString)), request, SIGNAL(sendTextLineSignal(QString)));
-    connect(reply, SIGNAL(sendHeaderSignal(QHash<QString,QString>)), request, SLOT(sendHeader(QHash<QString,QString>)));
+    connect(reply, SIGNAL(sendHeaderSignal(QHash<QString,QString>)), request, SIGNAL(sendHeaderSignal(QHash<QString,QString>)));
     connect(reply, SIGNAL(sendDataToClientSignal(QByteArray)), request, SIGNAL(sendDataSignal(QByteArray)));
 
     connect(reply, SIGNAL(appendAnswerSignal(QString)), request, SLOT(appendAnswer(QString)));
