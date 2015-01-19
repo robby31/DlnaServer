@@ -46,8 +46,10 @@ void ReplyDlnaItemContent::streamOpened()
     sendHeader();
 }
 
-void ReplyDlnaItemContent::_run(const QString &method, const QString &argument)
+void ReplyDlnaItemContent::_run(const QString &method, const QString &argument, const QString &userAgent)
 {
+    m_userAgent = userAgent;
+
     if (!m_request)
         return;
 
@@ -201,6 +203,7 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
     {
         // DLNAresource was found.
         DlnaItem *dlna = qobject_cast<DlnaItem*>(resources.at(0));
+        dlna->setUserAgent(userAgent());
 
         HttpRange *range = m_request->getRange();
         if (range != 0) {

@@ -57,7 +57,7 @@ signals:
     void servingRenderer(const QString &ip, const QString &mediaName);
     void stopServingRenderer(const QString &ip);
 
-    void newRequest(Request *request);
+    void createRequest(qintptr socket, QString uuid, QString servername, QString host, int port);
     void deleteRequest(Request *request);
     void newRenderer(const QString &ip, const int &port, const QString &userAgent);
 
@@ -81,6 +81,8 @@ private slots:
 
     void requestDLNAResourcesSignal(QString objectId, bool returnChildren, int start, int count, QString searchStr) { emit getDLNAResourcesSignal(sender(), objectId, returnChildren, start, count, searchStr); }
 
+    void newRequest(Request *request);
+
 
 private:
     bool isLogLevel(const LogLevel &level) const { return m_log ? m_log->isLevel(level) : false; }
@@ -89,6 +91,7 @@ private:
     void logInfo(const QString &message)   const { if (m_log) m_log->Info(message); }
     void logTrace(const QString &message)  const { if (m_log) m_log->Trace(message); }
 
+    void createTcpSocket(Request *request);
 
 private :
     Logger* m_log;

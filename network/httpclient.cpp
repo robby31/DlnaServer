@@ -13,6 +13,7 @@ HttpClient::HttpClient(Logger *log, QObject *parent) :
     m_log(log),
     m_http10(true),
     flagHeaderReading(true),
+    m_header(),
     requestComplete(false),
     m_params(),
     m_method(),
@@ -44,6 +45,7 @@ void HttpClient::clear()
     m_http10 = true;
     flagHeaderReading = true;
     requestComplete = false;
+    m_header.clear();
     m_params.clear();
     m_method.clear();
     m_argument.clear();
@@ -159,6 +161,8 @@ int HttpClient::getReceivedContentLength() const
 
 bool HttpClient::appendHeader(const QString &headerLine)
 {
+    m_header.append(headerLine);
+
     QRegExp rxDefinition("(GET|HEAD|POST|SUBSCRIBE)\\s*(\\S+)\\s*HTTP/(\\S+)");
     QRegExp rxParam("(\\S+)\\s*:\\s*(.+)");
 
@@ -288,5 +292,5 @@ void HttpClient::requestReceived()
 {
     requestComplete = true;
 
-    emit newRequest(m_http10, m_method, m_argument, m_params, m_content, range, timeSeekRangeStart, timeSeekRangeEnd);
+    emit incomingRequest(peerAddress().toString(), m_header, m_http10, m_method, m_argument, m_params, m_content, range, timeSeekRangeStart, timeSeekRangeEnd);
 }

@@ -2,6 +2,7 @@
 #define HTTPCLIENT_H
 
 #include <QTcpSocket>
+#include <QHostAddress>
 #include <QDateTime>
 
 #include "logger.h"
@@ -50,7 +51,7 @@ signals:
 
     void bytesSent(const qint64 &size, const qint64 &bytesToWrite);
 
-    void newRequest(const bool &is_http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd);
+    void incomingRequest(const QString &peerAddress, const QStringList &header, const bool &is_http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd);
 
 public slots:
     void closeClient();
@@ -80,6 +81,7 @@ private:
     bool m_http10;
 
     bool flagHeaderReading;
+    QStringList m_header;
     bool requestComplete;
     QHash<QString, QString> m_params;
 

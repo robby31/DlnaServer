@@ -13,11 +13,13 @@ class Reply : public LogObject
 public:
     explicit Reply(Logger *log, Request *request, QObject *parent = 0);
 
-    void run(const QString &method, const QString &argument) { emit runSignal(method, argument); }
+    QString userAgent() const { return m_userAgent; }
+
+    void run(const QString &method, const QString &argument, const QString &userAgent) { emit runSignal(method, argument, userAgent); }
 
 
 signals:
-    void runSignal(const QString &method, const QString &argument);
+    void runSignal(const QString &method, const QString &argument, const QString &userAgent);
 
     // emit signal when reply is done
     void finishedSignal();
@@ -45,7 +47,7 @@ private slots:
     // Construct a proper HTTP response to a received request
     // and provide answer to the client on the request
     // See "http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html" for HTTP header field definitions.
-    virtual void _run(const QString &method, const QString &argument);
+    virtual void _run(const QString &method, const QString &argument, const QString &userAgent);
 
     virtual void dlnaResources(QObject* requestor, QList<DlnaResource*> resources);
 
@@ -67,6 +69,7 @@ protected:
 
 protected:
     Request* m_request;
+    QString m_userAgent;
 
     QHash<QString, QString> m_params;  // header for the reply
     bool headerSent;

@@ -20,12 +20,13 @@ const QString Reply::EVENT_FOOTER = "</e:propertyset>";
 Reply::Reply(Logger *log, Request *request, QObject *parent):
     LogObject(log, parent),
     m_request(request),
+    m_userAgent(),
     m_params(),
     headerSent(false),
     doc(),
     xml()
 {
-    connect(this, SIGNAL(runSignal(QString,QString)), this, SLOT(_run(QString,QString)));
+    connect(this, SIGNAL(runSignal(QString,QString,QString)), this, SLOT(_run(QString,QString,QString)));
 
     connect(m_request, SIGNAL(destroyed()), this, SLOT(requestDestroyed()));
 }
@@ -86,7 +87,10 @@ void Reply::sendAnswer(const QByteArray &contentAnswer)
         emit sendDataToClientSignal(contentAnswer);
 }
 
-void Reply::_run(const QString &method, const QString &argument) {
+void Reply::_run(const QString &method, const QString &argument, const QString &userAgent)
+{
+    m_userAgent = userAgent;
+
     if (!m_request)
         return;
 

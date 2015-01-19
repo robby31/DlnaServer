@@ -21,9 +21,13 @@ Application::Application(int &argc, char **argv):
 
     setRenderersModel(new MediaRendererModel(this));
 
-    setRequestsModel(new RequestListModel(this));
+    setRequestsModel(new RequestListModel(&log, this));
+
+    qRegisterMetaType<qintptr>("qintptr");
 
     connect(server, SIGNAL(serverStarted()), this, SLOT(serverStarted()));
+    connect(server, SIGNAL(createRequest(qintptr,QString,QString,QString,int)), m_requestsModel, SLOT(createRequest(qintptr,QString,QString,QString,int)));
+    connect(m_requestsModel, SIGNAL(newRequest(Request*)), server, SLOT(newRequest(Request*)));
     connect(this, SIGNAL(addFolder(QString)), server, SLOT(_addFolder(QString)));
     connect(server, SIGNAL(folderAdded(QString)), this, SLOT(folderAdded(QString)));
     connect(server, SIGNAL(error_addFolder(QString)), this, SLOT(folderNotAdded(QString)));
@@ -84,7 +88,6 @@ void Application::setRequestsModel(RequestListModel *model)
 
     if (server)
     {
-        connect(server, SIGNAL(newRequest(Request*)), m_requestsModel, SLOT(addRequestInModel(Request*)));
         connect(server, SIGNAL(deleteRequest(Request*)), m_requestsModel, SLOT(requestDestroyed(Request*)));
     }
     else

@@ -120,20 +120,54 @@ void HttpServer::_startServer()
 void HttpServer::incomingConnection(qintptr socketDescriptor)
 {
     logTrace("HTTP server: new connection");
+    emit createRequest(socketDescriptor, UUID, QString("%1").arg(SERVERNAME), getHost().toString(), getPort());
+}
 
-    Request *request = new Request(m_log,
-                                   &workerNetwork,
-                                   socketDescriptor,
-                                   UUID, QString("%1").arg(SERVERNAME),
-                                   getHost().toString(), getPort());
+void HttpServer::createTcpSocket(Request *request)
+{
+    if (request)
+    {
+        HttpClient *client = new HttpClient(m_log);
 
-    connect(request, SIGNAL(readyToReply()), this, SLOT(_readyToReply()));
-    connect(request, SIGNAL(newRenderer(QString,int,QString)), this, SIGNAL(newRenderer(QString,int,QString)));
-    connect(request, SIGNAL(startServingRendererSignal(QString,QString)), this, SIGNAL(servingRenderer(QString,QString)));
-    connect(request, SIGNAL(stopServingRendererSignal(QString)), this, SIGNAL(stopServingRenderer(QString)));
-    connect(request, SIGNAL(deleteRequest(Request*)), this, SIGNAL(deleteRequest(Request*)));
+        if (!client->setSocketDescriptor(request->socketDescriptor()))
+        {
+            logError(QString("unable to create TCPSOCKET (%1): %2").arg(request->socketDescriptor()).arg(client->errorString()));
+            client->deleteLater();
+        }
+        else
+        {
+            qRegisterMetaType<QHash<QString, QString> >("QHash<QString, QString>>");
+            qRegisterMetaType<QAbstractSocket::SocketState>("QAbstractSocket::SocketState");
 
-    emit newRequest(request);
+            // connection between request and client
+            connect(request, SIGNAL(closeClientSignal()), client, SLOT(closeClient()));
+            connect(client, SIGNAL(appendLogSignal(QString)), request, SLOT(appendLog(QString)));
+            connect(client, SIGNAL(appendAnswerSignal(QString)), request, SLOT(appendAnswer(QString)));
+            connect(request, SIGNAL(sendDataSignal(QByteArray)), client, SLOT(sendData(QByteArray)));
+            connect(request, SIGNAL(sendHeaderSignal(QHash<QString,QString>)), client, SLOT(sendHeader(QHash<QString,QString>)));
+            connect(request, SIGNAL(sendTextLineSignal(QString)), client, SLOT(sendTextLine(QString)));
+            connect(client, SIGNAL(stateChanged(QAbstractSocket::SocketState)), request, SLOT(stateChanged(QAbstractSocket::SocketState)));
+            connect(client, SIGNAL(incomingRequest(QString,QStringList,bool,QString,QString,QHash<QString,QString>,QString,HttpRange*,int,int)), request, SLOT(requestReceived(QString,QStringList,bool,QString,QString,QHash<QString,QString>,QString,HttpRange*,int,int)));
+            connect(client, SIGNAL(disconnected()), request, SIGNAL(clientDisconnected()));
+            connect(client, SIGNAL(bytesSent(qint64,qint64)), request, SIGNAL(bytesSent(qint64,qint64)));
+            connect(request, SIGNAL(deleteClient()), client, SLOT(deleteLater()));
+        }
+    }
+}
+
+void HttpServer::newRequest(Request *request)
+{
+    if (request)
+    {
+        // connection between request and httpserver
+        connect(request, SIGNAL(readyToReply()), this, SLOT(_readyToReply()));
+        connect(request, SIGNAL(newRenderer(QString,int,QString)), this, SIGNAL(newRenderer(QString,int,QString)));
+        connect(request, SIGNAL(startServingRendererSignal(QString,QString)), this, SIGNAL(servingRenderer(QString,QString)));
+        connect(request, SIGNAL(stopServingRendererSignal(QString)), this, SIGNAL(stopServingRenderer(QString)));
+        connect(request, SIGNAL(deleteRequest(Request*)), this, SIGNAL(deleteRequest(Request*)));
+
+        createTcpSocket(request);
+    }
 }
 
 void HttpServer::_newConnectionError(const QAbstractSocket::SocketError &error) {
@@ -181,7 +215,7 @@ void HttpServer::_readyToReply()
     connect(reply, SIGNAL(finishedSignal()), request, SLOT(replyFinished()));
     connect(reply, SIGNAL(finishedSignal()), reply, SLOT(deleteLater()));
 
-    reply->run(request->getMethod(), request->getArgument());
+    reply->run(request->getMethod(), request->getArgument(), request->getParamHeader("USER-AGENT"));
 }
 
 void HttpServer::_addFolder(const QString &folder)

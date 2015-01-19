@@ -2,8 +2,9 @@
 
 const QString Request::CRLF = "\r\n";
 
-Request::Request(Logger* log, QThread *worker, qintptr socketDescriptor, QString uuid, QString servername, QString host, int port, QObject *parent):
+Request::Request(Logger* log, qintptr socket, QString uuid, QString servername, QString host, int port, QObject *parent):
     LogObject(log, parent),
+    m_socket(socket),
     replyNumber(0),
     replyInProgress(false),  // by default no reply is in progress, we wait a request
     m_status(),
@@ -14,62 +15,24 @@ Request::Request(Logger* log, QThread *worker, qintptr socketDescriptor, QString
     servername(servername),
     m_host(),
     port(port),
-    socket(socketDescriptor),
     m_content(""),
     m_range(0),
     timeSeekRangeStart(-1),
     timeSeekRangeEnd(-1),
     http10(true)
 {
-    this->moveToThread(worker);
-
-    clock.invalidate();
+    clock.start();
 
     setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
     setStatus("init");
     setHost(host);
     setNetworkStatus("connected");
 
-    connect(this, SIGNAL(newSocketDescriptor()), this, SLOT(createTcpSocket()));
-    emit newSocketDescriptor();
-
     logTrace("Request: receiving a request from " + getpeerAddress());
 }
 
 Request::~Request() {
 
-}
-
-void Request::createTcpSocket()
-{
-    HttpClient *client = new HttpClient(log(), this);
-
-    if (!client->setSocketDescriptor(socket))
-    {
-        logError(QString("unable to create TCPSOCKET (%1): %2").arg(socket).arg(client->errorString()));
-    }
-    else
-    {
-        setPeerAddress(client->peerAddress().toString());
-
-        if (client->isOpen()) {
-            setNetworkStatus("opened");
-        } else {
-            setNetworkStatus("not connected");
-        }
-
-        connect(this, SIGNAL(closeClientSignal()), client, SLOT(closeClient()));
-        connect(client, SIGNAL(appendLogSignal(QString)), this, SLOT(appendLog(QString)));
-        connect(client, SIGNAL(appendAnswerSignal(QString)), this, SLOT(appendAnswer(QString)));
-        connect(this, SIGNAL(sendDataSignal(QByteArray)), client, SLOT(sendData(QByteArray)));
-        connect(this, SIGNAL(sendHeaderSignal(QHash<QString,QString>)), client, SLOT(sendHeader(QHash<QString,QString>)));
-        connect(this, SIGNAL(sendTextLineSignal(QString)), client, SLOT(sendTextLine(QString)));
-        connect(client, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(stateChanged(QAbstractSocket::SocketState)));
-        connect(client, SIGNAL(newRequest(bool,QString,QString,QHash<QString,QString>,QString,HttpRange*,int,int)), this, SLOT(requestReceived(bool,QString,QString,QHash<QString,QString>,QString,HttpRange*,int,int)));
-        connect(client, SIGNAL(disconnected()), this, SIGNAL(clientDisconnected()));
-        connect(client, SIGNAL(bytesSent(qint64,qint64)), this, SIGNAL(bytesSent(qint64,qint64)));
-        connect(this, SIGNAL(deleteClient()), client, SLOT(deleteLater()));
-    }
 }
 
 QString Request::getParamHeader(const QString &param) const
@@ -80,18 +43,20 @@ QString Request::getParamHeader(const QString &param) const
         return QString();
 }
 
-void Request::requestReceived(const bool &is_http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd)
+void Request::requestReceived(const QString &peerAddress, const QStringList &header, const bool &is_http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd)
 {
     if (!replyInProgress)
     {
         replyInProgress = true;
 
+        setPeerAddress(peerAddress);
         setHttp10(is_http10);
         setMethod(method);
         setArgument(argument);
         setTextContent(content);
         m_params = paramsHeader;
         m_range = range;
+        m_header = header;
         this->timeSeekRangeStart = timeSeekRangeStart;
         this->timeSeekRangeEnd = timeSeekRangeEnd;
 

@@ -16,8 +16,8 @@ class Request: public LogObject
 
 public:
     explicit Request(Logger *log,
-                     QThread *worker,
-                     qintptr socketDescriptor, QString uuid,
+                     qintptr socket,
+                     QString uuid,
                      QString servername, QString host, int port,
                      QObject *parent = 0);
     virtual ~Request();
@@ -33,7 +33,7 @@ public:
 
     QString getHost() const { return m_host; }
     QString getpeerAddress() const { return m_peerAddress; }
-    qintptr socketDescriptor() const { return socket; }
+    qintptr socketDescriptor() const { return m_socket; }
     QString getServername() const { return servername; }
     int getPort() const { return port; }
     QString getUuid() const { return uuid; }
@@ -88,8 +88,6 @@ private:
 
 
 signals:
-    void newSocketDescriptor();
-
     // emit signal when data changed
     void dataChanged(const QString &roleChanged);
 
@@ -123,7 +121,6 @@ public slots:
 
 
 private slots:
-    void createTcpSocket();
     void setStatus(const QString &status) { m_status = status; emit dataChanged("status"); }
     void setNetworkStatus(const QString &status) { m_networkStatus = status; emit dataChanged("network_status"); }
 
@@ -135,11 +132,13 @@ private slots:
     void startServingRenderer(const QString &mediaName) { emit startServingRendererSignal(getpeerAddress(), mediaName); }
     void stopServingRenderer()                          { emit stopServingRendererSignal(getpeerAddress()); }
 
-    void requestReceived(const bool &is_http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd);
+    void requestReceived(const QString &peerAddress, const QStringList &header, const bool &is_http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd);
 
 private:
     // Carriage return and line feed.
     static const QString CRLF;
+
+    qintptr m_socket;
 
     QString requestLog;  // internal log
 
@@ -158,7 +157,6 @@ private:
     QString servername;
     QString m_host;
     int port;
-    qintptr socket;
     QString m_peerAddress;
 
     QStringList m_header;  // header of the request received

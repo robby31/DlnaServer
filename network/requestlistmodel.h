@@ -3,12 +3,14 @@
 
 #include <QAbstractTableModel>
 #include "request.h"
+#include "logger.h"
 
 class RequestListModel : public QAbstractTableModel
 {
     Q_OBJECT
 
 public:
+    explicit RequestListModel(Logger *log, QObject *parent = 0);
     explicit RequestListModel(QObject *parent = 0);
     virtual ~RequestListModel();
 
@@ -38,12 +40,15 @@ public:
     void clearAll();
 
 signals:
+    void newRequest(Request *request);
 
-public slots:
-    void addRequestInModel(Request *request);
+private slots:
+    void createRequest(qintptr socket, QString uuid, QString servername, QString host, int port);
     void requestChanged(const QString &roleChanged);
+    void requestDestroyed(Request *request);
 
 private:
+    Logger *m_log;
     QList<Request *> mRecords;
     QHash<int, QByteArray> mRoles;
 };

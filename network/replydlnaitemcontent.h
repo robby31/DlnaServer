@@ -47,7 +47,7 @@ private slots:
     // Construct a proper HTTP response to a received request
     // and provide answer to the client on the request
     // See "http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html" for HTTP header field definitions.
-    virtual void _run(const QString &method, const QString &argument);
+    virtual void _run(const QString &method, const QString &argument, const QString &userAgent);
 
     virtual void dlnaResources(QObject* requestor, QList<DlnaResource*> resources);
 
