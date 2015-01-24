@@ -11,15 +11,34 @@ class Reply : public LogObject
     Q_OBJECT
 
 public:
-    explicit Reply(Logger *log, Request *request, QObject *parent = 0);
+    explicit Reply(Logger *log, const bool &http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd, QString uuid, QString servername, QString host, int port, QObject *parent = 0);
 
-    QString userAgent() const { return m_userAgent; }
+    bool isHttp10() const { return m_http10; }
 
-    void run(const QString &method, const QString &argument, const QString &userAgent) { emit runSignal(method, argument, userAgent); }
+    QString requestMethod() const   { return m_requestMethod;   }
+    QString requestArgument() const { return m_requestArgument; }
+    QString requestTextContent() const { return m_requestContent; }
+    HttpRange *requestRange() const { return m_requestRange; }
+    int requestTimeSeekRangeStart() const { return m_requestTimeSeekRangeStart; }
+    int requestTimeSeekRangeEnd() const { return m_requestTimeSeekRangeEnd; }
+    QString getRequestParamHeader(const QString &param) const;
+    QString getRequestSoapAction() const { return getRequestParamHeader("SOAPACTION"); }
+    QString getRequestTransferMode() const { return getRequestParamHeader("TRANSFERMODE.DLNA.ORG"); }
+    QString getRequestContentFeatures() const { return getRequestParamHeader("GETCONTENTFEATURES.DLNA.ORG"); }
+    QString getRequestMediaInfoSec() const { return getRequestParamHeader("GETMEDIAINFO.SEC"); }
+
+    QString userAgent() const { return getRequestParamHeader("USER-AGENT"); }
+
+    QString uuid() const { return m_uuid; }
+    QString servername() const { return m_servername; }
+    QString host() const { return m_host; }
+    int port() const { return m_port; }
+
+    void run() { emit runSignal(); }
 
 
 signals:
-    void runSignal(const QString &method, const QString &argument, const QString &userAgent);
+    void runSignal();
 
     // emit signal when reply is done
     void finishedSignal();
@@ -40,14 +59,12 @@ signals:
 
 
 private slots:
-    void requestDestroyed()    { m_request = 0; }
-
     void LogMessage(const QString &msg) { emit logTextSignal(msg); }
 
     // Construct a proper HTTP response to a received request
     // and provide answer to the client on the request
     // See "http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html" for HTTP header field definitions.
-    virtual void _run(const QString &method, const QString &argument, const QString &userAgent);
+    virtual void _run();
 
     virtual void dlnaResources(QObject* requestor, QList<DlnaResource*> resources);
 
@@ -68,8 +85,19 @@ protected:
 
 
 protected:
-    Request* m_request;
-    QString m_userAgent;
+    QString m_requestMethod;
+    QString m_requestArgument;
+    QHash<QString, QString> m_request_params;
+    QString m_requestContent;
+    HttpRange *m_requestRange;
+    int m_requestTimeSeekRangeStart;
+    int m_requestTimeSeekRangeEnd;
+
+    bool m_http10;
+    QString m_uuid;
+    QString m_servername;
+    QString m_host;
+    int m_port;
 
     QHash<QString, QString> m_params;  // header for the reply
     bool headerSent;

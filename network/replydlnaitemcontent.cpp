@@ -3,8 +3,8 @@
 // call updateStatus function every second
 const int ReplyDlnaItemContent::UPDATE_STATUS_PERIOD = 1000;
 
-ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, Request *request, QObject *parent):
-    Reply(log, request, parent),
+ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, const bool &http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd, QString uuid, QString servername, QString host, int port, QObject *parent):
+    Reply(log, http10, method, argument, paramsHeader, content, range, timeSeekRangeStart, timeSeekRangeEnd, uuid, servername, host, port, parent),
     m_closed(false),
     timerStatus(this),
     bytesToWrite(0),
@@ -46,17 +46,12 @@ void ReplyDlnaItemContent::streamOpened()
     sendHeader();
 }
 
-void ReplyDlnaItemContent::_run(const QString &method, const QString &argument, const QString &userAgent)
+void ReplyDlnaItemContent::_run()
 {
-    m_userAgent = userAgent;
-
-    if (!m_request)
-        return;
-
     // prepare data and send answer
-    logTrace("ANSWER: " + method + " " + argument);
+    logTrace("ANSWER: " + requestMethod() + " " + requestArgument());
 
-    if ((method == "GET" || method == "HEAD") && argument.startsWith("get/"))
+    if ((requestMethod() == "GET" || requestMethod() == "HEAD") && requestArgument().startsWith("get/"))
     {
         // Request to retrieve a file
 
@@ -66,7 +61,7 @@ void ReplyDlnaItemContent::_run(const QString &method, const QString &argument, 
         */
         QRegExp rxId("get/([\\d$]+)/(.+)");
         QString id;
-        if (rxId.indexIn(argument) != -1) {
+        if (rxId.indexIn(requestArgument()) != -1) {
             id = rxId.capturedTexts().at(1);
             requestFilename = rxId.capturedTexts().at(2);
         }
@@ -74,8 +69,8 @@ void ReplyDlnaItemContent::_run(const QString &method, const QString &argument, 
         // Some clients escape the separators in their request: unescape them.
         id = id.replace("%24", "$");
 
-        if (!m_request->getTransferMode().isNull())
-            setParamHeader("TransferMode.dlna.org", m_request->getTransferMode());
+        if (!getRequestTransferMode().isNull())
+            setParamHeader("TransferMode.dlna.org", getRequestTransferMode());
 
         // Retrieve the DLNAresource itself.
         m_requestResource = true;
@@ -84,7 +79,7 @@ void ReplyDlnaItemContent::_run(const QString &method, const QString &argument, 
     else
     {
         requestFilename.clear();
-        logError("Unkown answer for: " + method + " " + argument);
+        logError("Unkown answer for: " + requestMethod() + " " + requestArgument());
         emit replyStatusSignal("KO");
         close();
     }
@@ -205,7 +200,7 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
         DlnaItem *dlna = qobject_cast<DlnaItem*>(resources.at(0));
         dlna->setUserAgent(userAgent());
 
-        HttpRange *range = m_request->getRange();
+        HttpRange *range = requestRange();
         if (range != 0) {
             // update range with size of dlna object
             range->setSize(dlna->size());
@@ -216,9 +211,9 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
             setParamHeader("Content-Type", "image/jpeg");
             setParamHeader("Accept-Ranges", "bytes");
 //                setParamHeader("Expires", getFUTUREDATE() + " GMT");
-            if (!m_request->isHttp10())
+            if (!isHttp10())
                 setParamHeader("Connection", "keep-alive");
-            setParamHeader("Server", m_request->getServername());
+            setParamHeader("Server", servername());
 
             QByteArray answerContent = dlna->getByteAlbumArt();
             if (answerContent.isNull()) {
@@ -257,27 +252,27 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
             // This is a request for a regular file.
             setParamHeader("Content-Type", dlna->mimeType());
 
-            if (!m_request->getContentFeatures().isNull())
+            if (!getRequestContentFeatures().isNull())
                 setParamHeader("contentFeatures.dlna.org", dlna->getDlnaContentFeatures());
 
-            if (!m_request->getMediaInfoSec().isNull())
+            if (!getRequestMediaInfoSec().isNull())
                 setParamHeader("MediaInfo.sec", QString("SEC_Duration=%1").arg(dlna->getLengthInMilliSeconds()));
 
             if (dlna->getdlnaOrgOpFlags().at(1) == '1')
                 setParamHeader("Accept-Ranges", "bytes");
 
-            if (!m_request->isHttp10())
+            if (!isHttp10())
                 setParamHeader("Connection", "keep-alive");
 
-            setParamHeader("Server", m_request->getServername());
+            setParamHeader("Server", servername());
 
-            if (m_request->getTimeSeekRangeStart() >= 0 && dlna->getLengthInMilliSeconds() > 0) {
+            if (requestTimeSeekRangeStart() >= 0 && dlna->getLengthInMilliSeconds() > 0) {
                 QTime start_time(0, 0, 0);
-                start_time = start_time.addSecs(m_request->getTimeSeekRangeStart());
+                start_time = start_time.addSecs(requestTimeSeekRangeStart());
 
                 QTime end_time(0, 0, 0);
-                if (m_request->getTimeSeekRangeEnd() != -1) {
-                    end_time = end_time.addSecs(m_request->getTimeSeekRangeEnd());
+                if (requestTimeSeekRangeEnd() != -1) {
+                    end_time = end_time.addSecs(requestTimeSeekRangeEnd());
                 } else {
                     end_time = end_time.addMSecs(dlna->getLengthInMilliSeconds());
                 }
@@ -297,7 +292,7 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                     setParamHeader("Content-Range", QString("bytes %1-%2/%3").arg(range->getStartByte()).arg(range->getEndByte()).arg(dlna->size()));
             }
 
-            if (m_request->getMethod() == "HEAD") {
+            if (requestMethod() == "HEAD") {
                 sendAnswer(QByteArray());
                 requestFilename.clear();
                 emit replyStatusSignal("OK");
@@ -310,8 +305,8 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                 emit servingSignal(mediaFilename, 0);
 
                 // recover resume time
-                qint64 timeSeekRangeStart = m_request->getTimeSeekRangeStart();
-                qint64 timeSeekRangeEnd = m_request->getTimeSeekRangeEnd();
+                qint64 timeSeekRangeStart = requestTimeSeekRangeStart();
+                qint64 timeSeekRangeEnd = requestTimeSeekRangeEnd();
                 qint64 resume = dlna->getResumeTime();
                 if (resume>0) {
                     timeSeekRangeStart = resume/1000 - 10;

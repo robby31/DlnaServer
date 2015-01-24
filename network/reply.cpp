@@ -17,24 +17,39 @@ const QString Reply::EVENT_Prop = "<e:property><%1>%2</%1></e:property>";
 const QString Reply::EVENT_FOOTER = "</e:propertyset>";
 
 
-Reply::Reply(Logger *log, Request *request, QObject *parent):
+Reply::Reply(Logger *log, const bool &http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd, QString uuid, QString servername, QString host, int port, QObject *parent):
     LogObject(log, parent),
-    m_request(request),
-    m_userAgent(),
+    m_requestMethod(method),
+    m_requestArgument(argument),
+    m_request_params(paramsHeader),
+    m_requestContent(content),
+    m_requestRange(range),
+    m_requestTimeSeekRangeStart(timeSeekRangeStart),
+    m_requestTimeSeekRangeEnd(timeSeekRangeEnd),
+    m_http10(http10),
+    m_uuid(uuid),
+    m_servername(servername),
+    m_host(host),
+    m_port(port),
     m_params(),
     headerSent(false),
     doc(),
     xml()
 {
-    connect(this, SIGNAL(runSignal(QString,QString,QString)), this, SLOT(_run(QString,QString,QString)));
-
-    connect(m_request, SIGNAL(destroyed()), this, SLOT(requestDestroyed()));
+    connect(this, SIGNAL(runSignal()), this, SLOT(_run()));
 }
 
 QString Reply::getParamHeader(const QString &param) const
 {
     if (m_params.contains(param))
         return m_params[param];
+    return QString();
+}
+
+QString Reply::getRequestParamHeader(const QString &param) const
+{
+    if (m_request_params.contains(param))
+        return m_request_params[param];
     return QString();
 }
 
@@ -83,31 +98,26 @@ void Reply::sendAnswer(const QByteArray &contentAnswer)
     sendHeader();
 
     // HEAD requests only require headers to be set, no need to set contents.
-    if (m_request && m_request->getMethod() != "HEAD" && !contentAnswer.isNull())
+    if (requestMethod() != "HEAD" && !contentAnswer.isNull())
         emit sendDataToClientSignal(contentAnswer);
 }
 
-void Reply::_run(const QString &method, const QString &argument, const QString &userAgent)
+void Reply::_run()
 {
-    m_userAgent = userAgent;
-
-    if (!m_request)
-        return;
-
     // prepare data and send answer
-    QString soapaction = m_request->getSoapaction();
+    QString soapaction = getRequestSoapAction();
 
-    logTrace("ANSWER: " + method + " " + argument);
+    logTrace("ANSWER: " + requestMethod() + " " + requestArgument());
 
-    if ((method == "GET" || method == "HEAD") && (argument == "description/fetch" || argument.endsWith("1.0.xml"))) {
+    if ((requestMethod() == "GET" || requestMethod() == "HEAD") && (requestArgument() == "description/fetch" || requestArgument().endsWith("1.0.xml"))) {
 
         setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
         setParamHeader("Cache-Control", "no-cache");
         setParamHeader("Expires", "0");
         setParamHeader("Accept-Ranges", "bytes");
-        if (!m_request->isHttp10())
+        if (!isHttp10())
             setParamHeader("Connection", "keep-alive");
-        setParamHeader("Server", m_request->getServername());
+        setParamHeader("Server", servername());
 
         QString answerContent;
 
@@ -118,10 +128,10 @@ void Reply::_run(const QString &method, const QString &argument, const QString &
             inputStream.close();
 
             // replace parameter by its value
-            answerContent.replace(QString("[servername]"), m_request->getServername());
-            answerContent.replace(QString("[uuid]"), QString("uuid:%1").arg(m_request->getUuid()));
-            answerContent.replace(QString("[host]"), m_request->getHost());
-            answerContent.replace(QString("[port]"), QString("%1").arg(m_request->getPort()));
+            answerContent.replace(QString("[servername]"), servername());
+            answerContent.replace(QString("[uuid]"), QString("uuid:%1").arg(uuid()));
+            answerContent.replace(QString("[host]"), host());
+            answerContent.replace(QString("[port]"), QString("%1").arg(port()));
         }
         else {
             logError("Unable to read PMS.xml for description/fetch answer.");
@@ -131,11 +141,11 @@ void Reply::_run(const QString &method, const QString &argument, const QString &
 
         replyDone("OK");
     }
-    else if (method == "POST" && argument.endsWith("upnp/control/connection_manager")) {
+    else if (requestMethod() == "POST" && requestArgument().endsWith("upnp/control/connection_manager")) {
 
         if (!soapaction.isEmpty() && soapaction.indexOf("ConnectionManager:1#GetProtocolInfo") > -1) {
             setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
-            setParamHeader("Server", m_request->getServername());
+            setParamHeader("Server", servername());
 
             QString answerContent;
             answerContent.append(XML_HEADER);
@@ -153,9 +163,9 @@ void Reply::_run(const QString &method, const QString &argument, const QString &
         }
 
     }
-    else if (method == "POST" && argument.endsWith("upnp/control/content_directory")) {
+    else if (requestMethod() == "POST" && requestArgument().endsWith("upnp/control/content_directory")) {
         setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
-        setParamHeader("Server", m_request->getServername());
+        setParamHeader("Server", servername());
 
         QString answerContent;
         if (!soapaction.isEmpty() && soapaction.indexOf("ContentDirectory:1#GetSystemUpdateID") > -1) {
@@ -222,7 +232,7 @@ void Reply::_run(const QString &method, const QString &argument, const QString &
         } else if (!soapaction.isEmpty() && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
 
             // read the content of the received request
-            doc.setContent(m_request->getTextContent());
+            doc.setContent(requestTextContent());
 
             QString objectID;
             QDomNodeList list = doc.elementsByTagName("ObjectID");
@@ -297,12 +307,12 @@ void Reply::_run(const QString &method, const QString &argument, const QString &
         } else {
             replyDone("KO");
         }
-    } else if (method == "SUBSCRIBE" && !soapaction.isEmpty()) {
+    } else if (requestMethod() == "SUBSCRIBE" && !soapaction.isEmpty()) {
         setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
         setParamHeader("Content-Length", "0");
         setParamHeader("Connection",  "close");
-        setParamHeader("SID", QString("uuid:%1").arg(m_request->getUuid()));
-        setParamHeader("Server", m_request->getServername());
+        setParamHeader("SID", QString("uuid:%1").arg(uuid()));
+        setParamHeader("Server", servername());
         setParamHeader("Timeout", "Second-1800");
 
         sendAnswer();
@@ -316,8 +326,8 @@ void Reply::_run(const QString &method, const QString &argument, const QString &
         QTcpSocket sock;
         sock.connectToHost(addr, port);
         if (sock.waitForConnected()) {
-            sendLine(&sock, "NOTIFY /" + argument + " HTTP/1.1");
-            sendLine(&sock, QString("SID: uuid:%1").arg(m_request->getUuid()));
+            sendLine(&sock, "NOTIFY /" + requestArgument() + " HTTP/1.1");
+            sendLine(&sock, QString("SID: uuid:%1").arg(uuid()));
             sendLine(&sock, "SEQ: 0");
             sendLine(&sock, "NT: upnp:event");
             sendLine(&sock, "NTS: upnp:propchange");
@@ -336,8 +346,8 @@ void Reply::_run(const QString &method, const QString &argument, const QString &
         m_params.clear();
         headerSent = false;
 
-        if (argument.contains("connection_manager")) {
-            setParamHeader("Server", m_request->getServername());
+        if (requestArgument().contains("connection_manager")) {
+            setParamHeader("Server", servername());
 
             answerContent.append(EVENT_Header.arg("urn:schemas-upnp-org:service:ConnectionManager:1"));
             answerContent.append(EVENT_Prop.arg("SinkProtocolInfo").arg(""));
@@ -349,8 +359,8 @@ void Reply::_run(const QString &method, const QString &argument, const QString &
 
             replyDone("OK");
 
-        } else if (argument.contains("content_directory")) {
-            setParamHeader("Server", m_request->getServername());
+        } else if (requestArgument().contains("content_directory")) {
+            setParamHeader("Server", servername());
 
             answerContent.append(EVENT_Header.arg("urn:schemas-upnp-org:service:ContentDirectory:1"));
             answerContent.append(EVENT_Prop.arg("TransferIDs").arg(""));
@@ -365,31 +375,31 @@ void Reply::_run(const QString &method, const QString &argument, const QString &
             replyDone("Unknown argument");
         }
     }
-    else if ((method == "GET" || method == "HEAD") && (argument.toLower().endsWith(".png") || argument.toLower().endsWith(".jpg") || argument.toLower().endsWith(".jpeg"))) {
+    else if ((requestMethod() == "GET" || requestMethod() == "HEAD") && (requestArgument().toLower().endsWith(".png") || requestArgument().toLower().endsWith(".jpg") || requestArgument().toLower().endsWith(".jpeg"))) {
 
-        if (argument.toLower().endsWith(".png")) {
+        if (requestArgument().toLower().endsWith(".png")) {
             setParamHeader("Content-Type", "image/png");
         } else {
             setParamHeader("Content-Type", "image/jpeg");
         }
 
         setParamHeader("Accept-Ranges", "bytes");
-        if (!m_request->isHttp10())
+        if (!isHttp10())
             setParamHeader("Connection", "keep-alive");
 //        setParamHeader("Expires:", getFUTUREDATE() + " GMT");
-        setParamHeader("Server", m_request->getServername());
+        setParamHeader("Server", servername());
 
         QByteArray answerContent;
 
         // read the image file
-        QFile inputStream(":/" + argument);
+        QFile inputStream(":/" + requestArgument());
         if (inputStream.open(QFile::ReadOnly)) {
             answerContent = inputStream.readAll();
             inputStream.close();
 
         }
         else {
-            logError(QString("Unable to read %1 for %2 answer.").arg(argument).arg(method));
+            logError(QString("Unable to read %1 for %2 answer.").arg(requestArgument()).arg(requestMethod()));
         }
 
         sendAnswer(answerContent);
@@ -397,7 +407,7 @@ void Reply::_run(const QString &method, const QString &argument, const QString &
         replyDone("OK");
     }
     else {
-        logError("Unkown answer for: " + method + " " + argument);
+        logError("Unkown answer for: " + requestMethod() + " " + requestArgument());
         replyDone("KO");
     }
 }
@@ -414,7 +424,7 @@ void Reply::dlnaResources(QObject *requestor, QList<DlnaResource *> resources)
     if (requestor != this)
         return;  // ignore resources
 
-    QString soapaction = m_request->getSoapaction();
+    QString soapaction = getRequestSoapAction();
 
     // prepare the answer to send
     QStringList filter;

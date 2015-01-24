@@ -60,7 +60,7 @@ void Request::requestReceived(const QString &peerAddress, const QStringList &hea
         this->timeSeekRangeStart = timeSeekRangeStart;
         this->timeSeekRangeEnd = timeSeekRangeEnd;
 
-        emit readyToReply();
+        emit readyToReply(method, argument, paramsHeader, isHttp10(), getTextContent(), getRange(), getTimeSeekRangeStart(), getTimeSeekRangeEnd());
 
         if (getArgument() == "description/fetch") {
             // new renderer is connecting to server

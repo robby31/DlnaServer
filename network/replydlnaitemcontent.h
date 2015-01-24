@@ -8,7 +8,7 @@ class ReplyDlnaItemContent : public Reply
     Q_OBJECT
 
 public:
-    explicit ReplyDlnaItemContent(Logger *log, Request *request, QObject *parent = 0);
+    explicit ReplyDlnaItemContent(Logger *log, const bool &http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd, QString uuid, QString servername, QString host, int port, QObject *parent = 0);
     virtual ~ReplyDlnaItemContent();
 
 
@@ -47,7 +47,7 @@ private slots:
     // Construct a proper HTTP response to a received request
     // and provide answer to the client on the request
     // See "http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html" for HTTP header field definitions.
-    virtual void _run(const QString &method, const QString &argument, const QString &userAgent);
+    virtual void _run();
 
     virtual void dlnaResources(QObject* requestor, QList<DlnaResource*> resources);
 
