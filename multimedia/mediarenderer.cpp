@@ -53,42 +53,42 @@ bool MediaRenderer::setData(const QVariant &value, const int &role)
     QVector<int> roles;
     roles << role;
 
-    if (role == statusRole)
+    switch(role)
     {
+    case statusRole:
         if (value != status)
         {
             status = value.toString();
             emit itemChanged(roles);
         }
         return true;
-    }
-    else if (role == nameRole)
-    {
+
+    case nameRole:
         if (value != name)
         {
             name = value.toString();
             emit itemChanged(roles);
         }
         return true;
-    }
-    else if (role == networkAddressRole)
-    {
+
+    case networkAddressRole:
         if (value != ip)
         {
             ip = value.toString();
             emit itemChanged(roles);
         }
         return true;
-    }
-    else if (role == userAgentRole)
-    {
+
+    case userAgentRole:
         if (value != userAgent)
         {
             userAgent = value.toString();
             emit itemChanged(roles);
         }
         return true;
-    }
 
-    return false;
+    default:
+        qWarning() << "unable to set data" << value << role;
+        return false;
+    }
 }

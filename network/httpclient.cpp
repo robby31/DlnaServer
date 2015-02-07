@@ -65,8 +65,8 @@ void HttpClient::closeClient()
         }
         else
         {
-            disconnectFromHost();
             appendLogSignal(QString("%2: Close client (%1)"+CRLF).arg(socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+            disconnectFromHost();
         }
     }
 }
