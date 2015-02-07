@@ -5,16 +5,18 @@
 #include <QElapsedTimer>
 #include <QThread>
 
-#include "logobject.h"
+#include "logger.h"
 #include "httpclient.h"
 #include "httprange.h"
+#include "Models/listmodel.h"
 
 
-class Request: public LogObject
+class Request: public ListItem
 {
     Q_OBJECT
 
 public:
+    explicit Request(QObject *parent = 0);
     explicit Request(Logger *log,
                      qintptr socket,
                      QString uuid,
@@ -22,17 +24,28 @@ public:
                      QObject *parent = 0);
     virtual ~Request();
 
+    enum Roles {
+        methodRole = Qt::UserRole+1,
+        argumentRole,
+        hostRole,
+        peerAddressRole,
+        statusRole,
+        headerRole,
+        contentRole,
+        durationRole,
+        dateRole,
+        answerRole,
+        networkStatusRole,
+        transcodeLogRole
+    };
+
+    virtual QHash<int, QByteArray> roleNames() const { return m_roles; }
+    virtual QVariant data(int role) const;
+    virtual bool setData(const QVariant &value, const int &role);
+
+
     bool isHttp10() const { return http10; }
 
-    QString getMethod() const { return m_method; }
-
-    // Retrieves the argument of the request.
-    // It contains a command, a unique resource id and a resource name, all separated by slashes.
-    // For example: "get/0$0$2$17/big_buck_bunny_1080p_h264.mov" or "get/0$0$2$13/thumbnail0000Sintel.2010.1080p.mkv"
-    QString getArgument() const { return m_argument; }
-
-    QString getHost() const { return m_host; }
-    QString getpeerAddress() const { return m_peerAddress; }
     qintptr socketDescriptor() const { return m_socket; }
     QString getServername() const { return servername; }
     int getPort() const { return port; }
@@ -42,55 +55,26 @@ public:
     qint64 getTimeSeekRangeStart() const { return timeSeekRangeStart; }
     qint64 getTimeSeekRangeEnd() const { return timeSeekRangeEnd; }
 
-    QString getStatus() const { return m_status; }
-
-    QString getNetworkStatus() const { return m_networkStatus; }
-
-    QString getDuration() const { return QTime(0, 0).addMSecs(m_duration).toString("hh:mm:ss.zzz"); }
-
-    QString getDate() const { return m_date; }
-
     QString getSoapaction() const { return getParamHeader("SOAPACTION"); }
-
-    QString getTextContent() const { return m_content; }
 
     QString getTransferMode() const { return getParamHeader("TRANSFERMODE.DLNA.ORG"); }
 
     QString getContentFeatures() const { return getParamHeader("GETCONTENTFEATURES.DLNA.ORG"); }
 
-    QString getTextHeader() const { return m_header.join(""); }
-
     QString getMediaInfoSec() const { return getParamHeader("GETMEDIAINFO.SEC"); }
-
-    QString getTextAnswer() const { return m_stringAnswer.join(""); }
-
-    QString getLog() const { return requestLog; }
 
     QString getParamHeader(const QString &param) const;
 
 
 private:
-    void setHttp10(const bool &http10) { this->http10 = http10; }
-
-    void setMethod(const QString &method) { m_method = method; emit dataChanged("method"); }
-
-    void setArgument(const QString &argument) { m_argument = argument; emit dataChanged("argument"); }
-
-    void setHost(const QString &host) { m_host = host; emit dataChanged("host"); }
-
-    void setPeerAddress(const QString &address) { m_peerAddress = address; emit dataChanged("peerAddress"); }
-
-    void setDuration(const qint64 &duration) { m_duration = duration; emit dataChanged("duration"); }
-
-    void setDate(const QString &date) { m_date = date; emit dataChanged("date"); }
-
-    void setTextContent(const QString &content) { m_content = content; emit dataChanged("content"); }
+    bool isLogLevel(const LogLevel &level) const { return m_log ? m_log->isLevel(level) : false; }
+    void logError(const QString &message)  const { if (m_log) m_log->Error(message); }
+    void logDebug(const QString &message)  const { if (m_log) m_log->Debug(message); }
+    void logInfo(const QString &message)   const { if (m_log) m_log->Info(message); }
+    void logTrace(const QString &message)  const { if (m_log) m_log->Trace(message); }
 
 
 signals:
-    // emit signal when data changed
-    void dataChanged(const QString &roleChanged);
-
     // emit signal when header has been completely received
     void headerReady();
 
@@ -114,30 +98,38 @@ signals:
 
     void deleteRequest(Request *request);
 
-public slots:
-    void replyFinished();
-
-    void appendLog(const QString &msg) { requestLog.append(msg); emit dataChanged("transcode_log"); }
-
 
 private slots:
-    void setStatus(const QString &status) { m_status = status; emit dataChanged("status"); }
-    void setNetworkStatus(const QString &status) { m_networkStatus = status; emit dataChanged("network_status"); }
+    void setStatus(const QString &status)           { setData(status, statusRole);          }
+    void setNetworkStatus(const QString &status)    { setData(status, networkStatusRole);   }
+    void setHttp10(const bool &http10)              { this->http10 = http10;                }
+    void setMethod(const QString &method)           { setData(method, methodRole);          }
+    void setArgument(const QString &argument)       { setData(argument, argumentRole);      }
+    void setHost(const QString &host)               { setData(host, hostRole);              }
+    void setPeerAddress(const QString &address)     { setData(address, peerAddressRole);    }
+    void setDuration(const qint64 &duration)        { setData(duration, durationRole);      }
+    void setDate(const QString &date)               { setData(date, dateRole);              }
+    void setTextContent(const QString &content)     { setData(content, contentRole);        }
 
-    // slots for incoming data
+    void appendLog(const QString &msg) { requestLog.append(msg); emit itemChanged(QVector<int>(1, transcodeLogRole)); }
+    void appendAnswer(const QString &string) { m_stringAnswer.append(string); emit itemChanged(QVector<int>(1, answerRole)); }
+
     void stateChanged(const QAbstractSocket::SocketState &state);
 
-    void appendAnswer(const QString &string) { m_stringAnswer.append(string); emit dataChanged("answer"); }
-
-    void startServingRenderer(const QString &mediaName) { emit startServingRendererSignal(getpeerAddress(), mediaName); }
-    void stopServingRenderer()                          { emit stopServingRendererSignal(getpeerAddress()); }
+    void startServingRenderer(const QString &mediaName) { emit startServingRendererSignal(data(peerAddressRole).toString(), mediaName); }
+    void stopServingRenderer()                          { emit stopServingRendererSignal(data(peerAddressRole).toString()); }
 
     void requestReceived(const QString &peerAddress, const QStringList &header, const bool &is_http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd);
+    void replyFinished();
+
 
 private:
     // Carriage return and line feed.
     static const QString CRLF;
 
+    QHash<int, QByteArray> m_roles;
+
+    Logger *m_log;
     qintptr m_socket;
 
     QString requestLog;  // internal log
