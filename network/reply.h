@@ -57,6 +57,8 @@ signals:
 
     void getDLNAResourcesSignal(QString objectId, bool returnChildren, int start, int count, QString searchStr);
 
+    void bytesSent(const qint64 &size, const qint64 &towrite);
+
 
 private slots:
     void LogMessage(const QString &msg) { emit logTextSignal(msg); }
@@ -68,6 +70,7 @@ private slots:
 
     virtual void dlnaResources(QObject* requestor, QList<DlnaResource*> resources);
 
+    virtual void bytesSentSlot(const qint64 &size, const qint64 &towrite);
 
 protected:
     void sendLine(QTcpSocket *client, const QString &msg);
@@ -101,6 +104,7 @@ protected:
 
     QHash<QString, QString> m_params;  // header for the reply
     bool headerSent;
+    bool keepReplyOpened;
 
     QDomDocument doc;
     QDomDocument xml;

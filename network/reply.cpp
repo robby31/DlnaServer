@@ -33,10 +33,12 @@ Reply::Reply(Logger *log, const bool &http10, const QString &method, const QStri
     m_port(port),
     m_params(),
     headerSent(false),
+    keepReplyOpened(false),
     doc(),
     xml()
 {
     connect(this, SIGNAL(runSignal()), this, SLOT(_run()));
+    connect(this, SIGNAL(bytesSent(qint64,qint64)), this, SLOT(bytesSentSlot(qint64,qint64)));
 }
 
 QString Reply::getParamHeader(const QString &param) const
@@ -138,8 +140,6 @@ void Reply::_run()
         }
 
         sendAnswer(answerContent.toUtf8());
-
-        replyDone("OK");
     }
     else if (requestMethod() == "POST" && requestArgument().endsWith("upnp/control/connection_manager")) {
 
@@ -158,8 +158,6 @@ void Reply::_run()
             answerContent.append(CRLF);
 
             sendAnswer(answerContent.toUtf8());
-
-            replyDone("OK");
         }
 
     }
@@ -184,8 +182,6 @@ void Reply::_run()
 
             sendAnswer(answerContent.toUtf8());
 
-            replyDone("OK");
-
         } else if (!soapaction.isEmpty() && soapaction.indexOf("ContentDirectory:1#GetSortCapabilities") > -1) {
             answerContent.append(XML_HEADER);
             answerContent.append(CRLF);
@@ -197,8 +193,6 @@ void Reply::_run()
             answerContent.append(CRLF);
 
             sendAnswer(answerContent.toUtf8());
-
-            replyDone("OK");
 
         } else if (!soapaction.isEmpty() && soapaction.indexOf("ContentDirectory:1#X_GetFeatureList") > -1) {
             // Added for Samsung 2012 TVs
@@ -213,8 +207,6 @@ void Reply::_run()
 
             sendAnswer(answerContent.toUtf8());
 
-            replyDone("OK");
-
         } else if (!soapaction.isEmpty()  && soapaction.indexOf("ContentDirectory:1#GetSearchCapabilities") > -1) {
             answerContent.append(XML_HEADER);
             answerContent.append(CRLF);
@@ -226,8 +218,6 @@ void Reply::_run()
             answerContent.append(CRLF);
 
             sendAnswer(answerContent.toUtf8());
-
-            replyDone("OK");
 
         } else if (!soapaction.isEmpty() && (soapaction.contains("ContentDirectory:1#Browse") || soapaction.contains("ContentDirectory:1#Search"))) {
 
@@ -315,6 +305,7 @@ void Reply::_run()
         setParamHeader("Server", servername());
         setParamHeader("Timeout", "Second-1800");
 
+        keepReplyOpened = true;
         sendAnswer();
 
         QString cb = soapaction.replace("<", "").replace(">", "");
@@ -357,8 +348,6 @@ void Reply::_run()
 
             sendAnswer(answerContent.toUtf8());
 
-            replyDone("OK");
-
         } else if (requestArgument().contains("content_directory")) {
             setParamHeader("Server", servername());
 
@@ -370,10 +359,10 @@ void Reply::_run()
 
             sendAnswer(answerContent.toUtf8());
 
-            replyDone("OK");
         } else {
             replyDone("Unknown argument");
         }
+
     }
     else if ((requestMethod() == "GET" || requestMethod() == "HEAD") && (requestArgument().toLower().endsWith(".png") || requestArgument().toLower().endsWith(".jpg") || requestArgument().toLower().endsWith(".jpeg"))) {
 
@@ -404,7 +393,6 @@ void Reply::_run()
 
         sendAnswer(answerContent);
 
-        replyDone("OK");
     }
     else {
         logError("Unkown answer for: " + requestMethod() + " " + requestArgument());
@@ -552,6 +540,14 @@ void Reply::dlnaResources(QObject *requestor, QList<DlnaResource *> resources)
 
     //send the answer to client
     sendAnswer(xml.toString(-1).toUtf8());
+}
 
-    replyDone("OK");
+void Reply::bytesSentSlot(const qint64 &size, const qint64 &towrite)
+{
+    Q_UNUSED(size)
+
+    if (!keepReplyOpened && towrite == 0)
+    {
+        replyDone("OK");
+    }
 }

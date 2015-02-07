@@ -24,8 +24,6 @@ signals:
     //   status = 1 if error occurs
     void servingFinishedSignal(QString filename, int status);
 
-    void bytesSent(const qint64 &size, const qint64 &towrite);
-
 
 private slots:
     // close the request
@@ -42,7 +40,7 @@ private slots:
 
     void streamingError(const QString &error) { Q_UNUSED(error) streamingWithErrors = true; }
 
-    void bytesSentSlot(const qint64 &size, const qint64 &towrite) { networkBytesSent += size; bytesToWrite = towrite; }
+    virtual void bytesSentSlot(const qint64 &size, const qint64 &towrite);
 
     // Construct a proper HTTP response to a received request
     // and provide answer to the client on the request
@@ -51,7 +49,7 @@ private slots:
 
     virtual void dlnaResources(QObject* requestor, QList<DlnaResource*> resources);
 
-    void streamingCompleted() { m_streamingCompleted = true; emit closeClientSignal(); }
+    void streamingCompleted() { m_streamingCompleted = true; }
 
 
 private:

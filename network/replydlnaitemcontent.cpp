@@ -19,8 +19,6 @@ ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, const bool &http10, cons
     streamingWithErrors(false),
     m_maxBufferSize(1024*1024*10)   // 10 MBytes by default when bitrate is unknown
 {
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), this, SLOT(bytesSentSlot(qint64,qint64)));
-
     timerStatus.setTimerType(Qt::PreciseTimer);
     timerStatus.setInterval(UPDATE_STATUS_PERIOD);
     connect(&timerStatus, SIGNAL(timeout()), this, SLOT(updateStatus()));
@@ -222,10 +220,10 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                 emit replyStatusSignal("KO");
                 close();
             } else {
-                sendAnswer(answerContent);
                 requestFilename.clear();
+                sendAnswer(answerContent);
+                m_streamingCompleted = true;
                 emit replyStatusSignal("OK");
-                close();
             }
 
         } else if (requestFilename.indexOf("subtitle0000") > -1) {
@@ -292,11 +290,11 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                     setParamHeader("Content-Range", QString("bytes %1-%2/%3").arg(range->getStartByte()).arg(range->getEndByte()).arg(dlna->size()));
             }
 
-            if (requestMethod() == "HEAD") {
-                sendAnswer(QByteArray());
+            if (requestMethod() == "HEAD")
+            {
                 requestFilename.clear();
+                sendAnswer(QByteArray());
                 emit replyStatusSignal("OK");
-                close();
 
             } else {
                 emit logTextSignal(QString("%3: %1 bytes to send in %2."+CRLF).arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
@@ -356,6 +354,18 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
         logError(QString("%1 media found").arg(resources.size()));
         requestFilename.clear();
         emit replyStatusSignal("KO");
+        close();
+    }
+}
+
+void ReplyDlnaItemContent::bytesSentSlot(const qint64 &size, const qint64 &towrite)
+{
+//    emit logTextSignal(QString("%1: %2 bytes sent, %3 bytes to send."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size).arg(towrite));
+
+    networkBytesSent += size;
+    bytesToWrite = towrite;
+    if (towrite == 0 && m_streamingCompleted)
+    {
         close();
     }
 }
