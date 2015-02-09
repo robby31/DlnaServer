@@ -127,8 +127,29 @@ bool MediaLibrary::open()
             }
         }
 
+        // check if unreachable media are still unreachable
+        if (query.exec("SELECT id, filename from media WHERE is_reachable=0"))
+        {
+            QHash<QString, QVariant> data;
+            data["is_reachable"] = QVariant(1);
+            while (query.next())
+            {
+                QString url(query.value("filename").toString());
+                if (!url.startsWith("http"))
+                {
+                    QFile fd(url);
+                    if (fd.exists())
+                    {
+                        logInfo(QString("media %1 id=%2 is now reachable").arg(fd.fileName()).arg(query.value("id").toString()));
+                        update(query.value("id").toInt(), data);
+                    }
+                }
+            }
+        }
+
         // check if all media are reachable
-        if (query.exec("SELECT id, filename from media")) {
+        if (query.exec("SELECT id, filename from media"))
+        {
             QHash<QString, QVariant> data;
             data["is_reachable"] = QVariant(0);
             while (query.next()) {
