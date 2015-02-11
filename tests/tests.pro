@@ -39,3 +39,10 @@ HEADERS += \
     tst_dlnavideoitem.h \
     tst_dlnacachedresources.h \
     tst_dlnayoutubevideo.h
+
+win32:CONFIG(release, debug|release): LIBS += -L$$OUT_PWD/../../QmlApplication/release/ -lQmlApplication
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$OUT_PWD/../../QmlApplication/debug/ -lQmlApplication
+else:unix: LIBS += -L$$OUT_PWD/../../QmlApplication/ -lQmlApplication
+
+INCLUDEPATH += $$PWD/../../QmlApplication
+DEPENDPATH += $$PWD/../../QmlApplication
