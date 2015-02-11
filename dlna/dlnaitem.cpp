@@ -6,7 +6,8 @@ DlnaItem::DlnaItem(Logger *log, QString host, int port, QObject *parent) :
     port(port),
     transcodeFormat(UNKNOWN),  // default transcode format
     dlnaOrgOpFlags("01"),      // seek by byte (exclusive)
-    dlnaOrgPN()
+    dlnaOrgPN(),
+    m_userAgent()
 {
 }
 

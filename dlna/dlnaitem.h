@@ -78,12 +78,17 @@ public:
     QString getdlnaOrgPN() const { return dlnaOrgPN; }
     void setdlnaOrgPN(QString arg) { dlnaOrgPN=arg; }
 
+    void setUserAgent(QString userAgent) { m_userAgent = userAgent; emit userAgentChanged(); }
+
 protected:
     // Returns the process for transcoding
     virtual TranscodeProcess* getTranscodeProcess() = 0;
 
 private:
     virtual void updateDLNAOrgPn() = 0;
+
+signals:
+    void userAgentChanged();
 
 protected:
     QString host;
@@ -124,6 +129,8 @@ protected:
 
     // DLNA.ORG_PN
     QString dlnaOrgPN;
+
+    QString m_userAgent;
 };
 
 #endif // DLNAITEM_H
