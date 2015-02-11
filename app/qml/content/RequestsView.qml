@@ -85,13 +85,13 @@ Item {
                 if (currentModelRow != -1) {
                     if (currentIndex == 0)
                     {
-                        tabHeader.item.text = _app.requestsModel.get(currentRow, 5)
+                        tabHeader.item.text = _app.requestsModel.get(currentRow, "header")
                     } else if (currentIndex == 1) {
-                        tabContent.item.text = _app.requestsModel.get(currentRow, 6)
+                        tabContent.item.text = _app.requestsModel.get(currentRow, "content")
                     } else if (currentIndex == 2) {
-                        tabAnswer.item.text = _app.requestsModel.get(currentRow, 9)
+                        tabAnswer.item.text = _app.requestsModel.get(currentRow, "answer")
                     } else if (currentIndex == 3) {
-                        tabLog.item.text = _app.requestsModel.get(currentRow, 11)
+                        tabLog.item.text = _app.requestsModel.get(currentRow, "transcode_log")
                     }
                 }
             }
