@@ -3,8 +3,9 @@
 // call updateStatus function every second
 const int ReplyDlnaItemContent::UPDATE_STATUS_PERIOD = 1000;
 
-ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, const bool &http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd, QString uuid, QString servername, QString host, int port, QObject *parent):
+ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, QThread *streamWorker, const bool &http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd, QString uuid, QString servername, QString host, int port, QObject *parent):
     Reply(log, http10, method, argument, paramsHeader, content, range, timeSeekRangeStart, timeSeekRangeEnd, uuid, servername, host, port, parent),
+    streamWorker(streamWorker),
     m_closed(false),
     timerStatus(this),
     bytesToWrite(0),
@@ -312,7 +313,7 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                 }
 
                 // get stream file
-                Device *streamContent = dlna->getStream(range, timeSeekRangeStart, timeSeekRangeEnd);
+                Device *streamContent = dlna->getStream(range, timeSeekRangeStart, timeSeekRangeEnd);              
 
                 if (!streamContent)
                 {
@@ -345,6 +346,9 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                         emit logTextSignal(QString("%1: Streaming started, %2 bytes to send."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(streamContent->size()));
                         emit startServingRendererSignal(dlna->getDisplayName());
                     }
+
+                    if (streamWorker)
+                        streamContent->moveToThread(streamWorker);
                 }
             }
         }

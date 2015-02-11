@@ -72,7 +72,7 @@ private slots:
 
     void _startServer();
     void _newConnectionError(const QAbstractSocket::SocketError &error);  // error during new connection
-    void _readyToReply();                                                 // reply shall be sent
+    void _readyToReply(const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const bool &http10, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd);                                                 // reply shall be sent
 
     void _servingProgress(const QString &filename, const int &playedDurationInMs);
     void _servingFinished(const QString &filename, const int &status);
@@ -101,6 +101,7 @@ private :
     int serverport;
 
     QThread workerNetwork;
+    QThread workerTranscoding;
 
     // root folder containing DLNA nodes
     QSqlDatabase database;

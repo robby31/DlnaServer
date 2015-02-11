@@ -18,6 +18,7 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
     hostaddress(),
     serverport(SERVERPORT),
     workerNetwork(this),
+    workerTranscoding(this),
     database(QSqlDatabase::addDatabase("QSQLITE"))
 {
     if (!m_log)
@@ -37,6 +38,9 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
 
     workerNetwork.setObjectName("Network, request, reply Thread");
     workerNetwork.start();
+
+    workerTranscoding.setObjectName("Transcoding");
+    workerTranscoding.start();
 }
 
 HttpServer::~HttpServer()
@@ -45,6 +49,11 @@ HttpServer::~HttpServer()
     workerNetwork.quit();
     if (!workerNetwork.wait(1000))
         logError("Unable to stop network, request and reply thread in HttpServer.");
+
+    // stop transcoding thread
+    workerTranscoding.quit();
+    if (!workerTranscoding.wait(1000))
+        logError("Unable to stop transcoding thread in HttpServer.");
 
     logTrace("Close HTTP server.");
     close();
@@ -152,6 +161,8 @@ void HttpServer::createTcpSocket(Request *request)
             connect(client, SIGNAL(bytesSent(qint64,qint64)), request, SIGNAL(bytesSent(qint64,qint64)));
             connect(request, SIGNAL(deleteClient()), client, SLOT(deleteLater()));
         }
+
+        client->moveToThread(&workerNetwork);
     }
 }
 
@@ -160,7 +171,7 @@ void HttpServer::newRequest(Request *request)
     if (request)
     {
         // connection between request and httpserver
-        connect(request, SIGNAL(readyToReply()), this, SLOT(_readyToReply()));
+        connect(request, SIGNAL(readyToReply(QString,QString,QHash<QString,QString>,bool,QString,HttpRange*,int,int)), this, SLOT(_readyToReply(QString,QString,QHash<QString,QString>,bool,QString,HttpRange*,int,int)));
         connect(request, SIGNAL(newRenderer(QString,int,QString)), this, SIGNAL(newRenderer(QString,int,QString)));
         connect(request, SIGNAL(startServingRendererSignal(QString,QString)), this, SIGNAL(servingRenderer(QString,QString)));
         connect(request, SIGNAL(stopServingRendererSignal(QString)), this, SIGNAL(stopServingRenderer(QString)));
@@ -174,27 +185,26 @@ void HttpServer::_newConnectionError(const QAbstractSocket::SocketError &error) 
     logError(QString("HTTP server: error at new connection (%1).").arg(error));
 }
 
-void HttpServer::_readyToReply()
+void HttpServer::_readyToReply(const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const bool &http10, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd)
 {
     Request* request = (Request*) sender();
-    Reply* reply;
+    Reply* reply = 0;
 
-    if ((request->getMethod() == "GET" || request->getMethod() == "HEAD") && request->getArgument().startsWith("get/"))
+    if ((method == "GET" || method == "HEAD") && argument.startsWith("get/"))
     {
-        reply = new ReplyDlnaItemContent(m_log, request);
+        reply = new ReplyDlnaItemContent(m_log, &workerTranscoding, http10, method, argument, paramsHeader, content, range, timeSeekRangeStart, timeSeekRangeEnd, UUID, QString("%1").arg(SERVERNAME), getHost().toString(), getPort(), this);
         connect(reply, SIGNAL(startServingRendererSignal(QString)), request, SLOT(startServingRenderer(QString)));
         connect(reply, SIGNAL(stopServingRendererSignal()), request, SLOT(stopServingRenderer()));
         connect(reply, SIGNAL(servingSignal(QString,int)), this, SLOT(_servingProgress(QString,int)));
         connect(reply, SIGNAL(servingFinishedSignal(QString, int)), this, SLOT(_servingFinished(QString, int)));
         connect(request, SIGNAL(clientDisconnected()), reply, SLOT(close()));
-        connect(request, SIGNAL(bytesSent(qint64,qint64)), reply, SIGNAL(bytesSent(qint64,qint64)));
     }
     else
     {
-        reply = new Reply(m_log, request);
+        reply = new Reply(m_log, http10, method, argument, paramsHeader, content, range, timeSeekRangeStart, timeSeekRangeEnd, UUID, QString("%1").arg(SERVERNAME), getHost().toString(), getPort(), this);
     }
 
-    reply->moveToThread(request->thread());
+    connect(request, SIGNAL(bytesSent(qint64,qint64)), reply, SIGNAL(bytesSent(qint64,qint64)));
 
     connect(reply, SIGNAL(getDLNAResourcesSignal(QString,bool,int,int,QString)), this, SLOT(requestDLNAResourcesSignal(QString,bool,int,int,QString)));
     connect(this, SIGNAL(dlnaResources(QObject*,QList<DlnaResource*>)), reply, SLOT(dlnaResources(QObject*,QList<DlnaResource*>)));
@@ -215,7 +225,7 @@ void HttpServer::_readyToReply()
     connect(reply, SIGNAL(finishedSignal()), request, SLOT(replyFinished()));
     connect(reply, SIGNAL(finishedSignal()), reply, SLOT(deleteLater()));
 
-    reply->run(request->getMethod(), request->getArgument(), request->getParamHeader("USER-AGENT"));
+    reply->run();
 }
 
 void HttpServer::_addFolder(const QString &folder)

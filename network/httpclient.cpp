@@ -38,6 +38,8 @@ HttpClient::~HttpClient()
         delete range;
         range = 0;
     }
+
+    appendLogSignal(QString("%1: destroy client."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
 }
 
 void HttpClient::clear()
@@ -119,9 +121,15 @@ void HttpClient::sendData(const QByteArray &data)
 {
     // send the content
     if (write(data) == -1)
-        logError(QString("HTTP request: Unable to send content, %1").arg(errorString()));
+    {
+        QString msg = QString("HTTP request: Unable to send content, %1").arg(errorString());
+        logError(msg);
+        appendLogSignal(QString("%1: %2"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(msg));
+    }
     else if (isLogLevel(DEBG))
+    {
         appendLogSignal(QString("%1: bytes written?%2"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(data.size()));
+    }
 
 //    flush();
 }
