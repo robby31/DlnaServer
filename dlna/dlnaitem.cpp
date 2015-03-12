@@ -93,7 +93,8 @@ QString DlnaItem::getDlnaContentFeatures() const {
 
 qint64 DlnaItem::size() const {
     if (toTranscode()) {
-        if (bitrate() != -1) {
+        if (bitrate() != -1 && getLengthInMilliSeconds() != -1)
+        {
             return double(bitrate())*double(getLengthInMilliSeconds())/8000.0;
         } else {
             // variable bitrate, we don't know exactly the size
