@@ -130,7 +130,7 @@ int DlnaVideoItem::bitrate() const {
         if (format() == MPEG4_AAC)
             return 4256000;
         else
-            return 8718800;
+            return 4718800;
     } else {
         return metaDataBitrate();
     }
