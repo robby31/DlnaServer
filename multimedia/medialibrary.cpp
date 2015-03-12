@@ -171,6 +171,16 @@ bool MediaLibrary::open()
                     logWarning(QString("Artist with no media: %1(id=%2)").arg(query.value(1).toString()).arg(query.value(0).toInt()));
         }
 
+        // check if duration is valid
+        if (query.exec("SELECT filename, title, duration from media WHERE duration<1000")) {
+            while (query.next())
+                logWarning(QString("invalid duration: %1 (filename=%2, title=%3)").arg(query.value(2).toString()).arg(query.value(0).toString()).arg(query.value(1).toString()));
+        }
+
+        // correct duration
+//        if (!query.exec(QString("UPDATE media SET duration=339776 WHERE filename='http://www.youtube.com/watch?v=a5uQMwRMHcs'")))
+//            qWarning() << query.lastError();
+
         if (query.exec("SELECT filename from media where is_reachable=0"))
             while (query.next())
                 qWarning() << "OFF LINE" << query.value(0).toString().toUtf8().constData();
@@ -233,7 +243,6 @@ MediaLibrary::~MediaLibrary() {
 }
 
 QVariant MediaLibrary::getmetaData(const QString &tagName, const int &idMedia) const {
-
     QSqlQuery query;
     if (foreignKeys["media"].contains(tagName)) {
         QString foreignTable = foreignKeys["media"][tagName]["table"];
