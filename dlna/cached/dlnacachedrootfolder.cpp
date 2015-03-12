@@ -98,7 +98,7 @@ bool DlnaCachedRootFolder::addNetworkLink(const QString &url)
 bool DlnaCachedRootFolder::networkLinkIsValid(const QString &url)
 {
     DlnaYouTubeVideo movie(log(), url, host, port);
-    return !movie.metaDataTitle().isEmpty();
+    return !movie.metaDataTitle().isEmpty() && movie.metaDataDuration() > 0;
 }
 
 void DlnaCachedRootFolder::checkNetworkLink()
