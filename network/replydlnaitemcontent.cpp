@@ -89,10 +89,10 @@ void ReplyDlnaItemContent::updateStatus()
     if (clockUpdateStatus.isValid()) {
         int delta = clockUpdateStatus.restart() - UPDATE_STATUS_PERIOD;
 
-        if (qAbs(delta) > UPDATE_STATUS_PERIOD/10) {
-            QString msg = QString("UPDATE STATUS delta %2 <%1>").arg(mediaFilename).arg(delta);
+        if (qAbs(delta) > UPDATE_STATUS_PERIOD/10)
+        {
+            QString msg = QString("%1: UPDATE STATUS delta %3 <%2>").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(mediaFilename).arg(delta);
             logInfo(msg);
-            emit logTextSignal(QString("%1: %2").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(msg)+CRLF);
         }
     } else {
         clockUpdateStatus.start();
@@ -364,7 +364,7 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
 
 void ReplyDlnaItemContent::bytesSentSlot(const qint64 &size, const qint64 &towrite)
 {
-//    emit logTextSignal(QString("%1: %2 bytes sent, %3 bytes to send."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size).arg(towrite));
+//    qWarning() << this << QString("%1: %2 bytes sent, %3 bytes to send.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size).arg(towrite);
 
     networkBytesSent += size;
     bytesToWrite = towrite;
