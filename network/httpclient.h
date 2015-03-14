@@ -5,6 +5,7 @@
 #include <QHostAddress>
 #include <QDateTime>
 #include <QThread>
+#include <QElapsedTimer>
 
 #include "logger.h"
 #include "httprange.h"
@@ -63,8 +64,9 @@ public slots:
     void sendHeader(const QHash<QString, QString> &header);
     void sendData(const QByteArray &data);
 
-    void _bytesWritten(const qint64 &size) { emit bytesSent(size, bytesToWrite()); }
-    void clientError(QAbstractSocket::SocketError error) { emit appendLogSignal(QString("%2: Network Error: %1, %3"+CRLF).arg(error).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(errorString())); }
+    void _bytesWritten(const qint64 &size);
+
+    void clientError(QAbstractSocket::SocketError error);
     void readSocket();
 
 private:
@@ -93,6 +95,9 @@ private:
     HttpRange* range;
     qint64 timeSeekRangeStart;
     qint64 timeSeekRangeEnd;
+
+    qint64 sizeWritten;
+    QElapsedTimer timerDataSent;
 };
 
 #endif // HTTPCLIENT_H

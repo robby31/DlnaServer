@@ -21,10 +21,14 @@ HttpClient::HttpClient(Logger *log, QObject *parent) :
     m_content(),
     range(0),
     timeSeekRangeStart(-1),
-    timeSeekRangeEnd(-1)
+    timeSeekRangeEnd(-1),
+    sizeWritten(0),
+    timerDataSent()
 {
     if (!m_log)
         qWarning() << "log is not available for" << this;
+
+    timerDataSent.start();
 
     connect(this, SIGNAL(readyRead()), this, SLOT(readSocket()));
     connect(this, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(clientError(QAbstractSocket::SocketError)));
@@ -130,6 +134,8 @@ void HttpClient::sendData(const QByteArray &data)
     {
         appendLogSignal(QString("%1: bytes written?%2"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(data.size()));
     }
+
+//    qWarning() << QString("%1: %2 bytes written, %3 bytes to write.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(data.size()).arg(bytesToWrite());
 
 //    flush();
 }
@@ -301,4 +307,26 @@ void HttpClient::requestReceived()
     requestComplete = true;
 
     emit incomingRequest(peerAddress().toString(), m_header, m_http10, m_method, m_argument, m_params, m_content, range, timeSeekRangeStart, timeSeekRangeEnd);
+}
+
+void HttpClient::clientError(QAbstractSocket::SocketError error)
+{
+    emit appendLogSignal(QString("%2: Network Error: %1, %3"+CRLF).arg(error).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(errorString()));
+
+    if (error == RemoteHostClosedError)
+        deleteLater();
+}
+
+void HttpClient::_bytesWritten(const qint64 &size)
+{
+    sizeWritten += size;
+
+//        qWarning() << QString("%1: %2 bytes sent, %4 total bytes sent, %3 bytes to write.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size).arg(bytesToWrite()).arg(sizeWritten);
+
+    if (timerDataSent.elapsed() > 500 or sizeWritten > bytesToWrite())
+    {
+        emit bytesSent(sizeWritten, bytesToWrite());
+        sizeWritten = 0;
+        timerDataSent.restart();
+    }
 }
