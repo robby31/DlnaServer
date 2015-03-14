@@ -8,7 +8,7 @@ DlnaYouTubeVideo::DlnaYouTubeVideo(Logger *log, QUrl url, QString host, int port
     m_resolution(),
     m_bitrate(-1),
     programYouTube("/usr/local/bin/youtube-dl"),
-    programFfmpeg("/Users/doudou/workspaceQT/DLNA_server/exe/ffmpeg")
+    programFfmpeg("/opt/local/bin/ffprobe")
 {
     requestTitle();
     requestVideoInfo();
@@ -48,27 +48,44 @@ void DlnaYouTubeVideo::requestVideoInfo()
     QStringList argFfmpeg;
     argFfmpeg << "-i";
     argFfmpeg << "-";
+    argFfmpeg << "-show_format";
+    argFfmpeg << "-show_entries" << "stream";
+    argFfmpeg << "-of" << "xml";
 
     youtube.start(programYouTube, argYoutube);
     ffmpeg.start(programFfmpeg, argFfmpeg);
 
     bool res = ffmpeg.waitForFinished();
 
-    if (res) {
-        QString answer(ffmpeg.readAllStandardError());
-//        qWarning() << answer;
+    if (res)
+    {
+        QDomDocument xml_res;
+        xml_res.setContent(ffmpeg.readAll());
+//        qWarning() << xml_res.toString();
 
-        QRegExp duration_bitrate("Duration:\\s*(\\S*),\\s*start:\\s*(\\S*),\\s*bitrate:\\s*(\\S*)");
-        if (duration_bitrate.indexIn(answer) != -1) {
-            QString duration(duration_bitrate.cap(1));
-            QTime time = QTime::fromString(duration, "hh:mm:ss.z");
-            m_durationInMs = (time.hour()*3600+time.minute()*60+time.second())*1000+time.msec();
+        if (xml_res.elementsByTagName("format").size() == 1)
+        {
+            QDomNode format = xml_res.elementsByTagName("format").at(0);
+            m_durationInMs = QVariant::fromValue(format.attributes().namedItem("duration").nodeValue()).toDouble()*1000;
+
+            QDomNodeList streams = xml_res.elementsByTagName("stream");
+            for (int i = 0; i<streams.size(); ++i)
+            {
+                QDomNode stream = streams.at(i);
+                if (stream.attributes().namedItem("codec_type").nodeValue() == "video")
+                {
+                    if (stream.attributes().contains("width") && stream.attributes().contains("height"))
+                    {
+                        m_resolution = QString("%1x%2").arg(stream.attributes().namedItem("width").nodeValue()).arg(stream.attributes().namedItem("height").nodeValue());
+                    }
+                }
+            }
         }
-
-        QRegExp video("Stream #\\d+:\\d+\\(\\w+\\): Video:([^,]+), ([^,]+), ([^,\\s]+)\\s?([^,]*), ([^,]+), ([^,]+)");
-        if (video.indexIn(answer) != -1) {
-            m_resolution = video.cap(3);
-//            qWarning() << "VIDEO INFO" << video.capturedTexts();
+        else
+        {
+            logError("ERROR: unable to get video info.");
+            ffmpeg.kill();
+            ffmpeg.waitForFinished();
         }
     }
     else
@@ -78,6 +95,7 @@ void DlnaYouTubeVideo::requestVideoInfo()
         ffmpeg.waitForFinished();
     }
 
+    ffmpeg.kill();
     youtube.kill();
     youtube.waitForFinished();
 }
@@ -88,7 +106,7 @@ TranscodeProcess *DlnaYouTubeVideo::getTranscodeProcess()
 
     // set the url for transcoding
     QProcess process;
-    process.setProgram("/usr/local/bin/youtube-dl");
+    process.setProgram(programYouTube);
     QStringList argList;
     argList << "--max-quality" << "18" << "-g" << getSystemName();
     process.setArguments(argList);
