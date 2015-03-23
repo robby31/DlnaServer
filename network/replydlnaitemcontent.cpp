@@ -143,11 +143,21 @@ void ReplyDlnaItemContent::close()
 
     if (!requestFilename.isEmpty())
     {
-        if (m_streamingCompleted && !streamingWithErrors && bytesToWrite == 0) {
+        if (m_streamingCompleted && !streamingWithErrors && bytesToWrite == 0)
+        {
             emit replyStatusSignal("Streaming finished.");
             emit servingFinishedSignal(mediaFilename, 0);
             emit logTextSignal(QString("%1: Streaming finished."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-        } else {
+        }
+        else
+        {
+            if (!m_streamingCompleted)
+                emit logTextSignal(QString("Streaming not completed.")+CRLF);
+            if (streamingWithErrors)
+                emit logTextSignal(QString("Streaming with errors.")+CRLF);
+            if (bytesToWrite != 0)
+                emit logTextSignal(QString("Streaming: remaining bytes to write %1 bytes.").arg(bytesToWrite)+CRLF);
+
             emit replyStatusSignal("Streaming aborted.");
             emit servingFinishedSignal(mediaFilename, 1);
             emit logTextSignal(QString("%1: Streaming aborted."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
