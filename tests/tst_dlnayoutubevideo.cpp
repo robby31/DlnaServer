@@ -27,9 +27,9 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
     QVERIFY(video.getDisplayName() == "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]");
 
     QVERIFY(video.metaDataTitle() == "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]");
-    QVERIFY2(video.metaDataDuration() == 193490, QString("%1").arg(video.metaDataDuration()).toUtf8());
+    QVERIFY2(video.metaDataDuration() == 193491, QString("%1").arg(video.metaDataDuration()).toUtf8());
     QVERIFY2(video.resolution() == "1280x720", QString("%1").arg(video.resolution()).toUtf8());
-    QVERIFY2(video.bitrate() == 8718800, QString("%1").arg(video.bitrate()).toUtf8());
+    QVERIFY2(video.bitrate() == 4718800, QString("%1").arg(video.bitrate()).toUtf8());
 
     qWarning() << "test done in" << timer.elapsed() << "ms.";
 }
@@ -48,13 +48,13 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo2()
     QVERIFY(video.getDisplayName() == "Muse - Exogenesis- Symphony Part 1 (Overture)");
 
     QVERIFY(video.metaDataTitle() == "Muse - Exogenesis- Symphony Part 1 (Overture)");
-    QVERIFY(video.metaDataDuration() == 258460);
+    QVERIFY(video.metaDataDuration() == 258459);
     QVERIFY(video.resolution() == "638x360");
-    QVERIFY(video.bitrate() == 8718800);
+    QVERIFY(video.bitrate() == 4718800);
     QVERIFY(video.toTranscode() == true);
-    QVERIFY2(video.getLengthInMilliSeconds()==258460, QString("%1").arg(video.getLengthInMilliSeconds()).toUtf8());
-    QVERIFY2(video.size()==281682631, QString("%1").arg(video.size()).toUtf8());
-    QVERIFY2(video.framerate() == "25.000", video.framerate().toUtf8());
+    QVERIFY2(video.getLengthInMilliSeconds()==258459, QString("%1").arg(video.getLengthInMilliSeconds()).toUtf8());
+    QVERIFY2(video.size()==152452041, QString("%1").arg(video.size()).toUtf8());
+    QVERIFY2(video.framerate() == "", video.framerate().toUtf8());
 
     qWarning() << "test done in" << timer.elapsed() << "ms.";
 
@@ -72,7 +72,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo2()
     QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qWarning() << "DELTA" << video.size()-transcodedSize << qAbs(double(video.size()-transcodedSize))/video.size();
-    QVERIFY2(transcodedSize == 184605096, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 146022796, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 
@@ -101,7 +101,28 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
     QVERIFY(video.metaDataTitle() == "Lilly Wood & The Prick - Let's Not Pretend [Clip Officiel]");
     QVERIFY(video.metaDataDuration() == 220170);
     QVERIFY(video.resolution() == "1280x720");
-    QVERIFY(video.bitrate() == 8718800);
+    QVERIFY(video.bitrate() == 4718800);
+
+    qWarning() << "test done in" << timer.elapsed() << "ms.";
+}
+
+void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo4()
+{
+    Logger log;
+    QElapsedTimer timer;
+    timer.start();
+    DlnaYouTubeVideo video(&log, QUrl("https://www.youtube.com/watch?v=aGHT40qkysw"), "host", 600);
+    qint64 duration = timer.elapsed();
+    QVERIFY2(duration < 15000, QString("Duration: %1").arg(duration).toUtf8());
+    qWarning() << "created in" << duration << "ms.";
+    QVERIFY(video.getSystemName() == "https://www.youtube.com/watch?v=aGHT40qkysw");
+    QVERIFY2(video.getName() == "6 Hour Jazz Music Mix by JaBig (Best of Classic Long Smooth Piano Soft Instrumental Study Playlist)", video.getName().toUtf8());
+    QVERIFY(video.getDisplayName() == "6 Hour Jazz Music Mix by JaBig (Best of Classic Long Smooth Piano Soft Instrumental Study Playlist)");
+
+    QVERIFY(video.metaDataTitle() == "6 Hour Jazz Music Mix by JaBig (Best of Classic Long Smooth Piano Soft Instrumental Study Playlist)");
+    QVERIFY2(video.metaDataDuration() == 22022871, QString("%1").arg(video.metaDataDuration()).toUtf8());
+    QVERIFY2(video.resolution() == "1280x720", video.resolution().toUtf8());
+    QVERIFY(video.bitrate() == 4718800);
 
     qWarning() << "test done in" << timer.elapsed() << "ms.";
 }

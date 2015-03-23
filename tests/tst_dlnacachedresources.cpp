@@ -27,7 +27,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 14962, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 14998, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -42,7 +42,7 @@ void tst_dlnacachedresources::testCase_Library_NbAudios()
         if (query.last())
             nbAudios = query.at() + 1;
     }
-    QVERIFY2(nbAudios == 13739, QString("%1").arg(nbAudios).toUtf8().constData());
+    QVERIFY2(nbAudios == 13740, QString("%1").arg(nbAudios).toUtf8().constData());
     db.close();
 }
 
@@ -57,7 +57,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1223, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 1258, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -102,7 +102,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithAlbum()
         if (query.last())
             nbTracksWithAlbum = query.at() + 1;
     }
-    QVERIFY2(nbTracksWithAlbum == 13507, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
+    QVERIFY2(nbTracksWithAlbum == 13508, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
     db.close();
 }
 
@@ -410,8 +410,8 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue() == "1280x688");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "2");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "1089850", xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue().toUtf8().constData());
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "7341044325", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8().constData());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "589850", xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue().toUtf8().constData());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "3973129325", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8().constData());
     xml_res.clear();
 
     QVERIFY(movie->getdlnaOrgOpFlags() == "10");
@@ -424,8 +424,8 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
 
     QVERIFY(movie->toTranscode() == true);
     QVERIFY(movie->mimeType() == "video/mpeg");
-    QVERIFY(movie->size() == 7341044325);
-    QVERIFY(movie->bitrate() == 8718800);
+    QVERIFY(movie->size() == 3973129325);
+    QVERIFY(movie->bitrate() == 4718800);
     QVERIFY(movie->getLengthInSeconds() == 6736);
     QVERIFY(movie->getLengthInMilliSeconds() == 6735830);
     QVERIFY(movie->samplerate() == 48000);
@@ -449,7 +449,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedSize == 10818460, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 5747348, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 }

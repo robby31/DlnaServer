@@ -25,6 +25,7 @@ private Q_SLOTS:
     void testCase_DlnaMusicTrack_MP3();
     void testCase_DlnaMusicTrack_MP3_with_image();
     void testCase_DlnaMusicTrack_MP3_unicode();
+    void testCase_DlnaMusicTrack_MP3_Trancoding_WAV();
 
     void testCase_DlnaMusicTrack_AAC_Transcoding_MP3();
 

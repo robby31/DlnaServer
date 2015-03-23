@@ -21,6 +21,7 @@ private Q_SLOTS:
     void testCase_DlnaYouTubeVideo();
     void testCase_DlnaYouTubeVideo2();
     void testCase_DlnaYouTubeVideo3();
+    void testCase_DlnaYouTubeVideo4();
 
 private:
     TranscodeProcess* transcodeProcess;
