@@ -36,6 +36,10 @@ void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
     if (transcodeFormat != format) {
         transcodeFormat = format;
         updateDLNAOrgPn();
+
+        if (toTranscode()) {
+            setdlnaOrgOpFlags("10");         // seek by time (exclusive)
+        }
     }
 }
 

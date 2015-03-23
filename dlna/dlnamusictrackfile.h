@@ -4,7 +4,7 @@
 #include <QFileInfo>
 
 #include "dlnamusictrack.h"
-#include "qffmpeg.h"
+#include "qffmpegprocess.h"
 
 class DlnaMusicTrackFile : public DlnaMusicTrack
 {
@@ -28,7 +28,7 @@ public:
     virtual qint64 sourceSize() const { return fileinfo.size(); }
 
     // return true if the track shall be transcoded
-    virtual bool toTranscode() const { return mime_type.name() != AUDIO_MP3_TYPEMIME; }
+    virtual bool toTranscode() const;
 
     virtual int metaDataBitrate() const ;
     virtual int metaDataDuration() const ;
@@ -51,7 +51,7 @@ public:
 private:
     QFileInfo fileinfo;
     QMimeType mime_type;
-    QFfmpeg ffmpeg;
+    QFfmpegProcess ffmpeg;
 };
 
 #endif // DLNAMUSICTRACKFILE_H

@@ -6,8 +6,4 @@ DlnaCachedMusicTrack::DlnaCachedMusicTrack(Logger* log, MediaLibrary *library, i
     idMedia(idMedia)
 {
     setTranscodeFormat(MP3);   // default transcode format
-
-    if (toTranscode()) {
-        setdlnaOrgOpFlags("10");         // seek by time (exclusive)
-    }
 }

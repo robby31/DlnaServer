@@ -13,10 +13,6 @@ DlnaVideoItem::DlnaVideoItem(Logger *log, QString host, int port, QObject *paren
     DlnaItem(log, host, port, parent)
 {
     setTranscodeFormat(MPEG2_AC3);   // default transcode format
-
-    if (toTranscode()) {
-        setdlnaOrgOpFlags("10");         // seek by time (exclusive)
-    }
 }
 
 DlnaVideoItem::~DlnaVideoItem() {

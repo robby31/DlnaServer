@@ -3,7 +3,7 @@
 
 #include "dlnavideoitem.h"
 #include "ffmpegtranscoding.h"
-#include "qffmpeg.h"
+#include "qffmpegprocess.h"
 
 class DlnaVideoFile : public DlnaVideoItem
 {
@@ -57,7 +57,7 @@ protected:
 private:
     QFileInfo fileinfo;
     QMimeType mime_type;
-    QFfmpeg ffmpeg;
+    QFfmpegProcess ffmpeg;
 };
 
 #endif // DLNAVIDEOFILE_H

@@ -10,10 +10,14 @@ DlnaMusicTrackFile::DlnaMusicTrackFile(Logger* log, QString filename, QString ho
     mime_type = db.mimeTypeForFile(fileinfo);
 
     setTranscodeFormat(MP3);   // default transcode format
+}
 
-    if (toTranscode()) {
-        setdlnaOrgOpFlags("10");         // seek by time (exclusive)
-    }
+bool DlnaMusicTrackFile::toTranscode() const
+{
+    if (format() == WAV)
+        return mime_type.name() != AUDIO_WAV_TYPEMIME;
+    else
+        return mime_type.name() != AUDIO_MP3_TYPEMIME;
 }
 
 QString DlnaMusicTrackFile::getDisplayName() const {
