@@ -43,6 +43,9 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     QVERIFY2(movie.size()==4303972036, QString("%1").arg(movie.size()).toUtf8().constData());
     QVERIFY2(movie.framerate() == "23.976", movie.framerate().toUtf8());
 
+    QVERIFY2(movie.audioLanguages() == QStringList() << "", movie.audioLanguages().join(',').toUtf8());
+    QVERIFY2(movie.subtitleLanguages() == QStringList(), movie.audioLanguages().join(',').toUtf8());
+
     Device *device = movie.getStream(0, 0, -1);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
     QVERIFY(transcodeProcess != 0);
@@ -91,6 +94,9 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     QVERIFY2(movie.getLengthInMilliSeconds()==8090173, QString("%1").arg(movie.getLengthInMilliSeconds()).toUtf8().constData());
     QVERIFY2(movie.size()==4771988544, QString("%1").arg(movie.size()).toUtf8().constData());
     QVERIFY2(movie.framerate() == "23.976", movie.framerate().toUtf8());
+
+    QVERIFY2(movie.audioLanguages() == QStringList() << "", movie.audioLanguages().join(',').toUtf8());
+    QVERIFY2(movie.subtitleLanguages() == QStringList(), movie.audioLanguages().join(',').toUtf8());
 
     Device *device = movie.getStream(0, 0, -1);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
@@ -142,6 +148,9 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
     QVERIFY2(movie.getLengthInMilliSeconds()==6825480, QString("%1").arg(movie.getLengthInMilliSeconds()).toUtf8().constData());
     QVERIFY2(movie.size()==4026009378, QString("%1").arg(movie.size()).toUtf8().constData());
     QVERIFY(movie.framerate() == "25.000");
+
+    QVERIFY2(movie.audioLanguages() == QStringList() << "eng", movie.audioLanguages().join(',').toUtf8());
+    QVERIFY2(movie.subtitleLanguages() == QStringList() << "fre", movie.subtitleLanguages().join(',').toUtf8());
 
     Device *device = movie.getStream(0, 0, -1);
     transcodeProcess = qobject_cast<TranscodeProcess*>(device);
