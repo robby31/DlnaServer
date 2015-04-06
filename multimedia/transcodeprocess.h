@@ -9,7 +9,7 @@
 #include "device.h"
 
 // Format available for transcoding
-enum TranscodeFormatAvailable {UNKNOWN, MP3, LPCM, AAC, MPEG2_AC3, MPEG4_AAC};
+enum TranscodeFormatAvailable {UNKNOWN, MP3, LPCM, AAC, WAV, MPEG2_AC3, MPEG4_AAC};
 
 class TranscodeProcess : public Device
 {
@@ -26,7 +26,7 @@ public:
     void setUrl(const QString &url)                             { m_url = url; }
     QString url() const { return m_url; }
 
-    void setSize(const qint64 size) { m_size = size; }
+    void setSize(const qint64 size);
     virtual qint64 size() const;
 
     qint64 lengthInSeconds() const                          { return m_lengthInSeconds; }

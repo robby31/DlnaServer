@@ -23,7 +23,7 @@ TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
 {
     connect(&m_process, SIGNAL(readyReadStandardOutput()), this, SLOT(dataAvailable()));
     connect(&m_process, SIGNAL(readyReadStandardError()), this, SLOT(appendTranscodingLogMessage()));
-    connect(&m_process, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorTrancodedData(QProcess::ProcessError)));
+//    connect(&m_process, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorTrancodedData(QProcess::ProcessError)));
     qRegisterMetaType<QIODevice::OpenMode>("OpenMode");
     connect(this, SIGNAL(openSignal(QIODevice::OpenMode)), this, SLOT(_open(QIODevice::OpenMode)));
     connect(&m_process, SIGNAL(started()), this, SLOT(processStarted()));
@@ -63,7 +63,7 @@ void TranscodeProcess::dataAvailable()
     if (isLogLevel(DEBG))
         appendLog(QString("%1: received %2 bytes transcoding data."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
 
-    if (!m_opened && bytesAvailable() >= maxBufferSize())
+    if (!m_opened && bytesAvailable() > 0)
     {
         m_opened = true;
         emit openedSignal();
@@ -88,6 +88,14 @@ qint64 TranscodeProcess::size() const
         return m_size;
 
     return m_process.size();
+}
+
+void TranscodeProcess::setSize(const qint64 size)
+{
+    if (size > 0)
+        m_size = size;
+    else
+        qWarning() << "unable to set size" << size;
 }
 
 bool TranscodeProcess::atEnd() const
@@ -149,6 +157,9 @@ void TranscodeProcess::finishedTranscodeData(const int &exitCode)
 
     m_paused = false;
 
+    if (atEnd())
+        emit endReached();
+
     if (isLogLevel(DEBG))
         appendLog(QString("%1: finished transcoding, %2 remaining bytes."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
 
@@ -178,12 +189,6 @@ void TranscodeProcess::processStarted()
     appendLog(m_process.arguments().join(' ')+CRLF);
 
     transcodeClock.start();
-
-    if (!m_opened)
-    {
-        m_opened = true;
-        emit openedSignal();
-    }
 }
 
 void TranscodeProcess::killProcess()
