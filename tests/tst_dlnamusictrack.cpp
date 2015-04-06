@@ -294,7 +294,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
     QVERIFY(track.getAlbumArt().size().width() == 300);
     QVERIFY(track.getAlbumArt().size().height() == 300);
     int size = track.getByteAlbumArt().size();
-    QVERIFY2(size == 16814, QString("%1").arg(size).toUtf8());
+    QVERIFY2(size == 16815, QString("%1").arg(size).toUtf8());
 
     Device* stream = track.getStream();
     QVERIFY(stream != 0);
@@ -375,7 +375,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
     QVERIFY(track.getAlbumArt().isNull() == false);
     QVERIFY(track.getAlbumArt().size().width() == 300);
     QVERIFY(track.getAlbumArt().size().height() == 300);
-    QVERIFY2(track.getByteAlbumArt().size() == 5360, QString("%1").arg(track.getByteAlbumArt().size()).toUtf8());
+    QVERIFY2(track.getByteAlbumArt().size() == 5361, QString("%1").arg(track.getByteAlbumArt().size()).toUtf8());
 
     Device* stream = track.getStream();
     QVERIFY(stream != 0);
@@ -560,7 +560,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
     QVERIFY(track.getAlbumArt().size().width() == 300);
     QVERIFY(track.getAlbumArt().size().height() == 300);
     int size = track.getByteAlbumArt().size();
-    QVERIFY2(size == 22464, QString("%1").arg(size).toUtf8());
+    QVERIFY2(size == 22465, QString("%1").arg(size).toUtf8());
 
     HttpRange* range = 0;
     range = new HttpRange("RANGE: BYTES=0-");
