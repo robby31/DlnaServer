@@ -1,3 +1,5 @@
+#include <QCoreApplication>
+
 #include "tst_httprange.h"
 #include "tst_dlnarootfolder.h"
 #include "tst_dlnafolder.h"
@@ -18,6 +20,9 @@ void executeTest(QObject* test, QStringList* summary, int argc, char *argv[]) {
 
 int main(int argc, char *argv[])
 {
+    QCoreApplication app(argc, argv);
+    app.setAttribute(Qt::AA_Use96Dpi, true);
+
     QStringList testsSummary;
 
     tst_httprange test1;
