@@ -3,7 +3,6 @@
 
 #include <QHostAddress>
 #include <QElapsedTimer>
-#include <QThread>
 
 #include "logger.h"
 #include "httpclient.h"
