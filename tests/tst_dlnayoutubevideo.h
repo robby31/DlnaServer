@@ -5,10 +5,13 @@
 #include <QtTest>
 
 #include "dlnayoutubevideo.h"
+#include "cached/dlnacachednetworkvideo.h"
+#include "cached/dlnacachedrootfolder.h"
 
 class tst_dlnayoutubevideo : public QObject
 {
     Q_OBJECT
+
 public:
     explicit tst_dlnayoutubevideo(QObject *parent = 0);
 
@@ -23,9 +26,15 @@ private Q_SLOTS:
     void testCase_DlnaYouTubeVideo3();
     void testCase_DlnaYouTubeVideo4();
 
+    void testCase_DlnaCachedNetworkVideo();
+    void testCase_DlnaCachedNetworkVideo_checkLink();
+
 private:
-    TranscodeProcess* transcodeProcess;
+    TranscodeProcess *transcodeProcess;
     long transcodedSize;
+    QThread *backend;
+    QSqlDatabase db;
+    QNetworkAccessManager *manager;
 };
 
 #endif // TST_DLNAYOUTUBEVIDEO_H
