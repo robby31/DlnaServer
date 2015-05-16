@@ -79,6 +79,11 @@ Item {
                 text: "Add link"
                 onClicked: _app.addNetworkLink(link.text)
             }
+
+            Button {
+                text: "Check"
+                onClicked: _app.startCheckNetworkLink()
+            }
         }
 
         RowLayout {

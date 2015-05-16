@@ -31,6 +31,7 @@ public:
     Q_INVOKABLE void addSharedFolder(const QUrl &folder) { if (folder.isLocalFile()) emit addFolder(folder.toLocalFile()); }
     Q_INVOKABLE void removeFolder(const int &index);
     Q_INVOKABLE void addNetworkLink(const QString &url)  { emit addLink(url); }
+    Q_INVOKABLE void startCheckNetworkLink() { emit checkNetworkLink(); }
 
 
 private:
