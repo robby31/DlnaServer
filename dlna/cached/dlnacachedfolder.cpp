@@ -11,7 +11,8 @@ DlnaCachedFolder::DlnaCachedFolder(Logger* log, MediaLibrary* library, QString w
     nbChildren(-1),
     cacheEnabled(cacheEnabled),
     cache(),
-    limitSizeMax(-1)
+    limitSizeMax(-1),
+    m_nam(0)
 {
     refreshContent();
 }
@@ -73,7 +74,7 @@ DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
         QString url(library->getmetaData("filename", id_media).toString());
 
         if (url.startsWith("http"))
-            child = new DlnaCachedNetworkVideo(log(), library, id_media, host, port,
+            child = new DlnaCachedNetworkVideo(log(), m_nam, library, id_media, host, port,
                                                parent != 0 ? parent : this);
         else
             child = new DlnaCachedVideo(log(), library, id_media, host, port,

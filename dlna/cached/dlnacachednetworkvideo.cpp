@@ -1,44 +1,47 @@
 #include "dlnacachednetworkvideo.h"
 
-DlnaCachedNetworkVideo::DlnaCachedNetworkVideo(Logger* log, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent):
-    DlnaCachedVideo(log, library, idMedia, host, port, parent)
+DlnaCachedNetworkVideo::DlnaCachedNetworkVideo(Logger* log, QNetworkAccessManager *manager, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent):
+    DlnaCachedVideo(log, library, idMedia, host, port, parent),
+    m_nam(manager),
+    m_streamUrl()
 {
 }
 
 TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
 {
-    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log());
-
-    // set the url for transcoding
-    QProcess process;
-    process.setProgram("/usr/local/bin/youtube-dl");
-    QStringList argList;
-    argList << "--max-quality" << "18" << "-g" << getSystemName();
-    process.setArguments(argList);
-
-    if (process.open())
+    if (m_streamUrl.isNull())
     {
-        if (process.waitForFinished())
+        DlnaYouTubeVideo movie(log(), host, port);
+        movie.setAnalyzeStream(false);
+        if (m_nam)
         {
-            QString url = process.readAllStandardOutput().trimmed();
-            if (url.startsWith("http"))
-                transcodeProcess->setUrl(url);
+            movie.moveToThread(m_nam->thread());
+            movie.setNetworkAccessManager(m_nam);
         }
-        else
-        {
-            logError("ERROR: unable to get url.");
-            process.kill();
-            process.waitForFinished();
-        }
+        movie.setUrl(getSystemName());
+
+        bool res = movie.waitUrl(30000);
+        if (res)
+            m_streamUrl = movie.streamUrl();
     }
 
-    transcodeProcess->setLengthInSeconds(getLengthInSeconds());
-    transcodeProcess->setFormat(transcodeFormat);
-    transcodeProcess->setBitrate(bitrate());
-    transcodeProcess->setAudioLanguages(audioLanguages());
-    transcodeProcess->setSubtitleLanguages(subtitleLanguages());
-    transcodeProcess->setFrameRate(framerate());
-    transcodeProcess->setAudioChannelCount(channelCount());
-    transcodeProcess->setAudioSampleRate(samplerate());
-    return transcodeProcess;
+    if (!m_streamUrl.isEmpty())
+    {
+        FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log());
+        transcodeProcess->setUrl(m_streamUrl);
+        transcodeProcess->setLengthInSeconds(getLengthInSeconds());
+        transcodeProcess->setFormat(transcodeFormat);
+        transcodeProcess->setBitrate(bitrate());
+        transcodeProcess->setAudioLanguages(audioLanguages());
+        transcodeProcess->setSubtitleLanguages(subtitleLanguages());
+        transcodeProcess->setFrameRate(framerate());
+        transcodeProcess->setAudioChannelCount(channelCount());
+        transcodeProcess->setAudioSampleRate(samplerate());
+        return transcodeProcess;
+    }
+    else
+    {
+        logError("Invalid streaming url.");
+        return 0;
+    }
 }

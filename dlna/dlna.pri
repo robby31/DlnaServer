@@ -44,4 +44,5 @@ SOURCES += \
     ../dlna/cached/dlnacachedgroupedfoldermetadata.cpp
 
 include (../multimedia/multimedia.pri)
+include (../youtube/youtube.pri)
 

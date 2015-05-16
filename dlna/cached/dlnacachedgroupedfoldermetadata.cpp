@@ -6,7 +6,7 @@ DlnaCachedGroupedFolderMetaData::DlnaCachedGroupedFolderMetaData(Logger* log, Me
     where(where),
     children()
 {
-    DlnaResource* child = 0;
+    DlnaCachedFolderMetaData* child = 0;
 
     child = new DlnaCachedFolderMetaData(log, library, idType, "artist", "Artist",
                                          host, port,
@@ -41,4 +41,10 @@ DlnaResource *DlnaCachedGroupedFolderMetaData::getChild(int index, QObject *pare
         return children.at(index);
     else
         return 0;
+}
+
+void DlnaCachedGroupedFolderMetaData::setNetworkAccessManager(QNetworkAccessManager *manager)
+{
+    foreach (DlnaCachedFolderMetaData *child, children)
+        child->setNetworkAccessManager(manager);
 }

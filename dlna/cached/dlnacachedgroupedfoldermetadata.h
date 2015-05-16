@@ -25,10 +25,12 @@ public:
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName() const { return name; }
 
+    void setNetworkAccessManager(QNetworkAccessManager *manager);
+
 private:
     QString name;
     QString where;
-    QList<DlnaResource*> children;
+    QList<DlnaCachedFolderMetaData*> children;
 };
 
 #endif // DLNACACHEDGROUPEDFOLDERMETADATA_H

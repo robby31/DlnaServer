@@ -24,14 +24,15 @@ public:
 
     void resetLibrary() { emit resetLibrarySignal(); }
 
+    QSqlQuery getAllNetworkLinks() { return library.getAllNetworkLinks(); }
+
+    void setNetworkAccessManager(QNetworkAccessManager *nam);
+
 private:
     void readDirectory(QDir folder);
 
     void addResource(QFileInfo fileinfo);
     bool addResource(QUrl url);
-
-    QSqlQuery getAllNetworkLinks() { return library.getAllNetworkLinks(); }
-    bool networkLinkIsValid(const QString &url);
 
 signals:
     void linkAdded(QString url);
@@ -49,6 +50,8 @@ private slots:
     virtual bool addFolderSlot(QString path);
 
     bool addNetworkLink(const QString &url);
+
+public slots:
     void checkNetworkLink();
 
 private:
@@ -59,6 +62,8 @@ private:
     DlnaCachedFolder *resumeChild;
     DlnaCachedFolder *favoritesChild;
     DlnaCachedFolder *lastAddedChild;
+    DlnaCachedGroupedFolderMetaData *youtube;
+    QNetworkAccessManager *m_nam;
 };
 
 #endif // DLNACACHEDROOTFOLDER_H

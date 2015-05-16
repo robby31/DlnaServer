@@ -33,6 +33,8 @@ public:
 
     void setLimitSizeMax(const int &size) { limitSizeMax = size; refreshContent(); }
 
+    void setNetworkAccessManager(QNetworkAccessManager *manager) { m_nam = manager; }
+
 private:
     virtual void refreshContent();
 
@@ -47,6 +49,7 @@ private:
     bool cacheEnabled;
     QList<int> cache;
     int limitSizeMax;
+    QNetworkAccessManager *m_nam;
 };
 
 #endif // DLNACACHEDFOLDER_H

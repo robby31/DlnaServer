@@ -10,7 +10,8 @@ DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *li
     m_orderedParam(orderedParam),
     m_sortOption(sortOption),
     where(where),
-    nbChildren(-1)
+    nbChildren(-1),
+    m_nam(0)
 {
     if (library) {
         query = library->getDistinctMetaData(typeMedia, metaData, where);
@@ -27,7 +28,7 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
     if (!where.isEmpty())
         whereQuery = "and " + where;
 
-    DlnaResource *child = 0;
+    DlnaCachedFolder *child = 0;
 
     if (query.seek(index)) {
         QString name = query.value(0).toString();
@@ -57,6 +58,7 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
 
     if (child != 0) {
         child->setId(QString("%1").arg(index+1));
+        child->setNetworkAccessManager(m_nam);
         child->setDlnaParent(this);
     }
 

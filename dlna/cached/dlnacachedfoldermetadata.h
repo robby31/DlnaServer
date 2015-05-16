@@ -27,6 +27,9 @@ public:
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName() const { return name; }
 
+    void setNetworkAccessManager(QNetworkAccessManager *manager) { m_nam = manager; }
+
+
 private:
     MediaLibrary* library;
     QString metaData;
@@ -37,6 +40,7 @@ private:
     QString m_sortOption;
     QString where;
     int nbChildren;
+    QNetworkAccessManager *m_nam;
 };
 
 #endif // DLNACACHEDFOLDERMETADATA_H
