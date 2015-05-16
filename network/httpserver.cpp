@@ -19,7 +19,8 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
     serverport(SERVERPORT),
     workerNetwork(this),
     workerTranscoding(this),
-    database(QSqlDatabase::addDatabase("QSQLITE"))
+    database(QSqlDatabase::addDatabase("QSQLITE")),
+    netManager()
 {
     if (!m_log)
         qWarning() << "log is not available for" << this;
@@ -41,6 +42,8 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
 
     workerTranscoding.setObjectName("Transcoding");
     workerTranscoding.start();
+
+    netManager.moveToThread(&workerNetwork);
 }
 
 HttpServer::~HttpServer()
@@ -98,6 +101,7 @@ void HttpServer::_startServer()
 
             // initialize the root folder
             DlnaCachedRootFolder *rootFolder = new DlnaCachedRootFolder(m_log, &database, hostaddress.toString(), serverport, this);
+            rootFolder->setNetworkAccessManager(&netManager);
 
             connect(this, SIGNAL(destroyed()), rootFolder, SLOT(deleteLater()));
             connect(this, SIGNAL(stopSignal()), rootFolder, SLOT(deleteLater()));

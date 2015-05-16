@@ -105,6 +105,8 @@ private :
 
     // root folder containing DLNA nodes
     QSqlDatabase database;
+
+    QNetworkAccessManager netManager;
 };
 
 #endif // HTTPSERVER_H
