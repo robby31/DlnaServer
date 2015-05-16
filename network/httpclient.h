@@ -4,7 +4,6 @@
 #include <QTcpSocket>
 #include <QHostAddress>
 #include <QDateTime>
-#include <QThread>
 #include <QElapsedTimer>
 
 #include "logger.h"
