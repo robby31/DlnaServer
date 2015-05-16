@@ -49,12 +49,17 @@ Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 time
     {
         // DLNA node shall be transcoded
         TranscodeProcess* process = getTranscodeProcess();
-        if (process->url().isEmpty())
-            process->setUrl(getSystemName());
-        process->setRange(range);
-        process->setTimeSeek(timeseek_start, timeseek_end);
-        process->setBitrate(bitrate());
-        process->setSize(size());
+
+        if (process)
+        {
+            if (process->url().isEmpty())
+                process->setUrl(getSystemName());
+            process->setRange(range);
+            process->setTimeSeek(timeseek_start, timeseek_end);
+            process->setBitrate(bitrate());
+            process->setSize(size());
+        }
+
         return process;
     }
     else
