@@ -13,8 +13,10 @@ DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *li
     nbChildren(-1),
     m_nam(0)
 {
-    if (library) {
+    if (library)
         query = library->getDistinctMetaData(typeMedia, metaData, where);
+
+    if (query.isSelect() && query.isActive()) {
         if (query.last())
             nbChildren = query.at() + 1;
         else
@@ -38,21 +40,17 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
         // metaData is null ?
         if (query.value(0).isNull())
             child = new DlnaCachedFolder(log(), library,
-                                         QString("type=\"%2\" and %1 is null %3").arg(metaData).arg(typeMedia).arg(whereQuery),
-                                         m_orderedParam,
-                                         m_sortOption,
+                                         library->getMedia(QString("type=\"%2\" and %1 is null %3").arg(metaData).arg(typeMedia).arg(whereQuery), m_orderedParam, m_sortOption),
                                          QString("No %1").arg(metaData),
                                          host, port,
-                                         false,
+                                         false, -1,
                                          parent != 0 ? parent : this);
         else
             child = new DlnaCachedFolder(log(), library,
-                                         QString("type=\"%3\" and %1=\"%2\" %4").arg(metaData).arg(query.value(0).toString()).arg(typeMedia).arg(whereQuery),
-                                         m_orderedParam,
-                                         m_sortOption,
+                                         library->getMedia(QString("type=\"%3\" and %1=\"%2\" %4").arg(metaData).arg(query.value(0).toString()).arg(typeMedia).arg(whereQuery), m_orderedParam, m_sortOption),
                                          name,
                                          host, port,
-                                         false,
+                                         false, -1,
                                          parent != 0 ? parent : this);
     }
 

@@ -15,32 +15,23 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
     connect(this, SIGNAL(resetLibrarySignal()), this, SLOT(resetLibrarySlot()));
 
     recentlyPlayedChild = new DlnaCachedFolder(log, &library,
-                                               QString("last_played is not null"),
-                                               QString("last_played"),
-                                               QString("DESC"),
-                                               "Recently Played", host, port, true, this);
+                                               library.getMedia("last_played is not null", "last_played", "DESC"),
+                                               "Recently Played", host, port, true, -1, this);
     addChild(recentlyPlayedChild);
 
     resumeChild = new DlnaCachedFolder(log, &library,
-                                       QString("progress_played>0"),
-                                       QString("last_played"),
-                                       QString("DESC"),
-                                       "Resume", host, port, true, this);
+                                       library.getMedia("progress_played>0", "last_played", "DESC"),
+                                       "Resume", host, port, true, -1, this);
     addChild(resumeChild);
 
     lastAddedChild = new DlnaCachedFolder(log, &library,
-                                          QString("addedDate is not null"),
-                                          QString("addedDate"),
-                                          QString("DESC"),
-                                          "Last Added", host, port, true, this);
-    lastAddedChild->setLimitSizeMax(200);
+                                          library.getMedia("addedDate is not null", "addedDate", "DESC"),
+                                          "Last Added", host, port, true, 200, this);
     addChild(lastAddedChild);
 
     favoritesChild = new DlnaCachedFolder(log, &library,
-                                          QString("counter_played>0"),
-                                          QString("counter_played"),
-                                          QString("DESC"),
-                                          "Favorites", host, port, true, this);
+                                          library.getMedia("counter_played>0", "counter_played", "DESC"),
+                                          "Favorites", host, port, true, -1, this);
     addChild(favoritesChild);
 
     QSqlQuery query = library.getMediaType();
@@ -48,21 +39,29 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
         int id_type = query.value(0).toInt();
         QString typeMedia = query.value(1).toString();
 
-        if (typeMedia == "video") {
+        if (typeMedia == "video")
+        {
             youtube = new DlnaCachedGroupedFolderMetaData(log, &library, host, port,
                                                           "YOUTUBE", id_type, "filename like '%youtube%'", this);
+            youtube->addFolder("artist", "Artist", QString("title"), QString("ASC"));
+            youtube->addFolder("album", "Album", QString("title"), QString("ASC"));
+            youtube->addFolder("genre", "Genre", QString("title"), QString("ASC"));
             addChild(youtube);
         }
 
-        if (typeMedia == "audio") {
-            DlnaCachedMusicFolder* child = new DlnaCachedMusicFolder(log, &library, host, port, id_type, this);
+        if (typeMedia == "audio")
+        {
+            DlnaCachedGroupedFolderMetaData* child;
+            child = new DlnaCachedGroupedFolderMetaData(log, &library, host, port,
+                                                        "Music", id_type, "", this);
+            child->addFolder("artist", "Artist", QString("album, disc, trackposition"), QString("ASC"));
+            child->addFolder("album", "Album", QString("disc, trackposition"), QString("ASC"));
+            child->addFolder("genre", "Genre", QString("album, disc, trackposition"), QString("ASC"));
             addChild(child);
         } else {
             DlnaCachedFolder* child = new DlnaCachedFolder(log, &library,
-                                                           QString("type='%1'").arg(id_type),
-                                                           QString("title"),
-                                                           QString("ASC"),
-                                                           typeMedia, host, port, false, this);
+                                                           library.getMedia(QString("type='%1'").arg(id_type), "title", "ASC"),
+                                                           typeMedia, host, port, false, -1, this);
             addChild(child);
         }
     }
