@@ -120,16 +120,13 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
     return xml_obj;
 }
 
-int DlnaVideoItem::bitrate() const {
+int DlnaVideoItem::bitrate() const
+{
     // returns bitrate in bits/sec
-    if (toTranscode()) {
-        if (format() == MPEG4_AAC)
-            return 4256000;
-        else
-            return 4718800;
-    } else {
+    if (toTranscode())
+        return 4718800;
+    else
         return metaDataBitrate();
-    }
 }
 
 QString DlnaVideoItem::mimeType() const {
