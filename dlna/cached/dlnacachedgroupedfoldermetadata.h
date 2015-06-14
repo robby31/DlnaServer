@@ -27,7 +27,11 @@ public:
 
     void setNetworkAccessManager(QNetworkAccessManager *manager);
 
+    void addFolder(QString metaData, QString name, QString orderedParam, QString sortOption = QString("ASC"));
+
 private:
+    MediaLibrary* library;
+    int typeMedia;
     QString name;
     QString where;
     QList<DlnaCachedFolderMetaData*> children;
