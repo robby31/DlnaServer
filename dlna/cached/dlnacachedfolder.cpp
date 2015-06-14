@@ -1,17 +1,14 @@
 #include "dlnacachedfolder.h"
 
-DlnaCachedFolder::DlnaCachedFolder(Logger* log, MediaLibrary* library, QString whereQuery, QString orderedParam, QString sortOption, QString name, QString host, int port, bool cacheEnabled, QObject *parent):
+DlnaCachedFolder::DlnaCachedFolder(Logger* log, MediaLibrary* library, QSqlQuery query, QString name, QString host, int port, bool cacheEnabled, int maxSize, QObject *parent):
     DlnaStorageFolder(log, host, port, parent),
     library(library),
-    whereQuery(whereQuery),
-    orderedParam(orderedParam),
-    sortOption(sortOption),
     name(name),
-    query(),
+    query(query),
     nbChildren(-1),
     cacheEnabled(cacheEnabled),
     cache(),
-    limitSizeMax(-1),
+    limitSizeMax(maxSize),
     m_nam(0)
 {
     refreshContent();
@@ -21,8 +18,9 @@ void DlnaCachedFolder::refreshContent()
 {
     cache.clear();
 
-    if (library) {
-        query = library->getMedia(whereQuery, orderedParam, sortOption);
+    if (query.isSelect() && query.isActive())
+    {
+        query = QSqlQuery(query.executedQuery());
 
         if (cacheEnabled) {
             nbChildren = 0;
@@ -49,31 +47,35 @@ DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
     QString type_media;
     QString filename;
 
-    if (cacheEnabled) {
-        if (index>=0 && index<cache.count()) {
+    if (cacheEnabled)
+    {
+        if (index>=0 && index<cache.count())
+        {
             id_media = cache.at(index);
             QSqlQuery newQuery = library->getMedia(QString("media.id=%1").arg(id_media));
-            if (newQuery.isActive() && newQuery.next()) {
+            if (newQuery.isActive() && newQuery.next())
+            {
                 type_media = newQuery.value("type_media").toString();
                 filename = newQuery.value("filename").toString();
             }
         }
     } else {
-        if (query.seek(index)) {
+        if (query.seek(index))
+        {
             id_media = query.value("id").toInt();
             type_media = query.value("type_media").toString();
             filename = query.value("filename").toString();
         }
     }
 
-    if (type_media == "audio") {
+    if (type_media == "audio")
+    {
         child = new DlnaCachedMusicTrack(log(), library, id_media, host, port,
                                          parent != 0 ? parent : this);
 
-    } else if (type_media == "video") {
-        QString url(library->getmetaData("filename", id_media).toString());
-
-        if (url.startsWith("http"))
+    } else if (type_media == "video")
+    {
+        if (filename.startsWith("http"))
             child = new DlnaCachedNetworkVideo(log(), m_nam, library, id_media, host, port,
                                                parent != 0 ? parent : this);
         else
@@ -85,7 +87,8 @@ DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
     }
 
 
-    if (child != 0) {
+    if (child != 0)
+    {
         child->setId(QString("%1").arg(index+1));
         child->setDlnaParent(this);
     }
