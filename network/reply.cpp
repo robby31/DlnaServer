@@ -297,49 +297,46 @@ void Reply::_run()
         } else {
             replyDone("KO");
         }
-    } else if (requestMethod() == "SUBSCRIBE" && !soapaction.isEmpty()) {
+    } else if (requestMethod() == "SUBSCRIBE") {
         setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
-        setParamHeader("Content-Length", "0");
         setParamHeader("Connection",  "close");
         setParamHeader("SID", QString("uuid:%1").arg(uuid()));
         setParamHeader("Server", servername());
         setParamHeader("Timeout", "Second-1800");
 
-        keepReplyOpened = true;
-        sendAnswer();
+        if (!soapaction.isEmpty())
+        {
+            QString cb = soapaction.replace("<", "").replace(">", "");
 
-        QString cb = soapaction.replace("<", "").replace(">", "");
+            QUrl soapActionUrl = QUrl(cb);
+            QString addr = soapActionUrl.host();
+            int port = soapActionUrl.port();
 
-        QUrl soapActionUrl = QUrl(cb);
-        QString addr = soapActionUrl.host();
-        int port = soapActionUrl.port();
+            QTcpSocket sock;
+            sock.connectToHost(addr, port);
+            if (sock.waitForConnected()) {
+                sendLine(&sock, "NOTIFY /" + requestArgument() + " HTTP/1.1");
+                sendLine(&sock, QString("SID: uuid:%1").arg(uuid()));
+                sendLine(&sock, "SEQ: 0");
+                sendLine(&sock, "NT: upnp:event");
+                sendLine(&sock, "NTS: upnp:propchange");
+                sendLine(&sock, QString("HOST: %1:%2").arg(addr).arg(port));
+                sendLine(&sock, "Content-Type: text/xml; charset=\"utf-8\"");
+            }
+            else {
+                logError(QString("Cannot connect to %1").arg(cb));
+                replyDone("ERROR");
+                return;
+            }
 
-        QTcpSocket sock;
-        sock.connectToHost(addr, port);
-        if (sock.waitForConnected()) {
-            sendLine(&sock, "NOTIFY /" + requestArgument() + " HTTP/1.1");
-            sendLine(&sock, QString("SID: uuid:%1").arg(uuid()));
-            sendLine(&sock, "SEQ: 0");
-            sendLine(&sock, "NT: upnp:event");
-            sendLine(&sock, "NTS: upnp:propchange");
-            sendLine(&sock, QString("HOST: %1:%2").arg(addr).arg(port));
-            sendLine(&sock, "Content-Type: text/xml; charset=\"utf-8\"");
+            sock.flush();
+            sock.close();
         }
-        else {
-            logError(QString("Cannot connect to %1").arg(cb));
-            replyDone("ERROR");
-            return;
-        }
-
-        sock.close();
 
         QString answerContent;
-        m_params.clear();
-        headerSent = false;
 
-        if (requestArgument().contains("connection_manager")) {
-            setParamHeader("Server", servername());
-
+        if (requestArgument().contains("connection_manager"))
+        {
             answerContent.append(EVENT_Header.arg("urn:schemas-upnp-org:service:ConnectionManager:1"));
             answerContent.append(EVENT_Prop.arg("SinkProtocolInfo").arg(""));
             answerContent.append(EVENT_Prop.arg("SourceProtocolInfo").arg(""));
@@ -347,10 +344,9 @@ void Reply::_run()
             answerContent.append(EVENT_FOOTER);
 
             sendAnswer(answerContent.toUtf8());
-
-        } else if (requestArgument().contains("content_directory")) {
-            setParamHeader("Server", servername());
-
+        }
+        else if (requestArgument().contains("content_directory"))
+        {
             answerContent.append(EVENT_Header.arg("urn:schemas-upnp-org:service:ContentDirectory:1"));
             answerContent.append(EVENT_Prop.arg("TransferIDs").arg(""));
             answerContent.append(EVENT_Prop.arg("ContainerUpdateIDs").arg(""));
@@ -358,8 +354,9 @@ void Reply::_run()
             answerContent.append(EVENT_FOOTER);
 
             sendAnswer(answerContent.toUtf8());
-
-        } else {
+        }
+        else
+        {
             replyDone("Unknown argument");
         }
 
