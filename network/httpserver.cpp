@@ -17,6 +17,7 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
     upnp(m_log, this),
     hostaddress(),
     serverport(SERVERPORT),
+    workerRoot(this),
     workerNetwork(this),
     workerTranscoding(this),
     database(QSqlDatabase::addDatabase("QSQLITE")),
@@ -37,10 +38,13 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
 
     database.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
 
+    workerRoot.setObjectName("Root folder, MediaLibrary Thread");
+    workerRoot.start();
+
     workerNetwork.setObjectName("Network, request, reply Thread");
     workerNetwork.start();
 
-    workerTranscoding.setObjectName("Transcoding");
+    workerTranscoding.setObjectName("Transcoding Thread");
     workerTranscoding.start();
 
     netManager.moveToThread(&workerNetwork);
@@ -48,6 +52,11 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
 
 HttpServer::~HttpServer()
 {
+    // stop root thread
+    workerRoot.quit();
+    if (!workerRoot.wait(1000))
+        logError("Unable to stop root folder, mediaLibrary thread in HttpServer.");
+
     // stop network thread
     workerNetwork.quit();
     if (!workerNetwork.wait(1000))
@@ -100,7 +109,8 @@ void HttpServer::_startServer()
             logTrace("HTTP server: listen " + getHost().toString() + ":" + QString("%1").arg(getPort()));
 
             // initialize the root folder
-            DlnaCachedRootFolder *rootFolder = new DlnaCachedRootFolder(m_log, &database, hostaddress.toString(), serverport, this);
+            DlnaCachedRootFolder *rootFolder = new DlnaCachedRootFolder(m_log, &database, hostaddress.toString(), serverport);
+            rootFolder->moveToThread(&workerRoot);
             rootFolder->setNetworkAccessManager(&netManager);
 
             connect(this, SIGNAL(destroyed()), rootFolder, SLOT(deleteLater()));

@@ -100,6 +100,7 @@ private :
     QHostAddress hostaddress;
     int serverport;
 
+    QThread workerRoot;
     QThread workerNetwork;
     QThread workerTranscoding;
 
