@@ -11,7 +11,7 @@ class DlnaCachedGroupedFolderMetaData : public DlnaStorageFolder
     Q_OBJECT
 
 public:
-    DlnaCachedGroupedFolderMetaData(Logger* log, MediaLibrary* library, QString host, int port, QString name, int idType, QString where, QObject *parent = 0);
+    DlnaCachedGroupedFolderMetaData(Logger* log, MediaLibrary* library, QString host, int port, QString name, QObject *parent = 0);
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0);
     virtual int getChildrenSize() const { return children.size(); }
@@ -27,13 +27,11 @@ public:
 
     void setNetworkAccessManager(QNetworkAccessManager *manager);
 
-    void addFolder(QString metaData, QString name, QString orderedParam, QString sortOption = QString("ASC"));
+    void addFolder(QString stringQuery, QString stringQueryForChild, QString name);
 
 private:
     MediaLibrary* library;
-    int typeMedia;
     QString name;
-    QString where;
     QList<DlnaCachedFolderMetaData*> children;
 };
 

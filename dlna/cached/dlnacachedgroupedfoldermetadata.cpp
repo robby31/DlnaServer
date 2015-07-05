@@ -1,24 +1,24 @@
 #include "dlnacachedgroupedfoldermetadata.h"
 
-DlnaCachedGroupedFolderMetaData::DlnaCachedGroupedFolderMetaData(Logger* log, MediaLibrary *library, QString host, int port, QString name, int idType, QString where, QObject *parent):
+DlnaCachedGroupedFolderMetaData::DlnaCachedGroupedFolderMetaData(Logger* log, MediaLibrary *library, QString host, int port, QString name, QObject *parent):
     DlnaStorageFolder(log, host, port, parent),
     library(library),
-    typeMedia(idType),
     name(name),
-    where(where),
     children()
 {
 }
 
-void DlnaCachedGroupedFolderMetaData::addFolder(QString metaData, QString name, QString orderedParam, QString sortOption)
+void DlnaCachedGroupedFolderMetaData::addFolder(QString stringQuery,
+                                                QString stringQueryForChild,
+                                                QString name)
 {
     DlnaCachedFolderMetaData* child;
 
     child = new DlnaCachedFolderMetaData(log(), library,
-                                         typeMedia, metaData, name,
+                                         stringQuery, stringQueryForChild,
+                                         name,
                                          host, port,
-                                         orderedParam, sortOption,
-                                         where, this);
+                                         this);
     child->setId(QString("%1").arg(children.length()+1));
     children.append(child);
     child->setDlnaParent(this);

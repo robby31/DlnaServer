@@ -1,21 +1,14 @@
 #include "dlnacachedfoldermetadata.h"
 
-DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *library, int typeMedia, QString metaData, QString name, QString host, int port, QString orderedParam, QString sortOption, QString where, QObject *parent):
+DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *library, QString stringQuery, QString stringQueryForChild, QString name, QString host, int port,  QObject *parent):
     DlnaStorageFolder(log, host, port, parent),
     library(library),
-    metaData(metaData),
-    name(name),
-    typeMedia(typeMedia),
-    query(),
-    m_orderedParam(orderedParam),
-    m_sortOption(sortOption),
-    where(where),
+    m_name(name),
+    query(stringQuery),
+    stringQueryForChild(stringQueryForChild),
     nbChildren(-1),
     m_nam(0)
 {
-    if (library)
-        query = library->getDistinctMetaData(typeMedia, metaData, where);
-
     if (query.isSelect() && query.isActive()) {
         if (query.last())
             nbChildren = query.at() + 1;
@@ -26,10 +19,6 @@ DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *li
 
 DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
 {
-    QString whereQuery;
-    if (!where.isEmpty())
-        whereQuery = "and " + where;
-
     DlnaCachedFolder *child = 0;
 
     if (query.seek(index)) {
@@ -37,21 +26,27 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
         if (query.record().count()==2)
             name = query.value(1).toString();
 
+        QString childName = name;
+        QString childQuery;
+
         // metaData is null ?
         if (query.value(0).isNull())
-            child = new DlnaCachedFolder(log(), library,
-                                         library->getMedia(QString("type=\"%2\" and %1 is null %3").arg(metaData).arg(typeMedia).arg(whereQuery), m_orderedParam, m_sortOption),
-                                         QString("No %1").arg(metaData),
-                                         host, port,
-                                         false, -1,
-                                         parent != 0 ? parent : this);
+        {
+            childName = QString("No %1").arg(m_name);
+            childQuery = stringQueryForChild.arg(" is null");
+        }
         else
-            child = new DlnaCachedFolder(log(), library,
-                                         library->getMedia(QString("type=\"%3\" and %1=\"%2\" %4").arg(metaData).arg(query.value(0).toString()).arg(typeMedia).arg(whereQuery), m_orderedParam, m_sortOption),
-                                         name,
-                                         host, port,
-                                         false, -1,
-                                         parent != 0 ? parent : this);
+        {
+            QString param = QString("=\"%1\"").arg(query.value(0).toString());
+            childQuery = stringQueryForChild.arg(param);
+        }
+
+        child = new DlnaCachedFolder(log(), library,
+                                     QSqlQuery(childQuery),
+                                     childName,
+                                     host, port,
+                                     false, -1,
+                                     parent != 0 ? parent : this);
     }
 
     if (child != 0) {
