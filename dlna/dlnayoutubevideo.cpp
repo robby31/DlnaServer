@@ -17,9 +17,8 @@ DlnaYouTubeVideo::DlnaYouTubeVideo(Logger *log, QString host, int port, QObject 
     m_samplerate(-1),
     m_channelcount(-1),
     programFfmpeg("/opt/local/bin/ffprobe"),
-    m_youtube()
+    m_youtube(this)
 {
-    connect(this, SIGNAL(destroyed()), &m_youtube, SLOT(deleteLater()));
     connect(this, SIGNAL(getVideoUrl(QString)), &m_youtube, SLOT(getVideoUrl(QString)));
     connect(&m_youtube, SIGNAL(videoNotAvailable(QString)), this, SLOT(videoNotAvailable(QString)));
     connect(&m_youtube, SIGNAL(gotVideoTitle(QString)), this, SLOT(videoTitle(QString)));
