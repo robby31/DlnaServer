@@ -27,11 +27,13 @@ public:
 
     virtual int metaDataBitrate()              const { if (library != 0) return library->getmetaData("bitrate", idMedia).toInt(); else return -1; }
     virtual int metaDataDuration()             const { if (library != 0) return library->getmetaData("duration", idMedia).toInt(); else return -1; }
-    virtual QString metaDataTitle()            const{ if (library != 0) return library->getmetaData("title", idMedia).toString(); else return QString(); }
+    virtual QString metaDataTitle()            const { if (library != 0) return library->getmetaData("title", idMedia).toString(); else return QString(); }
     virtual QString metaDataGenre()            const { if (library != 0) return library->getmetaData("genre", idMedia).toString(); else return QString(); }
     virtual QString metaDataPerformer()        const { if (library != 0) return library->getmetaData("artist", idMedia).toString(); else return QString(); }
+    virtual QString metaDataPerformerSort()    const { if (library != 0) return library->getmetaDataArtist("artist_sort", idMedia).toString(); else return QString(); }
     virtual QString metaDataAlbum()            const { if (library != 0) return library->getmetaData("album", idMedia).toString(); else return QString(); }
-    virtual QString metaDataAlbumArtist()      const { if (library != 0) return library->getmetaData("artist", idMedia).toString(); else return QString(); }
+    virtual QString metaDataAlbumArtist()      const { if (library != 0) return library->getmetaDataAlbum("artist_name", idMedia).toString(); else return QString(); }
+    virtual int metaDataYear()                 const { if (library != 0) return library->getmetaDataAlbum("year", idMedia).toInt(); else return -1; }
     virtual int metaDataTrackPosition()        const { if (library != 0) return library->getmetaData("trackposition", idMedia).toInt(); else return 0; }
     virtual int metaDataDisc()                 const { if (library != 0) return library->getmetaData("disc", idMedia).toInt(); else return 0; }
     virtual QString metaDataFormat()           const { if (library != 0) return library->getmetaData("format", idMedia).toString(); else return QString(); }

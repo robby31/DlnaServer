@@ -16,6 +16,8 @@ bool DlnaMusicTrackFile::toTranscode() const
 {
     if (format() == WAV)
         return mime_type.name() != AUDIO_WAV_TYPEMIME;
+    else if (format() == AAC)
+        return mime_type.name() != AUDIO_MP4_TYPEMIME;
     else
         return mime_type.name() != AUDIO_MP3_TYPEMIME;
 }
@@ -41,8 +43,24 @@ QString DlnaMusicTrackFile::metaDataPerformer() const {
     return ffmpeg.metaData("artist");
 }
 
+QString DlnaMusicTrackFile::metaDataPerformerSort() const {
+    return ffmpeg.metaData("artist-sort");
+}
+
 QString DlnaMusicTrackFile::metaDataAlbum() const {
     return ffmpeg.metaData("album");
+}
+
+QString DlnaMusicTrackFile::metaDataAlbumArtist() const {
+    return ffmpeg.metaData("album_artist");
+}
+
+int DlnaMusicTrackFile::metaDataYear() const
+{
+    QDateTime date = QDateTime::fromString(ffmpeg.metaData("date"), "yyyy-MM-dd");
+    if (date.isValid())
+        return date.toString("yyyy").toInt();
+    return -1;
 }
 
 int DlnaMusicTrackFile::metaDataTrackPosition() const {

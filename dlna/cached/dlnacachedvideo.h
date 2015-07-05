@@ -31,8 +31,10 @@ public:
     virtual QString metaDataTitle()            const { return QFileInfo(getSystemName()).completeBaseName(); }
     virtual QString metaDataGenre()            const { return ""; }
     virtual QString metaDataPerformer()        const { return ""; }
+    virtual QString metaDataPerformerSort()    const { return ""; }
     virtual QString metaDataAlbum()            const { return ""; }
     virtual QString metaDataAlbumArtist()      const { return ""; }
+    virtual int metaDataYear()                 const { return -1; }
     virtual int metaDataTrackPosition()        const { return 0; }
     virtual int metaDataDisc()                 const { return 0; }
     virtual QString metaDataFormat()           const { if (library != 0) return library->getmetaData("format", idMedia).toString(); else return QString(); }

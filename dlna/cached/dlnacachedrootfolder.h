@@ -21,8 +21,6 @@ class DlnaCachedRootFolder : public DlnaRootFolder
 public:
     explicit DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, QString host, int port, QObject *parent = 0);
 
-    void resetLibrary() { emit resetLibrarySignal(); }
-
     QSqlQuery getAllNetworkLinks() { return library.getAllNetworkLinks(); }
 
     void setNetworkAccessManager(QNetworkAccessManager *nam);
@@ -37,11 +35,7 @@ signals:
     void linkAdded(QString url);
     void error_addNetworkLink(QString url);
 
-    void resetLibrarySignal();
-
 private slots:
-    bool resetLibrarySlot();
-
     void updateLibrary(const QString &filename, const QHash<QString, QVariant> &data);
     void incrementCounterPlayed(const QString &filename);
 
@@ -52,6 +46,7 @@ private slots:
 
 public slots:
     void checkNetworkLink();
+    void reloadLibrary(const QStringList &localFolder);
 
 private:
     MediaLibrary library;

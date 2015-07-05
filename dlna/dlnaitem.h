@@ -61,7 +61,10 @@ public:
     virtual QString metaDataTitle() const = 0;
     virtual QString metaDataGenre() const = 0;
     virtual QString metaDataPerformer() const = 0;
+    virtual QString metaDataPerformerSort() const = 0;
     virtual QString metaDataAlbum() const = 0;
+    virtual QString metaDataAlbumArtist() const = 0;
+    virtual int metaDataYear() const = 0;
     virtual int metaDataTrackPosition() const = 0;
     virtual int metaDataDisc() const = 0;
     virtual QString metaDataFormat() const = 0;

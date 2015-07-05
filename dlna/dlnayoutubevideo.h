@@ -36,7 +36,10 @@ public:
     virtual QString metaDataTitle()            const { return m_title; }
     virtual QString metaDataGenre()            const { return QString(); }
     virtual QString metaDataPerformer()        const { return QString(); }
+    virtual QString metaDataPerformerSort()        const { return QString(); }
     virtual QString metaDataAlbum()            const { return QString(); }
+    virtual QString metaDataAlbumArtist()      const { return QString(); }
+    virtual int metaDataYear()                 const { return -1; }
     virtual int metaDataTrackPosition()        const { return 0; }
     virtual int metaDataDisc()                 const { return 0; }
     virtual QString metaDataFormat()           const { return m_format; }

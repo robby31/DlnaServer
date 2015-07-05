@@ -40,8 +40,24 @@ QString DlnaVideoFile::metaDataPerformer() const{
     return ffmpeg.metaData("artist");
 }
 
+QString DlnaVideoFile::metaDataPerformerSort() const{
+    return ffmpeg.metaData("artist-sort");
+}
+
 QString DlnaVideoFile::metaDataAlbum() const {
     return ffmpeg.metaData("album");
+}
+
+QString DlnaVideoFile::metaDataAlbumArtist() const {
+    return ffmpeg.metaData("album_artist");
+}
+
+int DlnaVideoFile::metaDataYear() const
+{
+    QDateTime date = QDateTime::fromString(ffmpeg.metaData("date"), "yyyy-MM-dd");
+    if (date.isValid())
+        return date.toString("yyyy").toInt();
+    return -1;
 }
 
 int DlnaVideoFile::metaDataTrackPosition() const {

@@ -16,7 +16,6 @@ HEADERS += \
     ../dlna/dlnavideofile.h \
     ../dlna/dlnamusictrackfile.h \
     ../dlna/cached/dlnacachedmusictrack.h \
-    ../dlna/cached/dlnacachedmusicfolder.h \
     ../dlna/cached/dlnacachedfoldermetadata.h \
     ../dlna/dlnastoragefolder.h \
     ../dlna/dlnayoutubevideo.h \
@@ -36,7 +35,6 @@ SOURCES += \
     ../dlna/dlnavideofile.cpp \
     ../dlna/dlnamusictrackfile.cpp \
     ../dlna/cached/dlnacachedmusictrack.cpp \
-    ../dlna/cached/dlnacachedmusicfolder.cpp \
     ../dlna/cached/dlnacachedfoldermetadata.cpp \
     ../dlna/dlnastoragefolder.cpp \
     ../dlna/dlnayoutubevideo.cpp \

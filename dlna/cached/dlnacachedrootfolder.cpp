@@ -12,8 +12,6 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
     youtube(0),
     m_nam(0)
 {
-    connect(this, SIGNAL(resetLibrarySignal()), this, SLOT(resetLibrarySlot()));
-
     recentlyPlayedChild = new DlnaCachedFolder(log, &library,
                                                library.getMedia("last_played is not null", "last_played", "DESC"),
                                                "Recently Played", host, port, true, -1, this);
@@ -41,11 +39,30 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
 
         if (typeMedia == "video")
         {
+            QString where = QString("media.type=%1 and is_reachable=1 and filename like '%youtube%'").arg(id_type);
             youtube = new DlnaCachedGroupedFolderMetaData(log, &library, host, port,
-                                                          "YOUTUBE", id_type, "filename like '%youtube%'", this);
-            youtube->addFolder("artist", "Artist", QString("title"), QString("ASC"));
-            youtube->addFolder("album", "Album", QString("title"), QString("ASC"));
-            youtube->addFolder("genre", "Genre", QString("title"), QString("ASC"));
+                                                          "YOUTUBE", this);
+            youtube->addFolder("SELECT DISTINCT artist.id, artist.name FROM media LEFT OUTER JOIN artist ON media.artist=artist.id WHERE " + where + " ORDER BY artist.name",
+                               "SELECT media.id, media.filename, type.name AS type_media, media.last_modified, media.counter_played "
+                               "from media "
+                               "LEFT OUTER JOIN type ON media.type=type.id "
+                               "WHERE " + where + " and artist%1 "
+                               "ORDER BY title ASC",
+                               "Artist");
+            youtube->addFolder("SELECT DISTINCT album.id, album.name FROM media LEFT OUTER JOIN album ON media.album=album.id WHERE " + where + " ORDER BY album.name",
+                               "SELECT media.id, media.filename, type.name AS type_media, media.last_modified, media.counter_played "
+                               "from media "
+                               "LEFT OUTER JOIN type ON media.type=type.id "
+                               "WHERE " + where + " and album%1 "
+                               "ORDER BY title ASC",
+                               "Album");
+            youtube->addFolder("SELECT DISTINCT genre.id, genre.name FROM media LEFT OUTER JOIN genre ON media.genre=genre.id WHERE " + where + "ORDER BY genre.name",
+                               "SELECT media.id, media.filename, type.name AS type_media, media.last_modified, media.counter_played "
+                               "from media "
+                               "LEFT OUTER JOIN type ON media.type=type.id "
+                               "WHERE " + where + " and genre%1 "
+                               "ORDER BY title ASC",
+                               "Genre");
             addChild(youtube);
         }
 
@@ -53,10 +70,42 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
         {
             DlnaCachedGroupedFolderMetaData* child;
             child = new DlnaCachedGroupedFolderMetaData(log, &library, host, port,
-                                                        "Music", id_type, "", this);
-            child->addFolder("artist", "Artist", QString("album, disc, trackposition"), QString("ASC"));
-            child->addFolder("album", "Album", QString("disc, trackposition"), QString("ASC"));
-            child->addFolder("genre", "Genre", QString("album, disc, trackposition"), QString("ASC"));
+                                                        "Music", this);
+            QString where = QString("media.type=%1 and is_reachable=1").arg(id_type);
+
+            child->addFolder("SELECT DISTINCT artist.id, artist.name FROM media LEFT OUTER JOIN artist ON media.artist=artist.id WHERE " + where + " ORDER BY artist.name",
+                             "SELECT media.id, media.filename, type.name AS type_media, media.last_modified, media.counter_played "
+                             "from media "
+                             "LEFT OUTER JOIN type ON media.type=type.id "
+                             "WHERE " + where + " and artist%1 "
+                             "ORDER BY album, disc, trackposition ASC",
+                             "Artist");
+
+            child->addFolder("SELECT DISTINCT album.id, album.name FROM media LEFT OUTER JOIN album ON media.album=album.id WHERE " + where + " ORDER BY album.name",
+                             "SELECT media.id, media.filename, type.name AS type_media, media.last_modified, media.counter_played "
+                             "from media "
+                             "LEFT OUTER JOIN type ON media.type=type.id "
+                             "WHERE " + where + " and album%1 "
+                             "ORDER BY disc, trackposition ASC",
+                             "Album");
+
+            child->addFolder("SELECT DISTINCT genre.id, genre.name FROM media LEFT OUTER JOIN genre ON media.genre=genre.id WHERE " + where + " ORDER BY genre.name",
+                             "SELECT media.id, media.filename, type.name AS type_media, media.last_modified, media.counter_played "
+                             "from media "
+                             "LEFT OUTER JOIN type ON media.type=type.id "
+                             "WHERE " + where + " and genre%1 "
+                             "ORDER BY album, disc, trackposition ASC",
+                             "Genre");
+
+            child->addFolder("SELECT DISTINCT artist.id, artist.name FROM media LEFT OUTER JOIN album ON media.album=album.id LEFT OUTER JOIN artist ON album.artist=artist.id WHERE " + where + " ORDER BY artist.name",
+                             "SELECT media.id, media.filename, type.name AS type_media, media.last_modified, media.counter_played "
+                             "from media "
+                             "LEFT OUTER JOIN type ON media.type=type.id "
+                             "LEFT OUTER JOIN album ON media.album=album.id "
+                             "LEFT OUTER JOIN artist ON album.artist=artist.id "
+                             "WHERE " + where + " and album.artist%1 "
+                             "ORDER BY album, disc, trackposition ASC",
+                             "Album Artist");
             addChild(child);
         } else {
             DlnaCachedFolder* child = new DlnaCachedFolder(log, &library,
@@ -164,6 +213,8 @@ void DlnaCachedRootFolder::checkNetworkLink()
 bool DlnaCachedRootFolder::addResource(QUrl url)
 {
     QHash<QString, QVariant> data;
+    QHash<QString, QVariant> data_album;
+    QHash<QString, QVariant> data_artist;
 
     data.insert("filename", url.toString());
     data.insert("type", "video");
@@ -206,7 +257,7 @@ bool DlnaCachedRootFolder::addResource(QUrl url)
 
             if (!data.isEmpty()) {
                 logDebug(QString("Resource to add: %1").arg(movie.metaDataTitle()));
-                if (!library.add_media(data)) {
+                if (!library.add_media(data, data_album, data_artist)) {
                     logError(QString("unable to add or update resource %1 (%2)").arg(url.toString().arg("video")));
                 } else {
                     return true;
@@ -227,6 +278,8 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
         QString mime_type = mimeDb.mimeTypeForFile(fileinfo).name();
 
         QHash<QString, QVariant> data;
+        QHash<QString, QVariant> data_album;
+        QHash<QString, QVariant> data_artist;
 
         data.insert("filename", fileinfo.absoluteFilePath());
         data.insert("type", mime_type.split("/").at(0));
@@ -238,8 +291,6 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
             DlnaMusicTrackFile track(log(), fileinfo.absoluteFilePath(), host, port);
 
             data.insert("title", track.metaDataTitle());
-            data.insert("album", track.metaDataAlbum());
-            data.insert("artist", track.metaDataPerformer());
             data.insert("genre", track.metaDataGenre());
             data.insert("trackposition", track.metaDataTrackPosition());
             data.insert("disc", track.metaDataDisc());
@@ -249,6 +300,22 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
             data.insert("picture", track.getByteAlbumArt());
             data.insert("format", track.metaDataFormat());
             data.insert("bitrate", track.bitrate());
+
+            if (!track.metaDataAlbum().isEmpty())
+            {
+                data_album["name"] = track.metaDataAlbum();
+                data_album["artist"] = track.metaDataAlbumArtist();
+                int year = track.metaDataYear();
+                if (year != -1)
+                    data_album["year"] = year;
+            }
+
+            if (!track.metaDataPerformer().isEmpty())
+            {
+                data_artist["name"] = track.metaDataPerformer();
+                if (!track.metaDataPerformerSort().isEmpty())
+                    data_artist["sortname"] = track.metaDataPerformerSort();
+            }
         }
         else if (mime_type.startsWith("video/"))
         {
@@ -264,6 +331,21 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
             data.insert("bitrate", movie.bitrate());
             data.insert("format", movie.metaDataFormat());
 
+            if (!movie.metaDataAlbum().isEmpty())
+            {
+                data_album["name"] = movie.metaDataAlbum();
+                data_album["artist"] = movie.metaDataAlbumArtist();
+                int year = movie.metaDataYear();
+                if (year != -1)
+                    data_album["year"] = year;
+            }
+
+            if (!movie.metaDataPerformer().isEmpty())
+            {
+                data_artist["name"] = movie.metaDataPerformer();
+                if (!movie.metaDataPerformerSort().isEmpty())
+                    data_artist["sortname"] = movie.metaDataPerformerSort();
+            }
         }
         else
         {
@@ -273,7 +355,7 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
 
         if (!data.isEmpty())
         {
-            if (!library.add_media(data))
+            if (!library.add_media(data, data_album, data_artist))
                 logError(QString("unable to add or update resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type));
         }
     }
@@ -314,12 +396,6 @@ void DlnaCachedRootFolder::incrementCounterPlayed(const QString &filename)
     favoritesChild->needRefresh();
 }
 
-bool DlnaCachedRootFolder::resetLibrarySlot()
-{
-    QString newDatabaseName = QString("%1.new").arg(library.getDatabase()->databaseName());
-    return library.resetLibrary(newDatabaseName);
-}
-
 void DlnaCachedRootFolder::setNetworkAccessManager(QNetworkAccessManager *nam)
 {
     m_nam = nam;
@@ -340,4 +416,44 @@ void DlnaCachedRootFolder::setNetworkAccessManager(QNetworkAccessManager *nam)
         youtube->setNetworkAccessManager(nam);
     else
         logError("Unable to set NetWorkManager for Youtube.");
+}
+
+void DlnaCachedRootFolder::reloadLibrary(const QStringList &localFolder)
+{
+    // save network media
+    QList<QString> networkMedia;
+    QSqlQuery query;
+    if (query.exec("SELECT filename from media WHERE filename like 'http%' and is_reachable=1")) {
+        while (query.next())
+            networkMedia.append(query.value("filename").toString());
+    } else {
+        logError(QString("Unable to load network media: %1").arg(query.lastError().text()));
+    }
+
+    QString newDatabaseName = QString("%1.new").arg(library.getDatabase()->databaseName());
+    qWarning() << "RELOAD" << newDatabaseName;
+
+    if (library.resetLibrary(newDatabaseName))
+    {
+        bool res = true;
+
+        // load local folder
+        foreach (const QString &folder, localFolder)
+            if (!addFolderSlot(folder))
+                res = false;
+
+        // load network media
+        foreach (const QString &url, networkMedia)
+            if (!addNetworkLink(url))
+                res = false;
+
+        if (!res)
+            logError("Library reloaded with errors.");
+        else
+            logInfo("Library reloaded.");
+    }
+    else
+    {
+        logError("Unable to reload library");
+    }
 }
