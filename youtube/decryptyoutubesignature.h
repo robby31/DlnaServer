@@ -25,6 +25,7 @@ signals:
 
 private slots:
     void decryptSignature();
+    void sslErrorsRaised(QList<QSslError> errors);
 
 private:
     QNetworkAccessManager *nam;

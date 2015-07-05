@@ -385,6 +385,12 @@ void YouTube::replyToComment(const QString &videoId, const QString &commentId, c
     postRequest(url, xml);
 }
 
+void YouTube::sslErrorsRaised(QList<QSslError> errors)
+{
+    QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
+    reply->ignoreSslErrors();
+}
+
 void YouTube::getVideoUrl(const QString &videoId)
 {
     QString playerUrl = QString("https://www.youtube.com/watch?v=%1&gl=US&hl=en&has_verified=1&bpctr=9999999999").arg(videoId);
@@ -399,6 +405,7 @@ void YouTube::getVideoUrl(const QString &videoId)
         request.setUrl(QUrl(playerUrl));
 
         QNetworkReply *reply = nam->get(request);
+        connect(reply, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrorsRaised(QList<QSslError>)));
         connect(reply, SIGNAL(finished()), this, SLOT(parseVideoPage()));
     }
 }
@@ -407,120 +414,129 @@ void YouTube::parseVideoPage()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
 
-    QString video_webpage(reply->readAll());
-
-    QRegularExpression ytplayer(";ytplayer\\.config\\s*=\\s*(\\{.*?\\});");
-    QRegularExpressionMatch match_ytplayer = ytplayer.match(video_webpage);
-    if (match_ytplayer.hasMatch())
+    if (reply->error() != QNetworkReply::NoError)
     {
-        QJsonDocument json = QJsonDocument::fromJson(match_ytplayer.captured(1).toUtf8());
-        if (json.isObject())
+        emit videoTitleError();
+        emit videoUrlError(reply->errorString());
+    }
+    else
+    {
+        QString video_webpage(reply->readAll());
+
+        QRegularExpression ytplayer(";ytplayer\\.config\\s*=\\s*(\\{.*?\\});");
+        QRegularExpressionMatch match_ytplayer = ytplayer.match(video_webpage);
+        if (match_ytplayer.hasMatch())
         {
-            QJsonObject jsonObject = json.object();
-            if (jsonObject.contains("args") && jsonObject["args"].isObject())
+            QJsonDocument json = QJsonDocument::fromJson(match_ytplayer.captured(1).toUtf8());
+            if (json.isObject())
             {
-                QJsonObject videoInfo = jsonObject["args"].toObject();
-
-                if (videoInfo.contains("title"))
-                    emit gotVideoTitle(videoInfo["title"].toString());
-                else
-                    emit videoTitleError();
-
-                QString encoded_url_map = videoInfo["url_encoded_fmt_stream_map"].toString() + "," + videoInfo["adaptive_fmts"].toString();
-
-                // parse url for streaming
-                foreach (const QString &url_data_str, encoded_url_map.split(","))
+                QJsonObject jsonObject = json.object();
+                if (jsonObject.contains("args") && jsonObject["args"].isObject())
                 {
-                    QString url;
+                    QJsonObject videoInfo = jsonObject["args"].toObject();
 
-                    // convert url_data_str in QHash object url_data
-                    QHash<QString, QString> url_data;
-                    foreach (const QString &data, url_data_str.split("&"))
+                    if (videoInfo.contains("title"))
+                        emit gotVideoTitle(videoInfo["title"].toString());
+                    else
+                        emit videoTitleError();
+
+                    QString encoded_url_map = videoInfo["url_encoded_fmt_stream_map"].toString() + "," + videoInfo["adaptive_fmts"].toString();
+
+                    // parse url for streaming
+                    foreach (const QString &url_data_str, encoded_url_map.split(","))
                     {
-                        if (data.contains("="))
+                        QString url;
+
+                        // convert url_data_str in QHash object url_data
+                        QHash<QString, QString> url_data;
+                        foreach (const QString &data, url_data_str.split("&"))
                         {
-                            int index = data.indexOf("=");
-                            QString param = data.left(index);
-                            QString value = QByteArray::fromPercentEncoding(data.right(data.size()-index-1).toUtf8());
-                            url_data[param] = value;
+                            if (data.contains("="))
+                            {
+                                int index = data.indexOf("=");
+                                QString param = data.left(index);
+                                QString value = QByteArray::fromPercentEncoding(data.right(data.size()-index-1).toUtf8());
+                                url_data[param] = value;
+                            }
+                            else
+                            {
+                                qWarning() << "ERROR, invalid data" << data;
+                            }
                         }
-                        else
+
+                        // read url_data
+                        if (!url_data.contains("itag") or !url_data.contains("url"))
                         {
-                            qWarning() << "ERROR, invalid data" << data;
+                            qWarning() << "ERROR, invalid data" << url_data;
+                        }
+                        else if (url_data["itag"].toInt() == playbackFormat)
+                        {
+                            url = url_data["url"];
+
+                            if (url_data.contains("sig"))
+                            {
+                                // signature not encrypted
+
+                                url += "&signature=" + url_data["sig"];
+
+                                emit gotVideoUrl(url);
+
+                                break;
+                            }
+                            else if (url_data.contains("s"))
+                            {
+                                // signature encrypted
+
+                                QString encrypted_sig = url_data["s"];
+                                QString jsplayer_url_json = jsonObject["assets"].toObject()["js"].toString();
+                                if (jsplayer_url_json.startsWith("//"))
+                                    jsplayer_url_json = QString("https:")+jsplayer_url_json;
+
+                                DecryptYoutubeSignature *request = new DecryptYoutubeSignature(nam, url, encrypted_sig, QUrl(jsplayer_url_json), this);
+                                connect(request, SIGNAL(error(QString)), this, SIGNAL(videoUrlError(QString)));
+                                connect(request, SIGNAL(decryptedSignature(QString)), this, SIGNAL(gotVideoUrl(QString)));
+
+                                request->decrypt();
+
+                                break;
+                            }
+                            else
+                            {
+                                // no signature
+
+                                emit gotVideoUrl(url);
+
+                                break;
+                            }
                         }
                     }
-
-                    // read url_data
-                    if (!url_data.contains("itag") or !url_data.contains("url"))
-                    {
-                        qWarning() << "ERROR, invalid data" << url_data;
-                    }
-                    else if (url_data["itag"].toInt() == playbackFormat)
-                    {
-                        url = url_data["url"];
-
-                        if (url_data.contains("sig"))
-                        {
-                            // signature not encrypted
-
-                            url += "&signature=" + url_data["sig"];
-
-                            emit gotVideoUrl(url);
-
-                            break;
-                        }
-                        else if (url_data.contains("s"))
-                        {
-                            // signature encrypted
-
-                            QString encrypted_sig = url_data["s"];
-                            QString jsplayer_url_json = jsonObject["assets"].toObject()["js"].toString();
-                            if (jsplayer_url_json.startsWith("//"))
-                                jsplayer_url_json = QString("https:")+jsplayer_url_json;
-
-                            DecryptYoutubeSignature *request = new DecryptYoutubeSignature(nam, url, encrypted_sig, QUrl(jsplayer_url_json), this);
-                            connect(request, SIGNAL(error(QString)), this, SIGNAL(videoUrlError(QString)));
-                            connect(request, SIGNAL(decryptedSignature(QString)), this, SIGNAL(gotVideoUrl(QString)));
-
-                            request->decrypt();
-
-                            break;
-                        }
-                        else
-                        {
-                            // no signature
-
-                            emit gotVideoUrl(url);
-
-                            break;
-                        }
-                    }
+                }
+                else
+                {
+                    emit videoUrlError("ERROR, no args in json object to parse video page.");
                 }
             }
             else
             {
-                emit videoUrlError("ERROR, no args in json object to parse video page.");
+                emit videoUrlError("ERROR, invalid json object to parse video page.");
             }
         }
         else
         {
-            emit videoUrlError("ERROR, invalid json object to parse video page.");
+            QRegularExpression errorMessage("\"unavailable-message\"(.+?)>(.+?)</h1>", QRegularExpression::MultilineOption | QRegularExpression::DotMatchesEverythingOption);
+            QRegularExpressionMatch match_errorMessage = errorMessage.match(video_webpage);
+            if (match_errorMessage.hasMatch())
+            {
+                QString message = match_errorMessage.captured(2).trimmed();
+                emit videoUrlError(message);
+                emit videoNotAvailable(message);
+            }
+            else
+            {
+                emit videoUrlError("ERROR, video not available.");
+            }
         }
     }
-    else
-    {
-        QRegularExpression errorMessage("\"unavailable-message\"(.+?)>(.+?)</h1>", QRegularExpression::MultilineOption | QRegularExpression::DotMatchesEverythingOption);
-        QRegularExpressionMatch match_errorMessage = errorMessage.match(video_webpage);
-        if (match_errorMessage.hasMatch())
-        {
-            QString message = match_errorMessage.captured(2).trimmed();
-            emit videoUrlError(message);
-            emit videoNotAvailable(message);
-        }
-        else
-            emit videoUrlError("ERROR, video not available.");
-    }
-
     reply->deleteLater();
 }
 
@@ -538,6 +554,7 @@ void YouTube::getLiveVideoUrl(const QString &videoId)
         request.setUrl(QUrl(playerUrl));
 
         QNetworkReply *reply = nam->get(request);
+        connect(reply, SIGNAL(sslErrors(QList<QSslError>)), this, SLOT(sslErrorsRaised(QList<QSslError>)));
         connect(reply, SIGNAL(finished()), this, SLOT(parseLiveVideoPage()));
     }
 }
@@ -546,23 +563,30 @@ void YouTube::parseLiveVideoPage()
 {
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
 
-    QByteArray response = reply->readAll();
-    response = QByteArray::fromPercentEncoding(response.simplified().replace(QByteArray(" "), QByteArray("")));
-//    qDebug() << response;
-    int pos = response.indexOf("fmt_stream_map=") + 18;
-    int pos2 = response.indexOf('|', pos);
-    response = response.mid(pos, pos2 - pos);
-    QByteArray videoUrl = response.replace(QByteArray("\\/"), QByteArray("/")).replace(QByteArray("\\u0026"), QByteArray("&")).replace(QByteArray("%2C"), QByteArray(","));
-    if (!(videoUrl.startsWith("http")))
+    if (reply->error() != QNetworkReply::NoError)
     {
-        emit alert(tr("Error: Unable to retrieve video"));
-        emit videoUrlError(tr("Error: Unable to retrieve video"));
+        emit videoUrlError(reply->errorString());
     }
     else
     {
-        emit gotVideoUrl(QString(videoUrl));
+        QByteArray response = reply->readAll();
+        response = QByteArray::fromPercentEncoding(response.simplified().replace(QByteArray(" "), QByteArray("")));
+        //    qDebug() << response;
+        int pos = response.indexOf("fmt_stream_map=") + 18;
+        int pos2 = response.indexOf('|', pos);
+        response = response.mid(pos, pos2 - pos);
+        QByteArray videoUrl = response.replace(QByteArray("\\/"), QByteArray("/")).replace(QByteArray("\\u0026"), QByteArray("&")).replace(QByteArray("%2C"), QByteArray(","));
+        if (!(videoUrl.startsWith("http")))
+        {
+            emit alert(tr("Error: Unable to retrieve video"));
+            emit videoUrlError(tr("Error: Unable to retrieve video"));
+        }
+        else
+        {
+            emit gotVideoUrl(QString(videoUrl));
+        }
     }
-//        qDebug() << videoUrl;
+
     reply->deleteLater();
 }
 

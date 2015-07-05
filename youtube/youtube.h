@@ -65,6 +65,7 @@ private slots:
     void postFinished();
     void parseVideoPage();
     void parseLiveVideoPage();
+    void sslErrorsRaised(QList<QSslError> errors);
 
 private:
     QNetworkAccessManager *nam;
