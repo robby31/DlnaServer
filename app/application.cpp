@@ -28,6 +28,7 @@ Application::Application(int &argc, char **argv):
     connect(server, SIGNAL(serverStarted()), this, SLOT(serverStarted()));
     connect(server, SIGNAL(createRequest(qintptr,QString,QString,QString,int)), m_requestsModel, SLOT(createRequest(qintptr,QString,QString,QString,int)));
     connect(m_requestsModel, SIGNAL(newRequest(Request*)), server, SLOT(newRequest(Request*)));
+    connect(this, SIGNAL(reloadLibrarySignal()), server, SLOT(reloadLibrary()));
     connect(this, SIGNAL(addFolder(QString)), server, SLOT(_addFolder(QString)));
     connect(server, SIGNAL(folderAdded(QString)), this, SLOT(folderAdded(QString)));
     connect(server, SIGNAL(error_addFolder(QString)), this, SLOT(folderNotAdded(QString)));
@@ -52,10 +53,6 @@ void Application::serverStarted()
 {
     // load the settings
     loadSettings();
-//    emit checkNetworkLink();
-
-//    if (!reloadLibrary())
-//        loadSettings();
 }
 
 void Application::setRenderersModel(MediaRendererModel *model)
@@ -187,32 +184,4 @@ bool Application::saveSettings()
     settings.endArray();
 
     return true;
-}
-
-bool Application::reloadLibrary()
-{
-    // save network media
-    QList<QString> networkMedia;
-    QSqlQuery query;
-    if (query.exec("SELECT filename from media WHERE filename like 'http%'")) {
-        while (query.next())
-            networkMedia.append(query.value("filename").toString());
-    } else {
-        log.Error(QString("Unable to load network media: %1").arg(query.lastError().text()));
-    }
-
-//    if (server->resetLibrary()) {
-//       bool res = true;
-
-        // load network media
-//        foreach (const QString &url, networkMedia)
-//            if (!server->addNetworkLink(url))
-//                res = false;
-
-//        return loadSettings() && res;
-//    } else {
-//        log.Error("Unable to reload library");
-//        return false;
-//    }
-    return false;
 }

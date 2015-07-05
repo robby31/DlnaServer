@@ -32,6 +32,7 @@ public:
     Q_INVOKABLE void removeFolder(const int &index);
     Q_INVOKABLE void addNetworkLink(const QString &url)  { emit addLink(url); }
     Q_INVOKABLE void startCheckNetworkLink() { emit checkNetworkLink(); }
+    Q_INVOKABLE void reloadLibrary() { emit reloadLibrarySignal(); }
 
 
 private:
@@ -42,9 +43,6 @@ private:
     bool loadSettings();
     bool saveSettings();
 
-    bool reloadLibrary();
-
-
 signals:
     void sharedFolderModelChanged();
     void requestsModelChanged();
@@ -53,6 +51,7 @@ signals:
     void addFolder(QString folder);
     void addLink(QString url);
     void checkNetworkLink();
+    void reloadLibrarySignal();
 
 
 private slots:

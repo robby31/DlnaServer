@@ -98,6 +98,11 @@ Item {
                 text: "Remove"
                 onClicked: _app.removeFolder(view.currentIndex)
             }
+
+            Button {
+                text: "Reload library"
+                onClicked: _app.reloadLibrary()
+            }
         }
 
         ListView {
