@@ -2,7 +2,7 @@ INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
 include (../../qffmpeg/qffmpeg.pri)
-include (../../chromaprint_v11/acoustid/acoustid.pri)
+#include (../../chromaprint_v11/acoustid/acoustid.pri)
 
 HEADERS += \
     ../multimedia/transcodeprocess.h \
@@ -12,7 +12,6 @@ HEADERS += \
     ../multimedia/mediarenderermodel.h \
     ../multimedia/medialibrary.h \
     ../multimedia/streamingfile.h \
-    ../multimedia/youtubetranscoding.h \
     $$PWD/device.h
 
 SOURCES += \
@@ -23,7 +22,6 @@ SOURCES += \
     ../multimedia/mediarenderermodel.cpp \
     ../multimedia/medialibrary.cpp \
     ../multimedia/streamingfile.cpp \
-    ../multimedia/youtubetranscoding.cpp \
     $$PWD/device.cpp
 
 

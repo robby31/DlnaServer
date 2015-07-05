@@ -5,7 +5,7 @@
 #include <QtSql>
 
 #include "logobject.h"
-#include "acoustid.h"
+//#include "acoustid.h"
 
 class MediaLibrary : public LogObject
 {
@@ -23,20 +23,24 @@ public:
 
     QSqlQuery getMediaType() const { return QSqlQuery("SELECT DISTINCT id, name FROM type"); }
 
-    QSqlQuery getMedia(const QString &where, const QString &orderParam="media.id", const QString &sortOption="ASC") const { return QSqlQuery(QString("SELECT media.id, media.filename, type.name AS type_media, media.last_modified, media.counter_played from media LEFT OUTER JOIN type ON media.type=type.id WHERE %1 and is_reachable=1 ORDER BY %2 %3").arg(where).arg(orderParam).arg(sortOption)); }
+    QSqlQuery getMedia(const QString &where, const QString &orderParam="media.id", const QString &sortOption="ASC") const;
     int countMedia(const QString &where) const;
 
-    QSqlQuery getAllNetworkLinks() { return QSqlQuery("SELECT id, filename, title, artist from media WHERE filename like 'http%'"); }
+    QSqlQuery getAllNetworkLinks() { return QSqlQuery("SELECT id, filename, title, artist, is_reachable from media WHERE filename like 'http%'"); }
 
     QSqlQuery getDistinctMetaData(const int &typeMedia, const QString &tagName, const QString &where = QString()) const;
     int countDistinctMetaData(const int &typeMedia, const QString &tagName) const;
 
     QVariant getmetaData(const QString &tagName, const int &idMedia) const;
+    QVariant getmetaDataAlbum(const QString &tagName, const int &idMedia) const;
+    QVariant getmetaDataArtist(const QString &tagName, const int &idMedia) const;
 
-    void checkMetaData(const QFileInfo &fileinfo) const;
+//    void checkMetaData(const QFileInfo &fileinfo) const;
 
     bool contains(const QFileInfo &fileinfo) const;
-    bool add_media(QHash<QString, QVariant> data);
+    bool add_media(QHash<QString, QVariant> data_media, QHash<QString, QVariant> data_album, QHash<QString, QVariant> data_artist);
+    int add_album(QHash<QString, QVariant> data_album);
+    int add_artist(QHash<QString, QVariant> data_artist);
     bool updateFromFilename(const QString &filename, const QHash<QString, QVariant> &data);
     bool incrementCounterPlayed(const QString &filename);
 
@@ -45,8 +49,8 @@ public:
 private:
     int insertForeignKey(const QString &table, const QString &parameter, const QVariant &value);
 
-    bool insert(const QHash<QString, QVariant> &data);
-    bool update(const int &id, const QHash<QString, QVariant> &data);
+    bool insert(const QString &table, const QHash<QString, QVariant> &data);
+    bool update(const QString &table, const int &id, const QHash<QString, QVariant> &data);
 
     // export attributes not stored in media file such as last_played, counter_played, progress_played.
     StateType *exportMediaState() const;
@@ -61,7 +65,7 @@ private:
     QHash<QString, QHash<QString, QHash<QString, QString> > > foreignKeys;
     StateType *libraryState;
 
-    Acoustid m_acoustId;
+//    Acoustid m_acoustId;
 };
 
 #endif // MEDIALIBRARY_H
