@@ -361,8 +361,8 @@ void Reply::_run()
         }
 
     }
-    else if ((requestMethod() == "GET" || requestMethod() == "HEAD") && (requestArgument().toLower().endsWith(".png") || requestArgument().toLower().endsWith(".jpg") || requestArgument().toLower().endsWith(".jpeg"))) {
-
+    else if ((requestMethod() == "GET" || requestMethod() == "HEAD") && (requestArgument().toLower().endsWith(".png") || requestArgument().toLower().endsWith(".jpg") || requestArgument().toLower().endsWith(".jpeg")))
+    {
         if (requestArgument().toLower().endsWith(".png")) {
             setParamHeader("Content-Type", "image/png");
         } else {
