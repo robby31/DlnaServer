@@ -24,7 +24,6 @@ public:
 
     void start() { emit startSignal(); }
     void stop()  { emit stopSignal();  }
-//    bool resetLibrary() { return batch->resetLibrary(); }
 
     // identifier of the render (unique)
     static const QString UUID;
@@ -67,6 +66,8 @@ signals:
     void getDLNAResourcesSignal(QObject *sender, QString objectId, bool returnChildren, int start, int count, QString searchStr);
     void dlnaResources(QObject* sender, QList<DlnaResource*>);
 
+    void reloadLibrarySignal(const QStringList localFolder);
+
 private slots:
     void _logDestroyed() { m_log = 0; }
 
@@ -83,6 +84,8 @@ private slots:
 
     void newRequest(Request *request);
 
+    void reloadLibrary();
+    void folderAddedSlot(QString folder);
 
 private:
     bool isLogLevel(const LogLevel &level) const { return m_log ? m_log->isLevel(level) : false; }
@@ -106,6 +109,7 @@ private :
 
     // root folder containing DLNA nodes
     QSqlDatabase database;
+    QStringList listFolderAdded;
 
     QNetworkAccessManager netManager;
 };

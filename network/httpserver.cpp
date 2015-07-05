@@ -21,12 +21,14 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
     workerNetwork(this),
     workerTranscoding(this),
     database(QSqlDatabase::addDatabase("QSQLITE")),
+    listFolderAdded(),
     netManager()
 {
     if (!m_log)
         qWarning() << "log is not available for" << this;
 
     connect(m_log, SIGNAL(destroyed()), this, SLOT(_logDestroyed()));
+    connect(this, SIGNAL(folderAdded(QString)), this, SLOT(folderAddedSlot(QString)));
 
     upnp.setUuid(UUID);
     upnp.setServerName(SERVERNAME);
@@ -69,6 +71,11 @@ HttpServer::~HttpServer()
 
     logTrace("Close HTTP server.");
     close();
+}
+
+void HttpServer::folderAddedSlot(QString folder)
+{
+    listFolderAdded << folder;
 }
 
 void HttpServer::_startServer()
@@ -131,6 +138,8 @@ void HttpServer::_startServer()
 
             connect(this, SIGNAL(getDLNAResourcesSignal(QObject*, QString,bool,int,int,QString)), rootFolder, SLOT(requestDlnaResources(QObject*, QString,bool,int,int,QString)));
             connect(rootFolder, SIGNAL(dlnaResources(QObject*,QList<DlnaResource*>)), this, SIGNAL(dlnaResources(QObject*,QList<DlnaResource*>)));
+
+            connect(this, SIGNAL(reloadLibrarySignal(QStringList)), rootFolder, SLOT(reloadLibrary(QStringList)));
 
             upnp.setServerUrl(getURL());
             upnp.start();
@@ -265,3 +274,7 @@ void HttpServer::_servingFinished(const QString &filename, const int &status)
         emit incrementCounterPlayedSignal(filename);
 }
 
+void HttpServer::reloadLibrary()
+{
+    emit reloadLibrarySignal(listFolderAdded);
+}
