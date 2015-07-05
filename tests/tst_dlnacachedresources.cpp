@@ -27,7 +27,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 15048, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 15069, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -38,7 +38,7 @@ void tst_dlnacachedresources::testCase_Library_NbAudios()
     QSqlQuery query(db);
 
     int nbAudios = 0;
-    if (query.exec("SELECT id from media where type=2")) {
+    if (query.exec("SELECT media.id from media LEFT OUTER JOIN type ON media.type=type.id WHERE type.name='audio'")) {
         if (query.last())
             nbAudios = query.at() + 1;
     }
@@ -53,11 +53,11 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
     QSqlQuery query(db);
 
     int nbVideos = 0;
-    if (query.exec("SELECT id from media where type=1")) {
+    if (query.exec("SELECT media.id from media LEFT OUTER JOIN type ON media.type=type.id WHERE type.name='video'")) {
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1308, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 1329, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -293,7 +293,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
     QVERIFY2(!xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue().isEmpty(), xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue().toUtf8().constData());
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().size() == 7, QString("%1").arg(xml_res.elementsByTagName("res").at(0).attributes().size()).toUtf8());
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10");
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:03:09");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "40000");
@@ -314,14 +314,18 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
 
     QVERIFY(track->getdlnaOrgOpFlags() == "10");
     QVERIFY(track->getdlnaOrgPN() == "MP3");
-    QVERIFY(track->getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01700000000000000000000000000000");
-    QVERIFY(track->getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10");
+    QVERIFY(track->getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    QVERIFY(track->getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+
+    QVERIFY2(track->metaDataPerformerSort() == "M", track->metaDataPerformerSort().toUtf8());
+    QVERIFY2(track->metaDataAlbumArtist() == "-M-", track->metaDataAlbumArtist().toUtf8());
+    QVERIFY2(track->metaDataYear() == 1999, QString("%1").arg(track->metaDataYear()).toUtf8());
 
     QVERIFY(track->getAlbumArt().isNull() == false);
     QVERIFY(track->getByteAlbumArt().isNull() == false);
     QVERIFY(track->getAlbumArt().size().width() == 300);
     QVERIFY(track->getAlbumArt().size().height() == 300);
-    QVERIFY2(track->getByteAlbumArt().size() == 22470, QString("size=%1").arg(track->getByteAlbumArt().size()).toUtf8());
+    QVERIFY2(track->getByteAlbumArt().size() == 22471, QString("size=%1").arg(track->getByteAlbumArt().size()).toUtf8());
 
     HttpRange *range = 0;
     range = new HttpRange("RANGE: BYTES=0-");
@@ -338,7 +342,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedSize == 7560413, QString("%1").arg(transcodedSize).toUtf8().constData());
+    QVERIFY2(transcodedSize == 7560469, QString("%1").arg(transcodedSize).toUtf8().constData());
     delete transcodeProcess;
     transcodeProcess = 0;
 
@@ -376,6 +380,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
 
     QVERIFY(movie != 0);
     QVERIFY(movie->getSystemName() == "/Users/doudou/Movies/Films/District.9.2009.720p.BrRip.YIFY.mkv");
+    movie->setTranscodeFormat(MPEG2_AC3);
 
     QStringList properties;
     properties << "upnp:genre";
@@ -404,7 +409,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
     QVERIFY2(!xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue().isEmpty(), xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue().toUtf8().constData());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 8);
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10");
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "01:52:16");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue() == "1280x688");
@@ -416,8 +421,8 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
 
     QVERIFY(movie->getdlnaOrgOpFlags() == "10");
     QVERIFY(movie->getdlnaOrgPN() == "MPEG_PS_PAL");
-    QVERIFY(movie->getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=01700000000000000000000000000000");
-    QVERIFY(movie->getProtocolInfo() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10");
+    QVERIFY(movie->getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    QVERIFY(movie->getProtocolInfo() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
 
     QVERIFY(movie->getAlbumArt().isNull() == true);
     QVERIFY(movie->getByteAlbumArt().isNull() == true);
@@ -449,7 +454,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedSize == 5747348, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 5826308, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 }
@@ -482,10 +487,10 @@ void tst_dlnacachedresources::testCase_PerformanceAllArtists() {
     rootFolder.addFolder("/Users/doudou/Music/iTunes/iTunes Media/Music");
     QVERIFY(folderKO.isEmpty());
 
-    DlnaCachedMusicFolder* folder = 0;
+    DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
-        folder = qobject_cast<DlnaCachedMusicFolder*>(rootFolder.getChild(index));
+        folder = qobject_cast<DlnaCachedGroupedFolderMetaData*>(rootFolder.getChild(index));
         if (folder && folder->getSystemName() == "Music")
             break;
     }
@@ -507,10 +512,10 @@ void tst_dlnacachedresources::testCase_PerformanceAllTracksByArtist() {
     Logger log;
     DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
 
-    DlnaCachedMusicFolder* folder = 0;
+    DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
-        folder = qobject_cast<DlnaCachedMusicFolder*>(rootFolder.getChild(index));
+        folder = qobject_cast<DlnaCachedGroupedFolderMetaData*>(rootFolder.getChild(index));
         if (folder && folder->getSystemName() == "Music")
             break;
     }
@@ -539,10 +544,10 @@ void tst_dlnacachedresources::testCase_PerformanceAllAlbums() {
     Logger log;
     DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
 
-    DlnaCachedMusicFolder* folder = 0;
+    DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
-        folder = qobject_cast<DlnaCachedMusicFolder*>(rootFolder.getChild(index));
+        folder = qobject_cast<DlnaCachedGroupedFolderMetaData*>(rootFolder.getChild(index));
         if (folder && folder->getSystemName() == "Music")
             break;
     }
@@ -563,10 +568,10 @@ void tst_dlnacachedresources::testCase_PerformanceAllTracksByAlbum() {
     Logger log;
     DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
 
-    DlnaCachedMusicFolder* folder = 0;
+    DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
-        folder = qobject_cast<DlnaCachedMusicFolder*>(rootFolder.getChild(index));
+        folder = qobject_cast<DlnaCachedGroupedFolderMetaData*>(rootFolder.getChild(index));
         if (folder && folder->getSystemName() == "Music")
             break;
     }
@@ -595,10 +600,10 @@ void tst_dlnacachedresources::testCase_PerformanceAllGenres() {
     Logger log;
     DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
 
-    DlnaCachedMusicFolder* folder = 0;
+    DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
-        folder = qobject_cast<DlnaCachedMusicFolder*>(rootFolder.getChild(index));
+        folder = qobject_cast<DlnaCachedGroupedFolderMetaData*>(rootFolder.getChild(index));
         if (folder && folder->getSystemName() == "Music")
             break;
     }
@@ -612,17 +617,17 @@ void tst_dlnacachedresources::testCase_PerformanceAllGenres() {
     QVERIFY(allGenres->getSystemName() == "Genre");
     QVERIFY(allGenres->getChildrenSize() >= 100);
     qWarning() << "PERFO" << duration << allGenres->getSystemName() << allGenres->getChildrenSize() << "children";
-    QVERIFY2(duration < 150, QString("Parse all genres in %1 ms").arg(duration).toUtf8());
+    QVERIFY2(duration < 200, QString("Parse all genres in %1 ms").arg(duration).toUtf8());
 }
 
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByGenre() {
     Logger log;
     DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
 
-    DlnaCachedMusicFolder* folder = 0;
+    DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
-        folder = qobject_cast<DlnaCachedMusicFolder*>(rootFolder.getChild(index));
+        folder = qobject_cast<DlnaCachedGroupedFolderMetaData*>(rootFolder.getChild(index));
         if (folder && folder->getSystemName() == "Music")
             break;
     }
