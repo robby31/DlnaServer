@@ -71,16 +71,9 @@ Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 time
     }
 }
 
-QString DlnaItem::getProtocolInfo() const {
-    QStringList result;
-
-    if (!getdlnaOrgPN().isNull()) {
-        result << QString("DLNA.ORG_PN=%1").arg(getdlnaOrgPN());
-    }
-
-    result << QString("DLNA.ORG_OP=%1").arg(getdlnaOrgOpFlags());
-
-    return QString("http-get:*:%1:").arg(mimeType()) + result.join(";");
+QString DlnaItem::getProtocolInfo() const
+{
+    return QString("http-get:*:%1:%2").arg(mimeType()).arg(getDlnaContentFeatures());
 }
 
 QString DlnaItem::getDlnaContentFeatures() const {
@@ -95,7 +88,6 @@ QString DlnaItem::getDlnaContentFeatures() const {
         result << "DLNA.ORG_CI=1";
     else
         result << "DLNA.ORG_CI=0";
-    result << "DLNA.ORG_FLAGS=01700000000000000000000000000000";
 
     return result.join(";");
 }
