@@ -34,6 +34,11 @@ public:
     QString host() const { return m_host; }
     int port() const { return m_port; }
 
+    Request *getRequest() const { return m_request; }
+    void setRequest(Request *request) { m_request = request;
+                                        connect(request->getHttpClient(), SIGNAL(bytesSent(qint64,qint64)), this, SLOT(bytesSentSlot(qint64,qint64)));
+                                      }
+
     void run() { emit runSignal(); }
 
 
@@ -56,8 +61,6 @@ signals:
     void sendDataToClientSignal(const QByteArray &data);
 
     void getDLNAResourcesSignal(QString objectId, bool returnChildren, int start, int count, QString searchStr);
-
-    void bytesSent(const qint64 &size, const qint64 &towrite);
 
 
 private slots:
@@ -127,6 +130,8 @@ private:
     static const QString EVENT_Header;
     static const QString EVENT_Prop;
     static const QString EVENT_FOOTER;
+
+    Request *m_request;
 };
 
 #endif // REPLY_H

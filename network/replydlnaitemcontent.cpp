@@ -346,10 +346,11 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                     connect(streamContent, SIGNAL(status(QString)), this, SIGNAL(replyStatusSignal(QString)));
                     connect(streamContent, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
                     connect(streamContent, SIGNAL(errorRaised(QString)), this, SLOT(streamingError(QString)));
-                    connect(this, SIGNAL(bytesSent(qint64,qint64)), streamContent, SLOT(bytesSent(qint64,qint64)));
                     connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), this, SIGNAL(sendDataToClientSignal(QByteArray)));
                     connect(streamContent, SIGNAL(endReached()), this, SLOT(streamingCompleted()));
-                    connect(&timerStatus, SIGNAL(timeout()), streamContent, SLOT(requestData()));
+
+                    if (getRequest())
+                        connect(getRequest()->getHttpClient(), SIGNAL(bytesSent(qint64,qint64)), streamContent, SLOT(bytesSent(qint64,qint64)));
 
                     if (streamContent->open())
                     {

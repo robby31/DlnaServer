@@ -35,10 +35,10 @@ Reply::Reply(Logger *log, const bool &http10, const QString &method, const QStri
     headerSent(false),
     keepReplyOpened(false),
     doc(),
-    xml()
+    xml(),
+    m_request(0)
 {
     connect(this, SIGNAL(runSignal()), this, SLOT(_run()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), this, SLOT(bytesSentSlot(qint64,qint64)));
 }
 
 QString Reply::getParamHeader(const QString &param) const
