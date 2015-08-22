@@ -70,6 +70,7 @@ public:
     }
     void setUrl(const QUrl &url);
     bool waitUrl(const int &timeout=30000);
+    void setPlaybackQuality(const QString &quality) { m_youtube.setPlaybackQuality(quality); }
 
 protected:
     // Returns the process for transcoding

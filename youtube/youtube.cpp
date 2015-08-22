@@ -11,14 +11,17 @@ YouTube::YouTube(QObject *parent) :
     developerKey("AI39si6x9O1gQ1Z_BJqo9j2n_SdVsHu1pk2uqvoI3tVq8d6alyc1og785IPCkbVY3Q5MFuyt-IFYerMYun0MnLdQX5mo2BueSw"),
     accessToken(),
     currentUser(),
-    playbackFormat(18),
-    pbMap()
+    playbackFormat(22),
+    pbMap(),
+    playbackQuality()
 {
     pbMap["720p"] = 22;
     pbMap["480p"] = 35;
     pbMap["360p"] = 34;
     pbMap["hq"] = 18;
     pbMap["mobile"] = 5;
+
+    playbackQuality << 5 << 18 << 22;
 }
 
 void YouTube::setPlaybackQuality(const QString &quality)
@@ -387,6 +390,8 @@ void YouTube::replyToComment(const QString &videoId, const QString &commentId, c
 
 void YouTube::sslErrorsRaised(QList<QSslError> errors)
 {
+    Q_UNUSED(errors)
+
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     reply->ignoreSslErrors();
 }
@@ -442,11 +447,13 @@ void YouTube::parseVideoPage()
 
                     QString encoded_url_map = videoInfo["url_encoded_fmt_stream_map"].toString() + "," + videoInfo["adaptive_fmts"].toString();
 
+                    int indexMaxQuality = playbackQuality.indexOf(playbackFormat);
+                    int indexQualityFound = -1;
+                    QHash<QString, QString> url_dataFound;
+
                     // parse url for streaming
                     foreach (const QString &url_data_str, encoded_url_map.split(","))
                     {
-                        QString url;
-
                         // convert url_data_str in QHash object url_data
                         QHash<QString, QString> url_data;
                         foreach (const QString &data, url_data_str.split("&"))
@@ -469,45 +476,51 @@ void YouTube::parseVideoPage()
                         {
                             qWarning() << "ERROR, invalid data" << url_data;
                         }
-                        else if (url_data["itag"].toInt() == playbackFormat)
+                        else
                         {
-                            url = url_data["url"];
-
-                            if (url_data.contains("sig"))
+                            int indexQuality = playbackQuality.indexOf(url_data["itag"].toInt());
+                            if (indexQuality != -1 && indexQuality <= indexMaxQuality && indexQuality > indexQualityFound)
                             {
-                                // signature not encrypted
-
-                                url += "&signature=" + url_data["sig"];
-
-                                emit gotVideoUrl(url);
-
-                                break;
+                                indexQualityFound = indexQuality;
+                                url_dataFound = url_data;
                             }
-                            else if (url_data.contains("s"))
-                            {
-                                // signature encrypted
+                        }
 
-                                QString encrypted_sig = url_data["s"];
-                                QString jsplayer_url_json = jsonObject["assets"].toObject()["js"].toString();
-                                if (jsplayer_url_json.startsWith("//"))
-                                    jsplayer_url_json = QString("https:")+jsplayer_url_json;
+                    }
 
-                                DecryptYoutubeSignature *request = new DecryptYoutubeSignature(nam, url, encrypted_sig, QUrl(jsplayer_url_json), this);
-                                connect(request, SIGNAL(error(QString)), this, SIGNAL(videoUrlError(QString)));
-                                connect(request, SIGNAL(decryptedSignature(QString)), this, SIGNAL(gotVideoUrl(QString)));
+                    QString url;
+                    if (indexQualityFound != -1)
+                    {
+                        url = url_dataFound["url"];
 
-                                request->decrypt();
+                        if (url_dataFound.contains("sig"))
+                        {
+                            // signature not encrypted
 
-                                break;
-                            }
-                            else
-                            {
-                                // no signature
+                            url += "&signature=" + url_dataFound["sig"];
 
-                                emit gotVideoUrl(url);
+                            emit gotVideoUrl(url);
+                        }
+                        else if (url_dataFound.contains("s"))
+                        {
+                            // signature encrypted
 
-                                break;
-                            }
+                            QString encrypted_sig = url_dataFound["s"];
+                            QString jsplayer_url_json = jsonObject["assets"].toObject()["js"].toString();
+                            if (jsplayer_url_json.startsWith("//"))
+                                jsplayer_url_json = QString("https:")+jsplayer_url_json;
+
+                            DecryptYoutubeSignature *request = new DecryptYoutubeSignature(nam, url, encrypted_sig, QUrl(jsplayer_url_json), this);
+                            connect(request, SIGNAL(error(QString)), this, SIGNAL(videoUrlError(QString)));
+                            connect(request, SIGNAL(decryptedSignature(QString)), this, SIGNAL(gotVideoUrl(QString)));
+
+                            request->decrypt();
+                        }
+                        else
+                        {
+                            // no signature
+
+                            emit gotVideoUrl(url);
                         }
                     }
                 }

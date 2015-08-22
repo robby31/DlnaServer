@@ -79,6 +79,7 @@ private:
     QString currentUser;
     int playbackFormat;
     QHash<QString, int> pbMap;
+    QList<int> playbackQuality;
 
 signals:
     void gotVideoUrl(const QString &videoUrl);
