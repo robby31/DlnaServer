@@ -28,6 +28,8 @@ DecryptYoutubeSignature::DecryptYoutubeSignature(QNetworkAccessManager *nam, QSt
 
 void DecryptYoutubeSignature::sslErrorsRaised(QList<QSslError> errors)
 {
+    Q_UNUSED(errors)
+
     QNetworkReply *reply = qobject_cast<QNetworkReply*>(sender());
     reply->ignoreSslErrors();
 }
@@ -94,6 +96,8 @@ void DecryptYoutubeSignature::decryptSignature()
         if (funcExpMatch.hasMatch())
         {
             QString funcName(funcExpMatch.captured(1));
+            if (funcName.contains("$"))
+                funcName = funcName.replace("$", "\\$");
 
             QRegularExpression extractFuncExp(QString("(?:function\\s+%1|[{;]%1\\s*=\\s*function)\\s*"
                                                       "\\(([^)]*)\\)\\s*"
