@@ -20,13 +20,11 @@ tst_dlnayoutubevideo::tst_dlnayoutubevideo(QObject *parent) :
     db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
 }
 
-void tst_dlnayoutubevideo::receivedTranscodedData() {
-    if (transcodeProcess != 0) {
-        while (transcodeProcess->isOpen() && transcodeProcess->bytesAvailable()>0)
-            transcodedSize += transcodeProcess->read(1024*1024).size();
-    }
+void tst_dlnayoutubevideo::receivedTranscodedData(const QByteArray &data)
+{
+    transcodedSize += data.size();
+    emit bytesSent(transcodedSize, 1);
 }
-
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
 {
@@ -35,6 +33,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
     timer.start();
 
     DlnaYouTubeVideo *video = new DlnaYouTubeVideo(&log, "host", 600);
+    video->setPlaybackQuality("hq");
     video->setTranscodeFormat(MPEG2_AC3);
     video->moveToThread(backend);
     video->setNetworkAccessManager(manager);
@@ -69,6 +68,90 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
     video->deleteLater();
 }
 
+void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD()
+{
+    Logger log;
+    QElapsedTimer timer;
+    timer.start();
+
+    DlnaYouTubeVideo *video = new DlnaYouTubeVideo(&log, "host", 600);
+    video->setPlaybackQuality("720p");
+    video->setTranscodeFormat(MPEG2_AC3);
+    video->moveToThread(backend);
+    video->setNetworkAccessManager(manager);
+    video->setUrl(QUrl("https://www.youtube.com/watch?v=JrlfFTS9kGU"));
+    bool res = video->waitUrl(15000);
+
+    qint64 duration = timer.elapsed();
+    QVERIFY2(duration < 10000, QString("Duration: %1").arg(duration).toUtf8());
+    qWarning() << "created in" << duration << "ms.";
+    QVERIFY(video->getSystemName() == "https://www.youtube.com/watch?v=JrlfFTS9kGU");
+    QVERIFY2(video->getName() == "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]", video->getName().toUtf8().constData());
+    QVERIFY(video->getDisplayName() == "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]");
+
+    QVERIFY(video->metaDataTitle() == "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]");
+    QVERIFY2(video->metaDataDuration() == 193491, QString("%1").arg(video->metaDataDuration()).toUtf8());
+    QVERIFY2(video->resolution() == "1280x720", QString("%1").arg(video->resolution()).toUtf8());
+    QVERIFY2(video->framerate() == "25/1", QString("%1").arg(video->framerate()).toUtf8());
+    QVERIFY2(video->bitrate() == 4718800, QString("%1").arg(video->bitrate()).toUtf8());
+    QVERIFY2(video->samplerate() == 44100, QString("%1").arg(video->samplerate()).toUtf8());
+    QVERIFY2(video->channelCount() == 2, QString("%1").arg(video->channelCount()).toUtf8());
+
+    QVERIFY2(video->metaDataFormat() == "mov,mp4,m4a,3gp,3g2,mj2", QString("%1").arg(video->metaDataFormat()).toUtf8());
+    QVERIFY2(video->mimeType() == "video/mpeg", QString("%1").arg(video->mimeType()).toUtf8());
+    QVERIFY2(video->sourceSize() == 52937939, QString("%1").arg(video->sourceSize()).toUtf8());
+
+
+    qWarning() << "test done in" << timer.elapsed() << "ms.";
+
+    QVERIFY(video->isValid() == true);
+    QVERIFY(res == true);
+
+    video->deleteLater();
+}
+
+void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD_NotFound()
+{
+    Logger log;
+    QElapsedTimer timer;
+    timer.start();
+
+    DlnaYouTubeVideo *video = new DlnaYouTubeVideo(&log, "host", 600);
+    video->setPlaybackQuality("720p");
+    video->setTranscodeFormat(MPEG2_AC3);
+    video->moveToThread(backend);
+    video->setNetworkAccessManager(manager);
+    video->setUrl(QUrl("https://www.youtube.com/watch?v=RQlXgAR0F4Y"));
+    bool res = video->waitUrl(15000);
+
+    qint64 duration = timer.elapsed();
+    QVERIFY2(duration < 10000, QString("Duration: %1").arg(duration).toUtf8());
+    qWarning() << "created in" << duration << "ms.";
+    QVERIFY(video->getSystemName() == "https://www.youtube.com/watch?v=RQlXgAR0F4Y");
+    QVERIFY2(video->getName() == "Lilly Wood & The Prick en concert privé Le Mouv'", video->getName().toUtf8().constData());
+    QVERIFY(video->getDisplayName() == "Lilly Wood & The Prick en concert privé Le Mouv'");
+
+    QVERIFY(video->metaDataTitle() == "Lilly Wood & The Prick en concert privé Le Mouv'");
+    QVERIFY2(video->metaDataDuration() == 3671005, QString("%1").arg(video->metaDataDuration()).toUtf8());
+    QVERIFY2(video->resolution() == "640x356", QString("%1").arg(video->resolution()).toUtf8());
+    QVERIFY2(video->framerate() == "25/1", QString("%1").arg(video->framerate()).toUtf8());
+    QVERIFY2(video->bitrate() == 4718800, QString("%1").arg(video->bitrate()).toUtf8());
+    QVERIFY2(video->samplerate() == 44100, QString("%1").arg(video->samplerate()).toUtf8());
+    QVERIFY2(video->channelCount() == 2, QString("%1").arg(video->channelCount()).toUtf8());
+
+    QVERIFY2(video->metaDataFormat() == "mov,mp4,m4a,3gp,3g2,mj2", QString("%1").arg(video->metaDataFormat()).toUtf8());
+    QVERIFY2(video->mimeType() == "video/mpeg", QString("%1").arg(video->mimeType()).toUtf8());
+    QVERIFY2(video->sourceSize() == 279697032, QString("%1").arg(video->sourceSize()).toUtf8());
+
+
+    qWarning() << "test done in" << timer.elapsed() << "ms.";
+
+    QVERIFY(video->isValid() == true);
+    QVERIFY(res == true);
+
+    video->deleteLater();
+}
+
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo2()
 {
     Logger log;
@@ -76,6 +159,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo2()
     timer.start();
 
     DlnaYouTubeVideo *video = new DlnaYouTubeVideo(&log, "host", 600);
+    video->setPlaybackQuality("hq");
     video->setTranscodeFormat(MPEG2_AC3);
     video->moveToThread(backend);
     video->setNetworkAccessManager(manager);
@@ -115,13 +199,14 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo2()
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
+    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
+    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     QVERIFY(transcodeProcess->open() == true);
     transcodeProcess->waitForFinished(-1);
     QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qWarning() << "DELTA" << video->size()-transcodedSize << qAbs(double(video->size()-transcodedSize))/video->size();
-    QVERIFY2(transcodedSize == 146101756, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 152000256, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 
@@ -144,6 +229,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
     timer.start();
 
     DlnaYouTubeVideo *video = new DlnaYouTubeVideo(&log, "host", 600);
+    video->setPlaybackQuality("hq");
     video->setTranscodeFormat(MPEG2_AC3);
     video->moveToThread(backend);
     video->setNetworkAccessManager(manager);
@@ -182,6 +268,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo4()
     timer.start();
 
     DlnaYouTubeVideo *video = new DlnaYouTubeVideo(&log, "host", 600);
+    video->setPlaybackQuality("hq");
     video->setTranscodeFormat(MPEG2_AC3);
     video->moveToThread(backend);
     video->setNetworkAccessManager(manager);
@@ -236,7 +323,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
 
     DlnaCachedFolder *no_artist = qobject_cast<DlnaCachedFolder*>(artists->getChild(0));
     QVERIFY2(no_artist->getDisplayName() == "No Artist", no_artist->getDisplayName().toUtf8().constData());
-    QVERIFY2(no_artist->getChildrenSize() == 106, QString("%1").arg(no_artist->getChildrenSize()).toUtf8().constData());
+    QVERIFY2(no_artist->getChildrenSize() == 120, QString("%1").arg(no_artist->getChildrenSize()).toUtf8().constData());
 
     DlnaCachedNetworkVideo* movie = 0;
     for (int index=0;index<no_artist->getChildrenSize();++index)
@@ -320,13 +407,13 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
-    connect(transcodeProcess, SIGNAL(readyRead()), this, SLOT(receivedTranscodedData()));
-    QVERIFY(transcodeProcess->open() == true);
+    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
+    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));    QVERIFY(transcodeProcess->open() == true);
     transcodeProcess->waitForFinished(-1);
     QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qWarning() << "DELTA" << movie->size()-transcodedSize << qAbs(double(movie->size()-transcodedSize))/movie->size();
-    QVERIFY2(transcodedSize == 109836368, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 115734304, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 }

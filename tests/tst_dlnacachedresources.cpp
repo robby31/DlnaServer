@@ -27,7 +27,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 15069, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 15078, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -42,7 +42,7 @@ void tst_dlnacachedresources::testCase_Library_NbAudios()
         if (query.last())
             nbAudios = query.at() + 1;
     }
-    QVERIFY2(nbAudios == 13740, QString("%1").arg(nbAudios).toUtf8().constData());
+    QVERIFY2(nbAudios == 13739, QString("%1").arg(nbAudios).toUtf8().constData());
     db.close();
 }
 
@@ -57,7 +57,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1329, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 1339, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -72,7 +72,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbums()
         if (query.last())
             nbAlbums = query.at() + 1;
     }
-    QVERIFY2(nbAlbums == 1247, QString("%1").arg(nbAlbums).toUtf8().constData());
+    QVERIFY2(nbAlbums == 1277, QString("%1").arg(nbAlbums).toUtf8().constData());
     db.close();
 }
 
@@ -87,7 +87,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbumPictures()
         if (query.last())
             nbAlbumPictures = query.at() + 1;
     }
-    QVERIFY2(nbAlbumPictures == 796, QString("%1").arg(nbAlbumPictures).toUtf8().constData());
+    QVERIFY2(nbAlbumPictures == 797, QString("%1").arg(nbAlbumPictures).toUtf8().constData());
     db.close();
 }
 
@@ -102,7 +102,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithAlbum()
         if (query.last())
             nbTracksWithAlbum = query.at() + 1;
     }
-    QVERIFY2(nbTracksWithAlbum == 13508, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
+    QVERIFY2(nbTracksWithAlbum == 13483, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
     db.close();
 }
 
@@ -117,7 +117,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithPicture()
         if (query.last())
             nbTracksWithPicture = query.at() + 1;
     }
-    QVERIFY2(nbTracksWithPicture == 9449, QString("%1").arg(nbTracksWithPicture).toUtf8().constData());
+    QVERIFY2(nbTracksWithPicture == 9450, QString("%1").arg(nbTracksWithPicture).toUtf8().constData());
     db.close();
 }
 
