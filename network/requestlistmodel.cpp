@@ -30,7 +30,6 @@ void RequestListModel::createRequest(qintptr socket, QString uuid, QString serve
 void RequestListModel::requestDestroyed(Request *request)
 {
     QModelIndex requestIndex = indexFromItem(request);
-    qWarning() << "request destroyed" << request << requestIndex;
 
     if (requestIndex.isValid())
         removeRow(requestIndex.row());

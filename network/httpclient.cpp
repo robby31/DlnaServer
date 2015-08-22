@@ -132,10 +132,9 @@ void HttpClient::sendData(const QByteArray &data)
     }
     else if (isLogLevel(DEBG))
     {
-        appendLogSignal(QString("%1: bytes written?%2"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(data.size()));
+        QString msg = QString("HttpClient::sendData - bytes written=%1, bytes to write=%2"+CRLF).arg(data.size()).arg(bytesToWrite());
+        logInfo(msg);
     }
-
-//    qWarning() << QString("%1: %2 bytes written, %3 bytes to write.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(data.size()).arg(bytesToWrite());
 
 //    flush();
 }

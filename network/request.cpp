@@ -5,7 +5,8 @@ const QString Request::CRLF = "\r\n";
 Request::Request(QObject *parent):
     ListItem(parent),
     m_roles(),
-    m_log(0)
+    m_log(0),
+    m_client(0)
 {
     m_roles[methodRole] = "method";
     m_roles[argumentRole] = "argument";
@@ -118,6 +119,8 @@ QVariant Request::data(int role) const
 
 bool Request::setData(const QVariant &value, const int &role)
 {
+//    logInfo(QString("SET DATA %1 = %2").arg(QVariant::fromValue(m_roles[role]).toString()).arg(value.toString()));
+
     QVector<int> roles;
     roles << role;
 
@@ -269,6 +272,6 @@ void Request::replyFinished()
         appendLog(QString("%1: Reply finished but not yet started"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
     }
 
-//    if (getStatus() == "OK")
-//        emit deleteRequest(this);
+    if (m_status == "OK")
+        emit deleteRequest(this);
 }

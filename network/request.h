@@ -64,6 +64,9 @@ public:
 
     QString getParamHeader(const QString &param) const;
 
+    HttpClient *getHttpClient() const { return m_client; }
+    void setHttpClient(HttpClient *client) { m_client = client; }
+
 
 private:
     bool isLogLevel(const LogLevel &level) const { return m_log ? m_log->isLevel(level) : false; }
@@ -74,9 +77,6 @@ private:
 
 
 signals:
-    // emit signal when header has been completely received
-    void headerReady();
-
     // emit signal when reply may be prepared and sent
     void readyToReply(const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const bool &http10, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd);
 
@@ -85,15 +85,6 @@ signals:
 
     void startServingRendererSignal(const QString &ip, const QString &mediaName);
     void stopServingRendererSignal(const QString &ip);
-
-    void closeClientSignal();
-    void sendTextLineSignal(const QString &msg);
-    void sendHeaderSignal(const QHash<QString, QString> &header);
-    void sendDataSignal(const QByteArray &data);
-
-    void clientDisconnected();
-    void bytesSent(const qint64 &size, const qint64 &bytesToWrite);
-    void deleteClient();
 
     void deleteRequest(Request *request);
 
@@ -168,6 +159,8 @@ private:
     qint64 timeSeekRangeStart;
     qint64 timeSeekRangeEnd;
     bool http10;
+
+    HttpClient *m_client;
 };
 
 #endif // REQUEST_H
