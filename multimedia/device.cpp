@@ -9,7 +9,7 @@ Device::Device(Logger *log, QObject *parent) :
     timeseek_end(-1),
     m_bitrate(-1),
     m_maxBufferSize(1024*1024*10),   // 10 MBytes by default when bitrate is unknown
-    m_durationBuffer(10),
+    m_durationBuffer(20),
     bytesToWrite(0)
 {
     connect(this, SIGNAL(openedSignal()), this, SLOT(deviceOpened()));
@@ -64,9 +64,7 @@ void Device::bytesSent(const qint64 &size, const qint64 &towrite)
 
     bytesToWrite = towrite;
 
-    if (!atEnd() && towrite == 0)
-    {
-        emit LogMessage(QString("%1: low buffer, %2 bytes sent."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size));
+//    logInfo(QString("bytesSent atEnd?%1 towrite:%2 bufferLimit:%3 size:%4").arg(atEnd()).arg(towrite).arg(maxBufferSize()/2).arg(size));
+    if (!atEnd() && towrite < maxBufferSize()/2)
         requestData();
-    }
 }
