@@ -23,6 +23,7 @@ public:
     virtual bool open();
     virtual bool isOpen() const { return m_file.isOpen(); }
 
+private:
     virtual QByteArray read(qint64 maxlen);
 
 protected:

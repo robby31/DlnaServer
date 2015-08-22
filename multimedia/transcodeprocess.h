@@ -57,24 +57,18 @@ public:
     virtual bool open()         { emit openSignal(QIODevice::ReadOnly); return true; }
     virtual bool isOpen() const { return m_opened; }
 
-    virtual QByteArray read(qint64 maxlen);
-
-
 protected:
     void setProgram(const QString &program)         { m_process.setProgram(program);        }
     void setArguments(const QStringList &arguments) { m_process.setArguments(arguments);    }
 
 private:
-    void pause()    { emit pauseSignal();  }
-    void resume()   { emit resumeSignal(); }
+    virtual QByteArray read(qint64 maxlen);
 
     qint64 transcodedPos() const { return pos() + bytesAvailable(); }  // position in bytes of transcoded data
     qint64 transcodedProgress() const;
 
 signals:
     void openSignal(const QIODevice::OpenMode &open);
-    void pauseSignal();
-    void resumeSignal();
 
 private slots:
     void _open(const QIODevice::OpenMode &open);
@@ -85,8 +79,8 @@ private slots:
     void finishedTranscodeData(const int &exitCode);
     void killProcess();
 
-    void _pause();
-    void _resume();
+    void pause();
+    void resume();
     void _pause_resume_error(const QProcess::ProcessError &error);
 
 

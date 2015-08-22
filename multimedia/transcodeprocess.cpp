@@ -28,8 +28,6 @@ TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
     connect(this, SIGNAL(openSignal(QIODevice::OpenMode)), this, SLOT(_open(QIODevice::OpenMode)));
     connect(&m_process, SIGNAL(started()), this, SLOT(processStarted()));
     connect(&m_process, SIGNAL(finished(int)), this, SLOT(finishedTranscodeData(int)));
-    connect(this, SIGNAL(pauseSignal()), this, SLOT(_pause()));
-    connect(this, SIGNAL(resumeSignal()), this, SLOT(_resume()));
 
     connect(&processPauseResume, SIGNAL(error(QProcess::ProcessError)), this, SLOT(_pause_resume_error(QProcess::ProcessError)));
 }
@@ -108,18 +106,25 @@ bool TranscodeProcess::atEnd() const
 
 QByteArray TranscodeProcess::read(qint64 maxlen)
 {
+    qint64 oldProgress = progress();
+
     QByteArray data;
      if (m_opened)
          data = m_process.read(maxlen);
      m_pos += data.size();
 
-    if (m_paused && m_process.state() != QProcess::NotRunning && bytesAvailable() < (maxBufferSize()*0.5))
+    if (m_paused && m_process.state() != QProcess::NotRunning && bytesAvailable() < (maxBufferSize()*0.75))
         resume();
 
-    if (m_paused)
-        emit status(QString("Transcoding paused (%1%)").arg(progress()));
-    else
-        emit status(QString("Transcoding (%1%)").arg(progress()));
+    qint64 newProgress = progress();
+
+    if (oldProgress != newProgress)
+    {
+        if (m_paused)
+            emit status(QString("Transcoding paused (%1%)").arg(newProgress));
+        else
+            emit status(QString("Transcoding (%1%)").arg(newProgress));
+    }
 
     return data;
 }
@@ -200,7 +205,7 @@ void TranscodeProcess::killProcess()
     }
 }
 
-void TranscodeProcess::_pause()
+void TranscodeProcess::pause()
 {
     qint64 pid = m_process.processId();
     if (!m_paused && m_process.state() != QProcess::NotRunning && pid > 0)
@@ -229,7 +234,7 @@ void TranscodeProcess::_pause()
     }
 }
 
-void TranscodeProcess::_resume()
+void TranscodeProcess::resume()
 {
     qint64 pid = m_process.processId();
     if (m_paused && m_process.state() != QProcess::NotRunning && pid > 0)
