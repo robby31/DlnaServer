@@ -96,10 +96,8 @@ void DecryptYoutubeSignature::decryptSignature()
         if (funcExpMatch.hasMatch())
         {
             QString funcName(funcExpMatch.captured(1));
-            if (funcName.contains("$"))
-                funcName = funcName.replace("$", "\\$");
 
-            QRegularExpression extractFuncExp(QString("(?:function\\s+%1|[{;]%1\\s*=\\s*function)\\s*"
+            QRegularExpression extractFuncExp(QString("(?:function\\s+\\Q%1\\E|[{;]%1\\s*=\\s*function)\\s*"
                                                       "\\(([^)]*)\\)\\s*"
                                                       "\\{([^}]+)\\}").arg(funcName));
             QRegularExpressionMatch extractFuncExpMach = extractFuncExp.match(webpage);
@@ -116,15 +114,16 @@ void DecryptYoutubeSignature::decryptSignature()
                 QJSValue result = fun.call(args);
                 if (result.isError())
                 {
-                    QRegularExpression errorExp("ReferenceError: (\\w+) is not defined");
+                    QRegularExpression errorExp("ReferenceError: (\\S+) is not defined");
                     QRegularExpressionMatch errorEcpMatch = errorExp.match(result.toString());
                     if (errorEcpMatch.hasMatch())
                     {
                         QString errorVarName(errorEcpMatch.captured(1));
 
-                        QRegularExpression extractVarExp(QString("var\\s+%1\\s*=\\s*"
+                        QRegularExpression extractVarExp(QString("var\\s+\\Q%1\\E\\s*=\\s*"
                                                                  "\\{(.+?)\\};").arg(errorVarName));
                         QRegularExpressionMatch extractVarExpMatch = extractVarExp.match(webpage);
+
                         if (extractVarExpMatch.hasMatch())
                         {
                             result = jsEngine->evaluate(extractVarExpMatch.captured(0));
@@ -140,7 +139,7 @@ void DecryptYoutubeSignature::decryptSignature()
                     cacheJsFun.remove(m_playerId);
 
                     // unable to decrypt signature
-                    emit error(QString("Unable to decrypt signature"));
+                    emit error(QString("Unable to decrypt signature, funcName=%1, %2").arg(funcName).arg(result.toString()));
                 }
                 else
                 {
