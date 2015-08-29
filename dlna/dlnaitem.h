@@ -134,6 +134,8 @@ protected:
     QString dlnaOrgPN;
 
     QString m_userAgent;
+
+    double overheadFactor;
 };
 
 #endif // DLNAITEM_H

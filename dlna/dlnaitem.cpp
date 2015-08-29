@@ -7,7 +7,8 @@ DlnaItem::DlnaItem(Logger *log, QString host, int port, QObject *parent) :
     transcodeFormat(UNKNOWN),  // default transcode format
     dlnaOrgOpFlags("01"),      // seek by byte (exclusive)
     dlnaOrgPN(),
-    m_userAgent()
+    m_userAgent(),
+    overheadFactor(1.0)
 {
 }
 
@@ -29,7 +30,7 @@ int DlnaItem::getLengthInSeconds() const {
 }
 
 int DlnaItem::getLengthInMilliSeconds() const {
-    return metaDataDuration();
+    return metaDataDuration() - getResumeTime();
 }
 
 void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
@@ -39,6 +40,15 @@ void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
 
         if (toTranscode()) {
             setdlnaOrgOpFlags("10");         // seek by time (exclusive)
+
+            if (transcodeFormat == MP3)
+                overheadFactor = 1.000222;
+            else if (transcodeFormat == LPCM)
+                overheadFactor = 1.00001;
+            else if (transcodeFormat == AAC)
+                overheadFactor = 1.01;
+            else
+                overheadFactor = 1.0;
         }
     }
 }
@@ -96,7 +106,7 @@ qint64 DlnaItem::size() const {
     if (toTranscode()) {
         if (bitrate() != -1 && getLengthInMilliSeconds() != -1)
         {
-            return double(bitrate())*double(getLengthInMilliSeconds())/8000.0;
+            return overheadFactor*double(bitrate())*double(getLengthInMilliSeconds())/8000.0;
         } else {
             // variable bitrate, we don't know exactly the size
             return -1;
