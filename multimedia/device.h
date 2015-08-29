@@ -29,6 +29,9 @@ public:
 
     qint64 maxBufferSize() const { return m_maxBufferSize;  }
     int durationBuffer()   const { return m_durationBuffer; }
+    void setDurationBuffer(int duration) { m_durationBuffer = duration;
+                                           if (m_bitrate != -1)
+                                               setBitrate(m_bitrate); }
 
     void setBitrate(const qint64 &bitrate)                  { m_bitrate = bitrate;
                                                               setMaxBufferSize(m_bitrate/8*durationBuffer());
