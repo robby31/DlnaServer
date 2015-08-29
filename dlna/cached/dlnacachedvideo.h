@@ -24,7 +24,7 @@ public:
     // return true if the track shall be transcoded
     virtual bool toTranscode() const { return true; }
 
-    virtual qint64 getResumeTime() const { if (library != 0) return library->getmetaData("progress_played", idMedia).toLongLong(); else return 0; }
+    virtual qint64 getResumeTime() const;
 
     virtual int metaDataBitrate()              const { if (library != 0) return library->getmetaData("bitrate", idMedia).toInt(); else return -1; }
     virtual int metaDataDuration()             const { if (library != 0) return library->getmetaData("duration", idMedia).toInt(); else return -1; }

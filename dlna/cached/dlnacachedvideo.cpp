@@ -44,3 +44,16 @@ QString DlnaCachedVideo::framerate() const
 
     return QString();
 }
+
+qint64 DlnaCachedVideo::getResumeTime() const
+{
+    qint64 res = 0;
+
+    if (library)
+        res = library->getmetaData("progress_played", idMedia).toLongLong();
+
+    if (res > 10000)
+        return res - 10000;   // returns 10 seconds before resume time
+    else
+        return 0;
+}
