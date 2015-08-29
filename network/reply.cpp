@@ -314,7 +314,7 @@ void Reply::_run()
 
             QTcpSocket sock;
             sock.connectToHost(addr, port);
-            if (sock.waitForConnected()) {
+            if (sock.waitForConnected(1000)) {
                 sendLine(&sock, "NOTIFY /" + requestArgument() + " HTTP/1.1");
                 sendLine(&sock, QString("SID: uuid:%1").arg(uuid()));
                 sendLine(&sock, "SEQ: 0");
