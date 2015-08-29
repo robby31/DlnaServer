@@ -20,6 +20,11 @@ void tst_dlnamusictrack::transcodingOpened()
         timeToOpenTranscoding = transcodeTimer.elapsed();
 }
 
+void tst_dlnamusictrack::LogMessage(const QString &message)
+{
+    qWarning() << message;
+}
+
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
 
     Logger log;
@@ -119,6 +124,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     QVERIFY2(transcodedBytes == 376593, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->pos() == 376593);
     QVERIFY(transcodeProcess->atEnd() == true);
+    QVERIFY(track.size() >= transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     stream = 0;
@@ -151,6 +157,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     QVERIFY2(transcodedBytes == 376593, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->pos() == 376593);
     QVERIFY(transcodeProcess->atEnd() == true);
+    QVERIFY(track.size() >= transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     stream = 0;
@@ -185,6 +192,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     QVERIFY2(transcodedBytes == 5001, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->pos() == 5001);
     QVERIFY(transcodeProcess->atEnd() == true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     stream = 0;
@@ -219,6 +227,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     QVERIFY2(transcodedBytes == 4001, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->pos() == 5001);
     QVERIFY(transcodeProcess->atEnd() == true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     stream = 0;
@@ -393,6 +402,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_WAV() {
 
     Logger log;
+    log.setLevel(INF);
+
     DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3", "host", 600);
     track.setTranscodeFormat(WAV);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3");
@@ -473,6 +484,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_WAV() {
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
     QVERIFY(transcodeProcess != 0);
     QVERIFY(transcodeProcess->atEnd() == false);
     QVERIFY(transcodeProcess->open() == true);
@@ -485,6 +497,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_WAV() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY2(transcodedBytes == 3410596, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd() == true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -494,6 +507,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_WAV() {
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
 
     Logger log;
+    log.setLevel(INF);
+
     DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/01 Monde virtuel.m4a", "host", 600);
     track.setTranscodeFormat(MP3);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/01 Monde virtuel.m4a");
@@ -540,13 +555,13 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 5);
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "7559480", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "7561158", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:03:09");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "40000");
     xml_res.clear();
 
     QVERIFY(track.mimeType() == "audio/mpeg");
-    QVERIFY(track.size() == 7559480);
+    QVERIFY(track.size() == 7561158);
     QVERIFY(track.bitrate() == 320000);
     QVERIFY(track.getLengthInSeconds() == 189);
     QVERIFY2(track.getLengthInMilliSeconds() == 188987, QString("%1").arg(track.getLengthInMilliSeconds()).toUtf8());
@@ -578,6 +593,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
     QVERIFY(transcodeProcess != 0);
     QVERIFY(transcodeProcess->atEnd() == false);
     QVERIFY(transcodeProcess->open() == true);
@@ -590,6 +606,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY2(transcodedBytes == 7560469, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd() == true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -598,6 +615,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     Logger log;
+    log.setLevel(INF);
+
     DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
     track.setTranscodeFormat(MP3);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
@@ -646,7 +665,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 7);
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "21785040", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "21789876", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:09:05");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "40000");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
@@ -654,7 +673,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     xml_res.clear();
 
     QVERIFY(track.mimeType() == "audio/mpeg");
-    QVERIFY(track.size() == 21785040);
+    QVERIFY(track.size() == 21789876);
     QVERIFY(track.bitrate() == 320000);
     QVERIFY(track.getLengthInSeconds() == 545);
     QVERIFY2(track.getLengthInMilliSeconds() == 544626, QString("%1").arg(track.getLengthInMilliSeconds()).toUtf8());
@@ -680,6 +699,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
     transcodeProcess->waitForFinished(-1);
     qint64 duration = transcodeTimer.elapsed();
     QVERIFY2(timeToOpenTranscoding < 50, QString("%1").arg(timeToOpenTranscoding).toUtf8());
@@ -689,6 +709,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY2(transcodedBytes == 21786285, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -713,6 +734,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY(transcodedBytes == 21786285);
     QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -737,6 +759,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY2(transcodedBytes == 45, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -761,6 +784,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY2(transcodedBytes == 10026285, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -783,6 +807,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY2(transcodedBytes == 0, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -807,6 +832,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY2(transcodedBytes == 3885, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -815,6 +841,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     Logger log;
+    log.setLevel(INF);
+
     DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
     track.setTranscodeFormat(MP3);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
@@ -866,7 +894,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 7);
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/L16:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "104568192", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "104569237", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:09:05");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "192000");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
@@ -874,7 +902,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     xml_res.clear();
 
     QVERIFY(track.mimeType() == "audio/L16");
-    QVERIFY(track.size() == 104568192);
+    QVERIFY(track.size() == 104569237);
     QVERIFY(track.bitrate() == 1536000);
     QVERIFY(track.getLengthInSeconds() == 545);
     QVERIFY2(track.getLengthInMilliSeconds() == 544626, QString("%1").arg(track.getLengthInMilliSeconds()).toUtf8());
@@ -900,6 +928,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
     transcodeProcess->waitForFinished(-1);
     qint64 duration = transcodeTimer.elapsed();
     QVERIFY2(timeToOpenTranscoding < 50, QString("%1").arg(timeToOpenTranscoding).toUtf8());
@@ -909,6 +938,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY2(transcodedBytes == 104568320, QString("%1").arg(transcodedBytes).toUtf8());
     QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -933,6 +963,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY(transcodedBytes == 104568320);
     QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -957,6 +988,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY2(transcodedBytes == 4096, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -981,6 +1013,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY(transcodedBytes == 92856320);
     QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -1005,6 +1038,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY(transcodedBytes == 0);
     QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -1029,6 +1063,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY(transcodedBytes == 4096);
     QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
@@ -1038,6 +1073,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
 {
     Logger log;
+    log.setLevel(INF);
+
     DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
     track.setTranscodeFormat(AAC);
     QVERIFY(track.toTranscode()==true);
@@ -1087,7 +1124,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 7);
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO_320;DLNA.ORG_OP=10;DLNA.ORG_CI=1", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "21785040", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "22002890", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:09:05");
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "40000", xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
@@ -1095,7 +1132,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
     xml_res.clear();
 
     QVERIFY(track.mimeType() == "audio/mp4");
-    QVERIFY(track.size() == 21785040);
+    QVERIFY(track.size() == 22002890);
     QVERIFY(track.bitrate() == 320000);
     QVERIFY(track.getLengthInSeconds() == 545);
     QVERIFY2(track.getLengthInMilliSeconds() == 544626, QString("%1").arg(track.getLengthInMilliSeconds()).toUtf8());
@@ -1121,15 +1158,17 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
     transcodeProcess->waitForFinished(-1);
     qint64 duration = transcodeTimer.elapsed();
     QVERIFY2(timeToOpenTranscoding < 50, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 10000, QString("%1").arg(duration).toUtf8());
+    QVERIFY2(duration < 20000, QString("%1").arg(duration).toUtf8());
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 24859616, QString("%1").arg(transcodedBytes).toUtf8());
+    QVERIFY2(transcodedBytes == 21992468, QString("%1").arg(transcodedBytes).toUtf8());
     QVERIFY(transcodeProcess->atEnd()==true);
+    QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;

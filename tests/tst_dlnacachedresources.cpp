@@ -27,7 +27,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 15078, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 15082, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -57,7 +57,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1339, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 1343, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -297,7 +297,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:03:09");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "40000");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "7559480");
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "7561158");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "44100");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "2");
 
@@ -305,7 +305,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
 
     QVERIFY(track->mimeType() == "audio/mpeg");
     QVERIFY2(track->metaDataFormat() == "aac", track->metaDataFormat().toUtf8());
-    QVERIFY(track->size() == 7559480);
+    QVERIFY(track->size() == 7561158);
     QVERIFY(track->bitrate() == 320000);
     QVERIFY(track->getLengthInSeconds() == 189);
     QVERIFY(track->getLengthInMilliSeconds() == 188987);
@@ -343,6 +343,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY2(transcodedSize == 7560469, QString("%1").arg(transcodedSize).toUtf8().constData());
+    QVERIFY(track->size() > transcodedSize);
     delete transcodeProcess;
     transcodeProcess = 0;
 
@@ -411,7 +412,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 8);
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "01:52:16");
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "01:52:16", xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue() == "1280x688");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "2");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
@@ -455,6 +456,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY2(transcodedSize == 5826308, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY(movie->size() > transcodedSize);
     delete transcodeProcess;
     transcodeProcess = 0;
 }
@@ -561,7 +563,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllAlbums() {
     QVERIFY(allAlbums->getSystemName() == "Album");
     QVERIFY(allAlbums->getChildrenSize()>= 1000);
     qWarning() << "PERFO" << duration << allAlbums->getSystemName() << allAlbums->getChildrenSize() << "children";
-    QVERIFY2(duration < 210, QString("Parse all albums in %1 ms").arg(duration).toUtf8());
+    QVERIFY2(duration < 300, QString("Parse all albums in %1 ms").arg(duration).toUtf8());
 }
 
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByAlbum() {

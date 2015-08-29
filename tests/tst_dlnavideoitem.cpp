@@ -66,7 +66,8 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     QVERIFY2(duration < 900000, QString("%1").arg(duration).toUtf8());
     QVERIFY(transcodeProcess->exitCode() == 0);
     qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-    QVERIFY2(transcodedSize == 4707384640, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY(movie.size() > transcodedSize);
+    QVERIFY2(transcodedSize == 4688201684, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 
@@ -116,7 +117,8 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY(transcodeProcess->exitCode() == 0);
     qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-    QVERIFY2(transcodedSize == 4763135852, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY(movie.size() > transcodedSize);
+    QVERIFY2(transcodedSize == 4763168940, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
 
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY2(timeToOpenTranscoding < 200, QString("%1").arg(timeToOpenTranscoding).toUtf8());
@@ -170,7 +172,8 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY(transcodeProcess->exitCode() == 0);
     qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-    QVERIFY2(transcodedSize == 4008957684, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY(movie.size() > transcodedSize);
+    QVERIFY2(transcodedSize == 4008962572, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
 
     QVERIFY2(timeToOpenTranscoding < 2000, QString("%1").arg(timeToOpenTranscoding).toUtf8());
     QVERIFY2(duration < 400000, QString("%1").arg(duration).toUtf8());
@@ -267,7 +270,8 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_MPEG2_AC3() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY(transcodeProcess->exitCode() == 0);
     qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-    QVERIFY2(transcodedSize == 4200379848, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY(movie.size() > transcodedSize);
+    QVERIFY2(transcodedSize == 4200418576, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
 
     QVERIFY2(timeToOpenTranscoding < 200, QString("%1").arg(timeToOpenTranscoding).toUtf8());
     QVERIFY2(duration < 400000, QString("%1").arg(duration).toUtf8());
@@ -401,6 +405,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     QVERIFY(transcodeProcess->exitCode() == 0);
     qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
+    QVERIFY(movie.size() > transcodedSize);
     QVERIFY2(transcodedSize == 3957477456, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
 
     QVERIFY2(timeToOpenTranscoding < 1500, QString("%1").arg(timeToOpenTranscoding).toUtf8());

@@ -206,6 +206,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo2()
     QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qWarning() << "DELTA" << video->size()-transcodedSize << qAbs(double(video->size()-transcodedSize))/video->size();
+    QVERIFY(video->size() > transcodedSize);
     QVERIFY2(transcodedSize == 152000256, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
@@ -323,7 +324,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
 
     DlnaCachedFolder *no_artist = qobject_cast<DlnaCachedFolder*>(artists->getChild(0));
     QVERIFY2(no_artist->getDisplayName() == "No Artist", no_artist->getDisplayName().toUtf8().constData());
-    QVERIFY2(no_artist->getChildrenSize() == 120, QString("%1").arg(no_artist->getChildrenSize()).toUtf8().constData());
+    QVERIFY2(no_artist->getChildrenSize() == 124, QString("%1").arg(no_artist->getChildrenSize()).toUtf8().constData());
 
     DlnaCachedNetworkVideo* movie = 0;
     for (int index=0;index<no_artist->getChildrenSize();++index)
@@ -413,7 +414,8 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
     QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qWarning() << "DELTA" << movie->size()-transcodedSize << qAbs(double(movie->size()-transcodedSize))/movie->size();
-    QVERIFY2(transcodedSize == 115734304, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY(movie->size() > transcodedSize);
+    QVERIFY2(transcodedSize == 115734868, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 }

@@ -20,6 +20,7 @@ signals:
 private slots:
     void receivedTranscodedData(const QByteArray &data);
     void transcodingOpened();
+    void LogMessage(const QString &message);
 
 private Q_SLOTS:
     void testCase_DlnaMusicTrack_MP3();
