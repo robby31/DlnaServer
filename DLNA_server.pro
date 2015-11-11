@@ -1,6 +1,6 @@
 TEMPLATE = subdirs
 CONFIG += ordered
-SUBDIRS = ../QmlApplication ../qmlmodulesplugins app  \
+SUBDIRS = app  \
           tests  \
           #HomeControlClient
 
