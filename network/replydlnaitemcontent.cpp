@@ -89,7 +89,7 @@ void ReplyDlnaItemContent::updateStatus()
     if (clockUpdateStatus.isValid()) {
         int delta = clockUpdateStatus.restart() - UPDATE_STATUS_PERIOD;
 
-        if (qAbs(delta) > UPDATE_STATUS_PERIOD/10)
+        if (qAbs(delta) > UPDATE_STATUS_PERIOD/2)
         {
             QString msg = QString("%1: UPDATE STATUS delta %3 <%2>").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(mediaFilename).arg(delta);
             logInfo(msg);
@@ -194,6 +194,15 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
 {
     if (requestor != this)
         return;
+
+    foreach (DlnaResource *item, resources)
+    {
+        if (item)
+        {
+            if (item->parent() == 0)
+                item->setParent(this);
+        }
+    }
 
     m_requestResource = false;
 
@@ -318,7 +327,7 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                 qint64 timeSeekRangeEnd = requestTimeSeekRangeEnd();
                 qint64 resume = dlna->getResumeTime();
                 if (resume>0) {
-                    timeSeekRangeStart = resume/1000 - 10;
+                    timeSeekRangeStart = resume/1000;
                     clockSending.addMSec(timeSeekRangeStart*1000);
                 }
 
@@ -346,11 +355,14 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                     connect(streamContent, SIGNAL(status(QString)), this, SIGNAL(replyStatusSignal(QString)));
                     connect(streamContent, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
                     connect(streamContent, SIGNAL(errorRaised(QString)), this, SLOT(streamingError(QString)));
-                    connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), this, SIGNAL(sendDataToClientSignal(QByteArray)));
                     connect(streamContent, SIGNAL(endReached()), this, SLOT(streamingCompleted()));
 
                     if (getRequest())
-                        connect(getRequest()->getHttpClient(), SIGNAL(bytesSent(qint64,qint64)), streamContent, SLOT(bytesSent(qint64,qint64)));
+                    {
+                        connect(getRequest(), SIGNAL(headerSent()), streamContent, SLOT(startRequestData()));
+                        connect(getRequest(), SIGNAL(bytesSent(qint64,qint64)), streamContent, SLOT(bytesSent(qint64,qint64)));
+                        connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), getRequest(), SIGNAL(sendData(QByteArray)));
+                    }
 
                     if (streamContent->open())
                     {

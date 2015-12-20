@@ -72,9 +72,10 @@ void Reply::sendLine(QTcpSocket *client, const QString &msg)
 
         tmp.append(msg.toUtf8()).append(CRLF.toUtf8());
 
-        if (client->write(tmp) == -1) {
-            logError("HTTP Request: Unable to send line: " + msg);
-        }
+        if (!client->isWritable())
+            logError("HTTP Request: Unable to send line: " + msg + ", client is not ready.");
+        else if (client->write(tmp) == -1)
+            logError("HTTP Request: Unable to send line: " + msg + ", " + client->errorString());
 
         emit appendAnswerSignal(msg+CRLF);
 
@@ -408,6 +409,15 @@ void Reply::dlnaResources(QObject *requestor, QList<DlnaResource *> resources)
 {
     if (requestor != this)
         return;  // ignore resources
+
+    foreach (DlnaResource *item, resources)
+    {
+        if (item)
+        {
+            if (item->parent() == 0)
+                item->setParent(this);
+        }
+    }
 
     QString soapaction = getRequestSoapAction();
 

@@ -64,10 +64,6 @@ public:
 
     QString getParamHeader(const QString &param) const;
 
-    HttpClient *getHttpClient() const { return m_client; }
-    void setHttpClient(HttpClient *client) { m_client = client; }
-
-
 private:
     bool isLogLevel(const LogLevel &level) const { return m_log ? m_log->isLevel(level) : false; }
     void logError(const QString &message)  const { if (m_log) m_log->Error(message); }
@@ -88,10 +84,18 @@ signals:
 
     void deleteRequest(Request *request);
 
+    void clientDisconnected();
+    void closeClient();
+    void bytesSent(const qint64 &size, const qint64 &bytesToWrite);
+    void sendTextLineToClientSignal(const QString &msg);
+    void sendHeaderSignal(const QHash<QString, QString> &header);
+    void sendDataToClientSignal(const QByteArray &data);
+    void headerSent();
+    void sendData(const QByteArray &data);
 
 private slots:
     void setStatus(const QString &status)           { setData(status, statusRole);          }
-    void setNetworkStatus(const QString &status)    { setData(status, networkStatusRole);   }
+    void setNetworkStatus(const QString &status)    { setData(status, networkStatusRole); if (m_networkStatus == "disconnected" && m_status == "OK") emit deleteRequest(this); }
     void setHttp10(const bool &http10)              { this->http10 = http10;                }
     void setMethod(const QString &method)           { setData(method, methodRole);          }
     void setArgument(const QString &argument)       { setData(argument, argumentRole);      }
@@ -111,7 +115,6 @@ private slots:
 
     void requestReceived(const QString &peerAddress, const QStringList &header, const bool &is_http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd);
     void replyFinished();
-
 
 private:
     // Carriage return and line feed.
@@ -159,8 +162,6 @@ private:
     qint64 timeSeekRangeStart;
     qint64 timeSeekRangeEnd;
     bool http10;
-
-    HttpClient *m_client;
 };
 
 #endif // REQUEST_H

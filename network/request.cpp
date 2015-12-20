@@ -5,8 +5,7 @@ const QString Request::CRLF = "\r\n";
 Request::Request(QObject *parent):
     ListItem(parent),
     m_roles(),
-    m_log(0),
-    m_client(0)
+    m_log(0)
 {
     m_roles[methodRole] = "method";
     m_roles[argumentRole] = "argument";
@@ -56,8 +55,6 @@ Request::Request(Logger* log, qintptr socket, QString uuid, QString servername, 
     m_roles[networkStatusRole] = "network_status";
     m_roles[transcodeLogRole] = "transcode_log";
 
-    clock.start();
-
     setDate(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
     setStatus("init");
     setHost(host);
@@ -66,8 +63,8 @@ Request::Request(Logger* log, qintptr socket, QString uuid, QString servername, 
     logTrace("Request: receiving a request from " + data(peerAddressRole).toString());
 }
 
-Request::~Request() {
-
+Request::~Request()
+{
 }
 
 QVariant Request::data(int role) const
@@ -217,6 +214,7 @@ void Request::requestReceived(const QString &peerAddress, const QStringList &hea
     if (!replyInProgress)
     {
         replyInProgress = true;
+        clock.start();
 
         setPeerAddress(peerAddress);
         setHttp10(is_http10);
@@ -272,6 +270,6 @@ void Request::replyFinished()
         appendLog(QString("%1: Reply finished but not yet started"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
     }
 
-    if (m_status == "OK")
+    if (m_networkStatus == "disconnected" && m_status == "OK")
         emit deleteRequest(this);
 }

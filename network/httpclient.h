@@ -50,6 +50,7 @@ signals:
     void appendLogSignal(const QString &msg);
     void appendAnswerSignal(const QString &msg);
 
+    void headerSent();
     void bytesSent(const qint64 &size, const qint64 &bytesToWrite);
 
     void incomingRequest(const QString &peerAddress, const QStringList &header, const bool &is_http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd);

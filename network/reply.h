@@ -35,9 +35,7 @@ public:
     int port() const { return m_port; }
 
     Request *getRequest() const { return m_request; }
-    void setRequest(Request *request) { m_request = request;
-                                        connect(request->getHttpClient(), SIGNAL(bytesSent(qint64,qint64)), this, SLOT(bytesSentSlot(qint64,qint64)));
-                                      }
+    void setRequest(Request *request) { m_request = request; }
 
     void run() { emit runSignal(); }
 

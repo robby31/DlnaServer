@@ -160,7 +160,6 @@ void HttpServer::createTcpSocket(Request *request)
     if (request)
     {
         HttpClient *client = new HttpClient(m_log);
-        request->setHttpClient(client);
 
         if (!client->setSocketDescriptor(request->socketDescriptor()))
         {
@@ -177,6 +176,15 @@ void HttpServer::createTcpSocket(Request *request)
             connect(client, SIGNAL(appendAnswerSignal(QString)), request, SLOT(appendAnswer(QString)));
             connect(client, SIGNAL(stateChanged(QAbstractSocket::SocketState)), request, SLOT(stateChanged(QAbstractSocket::SocketState)));
             connect(client, SIGNAL(incomingRequest(QString,QStringList,bool,QString,QString,QHash<QString,QString>,QString,HttpRange*,int,int)), request, SLOT(requestReceived(QString,QStringList,bool,QString,QString,QHash<QString,QString>,QString,HttpRange*,int,int)));
+
+            connect(client, SIGNAL(disconnected()), request, SIGNAL(clientDisconnected()));
+            connect(request, SIGNAL(closeClient()), client, SLOT(closeClient()));
+            connect(client, SIGNAL(bytesSent(qint64,qint64)), request, SIGNAL(bytesSent(qint64,qint64)));
+            connect(request, SIGNAL(sendTextLineToClientSignal(QString)), client, SLOT(sendTextLine(QString)));
+            connect(request, SIGNAL(sendHeaderSignal(QHash<QString,QString>)), client, SLOT(sendHeader(QHash<QString,QString>)));
+            connect(request, SIGNAL(sendDataToClientSignal(QByteArray)), client, SLOT(sendData(QByteArray)));
+            connect(client, SIGNAL(headerSent()), request, SIGNAL(headerSent()));
+            connect(request, SIGNAL(sendData(QByteArray)), client, SLOT(sendData(QByteArray)));
         }
 
         client->moveToThread(&workerNetwork);
@@ -187,14 +195,14 @@ void HttpServer::newRequest(Request *request)
 {
     if (request)
     {
+        createTcpSocket(request);
+
         // connection between request and httpserver
         connect(request, SIGNAL(readyToReply(QString,QString,QHash<QString,QString>,bool,QString,HttpRange*,int,int)), this, SLOT(_readyToReply(QString,QString,QHash<QString,QString>,bool,QString,HttpRange*,int,int)));
         connect(request, SIGNAL(newRenderer(QString,int,QString)), this, SIGNAL(newRenderer(QString,int,QString)));
         connect(request, SIGNAL(startServingRendererSignal(QString,QString)), this, SIGNAL(servingRenderer(QString,QString)));
         connect(request, SIGNAL(stopServingRendererSignal(QString)), this, SIGNAL(stopServingRenderer(QString)));
         connect(request, SIGNAL(deleteRequest(Request*)), this, SIGNAL(deleteRequest(Request*)));
-
-        createTcpSocket(request);
     }
 }
 
@@ -214,7 +222,8 @@ void HttpServer::_readyToReply(const QString &method, const QString &argument, c
         connect(reply, SIGNAL(stopServingRendererSignal()), request, SLOT(stopServingRenderer()));
         connect(reply, SIGNAL(servingSignal(QString,int)), this, SLOT(_servingProgress(QString,int)));
         connect(reply, SIGNAL(servingFinishedSignal(QString, int)), this, SLOT(_servingFinished(QString, int)));
-        connect(request->getHttpClient(), SIGNAL(disconnected()), reply, SLOT(close()));
+
+        connect(request, SIGNAL(clientDisconnected()), reply, SLOT(close()));
     }
     else
     {
@@ -226,12 +235,11 @@ void HttpServer::_readyToReply(const QString &method, const QString &argument, c
     connect(reply, SIGNAL(getDLNAResourcesSignal(QString,bool,int,int,QString)), this, SLOT(requestDLNAResourcesSignal(QString,bool,int,int,QString)));
     connect(this, SIGNAL(dlnaResources(QObject*,QList<DlnaResource*>)), reply, SLOT(dlnaResources(QObject*,QList<DlnaResource*>)));
 
-    connect(reply, SIGNAL(closeClientSignal()), request->getHttpClient(), SLOT(closeClient()));
-    connect(reply, SIGNAL(destroyed()), request->getHttpClient(), SLOT(deleteLater()));
-
-    connect(reply, SIGNAL(sendTextLineToClientSignal(QString)), request->getHttpClient(), SLOT(sendTextLine(QString)));
-    connect(reply, SIGNAL(sendHeaderSignal(QHash<QString,QString>)), request->getHttpClient(), SLOT(sendHeader(QHash<QString,QString>)));
-    connect(reply, SIGNAL(sendDataToClientSignal(QByteArray)), request->getHttpClient(), SLOT(sendData(QByteArray)));
+    connect(reply, SIGNAL(closeClientSignal()), request, SIGNAL(closeClient()));
+    connect(request, SIGNAL(bytesSent(qint64,qint64)), reply, SLOT(bytesSentSlot(qint64,qint64)));
+    connect(reply, SIGNAL(sendTextLineToClientSignal(QString)), request, SIGNAL(sendTextLineToClientSignal(QString)));
+    connect(reply, SIGNAL(sendHeaderSignal(QHash<QString,QString>)), request, SIGNAL(sendHeaderSignal(QHash<QString,QString>)));
+    connect(reply, SIGNAL(sendDataToClientSignal(QByteArray)), request, SIGNAL(sendData(QByteArray)));
 
     connect(reply, SIGNAL(appendAnswerSignal(QString)), request, SLOT(appendAnswer(QString)));
     connect(reply, SIGNAL(logTextSignal(QString)), request, SLOT(appendLog(QString)));
