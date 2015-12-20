@@ -16,6 +16,7 @@ public:
 
 signals:
     void bytesSent(const qint64 &size, const qint64 &towrite);
+    void startTranscoding();
 
 private slots:
     void receivedTranscodedData(const QByteArray &data);

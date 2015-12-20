@@ -16,6 +16,7 @@ public:
 
 signals:
     void bytesSent(const qint64 &size, const qint64 &towrite);
+    void startTranscoding();
 
 private slots:
     void receivedTranscodedData(const QByteArray &data);
@@ -33,6 +34,7 @@ private Q_SLOTS:
     void testCase_DlnaMusicTrack_WAV_Transcoding_MP3();
     void testCase_DlnaMusicTrack_WAV_Transcoding_LPCM();
     void testCase_DlnaMusicTrack_WAV_Transcoding_AAC();
+    void testCase_DlnaMusicTrack_WAV_Transcoding_ALAC();
 
 private:
     qint64 transcodedBytes;

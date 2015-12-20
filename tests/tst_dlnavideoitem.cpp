@@ -51,6 +51,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
@@ -58,6 +59,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(transcodeProcess->open() == true);
+    emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qint64 duration = transcodeTimer.elapsed();
@@ -67,7 +69,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     QVERIFY(transcodeProcess->exitCode() == 0);
     qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
     QVERIFY(movie.size() > transcodedSize);
-    QVERIFY2(transcodedSize == 4688201684, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 4688053352, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 
@@ -104,6 +106,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
@@ -111,6 +114,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(transcodeProcess->open() == true);
+    emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
     qint64 duration = transcodeTimer.elapsed();
 
@@ -118,7 +122,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     QVERIFY(transcodeProcess->exitCode() == 0);
     qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
     QVERIFY(movie.size() > transcodedSize);
-    QVERIFY2(transcodedSize == 4763168940, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 4763157848, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
 
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY2(timeToOpenTranscoding < 200, QString("%1").arg(timeToOpenTranscoding).toUtf8());
@@ -159,6 +163,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
@@ -166,6 +171,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(transcodeProcess->open() == true);
+    emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
     qint64 duration = transcodeTimer.elapsed();
 
@@ -173,7 +179,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
     QVERIFY(transcodeProcess->exitCode() == 0);
     qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
     QVERIFY(movie.size() > transcodedSize);
-    QVERIFY2(transcodedSize == 4008962572, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 3992791752, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
 
     QVERIFY2(timeToOpenTranscoding < 2000, QString("%1").arg(timeToOpenTranscoding).toUtf8());
     QVERIFY2(duration < 400000, QString("%1").arg(duration).toUtf8());
@@ -257,6 +263,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_MPEG2_AC3() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
@@ -264,6 +271,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_MPEG2_AC3() {
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(transcodeProcess->open() == true);
+    emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
     qint64 duration = transcodeTimer.elapsed();
 
@@ -364,6 +372,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
@@ -371,6 +380,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(transcodeProcess->open() == true);
+    emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
     qint64 duration = transcodeTimer.elapsed();
 
@@ -392,6 +402,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
@@ -399,6 +410,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(transcodeProcess->open()==true);
+    emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
     duration = transcodeTimer.elapsed();
 

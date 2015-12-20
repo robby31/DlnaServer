@@ -27,7 +27,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 15082, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 15146, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -57,7 +57,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1343, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 1407, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -336,9 +336,11 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     QVERIFY(transcodeProcess->open()==true);
+    emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
@@ -449,9 +451,11 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     QVERIFY(transcodeProcess->open()==true);
+    emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodeProcess->bytesAvailable() == 0);

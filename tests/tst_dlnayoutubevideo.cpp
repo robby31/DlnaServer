@@ -199,9 +199,11 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo2()
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     QVERIFY(transcodeProcess->open() == true);
+    emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
     QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
@@ -324,7 +326,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
 
     DlnaCachedFolder *no_artist = qobject_cast<DlnaCachedFolder*>(artists->getChild(0));
     QVERIFY2(no_artist->getDisplayName() == "No Artist", no_artist->getDisplayName().toUtf8().constData());
-    QVERIFY2(no_artist->getChildrenSize() == 124, QString("%1").arg(no_artist->getChildrenSize()).toUtf8().constData());
+    QVERIFY2(no_artist->getChildrenSize() == 159, QString("%1").arg(no_artist->getChildrenSize()).toUtf8().constData());
 
     DlnaCachedNetworkVideo* movie = 0;
     for (int index=0;index<no_artist->getChildrenSize();++index)
@@ -408,8 +410,10 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
     connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
     connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));    QVERIFY(transcodeProcess->open() == true);
+    emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
     QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
