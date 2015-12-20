@@ -12,7 +12,7 @@ DecryptYoutubeSignature::DecryptYoutubeSignature(QNetworkAccessManager *nam, QSt
     m_playerId(),
     m_playerType()
 {
-    QRegularExpression id_m(".*?-([a-zA-Z0-9_-]+)(?:/watch_as3|/html5player)?\\.([a-z]+)$");
+    QRegularExpression id_m(".*?-([a-zA-Z0-9_-]+)(?:/watch_as3|/html5player|/base)?\\.([a-z]+)$");
     QRegularExpressionMatch match = id_m.match(urlForDecoding.toString());
     if (match.hasMatch())
     {
@@ -97,7 +97,7 @@ void DecryptYoutubeSignature::decryptSignature()
         {
             QString funcName(funcExpMatch.captured(1));
 
-            QRegularExpression extractFuncExp(QString("(?:function\\s+\\Q%1\\E|[{;]%1\\s*=\\s*function)\\s*"
+            QRegularExpression extractFuncExp(QString("(?:function\\s+\\Q%1\\E|[{;]\\s*var\\s*\\Q%1\\E\\s*=\\s*function|\\Q%1\\E\\s*=\\s*function)\\s*"
                                                       "\\(([^)]*)\\)\\s*"
                                                       "\\{([^}]+)\\}").arg(funcName));
             QRegularExpressionMatch extractFuncExpMach = extractFuncExp.match(webpage);
@@ -121,7 +121,7 @@ void DecryptYoutubeSignature::decryptSignature()
                         QString errorVarName(errorEcpMatch.captured(1));
 
                         QRegularExpression extractVarExp(QString("var\\s+\\Q%1\\E\\s*=\\s*"
-                                                                 "\\{(.+?)\\};").arg(errorVarName));
+                                                                 "\\{(.+?)\\};").arg(errorVarName), QRegularExpression::DotMatchesEverythingOption);
                         QRegularExpressionMatch extractVarExpMatch = extractVarExp.match(webpage);
 
                         if (extractVarExpMatch.hasMatch())
@@ -152,7 +152,7 @@ void DecryptYoutubeSignature::decryptSignature()
                 cacheJsEngine.remove(m_playerId);
                 cacheJsFun.remove(m_playerId);
 
-                emit error(QString("Unable to find code for function to decrypt signature"));
+                emit error(QString("Unable to find code for function to decrypt signature (%1)").arg(funcName));
             }
         }
         else
