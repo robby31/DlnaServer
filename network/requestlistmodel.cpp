@@ -33,6 +33,4 @@ void RequestListModel::requestDestroyed(Request *request)
 
     if (requestIndex.isValid())
         removeRow(requestIndex.row());
-
-    request->deleteLater();
 }
