@@ -25,7 +25,7 @@ void FfmpegTranscoding::updateArguments()
     }
 
     QStringList arguments;
-//    arguments << "-loglevel" << "warning";
+    arguments << "-loglevel" << "error";
     arguments << "-hide_banner";
     arguments << "-nostats";
 
@@ -49,7 +49,16 @@ void FfmpegTranscoding::updateArguments()
     {
         arguments << "-map" <<  "0:a";
 
-        arguments << "-strict" << "-2" << "-f" << "mpegts" << "-codec:a" << "aac" << "-movflags" << "+faststart";
+        arguments << "-f" << "mp4" << "-codec:a" << "libfdk_aac" << "-movflags" << "frag_keyframe+empty_moov";
+
+        if (bitrate() > 0)
+            arguments << "-b:a" << QString("%1").arg(bitrate());
+    }
+    else if (format() == ALAC)
+    {
+        arguments << "-map" <<  "0:a";
+
+        arguments << "-f" << "mov" << "-codec:a" << "alac" << "-movflags" << "frag_keyframe+empty_moov";
 
         if (bitrate() > 0)
             arguments << "-b:a" << QString("%1").arg(bitrate());
@@ -63,14 +72,25 @@ void FfmpegTranscoding::updateArguments()
         if (bitrate() > 0)
             arguments << "-b:a " << QString("%1").arg(bitrate());
     }
+    else if (format() == WAV)
+    {
+        arguments << "-map" <<  "0:a";
+
+        arguments << "-f" << "wav";
+
+        if (bitrate() > 0)
+            arguments << "-b:a" << QString("%1").arg(bitrate());
+    }
     else if (format() == MPEG2_AC3 or format() == MPEG4_AAC)
     {
-        if (!audioLanguages().contains("fre"))
+        if (!audioLanguages().contains("fre") && !audioLanguages().contains("fra"))
         {
             // select subtitle
             int subtitleStreamIndex = -1;
             if (subtitleLanguages().contains("fre"))
                 subtitleStreamIndex = subtitleLanguages().indexOf("fre");
+            else if (subtitleLanguages().contains("fra"))
+                subtitleStreamIndex = subtitleLanguages().indexOf("fra");
             else if (subtitleLanguages().contains("eng"))
                 subtitleStreamIndex = subtitleLanguages().indexOf("eng");
 
@@ -93,47 +113,81 @@ void FfmpegTranscoding::updateArguments()
         else
         {
             // select french language for audio
-            arguments << "-map" << QString("0:a:%1").arg(audioLanguages().indexOf("fre"));
+            if (audioLanguages().contains("fre"))
+                arguments << "-map" << QString("0:a:%1").arg(audioLanguages().indexOf("fre"));
+            else if (audioLanguages().contains("fra"))
+                arguments << "-map" << QString("0:a:%1").arg(audioLanguages().indexOf("fra"));
             arguments << "-map" << "0:v:0";
         }
 
-        // set container format to MPEG
+        // set container format to AVI
         arguments << "-f" << "mpegts";
 
+//        arguments << "-s" << "1920x1080";
+//        arguments << "-s" << "1280x720";
+        arguments << "-s" << "736x414";
+//        arguments << "-s" << "640x360";
+
         // set audio options
-        int audio_bitrate = 256000;
+        int audio_bitrate = 160000;  // default value for audio bitrate
+        if (audioChannelCount() > 0)
+            audio_bitrate = audioChannelCount()*80000;   // if audio channel count is valid, define bitrate = channel * 80kb/s
+
         if (format() == MPEG2_AC3)
             arguments << "-c:a" << "ac3";
         else if (format() == MPEG4_AAC)
             arguments << "-c:a" << "libfdk_aac";
+
         arguments << "-b:a" << QString("%1").arg(audio_bitrate);
-        if (audioSampleRate()>0)
+
+        if (audioSampleRate() > 0)
             arguments << "-ar" << QString("%1").arg(audioSampleRate());
-        if (audioChannelCount()>0)
+
+        if (audioChannelCount() > 0)
             arguments << "-ac" << QString("%1").arg(audioChannelCount());
 
         // set video options
         int video_bitrate = -1;
         if (format() == MPEG2_AC3)
         {
-            video_bitrate = (bitrate()-audio_bitrate)/1.09256;
+            // muxing overhead: 8.47%
+            video_bitrate = (bitrate()-audio_bitrate)*(1.0-0.0847);
             arguments << "-c:v" << "mpeg2video";
         }
         else if (format() == MPEG4_AAC)
         {
-            video_bitrate = bitrate()/1.0851 - audio_bitrate;
+            // muxing overhead: 8.52%
+            video_bitrate = (bitrate()-audio_bitrate)*(1.0-0.0852);
             arguments << "-c:v" << "libx264";
+
             arguments << "-profile:v" << "baseline" << "-level" << "3.0";
-            arguments << "-preset" << "veryfast";
-//            arguments << "-tune" << "zerolatency";
+            arguments << "-preset" << "ultrafast";
+            arguments << "-tune" << "zerolatency";
 //            arguments << "-movflags" << "+faststart";
         }
 
         if (video_bitrate>0)
         {
             arguments << "-b:v" << QString("%1").arg(video_bitrate);
-            arguments << "-minrate" << QString("%1").arg(video_bitrate) << "-maxrate" << QString("%1").arg(video_bitrate);
-            arguments << "-bufsize" << QString("%1").arg(video_bitrate*3/25);   // bufsize = 3 * bitrate / fps
+            arguments << "-minrate" << QString("%1").arg(video_bitrate);
+            arguments << "-maxrate" << QString("%1").arg(video_bitrate);
+            arguments << "-bufsize" << "1835k";
+        }
+
+        // set frame rate
+        if (!frameRate().isEmpty())
+        {
+            if (frameRate() == "23.976") {
+                arguments << "-r" << "24000/1001";
+            } else if (frameRate() == "29.970") {
+                arguments << "-r" << "30000/1001";
+            } else {
+                // default framerate output
+                arguments << "-r" << "25.000";
+            }
+        } else {
+            // default framerate output
+            arguments << "-r" << "25.000";
         }
     }
     else
