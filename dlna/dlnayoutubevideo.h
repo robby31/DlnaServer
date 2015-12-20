@@ -14,7 +14,6 @@ class DlnaYouTubeVideo : public DlnaVideoItem
 
 public:
     explicit DlnaYouTubeVideo(Logger* log, QString host, int port, QObject *parent = 0);
-    virtual ~DlnaYouTubeVideo();
 
     bool isValid() { return m_unavailableMessage.isEmpty() && !m_title.isEmpty() && !m_resolution.isEmpty() && m_durationInMs>0; }
     QString unavailableMessage() { return m_unavailableMessage; }

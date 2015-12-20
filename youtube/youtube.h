@@ -27,7 +27,6 @@ class YouTube : public QObject {
                NOTIFY accessTokenChanged)
 public:
     explicit YouTube(QObject *parent = 0);
-    virtual ~YouTube() { }
 
     void setNetworkAccessManager(QNetworkAccessManager *manager) { nam = manager; }
     QString getCurrentUser() const { return currentUser; }
