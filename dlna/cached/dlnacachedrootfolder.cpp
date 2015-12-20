@@ -14,12 +14,12 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
 {
     recentlyPlayedChild = new DlnaCachedFolder(log, &library,
                                                library.getMedia("last_played is not null", "last_played", "DESC"),
-                                               "Recently Played", host, port, true, -1, this);
+                                               "Recently Played", host, port, true, 200, this);
     addChild(recentlyPlayedChild);
 
     resumeChild = new DlnaCachedFolder(log, &library,
                                        library.getMedia("progress_played>0", "last_played", "DESC"),
-                                       "Resume", host, port, true, -1, this);
+                                       "Resume", host, port, true, 200, this);
     addChild(resumeChild);
 
     lastAddedChild = new DlnaCachedFolder(log, &library,
@@ -29,7 +29,7 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, 
 
     favoritesChild = new DlnaCachedFolder(log, &library,
                                           library.getMedia("counter_played>0", "counter_played", "DESC"),
-                                          "Favorites", host, port, true, -1, this);
+                                          "Favorites", host, port, true, 200, this);
     addChild(favoritesChild);
 
     QSqlQuery query = library.getMediaType();
