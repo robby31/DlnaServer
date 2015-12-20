@@ -138,9 +138,11 @@ void DlnaResource::change_parent(QObject *old_parent, QObject *new_parent)
 {
     if (new_parent && parent() == old_parent)
     {
+        // set parent to null
         setParent(0);
+
+        // change the thread
         moveToThread(new_parent->thread());
-        setParent(new_parent);
 
         if (getDlnaParent())
             getDlnaParent()->change_parent(old_parent, new_parent);
