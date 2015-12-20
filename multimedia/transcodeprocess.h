@@ -9,7 +9,7 @@
 #include "device.h"
 
 // Format available for transcoding
-enum TranscodeFormatAvailable {UNKNOWN, MP3, LPCM, AAC, WAV, MPEG2_AC3, MPEG4_AAC};
+enum TranscodeFormatAvailable {UNKNOWN, MP3, LPCM, AAC, ALAC, WAV, MPEG2_AC3, MPEG4_AAC};
 
 class TranscodeProcess : public Device
 {
@@ -76,7 +76,7 @@ private slots:
     void dataAvailable();
     void errorTrancodedData(const QProcess::ProcessError &error);
     void appendTranscodingLogMessage();
-    void finishedTranscodeData(const int &exitCode);
+    void finishedTranscodeData(const int &exitCode, const QProcess::ExitStatus &exitStatus);
     void killProcess();
 
     void pause();

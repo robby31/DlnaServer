@@ -23,17 +23,20 @@ TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
 {
     connect(&m_process, SIGNAL(readyReadStandardOutput()), this, SLOT(dataAvailable()));
     connect(&m_process, SIGNAL(readyReadStandardError()), this, SLOT(appendTranscodingLogMessage()));
-//    connect(&m_process, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorTrancodedData(QProcess::ProcessError)));
+    connect(&m_process, SIGNAL(error(QProcess::ProcessError)), this, SLOT(errorTrancodedData(QProcess::ProcessError)));
     qRegisterMetaType<QIODevice::OpenMode>("OpenMode");
     connect(this, SIGNAL(openSignal(QIODevice::OpenMode)), this, SLOT(_open(QIODevice::OpenMode)));
     connect(&m_process, SIGNAL(started()), this, SLOT(processStarted()));
-    connect(&m_process, SIGNAL(finished(int)), this, SLOT(finishedTranscodeData(int)));
+    connect(&m_process, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(finishedTranscodeData(int,QProcess::ExitStatus)));
 
     connect(&processPauseResume, SIGNAL(error(QProcess::ProcessError)), this, SLOT(_pause_resume_error(QProcess::ProcessError)));
 }
 
 TranscodeProcess::~TranscodeProcess()
 {
+    QString msg = QString("DESTROY TranscodeProcess, bytes available:%1, state:%2, paused?%3, durationBuffer:%4, maxBufferSize:%5").arg(bytesAvailable()).arg(m_process.state()).arg(m_paused).arg(durationBuffer()).arg(maxBufferSize());
+    logDebug(msg);
+
     if (processPauseResume.state() == QProcess::Running)
     {
         processPauseResume.kill();
@@ -68,7 +71,8 @@ void TranscodeProcess::dataAvailable()
     }
 
     // manage buffer
-    if (m_process.state() == QProcess::Running) {
+    if (m_process.state() == QProcess::Running)
+    {
         if (bytesAvailable() > maxBufferSize() && !m_paused)
             pause();
     }
@@ -129,7 +133,8 @@ QByteArray TranscodeProcess::read(qint64 maxlen)
     return data;
 }
 
-void TranscodeProcess::appendTranscodingLogMessage() {
+void TranscodeProcess::appendTranscodingLogMessage()
+{
     // incoming log message
     QByteArray msg(m_process.readAllStandardError());
     appendLog(msg);
@@ -138,20 +143,21 @@ void TranscodeProcess::appendTranscodingLogMessage() {
 void TranscodeProcess::errorTrancodedData(const QProcess::ProcessError &error)
 {
     // trancoding failed
-    if (killTranscodeProcess == false) {
+    if (killTranscodeProcess == false)
+    {
         // an error occured
         appendLog(QString("%2: ERROR Transcoding at %4% : error n°%3 - %1."+CRLF).arg(m_process.errorString()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(error).arg(transcodedProgress()));
-        if (transcodedProgress()<95)
-            emit errorRaised(m_process.errorString());
-        else
-            appendLog(QString("%1: ERROR ignored."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        emit errorRaised(m_process.errorString());
     }
 }
 
-void TranscodeProcess::finishedTranscodeData(const int &exitCode)
+void TranscodeProcess::finishedTranscodeData(const int &exitCode, const QProcess::ExitStatus &exitStatus)
 {
-    appendLog(QString("%2: TRANSCODING FINISHED with exitCode %1."+CRLF).arg(exitCode).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-    appendLog(QString("%2: %3% TRANSCODING DONE in %1 ms."+CRLF).arg(QTime(0, 0).addMSecs(transcodeClock.elapsed()).toString("hh:mm:ss")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(transcodedProgress()));
+    if (exitStatus == QProcess::NormalExit)
+        appendLog(QString("%2: TRANSCODING FINISHED with exitCode %1."+CRLF).arg(exitCode).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+    else
+        appendLog(QString("%1: TRANSCODING CRASHED."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+    appendLog(QString("%2: %3% TRANSCODING DONE in %1 seconds."+CRLF).arg(QTime(0, 0).addMSecs(transcodeClock.elapsed()).toString("hh:mm:ss")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(transcodedProgress()));
 
     if (!m_opened)
     {
@@ -218,7 +224,7 @@ void TranscodeProcess::pause()
         arguments << "-STOP" << QString("%1").arg(pid);
 
         processPauseResume.start("kill", arguments);
-        if (processPauseResume.waitForFinished())
+        if (processPauseResume.waitForFinished(1000))
         {
             m_paused = true;
             emit status(QString("Transcoding paused (%1%)").arg(progress()));
@@ -247,7 +253,7 @@ void TranscodeProcess::resume()
         arguments << "-CONT" << QString("%1").arg(pid);
 
         processPauseResume.start("kill", arguments);
-        if (processPauseResume.waitForFinished())
+        if (processPauseResume.waitForFinished(1000))
         {
             m_paused = false;
             emit status(QString("Transcoding (%1%)").arg(progress()));
