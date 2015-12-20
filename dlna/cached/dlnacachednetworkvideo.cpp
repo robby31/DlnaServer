@@ -37,6 +37,7 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
         transcodeProcess->setFrameRate(framerate());
         transcodeProcess->setAudioChannelCount(channelCount());
         transcodeProcess->setAudioSampleRate(samplerate());
+        transcodeProcess->setDurationBuffer(120);
         return transcodeProcess;
     }
     else
