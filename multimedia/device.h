@@ -66,6 +66,7 @@ public slots:
 
 private slots:
     void deviceOpened();
+    void startRequestData();
     void requestData();
     void bytesSent(const qint64 &size, const qint64 &towrite);
 
@@ -81,6 +82,7 @@ private:
     qint64 m_maxBufferSize;
     int m_durationBuffer;       // when bitrate is known, m_maxBufferSize is set to m_durationBuffer seconds of streaming
     qint64 bytesToWrite;
+    bool requestDataStarted;
 };
 
 #endif // DEVICE_H
