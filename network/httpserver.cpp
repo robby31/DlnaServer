@@ -168,6 +168,9 @@ void HttpServer::createTcpSocket(Request *request)
         }
         else
         {
+            client->setSocketOption(QAbstractSocket::LowDelayOption, 1);
+            client->setSocketOption(QAbstractSocket::KeepAliveOption, 1);
+
             qRegisterMetaType<QHash<QString, QString> >("QHash<QString, QString>>");
             qRegisterMetaType<QAbstractSocket::SocketState>("QAbstractSocket::SocketState");
 
