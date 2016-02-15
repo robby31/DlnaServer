@@ -17,13 +17,15 @@ DlnaYouTubeVideo::DlnaYouTubeVideo(Logger *log, QString host, int port, QObject 
     m_samplerate(-1),
     m_channelcount(-1),
     programFfmpeg("/opt/local/bin/ffprobe"),
-    m_youtube(this)
+    m_youtube(0)
 {
-    connect(this, SIGNAL(getVideoUrl(QString)), &m_youtube, SLOT(getVideoUrl(QString)));
-    connect(&m_youtube, SIGNAL(videoNotAvailable(QString)), this, SLOT(videoNotAvailable(QString)));
-    connect(&m_youtube, SIGNAL(gotVideoTitle(QString)), this, SLOT(videoTitle(QString)));
-    connect(&m_youtube, SIGNAL(gotVideoUrl(QString)), this, SLOT(videoUrl(QString)));
-    connect(&m_youtube, SIGNAL(videoUrlError(QString)), this, SLOT(videoUrlError(QString)));
+    m_youtube = new YouTube();
+    connect(this, SIGNAL(destroyed()), m_youtube, SLOT(deleteLater()));
+    connect(this, SIGNAL(getVideoUrl(QString)), m_youtube, SLOT(getVideoUrl(QString)));
+    connect(m_youtube, SIGNAL(videoNotAvailable(QString)), this, SLOT(videoNotAvailable(QString)));
+    connect(m_youtube, SIGNAL(gotVideoTitle(QString)), this, SLOT(videoTitle(QString)));
+    connect(m_youtube, SIGNAL(gotVideoUrl(QString)), this, SLOT(videoUrl(QString)));
+    connect(m_youtube, SIGNAL(videoUrlError(QString)), this, SLOT(videoUrlError(QString)));
 }
 
 void DlnaYouTubeVideo::setUrl(const QUrl &url)
@@ -43,10 +45,6 @@ void DlnaYouTubeVideo::setUrl(const QUrl &url)
     {
         qWarning() << "ERROR, invalid URL" << url;
     }
-}
-
-DlnaYouTubeVideo::~DlnaYouTubeVideo()
-{
 }
 
 void DlnaYouTubeVideo::videoUrlError(const QString &message)

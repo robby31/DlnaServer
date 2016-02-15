@@ -63,13 +63,13 @@ public:
     void setNetworkAccessManager(QNetworkAccessManager *manager) {
         if (manager)
         {
-            m_youtube.setNetworkAccessManager(manager);
-            m_youtube.moveToThread(manager->thread());
+            m_youtube->setNetworkAccessManager(manager);
+            m_youtube->moveToThread(manager->thread());
         }
     }
     void setUrl(const QUrl &url);
     bool waitUrl(const int &timeout=30000);
-    void setPlaybackQuality(const QString &quality) { m_youtube.setPlaybackQuality(quality); }
+    void setPlaybackQuality(const QString &quality) { m_youtube->setPlaybackQuality(quality); }
 
 protected:
     // Returns the process for transcoding
@@ -102,7 +102,7 @@ private:
 
     QString programFfmpeg;
 
-    YouTube m_youtube;
+    YouTube *m_youtube;
     QMutex mutex;
     QWaitCondition replyWaitCondition;
 };
