@@ -64,7 +64,7 @@ void HttpClient::clear()
 
 void HttpClient::closeClient()
 {
-    if (isHttp10() or getHttpConnection().toLower() == "close")
+    if ((isHttp10() and getHttpConnection().toLower() != "keep-alive") or (!isHttp10() and getHttpConnection().toLower() == "close"))
     {
         if (socketDescriptor() == -1)
         {
