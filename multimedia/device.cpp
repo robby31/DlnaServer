@@ -74,7 +74,7 @@ void Device::bytesSent(const qint64 &size, const qint64 &towrite)
 
     bytesToWrite = towrite;
 
-//    logInfo(QString("bytesSent atEnd?%1 towrite:%2 bufferLimit:%3 size:%4").arg(atEnd()).arg(towrite).arg(maxBufferSize()/2).arg(size));
+//    logInfo(QString("bytesSent atEnd?%1 towrite:%2 bufferLimit:%3 size:%4").arg(atEnd()).arg(towrite).arg(maxBufferSize()).arg(size));
     if (!atEnd() && towrite < maxBufferSize()*3/4)
         requestData();
 }
