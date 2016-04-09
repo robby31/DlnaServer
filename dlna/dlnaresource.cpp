@@ -49,19 +49,19 @@ QList<DlnaResource*> DlnaResource::getDLNAResources(QString objectId, bool retur
         if (!returnChildren) {
             resources.append(dlna);
         } else {
-            if (count > 0) {
-                int nbChildren = dlna->getChildrenSize();
-                for (int i = start; i < start + count; i++) {
-                    if (i < nbChildren) {
-                        DlnaResource* child = dlna->getChild(i, parent);
-                        if (child != 0) {
-                            if (child->m_needRefresh) {
-                                child->refreshContent();
-                                ++child->updateId;
-                                child->m_needRefresh = false;
-                            }
-                            resources.append(child);
+            int nbChildren = dlna->getChildrenSize();
+            if (count <= 0)
+                count = nbChildren - start;  // return all children
+            for (int i = start; i < start + count; i++) {
+                if (i < nbChildren) {
+                    DlnaResource* child = dlna->getChild(i, parent);
+                    if (child != 0) {
+                        if (child->m_needRefresh) {
+                            child->refreshContent();
+                            ++child->updateId;
+                            child->m_needRefresh = false;
                         }
+                        resources.append(child);
                     }
                 }
             }
