@@ -9,8 +9,6 @@ class ReplyDlnaItemContent : public Reply
 
 public:
     explicit ReplyDlnaItemContent(Logger *log, QThread *streamWorker, const bool &http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd, QString uuid, QString servername, QString host, int port, QObject *parent = 0);
-    virtual ~ReplyDlnaItemContent();
-
 
 signals:
     void startServingRendererSignal(const QString &mediaName);

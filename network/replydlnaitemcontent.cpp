@@ -27,10 +27,6 @@ ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, QThread *streamWorker, c
     clockUpdateStatus.invalidate();
 }
 
-ReplyDlnaItemContent::~ReplyDlnaItemContent()
-{
-}
-
 void ReplyDlnaItemContent::streamOpened()
 {
     // Start timer to update periodically the status on streaming
