@@ -7,12 +7,11 @@
 
 const QString HttpServer::UUID = "cdc79bcf-6985-4baf-b974-e83846efd903";
 
-const QString HttpServer::SERVERNAME = "QMS/1.0";
-
 const int HttpServer::SERVERPORT = 5002;
 
 HttpServer::HttpServer(Logger* log, QObject *parent):
     QTcpServer(parent),
+    SERVERNAME(QString("%1/%2 UPnP/1.1 QMS/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion())),
     m_log(log),
     upnp(m_log, this),
     hostaddress(),

@@ -3,6 +3,7 @@
 
 #include <QTcpServer>
 #include <QThread>
+#include <QSysInfo>
 
 #include "logger.h"
 #include "upnphelper.h"
@@ -27,9 +28,6 @@ public:
 
     // identifier of the render (unique)
     static const QString UUID;
-
-    // Server name
-    static const QString SERVERNAME;
 
     // Server port
     static const int SERVERPORT;
@@ -97,6 +95,8 @@ private:
     void createTcpSocket(Request *request);
 
 private :
+    QString SERVERNAME;
+
     Logger* m_log;
 
     UPNPHelper upnp;
