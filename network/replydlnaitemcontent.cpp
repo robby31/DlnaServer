@@ -29,7 +29,6 @@ ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, QThread *streamWorker, c
 
 ReplyDlnaItemContent::~ReplyDlnaItemContent()
 {
-    close();
 }
 
 void ReplyDlnaItemContent::streamOpened()
