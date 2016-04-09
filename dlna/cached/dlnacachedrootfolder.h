@@ -11,7 +11,6 @@
 #include "dlnacachedfolder.h"
 #include "dlnacachedgroupedfoldermetadata.h"
 #include "dlnarootfolder.h"
-#include "dlnayoutubemusic.h"
 #include "dlnayoutubevideo.h"
 
 class DlnaCachedRootFolder : public DlnaRootFolder
