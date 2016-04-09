@@ -1,13 +1,32 @@
 import QtQuick 2.4
 import QtQuick.Controls 1.3
 import QtQuick.Layouts 1.1
+import MyComponents 1.0
 
-Item {
-    id: root
+Page {
+    id: requests
+
     width: 600
     height: 300
-    anchors.fill: parent
-    anchors.margins: Qt.platform.os === "osx" ? 12 : 6
+
+    signal quit()
+
+    actions: pageActions
+
+    onActionClicked: {
+        if (name == "Quit")
+            quit()
+    }
+
+    ListModel {
+        id: pageActions
+
+        ListElement {
+            name: "Quit"
+            description: "exit application"
+            icon: "qrc:///images/exit.png"
+        }
+    }
 
     ColumnLayout {
         id: mainLayout
@@ -16,7 +35,6 @@ Item {
 
         TableView{
             id: tableView
-            objectName: "RequestsTableView"
             Layout.fillHeight: true
             Layout.fillWidth: true
             anchors.margins: Qt.platform.os === "osx" ? 12 : 6
@@ -70,64 +88,46 @@ Item {
                 width: 200
             }
 
-            onCurrentRowChanged: tabviewAnswer.updateContent(currentRow)
+            onDoubleClicked: {
+                request.requestIndex = currentRow
+                tableView.visible = false
+            }
         }
 
-        TabView {
-            id: tabviewAnswer
-            Layout.fillHeight: true
+        ColumnLayout {
+            id: requestColumn
             Layout.fillWidth: true
-            anchors.margins: Qt.platform.os === "osx" ? 12 : 6
-            property int currentModelRow: -1;
+            height: 300
+            visible: !tableView.visible
 
-            function updateContent(currentRow) {
-                currentModelRow = currentRow
-                if (currentModelRow != -1) {
-                    if (currentIndex == 0)
-                    {
-                        tabHeader.item.text = _app.requestsModel.get(currentRow, "header")
-                    } else if (currentIndex == 1) {
-                        tabContent.item.text = _app.requestsModel.get(currentRow, "content")
-                    } else if (currentIndex == 2) {
-                        tabAnswer.item.text = _app.requestsModel.get(currentRow, "answer")
-                    } else if (currentIndex == 3) {
-                        tabLog.item.text = _app.requestsModel.get(currentRow, "transcode_log")
-                    }
+            Rectangle {
+                id: cmd
+                width: itemText.contentWidth*1.3
+                height: itemText.contentHeight*1.3
+                border.color: "black"
+                border.width: 1
+                radius: 10
+
+                Text {
+                    id: itemText
+                    anchors { horizontalCenter: parent.horizontalCenter; verticalCenter: parent.verticalCenter }
+                    text: "Back"
+                    font.family: "Helvetica"
+                    font.pointSize: 14
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: tableView.visible = true
                 }
             }
 
-            onCurrentIndexChanged: updateContent(currentModelRow)
-
-            Tab {
-                id: tabHeader
-                title: "HEADER"
-                TextArea {
-                    Layout.fillWidth: true
-                }
-            }
-
-            Tab {
-                id: tabContent
-                title: "CONTENT"
-                TextArea {
-                    Layout.fillWidth: true
-                }
-            }
-
-            Tab {
-                id: tabAnswer
-                title: "ANSWER"
-                TextArea {
-                    Layout.fillWidth: true
-                }
-            }
-
-            Tab {
-                id: tabLog
-                title: "LOG"
-                TextArea {
-                    Layout.fillWidth: true
-                }
+            Request {
+                id: request
+                Layout.fillWidth: true
+                Layout.fillHeight: true
             }
         }
     }

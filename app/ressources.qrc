@@ -16,5 +16,8 @@
         <file>qml/content/RenderersView.qml</file>
         <file>qml/content/SharedView.qml</file>
         <file>qml/content/Navigator.qml</file>
+        <file>qml/Pages/ApplicationPages.qml</file>
+        <file>images/exit.png</file>
+        <file>qml/content/Request.qml</file>
     </qresource>
 </RCC>

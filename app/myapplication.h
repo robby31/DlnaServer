@@ -1,19 +1,18 @@
-#ifndef APPLICATION_H
-#define APPLICATION_H
+#ifndef MYAPPLICATION_H
+#define MYAPPLICATION_H
 
 #include <QObject>
-#include <QtQml>
-#include <QApplication>
-#include <QtQuick/QQuickView>
 #include <QSettings>
 #include <QThread>
 
+#include "application.h"
+#include "applicationcontroller.h"
 #include "httpserver.h"
 #include "logger.h"
 #include "requestlistmodel.h"
 #include "mediarenderermodel.h"
 
-class Application : public QApplication
+class MyApplication : public Application
 {
     Q_OBJECT
 
@@ -22,11 +21,8 @@ class Application : public QApplication
     Q_PROPERTY(MediaRendererModel *renderersModel READ renderersModel WRITE setRenderersModel NOTIFY renderersModelChanged)
 
 public:
-    explicit Application(int &argc, char **argv);
-    virtual ~Application();
-
-    // load the qml file describing the HMI
-    int load(const QUrl &url);
+    explicit MyApplication(int &argc, char **argv);
+    virtual ~MyApplication();
 
     Q_INVOKABLE void addSharedFolder(const QUrl &folder) { if (folder.isLocalFile()) emit addFolder(folder.toLocalFile()); }
     Q_INVOKABLE void removeFolder(const int &index);
@@ -55,6 +51,8 @@ signals:
 
 
 private slots:
+    void mainQmlLoaded(QObject *obj);
+
     void setsharedFolderModel(const QStringList &model) { m_sharedFolderModel = model; emit sharedFolderModelChanged(); }
     void setRequestsModel(RequestListModel *model);
     void setRenderersModel(MediaRendererModel *model);
@@ -74,7 +72,7 @@ private:
     QSettings settings;
     QStringList m_sharedFolderModel;
 
-    QQmlApplicationEngine engine;
+    ApplicationController m_controller;
 
     Logger log;
 
@@ -89,4 +87,4 @@ private:
     MediaRendererModel *m_renderersModel;
 };
 
-#endif // APPLICATION_H
+#endif // MYAPPLICATION_H

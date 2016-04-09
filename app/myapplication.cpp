@@ -1,16 +1,19 @@
-#include "application.h"
+#include "myapplication.h"
 
-Application::Application(int &argc, char **argv):
-    QApplication(argc, argv),
+MyApplication::MyApplication(int &argc, char **argv):
+    Application(argc, argv),
     settings("HOME", "QMS", this),
     m_sharedFolderModel(),
-    engine(this),
+    m_controller(this),
     log(this),
     worker(this),
     server(0),
     m_requestsModel(0),
     m_renderersModel(0)
 {
+    connect(this, SIGNAL(mainQmlLoaded(QObject*)), this, SLOT(mainQmlLoaded(QObject*)));
+    addController("homePageController", &m_controller);
+
     thread()->setObjectName("QML APPLICATION THREAD");
     worker.setObjectName("WORKER APPLICATION");
     log.setLevel(INF);
@@ -44,18 +47,20 @@ Application::Application(int &argc, char **argv):
     server->start();
 }
 
-Application::~Application()
+MyApplication::~MyApplication()
 {
 
 }
 
-void Application::serverStarted()
+void MyApplication::serverStarted()
 {
+    m_controller.popMessage("Server started");
+
     // load the settings
     loadSettings();
 }
 
-void Application::setRenderersModel(MediaRendererModel *model)
+void MyApplication::setRenderersModel(MediaRendererModel *model)
 {
     if (m_renderersModel)
         m_renderersModel->deleteLater();
@@ -76,7 +81,7 @@ void Application::setRenderersModel(MediaRendererModel *model)
     emit renderersModelChanged();
 }
 
-void Application::setRequestsModel(RequestListModel *model)
+void MyApplication::setRequestsModel(RequestListModel *model)
 {
     if (m_requestsModel)
         m_requestsModel->deleteLater();
@@ -95,35 +100,20 @@ void Application::setRequestsModel(RequestListModel *model)
     emit requestsModelChanged();
 }
 
-int Application::load(const QUrl &url) {
-    engine.rootContext()->setContextProperty("_app",  this);
-
-    engine.load(url);
-
-    QQuickWindow *window = qobject_cast<QQuickWindow *>(engine.rootObjects().value(0));
-    if (!window)
-    {
-        log.Error("Your root item has to be a Window.");
-        return -1;
-    }
-    else
-    {
-        window->show();
-        connect(window, SIGNAL(closing(QQuickCloseEvent*)), this, SLOT(quit()));
-        connect(server, SIGNAL(progressUpdate(int)), window, SIGNAL(progressUpdate(int)));
-    }
-
-    return 0;
+void MyApplication::mainQmlLoaded(QObject *obj)
+{
+    // HMI loaded
+    connect(obj, SIGNAL(closing(QQuickCloseEvent*)), this, SLOT(quit()));
 }
 
-void Application::removeFolder(const int &index) {
+void MyApplication::removeFolder(const int &index) {
     if (index >=0 && index < m_sharedFolderModel.size()) {
         m_sharedFolderModel.removeAt(index);
         emit sharedFolderModelChanged();
     }
 }
 
-void Application::quit() {
+void MyApplication::quit() {
     log.Trace("Quit Application.");
 
     // save the settings
@@ -134,7 +124,7 @@ void Application::quit() {
         log.Error("Unable to stop the worker of the application");
 }
 
-void Application::folderAdded(const QString &folder)
+void MyApplication::folderAdded(const QString &folder)
 {
     if (!m_sharedFolderModel.contains(folder))
     {
@@ -143,22 +133,22 @@ void Application::folderAdded(const QString &folder)
     }
 }
 
-void Application::folderNotAdded(const QString &folder)
+void MyApplication::folderNotAdded(const QString &folder)
 {
-    log.Error(QString("Folder not added %1").arg(folder));
+    m_controller.popMessage(QString("Folder not added %1").arg(folder), UiServices::POP_ERROR);
 }
 
-void Application::linkAdded(const QString &url)
+void MyApplication::linkAdded(const QString &url)
 {
-    log.Info(QString("network link %1 added successfully.").arg(url));
+    m_controller.popMessage(QString("network link %1 added successfully.").arg(url));
 }
 
-void Application::linkNotAdded(const QString &url)
+void MyApplication::linkNotAdded(const QString &url)
 {
-    log.Error(QString("network link %1 not added.").arg(url));
+    m_controller.popMessage(QString("network link %1 not added.").arg(url), UiServices::POP_ERROR);
 }
 
-bool Application::loadSettings()
+bool MyApplication::loadSettings()
 {
     // read the settings
     int size = settings.beginReadArray("sharedFolder");
@@ -172,7 +162,7 @@ bool Application::loadSettings()
     return true;
 }
 
-bool Application::saveSettings()
+bool MyApplication::saveSettings()
 {
     // save the settings
     settings.beginWriteArray("sharedFolder");

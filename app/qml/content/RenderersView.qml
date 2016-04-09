@@ -1,13 +1,32 @@
 import QtQuick 2.3
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
+import MyComponents 1.0
 
-Item {
-    id: root
+Page {
+    id: renderers
+
     width: 600
     height: 300
-    anchors.fill: parent
-    anchors.margins: Qt.platform.os === "osx" ? 12 : 6
+
+    signal quit()
+
+    actions: pageActions
+
+    onActionClicked: {
+        if (name == "Quit")
+            quit()
+    }
+
+    ListModel {
+        id: pageActions
+
+        ListElement {
+            name: "Quit"
+            description: "exit application"
+            icon: "qrc:///images/exit.png"
+        }
+    }
 
     ColumnLayout {
         id: mainLayout
@@ -16,7 +35,6 @@ Item {
 
         TableView{
             id: tableView
-            objectName: "RenderersTableView"
             Layout.fillHeight: true
             Layout.fillWidth: true
             anchors.margins: Qt.platform.os === "osx" ? 12 : 6

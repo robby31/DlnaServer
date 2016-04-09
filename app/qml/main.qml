@@ -2,65 +2,44 @@ import QtQuick 2.3
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.2
-import "content"
 import myTypes 1.0
+import MyComponents 1.0
+import "Pages"
 
-ApplicationWindow {
+MyApplication {
+    id: mainWindow
     title: "QT Media Server"
+    minimumWidth: 600
 
-    width: 600
-    height: 400
-    minimumHeight: 400
-    minimumWidth: 570
+    controller: homePageController
+    modelButtons : mybuttons
+    pages: myPages
 
-    signal progressUpdate(int value)
-    onProgressUpdate: {
-        pb1.value = value
-        pb1.visible = value < 100
-    }
-
-    ColumnLayout {
-        id: mainLayout
-        anchors.fill: parent
-        spacing: 4
-
-        TabView {
-            id:frame
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            anchors.margins: Qt.platform.os === "osx" ? 12 : 6
-
-            Tab {
-                title: "Request"
-                RequestsView { }
-            }
-
-            Tab {
-                title: "Renderers"
-                RenderersView { }
-            }
-
-            Tab {
-                title: "Shared"
-                SharedView { }
-            }
-
-            Tab {
-                title: "Navigator"
-                Navigator { }
-            }
-
+    ListModel {
+        id: mybuttons
+        ListElement {
+            title: "Request"
+            state: "REQUESTS"
         }
-
-        // Progress bar defined
-        ProgressBar {
-            id: pb1
-            Layout.fillWidth: true
-            anchors.margins: Qt.platform.os === "osx" ? 12 : 6
-            minimumValue: 0
-            maximumValue: 100
-            value: 0
+        ListElement {
+            title: "Renderers"
+            state: "RENDERERS"
+        }
+        ListElement {
+            title: "Shared"
+            state: "SHARED"
+        }
+        ListElement {
+            title: "Navigator"
+            state: "NAVIGATOR"
         }
     }
 
+    Component {
+        id: myPages
+
+        ApplicationPages {
+
+        }
+    }
 }

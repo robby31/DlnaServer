@@ -1,15 +1,14 @@
-#include "application.h"
+#include "myapplication.h"
 
 int main(int argc, char** argv)
 {
     qmlRegisterType<RequestListModel>("myTypes", 1, 0, "RequestListModel");
     qmlRegisterType<MediaRendererModel>("myTypes", 1, 0, "MediaRendererModel");
 
-    Application app(argc, argv);
+    MyApplication app(argc, argv);
 
     // load the qml file describing the application
-    if (app.load(QUrl("qrc:/qml/main.qml")) == -1)
-        return -1;
+    app.loadMainQml(QUrl("qrc:/qml/main.qml"));
 
     return app.exec();
 }

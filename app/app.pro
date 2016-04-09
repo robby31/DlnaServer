@@ -4,17 +4,22 @@ TARGET = QT_Media_Server
 TEMPLATE = app
 
 SOURCES += \
-    main.cpp
+    main.cpp \
+    myapplication.cpp \
+    applicationcontroller.cpp
 
 include (../common/common.pri)
 include (../network/network.pri)
 include (../../QmlApplication/QmlApplication.prf)
 
-HEADERS += \
-    application.h
+# Additional import path used to resolve QML modules in Qt Creator's code model
+QML_IMPORT_PATH += /Users/doudou/workspaceQT/qmlmodulesplugins
 
-SOURCES += \
-    application.cpp
+HEADERS += \
+    myapplication.h \
+    applicationcontroller.h
+
+SOURCES +=
 
 RESOURCES += \
     ressources.qrc
