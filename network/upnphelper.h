@@ -5,6 +5,8 @@
 #include <QTimer>
 #include <QUdpSocket>
 #include <QDateTime>
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
 
 #include "logobject.h"
 
@@ -25,10 +27,10 @@ public:
 
 private:
     // Build a UPnP message string based on a message.
-    QByteArray _buildMsg(const QString &nt, const QString &message);
+    QByteArray _buildMsg(const QString &nt, const QString &nts);
 
     // Send the provided message to the socket.
-    void _sendMessage(const QString &nt, const QString &message);
+    void _sendMessage(const QString &nt, const QString &nts);
 
     // Send UPnP discovery search message to discover devices of interest on the network.
     void _sendDiscover(const QHostAddress &host, const int &port, const QString &st);
@@ -62,6 +64,10 @@ private:
 
     // Timer to broadcast UPnP ALIVE messages
     QTimer timerAlive;
+    int counterAlive;
+
+    int m_bootid;
+    int m_configid;
 
     // Carriage return and line feed.
     static const QString CRLF;
