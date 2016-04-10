@@ -20,18 +20,22 @@ MyApplication {
         ListElement {
             title: "Request"
             state: "REQUESTS"
+            icon: "qrc:/images/requests.png"
         }
         ListElement {
             title: "Renderers"
             state: "RENDERERS"
+            icon: "qrc:/images/renderer.png"
         }
         ListElement {
             title: "Shared"
             state: "SHARED"
+            icon: "qrc:/images/folder.png"
         }
         ListElement {
             title: "Navigator"
             state: "NAVIGATOR"
+            icon: "qrc:/images/web.png"
         }
     }
 

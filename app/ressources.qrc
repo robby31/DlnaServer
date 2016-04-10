@@ -19,5 +19,9 @@
         <file>qml/Pages/ApplicationPages.qml</file>
         <file>images/exit.png</file>
         <file>qml/content/Request.qml</file>
+        <file>images/folder.png</file>
+        <file>images/web.png</file>
+        <file>images/renderer.png</file>
+        <file>images/requests.png</file>
     </qresource>
 </RCC>
