@@ -1,0 +1,65 @@
+<!--============================================================
+Title: UPnP AV Connection Manger Service (CMS) Syntax Tests
+
+Purpose:
+To define the individual test cases used to verify the
+syntactic integrity of an implementation of this service type.
+
+Note:
+This file uses tabs (not spaces) for block indentation.
+Any updates to this file should maintain this convention.
+This includes disabling any automatic tab-to-space conversion
+feature provided by your editor.  
+================================================================-->
+<ServiceControlSyntaxTestCases>
+	<ServiceType>ConnectionManager</ServiceType>
+	<ServiceVersion>2</ServiceVersion>
+	<TestCaseList>
+		<TestCase>
+			<Id>1</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetProtocolInfo</ActionName>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>2</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>PrepareForConnection</ActionName>
+			<InArgs>
+				<RemoteProtocolInfo>any-string</RemoteProtocolInfo>
+				<PeerConnectionManager>any-string</PeerConnectionManager>
+				<PeerConnectionID>-1</PeerConnectionID>
+				<Direction>Input</Direction>
+			</InArgs>	
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>3</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>ConnectionComplete</ActionName>
+			<InArgs>
+				<ConnectionID>0</ConnectionID>
+			</InArgs>	
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>4</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetCurrentConnectionIDs</ActionName>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>5</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetCurrentConnectionInfo</ActionName>
+			<InArgs>
+				<ConnectionID>0</ConnectionID>
+			</InArgs>	
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+	</TestCaseList>
+</ServiceControlSyntaxTestCases>

@@ -1,0 +1,347 @@
+<ServiceControlSyntaxTestCases>
+	<ServiceType>RenderingControl</ServiceType>
+	<ServiceVersion>1</ServiceVersion>
+	<TestCaseList>
+		<TestCase>
+			<Id>1</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>ListPresets</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>2</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SelectPreset</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<PresetName>FactoryDefaults</PresetName>	
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>3</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetBrightness</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>4</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetBrightness</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<DesiredBrightness>0</DesiredBrightness>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>5</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetContrast</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>6</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetContrast</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<DesiredContrast>0</DesiredContrast>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>7</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetRedVideoGain</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>8</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetRedVideoGain</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<DesiredRedVideoGain>0</DesiredRedVideoGain>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>9</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetGreenVideoGain</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>10</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetGreenVideoGain</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<DesiredGreenVideoGain>0</DesiredGreenVideoGain>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>11</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetBlueVideoGain</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>12</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetBlueVideoGain</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<DesiredBlueVideoGain>0</DesiredBlueVideoGain>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>13</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetRedVideoBlackLevel</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>14</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetRedVideoBlackLevel</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<DesiredRedVideoBlackLevel>0</DesiredRedVideoBlackLevel>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>15</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetGreenVideoBlackLevel</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>16</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetGreenVideoBlackLevel</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<DesiredGreenVideoBlackLevel>0</DesiredGreenVideoBlackLevel>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>17</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetBlueVideoBlackLevel</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>18</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetBlueVideoBlackLevel</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<DesiredBlueVideoBlackLevel>0</DesiredBlueVideoBlackLevel>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>19</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetColorTemperature</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>20</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetColorTemperature</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<DesiredColorTemperature>0</DesiredColorTemperature>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>21</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetHorizontalKeystone</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>22</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetHorizontalKeystone</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<DesiredHorizontalKeystone>0</DesiredHorizontalKeystone>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>23</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetVerticalKeystone</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>24</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetVerticalKeystone</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<DesiredVerticalKeystone>0</DesiredVerticalKeystone>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>25</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetSharpness</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>26</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetSharpness</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<DesiredSharpness>0</DesiredSharpness>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>27</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetMute</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<Channel>Master</Channel>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>28</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetMute</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<Channel>Master</Channel>
+				<DesiredMute>1</DesiredMute>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>29</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetVolume</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<Channel>Master</Channel>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>30</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetVolume</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<Channel>Master</Channel>
+				<DesiredVolume>0</DesiredVolume>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>31</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetVolumeDB</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<Channel>Master</Channel>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>32</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetVolumeDB</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<Channel>Master</Channel>
+				<DesiredVolume>0</DesiredVolume>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>33</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetVolumeDBRange</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<Channel>Master</Channel>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>34</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetLoudness</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<Channel>Master</Channel>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>35</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetLoudness</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<Channel>Master</Channel>
+				<DesiredLoudness>1</DesiredLoudness>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+	</TestCaseList>
+</ServiceControlSyntaxTestCases>

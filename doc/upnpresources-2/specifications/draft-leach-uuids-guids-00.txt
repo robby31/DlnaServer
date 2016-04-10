@@ -1,0 +1,1040 @@
+
+Network Working Group               Paul J. Leach, Microsoft
+INTERNET-DRAFT                         Rich Salz, Open Group
+<draft-leach-uuids-guids-00.txt>
+Category: Informational
+Expires August 24, 1997                    February 24, 1997
+
+
+
+                             UUIDs and GUIDs
+
+STATUS OF THIS MEMO
+
+  This document is an Internet-Draft. Internet-Drafts are working
+  documents of the Internet Engineering Task Force (IETF), its areas,
+  and its working groups. Note that other groups may also distribute
+  working documents as Internet-Drafts.
+
+  Internet-Drafts are draft documents valid for a maximum of six months
+  and may be updated, replaced, or obsoleted by other documents at any
+  time. It is inappropriate to use Internet-Drafts as reference
+  material or to cite them other than as "work in progress".
+
+  To learn the current status of any Internet-Draft, please check the
+  "1id-abstracts.txt" listing contained in the Internet-Drafts Shadow
+  Directories on ftp.is.co.za (Africa), nic.nordu.net (Europe),
+  munnari.oz.au (Pacific Rim), ds.internic.net (US East Coast), or
+  ftp.isi.edu (US West Coast).
+
+  Distribution of this document is unlimited.  Please send comments to
+  the authors or the CIFS mailing list at <cifs@listserv.msn.com>.
+  Discussions of the mailing list are archived at
+  <URL:http://microsoft.ease.lsoft.com/archives/CIFS.html>.
+
+
+ABSTRACT
+
+  This specification defines the format of UUIDs (Universally Unique
+  IDentifier), also known as GUIDs (Globally Unique IDentifier). A UUID
+  is 128 bits long, and if generated according to the one of the
+  mechanisms in this document, is either guaranteed to be different
+  from all other UUIDs/GUIDs generated until 3400 A.D. or extremely
+  likely to be different (depending on the mechanism chosen). UUIDs
+  were originally used in the Network Computing System (NCS) [1] and
+  later in the Open Software Foundation's (OSF) Distributed Computing
+  Environment [2].
+
+  This specification is derived from the latter specification with the
+  kind permission of the OSF.
+
+
+Table of Contents
+
+1.   Introduction......................................................2
+
+
+[Page 1]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+2.   Motivation........................................................2
+
+3.   Specification.....................................................3
+
+ 3.1  Format ..........................................................3
+
+ 3.2  Algorithms for Creating a UUID ..................................5
+
+   3.2.1  Clock Sequence...............................................5
+
+   3.2.2  System Reboot................................................6
+
+   3.2.3  Clock Adjustment.............................................7
+
+   3.2.4  Clock Overrun................................................7
+
+   3.2.5  UUID Generation..............................................7
+
+ 3.3  String Representation of UUIDs ..................................8
+
+ 3.4  Comparing UUIDs .................................................9
+
+ 3.5  Byte order of UUIDs .............................................9
+
+4.   Node IDs when no IEEE 802 network card is available...............9
+
+5.   Obtaining IEEE 802 addresses.....................................11
+
+6.   Security Considerations..........................................12
+
+7.   Acknowledgements.................................................12
+
+8.   References.......................................................12
+
+9.   Authors' addresses...............................................12
+
+
+
+
+1. Introduction
+
+  This specification defines the format of UUIDs (Universally Unique
+  IDentifiers), also known as GUIDs (Globally Unique IDentifiers). A
+  UUID is 128 bits long, and if generated according to the one of the
+  mechanisms in this document, is either guaranteed to be different
+  from all other UUIDs/GUIDs generated until 3400 A.D. or extremely
+  likely to be different (depending on the mechanism chosen).
+
+
+2. Motivation
+
+  One of the main reasons for using UUIDs is that no centralized
+  authority is required to administer them (beyond the one that
+  allocates IEEE 802.1 node identifiers). As a result, generation on
+
+  Leach, Salz              expires July 1997                    [Page 2]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+  demand can be completely automated, and they can be used for a wide
+  variety of purposes. The UUID generation algorithm described here
+  supports very high allocation rates: 10 million per second per
+  machine if you need it, so that they could even be used as
+  transaction IDs.
+
+  UUIDs are fixed-size (128-bits) which is reasonably small relative to
+  other alternatives. This fixed, relatively small size lends itself
+  well to sorting, ordering, and hashing of all sorts, storing in
+  databases, simple allocation, and ease of programming in general.
+
+
+3. Specification
+
+  A UUID is an identifier that is unique across both space and time,
+  with respect to the space of all UUIDs. To be precise, the UUID
+  consists of a finite bit space. Thus the time value used for
+  constructing a UUID is limited and will roll over in the future
+  (approximately at A.D. 3400, based on the specified algorithm). A
+  UUID can be used for multiple purposes, from tagging objects with an
+  extremely short lifetime, to reliably identifying very persistent
+  objects across a network.
+
+  The generation of UUIDs does not require that a registration
+  authority be contacted for each identifier. Instead, it requires a
+  unique value over space for each UUID generator. This spatially
+  unique value is specified as an IEEE 802 address, which is usually
+  already available to network-connected systems. This 48-bit address
+  can be assigned based on an address block obtained through the IEEE
+  registration authority. This section of the UUID specification
+  assumes the availability of an IEEE 802 address to a system desiring
+  to generate a UUID, but if one is not available section 4 specifies a
+  way to generate a probabilistically unique one that can not conflict
+  with any properly assigned IEEE 802 address.
+
+
+3.1 Format
+
+  The following table gives the format of a UUID. The UUID consists of
+  a record of 16 octets. The fields are in order of significance for
+  comparison purposes, with "time_low" the most significant, and "node"
+  the least significant.
+
+   Field                      Data      Octet  Note
+                              Type      #
+
+   time_low                   unsigned  0-3    The low field of the
+                              32 bit           timestamp.
+                              integer
+
+   time_mid                   unsigned  4-5    The middle field of the
+                              16 bit           timestamp.
+                              integer
+
+
+  Leach, Salz              expires July 1997                    [Page 3]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+   time_hi_and_version        unsigned  6-7    The high field of the
+                              16 bit           timestamp multiplexed
+                              integer          with the version number.
+
+   clock_seq_hi_and_reserved  unsigned         The high field of the
+                              8 bit            clock sequence                                        8
+                              integer          multiplexed with the
+                                               variant.
+
+   clock_seq_low              unsigned  9      The low field of the
+                              8 bit            clock sequence.
+                              integer
+
+   node                       unsigned         The spatially unique
+                              48 bit           node identifier.                                        10-15
+                              integer
+
+
+
+  To minimize confusion about bit assignments within octets, the UUID
+  record definition is defined only in terms of fields that are
+  integral numbers of octets. The version number is in the most
+  significant 4 bits of the time stamp (time_hi), and the variant field
+  is in the most significant 3 bits of the clock sequence
+  (clock_seq_high).
+
+  The timestamp is a 60 bit value. For UUID version 1, this is
+  represented by Coordinated Universal Time (UTC) as a count of 100-
+  nanosecond intervals since 00:00:00.00, 15 October 1582 (the date of
+  Gregorian reform to the Christian calendar).
+
+  The following table lists currently defined versions of the UUID.
+
+       Msb0  Msb1   Msb2  Msb3   Version  Description
+
+        0      0     0      1       1     The version specified
+                                          in this document.
+
+        0      0     1      0       2     Reserved for DCE
+                                          Security version, with
+                                          embedded POSIX UIDs.
+
+  The variant field determines the layout of the UUID. The structure of
+  UUIDs is fixed across different versions within a variant, but not
+  across variants; hence, other UUID variants may not interoperate with
+  the UUID variant specified in this document. Interoperability of
+  UUIDs is defined as the applicability of operations such as string
+  conversion, comparison, and lexical ordering across different
+  systems. The variant field consists of a variable number of the msbs
+  of the clock_seq_hi_and_reserved field.
+
+  The following table lists the contents of the variant field.
+
+
+
+  Leach, Salz              expires July 1997                    [Page 4]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+       Msb0  Msb1   Msb2  Description
+
+        0      -     -    Reserved, NCS backward compatibility.
+
+        1      0     -    The variant specified in this document.
+
+        1      1     0    Reserved, Microsoft Corporation GUID.
+
+        1      1     1    Reserved for future definition.
+
+  The clock sequence is required to detect potential losses of
+  monotonicity of the clock. Thus, this value marks discontinuities and
+  prevents duplicates. An algorithm for generating this value is
+  outlined in the _Clock Sequence_ section below.
+
+  The clock sequence is encoded in the 6 least significant bits of the
+  clock_seq_hi_and_reserved field and in the clock_seq_low field.
+
+  The node field consists of the IEEE address, usually the host
+  address. For systems with multiple IEEE 802 nodes, any available node
+  address can be used. The lowest addressed octet (octet number 10)
+  contains the global/local bit and the unicast/multicast bit, and is
+  the first octet of the address transmitted on an 802.3 LAN.
+
+  Depending on the network data representation, the multi-octet
+  unsigned integer fields are subject to byte swapping when
+  communicated between different endian machines.
+
+  The nil UUID is special form of UUID that is specified to have all
+  128 bits set to 0 (zero).
+
+
+3.2 Algorithms for Creating a UUID
+
+  Various aspects of the algorithm for creating a UUID are discussed in
+  the following sections. UUID generation requires a guarantee of
+  uniqueness within the node ID for a given variant and version.
+  Interoperability is provided by complying with the specified data
+  structure. To prevent possible UUID collisions, which could be caused
+  by different implementations on the same node, compliance with the
+  algorithm specified here is required.
+
+
+3.2.1 Clock Sequence
+  The clock sequence value must be changed whenever:
+
+  - the UUID generator detects that the local value of UTC has gone
+  backward.
+
+  - the UUID generator has lost its state of the last value of UTC
+  used, indicating that time may have gone backward; this is typically
+  the case on reboot.
+
+
+
+  Leach, Salz              expires July 1997                    [Page 5]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+  While a node is operational, the UUID service always saves the last
+  UTC used to create a UUID. Each time a new UUID is created, the
+  current UTC is compared to the saved value and if either the current
+  value is less (the non-monotonic clock case) or the saved value was
+  lost, then the clock sequence is  incremented modulo 16,384, thus
+  avoiding production of duplicate UUIDs.
+
+  The clock sequence must be initialized to a random number to minimize
+  the correlation across systems. This provides maximum protection
+  against node identifiers that may move or switch from system to
+  system rapidly. The initial value MUST NOT be correlated to the node
+  identifier.
+
+  The rule of initializing the clock sequence to a random value is
+  waived if, and only if all of the following are true:
+
+  - The clock sequence value is stored in non-volatile storage.
+
+  - The system is manufactured such that the IEEE address ROM is
+  designed to be inseparable from the system by either the user or
+  field service, so that it cannot be moved to another system.
+
+  - The manufacturing process guarantees that only new IEEE address
+  ROMs are used.
+
+  - Any field service, remanufacturing or rebuilding process that could
+  change the value of the clock sequence must reinitialise it to a
+  random value.
+
+  In other words, the system constraints prevent duplicates caused by
+  possible migration of the IEEE address, while the operational system
+  itself can protect against non-monotonic clocks, except in the case
+  of field service intervention. At manufacturing time, such a system
+  may initialise the clock sequence to any convenient value.
+
+
+3.2.2 System Reboot
+  There are two possibilities when rebooting a system:
+
+  - the UUID generator state - the last UTC, adjustment, and clock
+  sequence - of the UUID service has been restored from non-volatile
+  store
+
+  - the state of the last UTC or adjustment has been lost.
+
+  If the state variables have been restored, the UUID generator just
+  continues as normal. Alternatively, if the state variables cannot be
+  restored, they are reinitialised, and the clock sequence is changed.
+
+  If the clock sequence is stored in non-volatile store, it is
+  incremented; otherwise, it is reinitialised to a new random value.
+
+
+
+
+  Leach, Salz              expires July 1997                    [Page 6]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+3.2.3 Clock Adjustment
+  UUIDs may be created at a rate greater than the system clock
+  resolution. Therefore, the system must also maintain an adjustment
+  value to be added to the lower-order bits of the time. Logically,
+  each time the system clock ticks, the adjustment value is cleared.
+  Every time a UUID is generated, the current adjustment value is read
+  and incremented atomically, then added to the UTC time field of the
+  UUID.
+
+
+3.2.4 Clock Overrun
+  The 100 nanosecond granularity of time should prove sufficient even
+  for bursts of UUID creation in high-performance multiprocessors. If a
+  system overruns the clock adjustment by requesting too many UUIDs
+  within a single system clock tick, the UUID service may raise an
+  exception, handled in a system or process-dependent manner either by:
+
+  - terminating the requester
+
+  - reissuing the request until it succeeds
+
+  - stalling the UUID generator until the system clock catches up.
+
+  If the processors overrun the UUID generation frequently, additional
+  node identifiers and clocks may need to be added.
+
+
+3.2.5 UUID Generation
+  UUIDs are generated according to the following algorithm:
+
+  - Determine the values for the UTC-based timestamp and clock sequence
+  to be used in the UUID, as described above.
+
+  - For the purposes of this algorithm, consider the timestamp to be a
+  60-bit unsigned integer and the clock sequence to be a 14-bit
+  unsigned integer. Sequentially number the bits in a field, starting
+  from 0 (zero) for the least significant bit.
+
+  - Set the time_low field equal to the least significant 32-bits (bits
+  numbered 0 to 31 inclusive) of the time stamp in the same order of
+  significance.
+
+  - Set the time_mid field equal to the bits numbered 32 to 47
+  inclusive of the time stamp in the same order of significance.
+
+  - Set the 12 least significant bits (bits numbered 0 to 11 inclusive)
+  of the time_hi_and_version field equal to the bits numbered 48 to 59
+  inclusive of the time stamp in the same order of significance.
+
+  - Set the 4 most significant bits (bits numbered 12 to 15 inclusive)
+  of the time_hi_and_version field to the 4-bit version number
+  corresponding to the UUID version being created, as shown in the
+  table above.
+
+
+  Leach, Salz              expires July 1997                    [Page 7]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+  - Set the clock_seq_low field to the 8 least significant bits (bits
+  numbered 0 to 7 inclusive) of the clock sequence in the same order of
+  significance.
+
+  - Set the 6 least significant bits (bits numbered 0 to 5 inclusive)
+  of the clock_seq_hi_and_reserved field to the 6 most significant bits
+  (bits numbered 8 to 13 inclusive) of the clock sequence in the same
+  order of significance.
+
+  - Set the 2 most significant bits (bits numbered 6 and 7) of the
+  clock_seq_hi_and_reserved to 0 and 1, respectively.
+
+  - Set the node field to the 48-bit IEEE address in the same order of
+  significance as the address.
+
+
+3.3 String Representation of UUIDs
+
+  For use in human readable text, a UUID string representation is
+  specified as a sequence of fields, some of which are separated by
+  single dashes.
+
+  Each field is treated as an integer and has its value printed as a
+  zero-filled hexadecimal digit string with the most significant digit
+  first. The hexadecimal values a to f inclusive are output as lower
+  case characters, and are case insensitive on input. The sequence is
+  the same as the UUID constructed type.
+
+  The formal definition of the UUID string representation is provided
+  by the following extended BNF:
+
+  UUID                   = <time_low> "-" <time_mid> "-"
+                           <time_high_and_version> "-"
+                           <clock_seq_and_reserved>
+                           <clock_seq_low> "-" <node>
+  time_low               = 4*<hexOctet>
+  time_mid               = 2*<hexOctet>
+  time_high_and_version  = 2*<hexOctet>
+  clock_seq_and_reserved = <hexOctet>
+  clock_seq_low          = <hexOctet>
+  node                   = 6*<hexOctet
+  hexOctet               = <hexDigit> <hexDigit>
+  hexDigit =
+          "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+          | "a" | "b" | "c" | "d" | "e" | "f"
+          | "A" | "B" | "C" | "D" | "E" | "F"
+
+  The following is an example of the string representation of a UUID:
+
+       f81d4fae-7dec-11d0-a765-00a0c91e6bf6
+
+
+
+
+
+  Leach, Salz              expires July 1997                    [Page 8]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+3.4 Comparing UUIDs
+
+  Consider each field of the UUID to be an unsigned integer as shown in
+  the table in section 3.1. Then, to compare a pair of UUIDs,
+  arithmetically compare the corresponding fields from each UUID in
+  order of significance and according to their data type. Two UUIDs are
+  equal if and only if all the corresponding fields are equal. The
+  first of two UUIDs follows the second if the most significant field
+  in which the UUIDs differ is greater for the first UUID. The first of
+  a pair of UUIDs precedes the second if the most significant field in
+  which the UUIDs differ is greater for the second UUID.
+
+
+3.5 Byte order of UUIDs
+
+  UUIDs may be transmitted in many different forms, some of which may
+  be dependent on the presentation or application protocol where the
+  UUID may be used.  In such cases, the order, sizes and byte orders of
+  the UUIDs fields on the wire will depend on the relevant presentation
+  or application protocol.  However, it is strongly RECOMMENDED that
+  the order of the fields conform with ordering set out in section 3.1
+  above. Furthermore, the payload size of each field in the application
+  or presentation protocol MUST be large enough that no information
+  lost in the process of encoding them for transmission.
+
+  In the absence of explicit application or presentation protocol
+  specification to the contrary, a UUID is encoded as a 128-bit object,
+  as follows: the fields are encoded as 16 octets, with the sizes and
+  order of the fields defined in section 3.1, and with each field
+  encoded with the Most Significant Byte first (also known as network
+  byte order).
+
+  0                   1                   2                   3
+   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |                          time_high                            |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |       time_mid                |         time_hi_and_version   |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |clk_seq_hi_res |  clk_seq_low  |         node (0-1)            |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  |                         node (2-5)                            |
+  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+
+
+4. Node IDs when no IEEE 802 network card is available
+
+  If a system wants to generate UUIDs but has no IEE 802 compliant
+  network card or other source of IEEE 802 addresses, then this section
+  describes how to generate one.
+
+  The ideal solution is to obtain a 47 bit cryptographic quality random
+  number, and use it as the low 47 bits of the node ID, with the most
+
+  Leach, Salz              expires July 1997                    [Page 9]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+  significant bit of the first octet of the node ID set to 1. This bit
+  is the unicast/multicast bit, which will never be set in IEEE 802
+  addresses obtained from network cards; hence, there can never be a
+  conflict between UUIDs generated by machines with and without network
+  cards.
+
+  If a system does not have a primitive to generate cryptographic
+  quality random numbers, then in most systems there are usually a
+  fairly large number of sources of randomness available from which one
+  can be generated. Such sources are system specific, but often
+  include:
+
+  - the percent of memory in use
+
+  - the size of main memory in bytes
+
+  - the amount of free main memory in bytes
+
+  - the size of the paging or swap file in bytes
+
+  - free bytes of paging or swap file
+
+  - the total size of  user virtual address space in bytes
+
+  - the total available user address space bytes
+
+  - the size of boot disk drive in bytes
+
+  - the free disk space on boot drive in bytes
+
+  - the current time
+
+  - the amount of time since the system booted
+
+  - the individual sizes of files in various system directories
+
+  - the creation, last read, and modification times of files in various
+  system directories
+
+  - the utilization factors of various system resources (heap, etc.)
+
+  - current mouse cursor position
+
+  - current caret position
+
+  - current number of running processes, threads
+
+  - handles or IDs of the desktop window and the active window
+
+  - the value of stack pointer of the caller
+
+  - the process and thread ID of caller
+
+
+
+  Leach, Salz              expires July 1997                   [Page 10]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+  -  various processor architecture specific performance counters
+     (instructions executed, cache misses, TLB misses)
+
+  (Note that it precisely the above kinds of sources of randomness that
+  are used to seed cryptographic quality random number generators on
+  systems without special hardware for their construction.)
+
+  In addition, items such as the computer's name and the name of the
+  operating system, while not strictly speaking random, will help
+  differentiate the results from those obtained by other systems.
+
+  The exact algorithm to generate a node ID using these data is system
+  specific, because both the data available and the functions to obtain
+  them are often very system specific. However, assuming that one can
+  concatenate all the values from the randomness sources into a buffer,
+  and that a cryptographic hash function such as MD5 [3] is available,
+  the following code will compute a node ID:
+
+  #include <md5.h>
+  #define HASHLEN 16
+
+  void GenNodeID(
+      unsigned char * pDataBuf,  // concatenated "randomness values"
+      long cData,                // size of randomness values
+      unsigned char NodeID[6]           // node ID
+  )
+  {
+    int i, j, k;
+    unsigned char Hash[HASHLEN];
+    MD_CTX context;
+
+    MDInit (&context);
+    MDUpdate (&context, pDataBuf, cData);
+    MDFinal (Hash, &context);
+
+    for (j = 0; j<6; j++) NodeId[j]=0;
+    for (i = 0,j = 0; i < HASHLEN; i++) {
+          NodeID[j++] ^= Hash[i];
+          if (j == 6) j = 0;
+      };
+      NodeID[0] |= 0x80;         // set the multicast bit
+  };
+
+  Other hash functions, such as SHA-1 [4], can also be used (in which
+  case HASHLEN will be 20). The only requirement is that the result be
+  suitably random _ in the sense that the outputs from a set uniformly
+  distributed inputs are themselves uniformly distributed, and that a
+  single bit change in the input can be expected to cause half of the
+  output bits to change.
+
+
+5. Obtaining IEEE 802 addresses
+
+  The following URL
+
+  Leach, Salz              expires July 1997                   [Page 11]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+                                                                                                                     
+                                                           
+       
+      http://stdsbbs.ieee.org/products/oui/forms/index.html
+
+  contains information on how to obtain an IEEE 802 address block. Cost
+  is $1000 US.
+
+
+6. Security Considerations
+
+  It should not be assumed that UUIDs are hard to guess; they should
+  not be used as capabilities.
+
+
+7. Acknowledgements
+
+  This document draws heavily on the OSF DCE specification for UUIDs.
+  Ted Ts'o provided helpful comments, especially on the byte ordering
+  section which we mostly plagiarized from a proposed wording he
+  supplied (all errors in that section are our responsibility,
+  however).
+
+
+8. References
+
+  [1]  Lisa Zahn, et. al., Network Computing Architecture, Prentice
+     Hall, Englewood Cliffs, NJ, 1990
+
+  [2] DCE: Remote Procedure Call, Open Group CAE Specification C309
+  ISBN 1-85912-041-5 28cm. 674p. pbk. 1,655g. 8/94
+
+  [3] R. Rivest, RFC 1321, "The MD5 Message-Digest Algorithm",
+     04/16/1992.
+
+  [4]  SHA Spec - TBD
+
+
+9. Authors' addresses
+
+  Paul J. Leach
+  Microsoft
+  1 Microsoft Way
+  Redmond, WA, 98052, U.S.A.
+  Email:                                                 
+                             
+         paulle@microsoft.com
+
+  Rich Salz
+  The Open Group
+  11 Cambridge Center
+  Cambridge, MA 02142, U.S.A.
+  Email r.salz@opengroup.org                            
+                           
+                            
+
+
+Appendix A _ UUID Reference Implementation
+
+  /*
+  ** Copyright (c) 1990- 1993, 1996 Open Software Foundation, Inc.
+
+  Leach, Salz              expires July 1997                   [Page 12]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+  ** Copyright (c) 1989 by Hewlett-Packard Company, Palo Alto, Ca. &
+  ** Digital Equipment Corporation, Maynard, Mass.
+  ** To anyone who acknowledges that this file is provided "AS IS"
+  ** without any express or implied warranty: permission to use, copy,
+  ** modify, and distribute this file for any purpose is hereby
+  ** granted without fee, provided that the above copyright notices and
+  ** this notice appears in all source code copies, and that none of
+  ** the names of Open Software Foundation, Inc., Hewlett-Packard
+  ** Company, or Digital Equipment Corporation be used in advertising
+  ** or publicity pertaining to distribution of the software without
+  ** specific, written prior permission.  Neither Open Software
+  ** Foundation, Inc., Hewlett-Packard Company, nor Digital Equipment
+  ** Corporation makes any representations about the suitability of
+  ** this software for any purpose.
+  */
+  #include <sys/types.h>
+  #include <sys/time.h>
+
+  typedef unsigned long   unsigned32;
+  typedef unsigned short  unsigned16;
+  typedef unsigned char   unsigned8;
+  typedef unsigned char   byte;
+
+  #define CLOCK_SEQ_LAST              0x3FFF
+  #define RAND_MASK                   CLOCK_SEQ_LAST
+
+  typedef struct _uuid_t {
+      unsigned32          time_low;
+      unsigned16          time_mid;
+      unsigned16          time_hi_and_version;
+      unsigned8           clock_seq_hi_and_reserved;
+      unsigned8           clock_seq_low;
+      byte                node[6];
+  } uuid_t;
+
+  typedef struct _unsigned64_t {
+      unsigned32          lo;
+      unsigned32          hi;
+  } unsigned64_t;
+
+  /*
+  **  Add two unsigned 64-bit long integers.
+  */
+  #define ADD_64b_2_64b(A, B, sum) \
+      { \
+          if (!(((A)->lo & 0x80000000UL) ^ ((B)->lo & 0x80000000UL))) {
+  \
+              if (((A)->lo&0x80000000UL)) { \
+                  (sum)->lo = (A)->lo + (B)->lo; \
+                  (sum)->hi = (A)->hi + (B)->hi + 1; \
+              } \
+              else { \
+                  (sum)->lo  = (A)->lo + (B)->lo; \
+                  (sum)->hi = (A)->hi + (B)->hi; \
+
+  Leach, Salz              expires July 1997                   [Page 13]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+              } \
+          } \
+          else { \
+              (sum)->lo = (A)->lo + (B)->lo; \
+              (sum)->hi = (A)->hi + (B)->hi; \
+              if (!((sum)->lo&0x80000000UL)) (sum)->hi++; \
+          } \
+      }
+
+  /*
+  **  Add a 16-bit unsigned integer to a 64-bit unsigned integer.
+  */
+  #define ADD_16b_2_64b(A, B, sum) \
+      { \
+          (sum)->hi = (B)->hi; \
+          if ((B)->lo & 0x80000000UL) { \
+              (sum)->lo = (*A) + (B)->lo; \
+              if (!((sum)->lo & 0x80000000UL)) (sum)->hi++; \
+          } \
+          else \
+              (sum)->lo = (*A) + (B)->lo; \
+      }
+
+  /*
+  **  Global variables.
+  */
+  static unsigned64_t     time_last;
+  static unsigned16       clock_seq;
+
+  static void
+  mult32(unsigned32 u, unsigned32 v, unsigned64_t *result)
+  {
+      /* Following the notation in Knuth, Vol. 2. */
+      unsigned32 uuid1, uuid2, v1, v2, temp;
+
+      uuid1 = u >> 16;
+      uuid2 = u & 0xFFFF;
+      v1 = v >> 16;
+      v2 = v & 0xFFFF;
+      temp = uuid2 * v2;
+      result->lo = temp & 0xFFFF;
+      temp = uuid1 * v2 + (temp >> 16);
+      result->hi = temp >> 16;
+      temp = uuid2 * v1 + (temp & 0xFFFF);
+      result->lo += (temp & 0xFFFF) << 16;
+      result->hi += uuid1 * v1 + (temp >> 16);
+  }
+
+  static void
+  get_system_time(unsigned64_t *uuid_time)
+  {
+      struct timeval tp;
+      unsigned64_t utc, usecs, os_basetime_diff;
+
+
+  Leach, Salz              expires July 1997                   [Page 14]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+      gettimeofday(&tp, (struct timezone *)0);
+      mult32((long)tp.tv_sec, 10000000, &utc);
+      mult32((long)tp.tv_usec, 10, &usecs);
+      ADD_64b_2_64b(&usecs, &utc, &utc);
+
+      /* Offset between UUID formatted times and Unix formatted times.
+       * UUID UTC base time is October 15, 1582.
+       * Unix base time is January 1, 1970. */
+      os_basetime_diff.lo = 0x13814000;
+      os_basetime_diff.hi = 0x01B21DD2;
+      ADD_64b_2_64b(&utc, &os_basetime_diff, uuid_time);
+  }
+
+  /*
+  ** See "The Multiple Prime Random Number Generator" by Alexander
+  ** Hass pp. 368-381, ACM Transactions on Mathematical Software,
+  ** 12/87.
+  */
+  static unsigned32 rand_m;
+  static unsigned32 rand_ia;
+  static unsigned32 rand_ib;
+  static unsigned32 rand_irand;
+
+  static void
+  true_random_init(void)
+  {
+      unsigned64_t t;
+      unsigned16 seed;
+
+   /* Generating our 'seed' value Start with the current time, but,
+    * since the resolution of clocks is system hardware dependent and
+    * most likely coarser than our resolution (10 usec) we 'mixup' the
+    * bits by xor'ing all the bits together.  This will have the effect
+    * of involving all of the bits in the determination of the seed
+    * value while remaining system independent.  Then for good measure
+    * to ensure a unique seed when there are multiple processes
+    * creating UUIDs on a system, we add in the PID.
+    */
+      rand_m = 971;
+      rand_ia = 11113;
+      rand_ib = 104322;
+      rand_irand = 4181;
+      get_system_time(&t);
+      seed  =  t.lo        & 0xFFFF;
+      seed ^= (t.lo >> 16) & 0xFFFF;
+      seed ^=  t.hi        & 0xFFFF;
+      seed ^= (t.hi >> 16) & 0xFFFF;
+      rand_irand += seed + getpid();
+  }
+
+  static unsigned16
+  true_random(void)
+  {
+      if ((rand_m += 7) >= 9973)
+
+  Leach, Salz              expires July 1997                   [Page 15]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+          rand_m -= 9871;
+      if ((rand_ia += 1907) >= 99991)
+          rand_ia -= 89989;
+      if ((rand_ib += 73939) >= 224729)
+          rand_ib -= 96233;
+      rand_irand = (rand_irand * rand_m) + rand_ia + rand_ib;
+      return (rand_irand >> 16) ^ (rand_irand & RAND_MASK);
+  }
+
+  /*
+  **  Startup initialization routine for the UUID module.
+  */
+  void
+  uuid_init(void)
+  {
+      true_random_init();
+      get_system_time(&time_last);
+  #ifdef NONVOLATILE_CLOCK
+      clock_seq = read_clock();
+  #else
+      clock_seq = true_random();
+  #endif
+  }
+
+  static int
+  time_cmp(unsigned64_t *time1, unsigned64_t *time2)
+  {
+      if (time1->hi < time2->hi) return -1;
+      if (time1->hi > time2->hi) return 1;
+      if (time1->lo < time2->lo) return -1;
+      if (time1->lo > time2->lo) return 1;
+      return 0;
+  }
+
+  static void new_clock_seq(void)
+  {
+      clock_seq = (clock_seq + 1) % (CLOCK_SEQ_LAST + 1);
+      if (clock_seq == 0) clock_seq = 1;
+  #ifdef NONVOLATILE_CLOCK
+      write_clock(clock_seq);
+  #endif
+  }
+
+  void uuid_create(uuid_t *uuid)
+  {
+      static unsigned64_t     time_now;
+      static unsigned16       time_adjust;
+      byte                    eaddr[6];
+      int                     got_no_time = 0;
+
+      get_ieee_node_identifier(&eaddr);      /* TO BE PROVIDED */
+
+      do {
+          get_system_time(&time_now);
+
+  Leach, Salz              expires July 1997                   [Page 16]
+
+
+  Internet-Draft        UUIDs and GUIDs (DRAFT)                 02/24/97
+
+
+          switch (time_cmp(&time_now, &time_last)) {
+          case -1:
+              /* Time went backwards. */
+              new_clock_seq();
+              time_adjust = 0;
+              break;
+          case 1:
+              time_adjust = 0;
+              break;
+          default:
+              if (time_adjust == 0x7FFF)
+                  /* We're going too fast for our clock; spin. */
+                  got_no_time = 1;
+              else
+                  time_adjust++;
+              break;
+          }
+      } while (got_no_time);
+
+      time_last.lo = time_now.lo;
+      time_last.hi = time_now.hi;
+
+      if (time_adjust != 0) {
+          ADD_16b_2_64b(&time_adjust, &time_now, &time_now);
+      }
+
+      /* Construct a uuid with the information we've gathered
+       * plus a few constants. */
+      uuid->time_low = time_now.lo;
+      uuid->time_mid = time_now.hi & 0x0000FFFF;
+      uuid->time_hi_and_version = (time_now.hi & 0x0FFF0000) >> 16;
+      uuid->time_hi_and_version |= (1 << 12);
+      uuid->clock_seq_low = clock_seq & 0xFF;
+      uuid->clock_seq_hi_and_reserved = (clock_seq & 0x3F00) >> 8;
+      uuid->clock_seq_hi_and_reserved |= 0x80;
+      memcpy(uuid->node, &eaddr, sizeof uuid->node);
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  Leach, Salz              expires July 1997                   [Page 17]

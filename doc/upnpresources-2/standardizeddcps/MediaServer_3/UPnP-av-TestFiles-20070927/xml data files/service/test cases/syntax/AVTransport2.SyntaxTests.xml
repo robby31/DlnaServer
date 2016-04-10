@@ -1,0 +1,242 @@
+<!--============================================================
+Title: UPnP AV AV-Transport Service (AVT) Syntax Tests
+
+Purpose:
+To define the individual test cases used to verify the
+syntactic integrity of an implementation of this service type.
+
+Note:
+This file uses tabs (not spaces) for block indentation.
+Any updates to this file should maintain this convention.
+This includes disabling any automatic tab-to-space conversion
+feature provided by your editor.  
+================================================================-->
+<ServiceControlSyntaxTestCases>
+	<ServiceType>AVTransport</ServiceType>
+	<ServiceVersion>2</ServiceVersion>
+	<TestCaseList>
+		<TestCase>
+			<Id>1</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetAVTransportURI</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<CurrentURI>any-string</CurrentURI>			
+				<CurrentURIMetaData>any-string</CurrentURIMetaData>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>2</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetNextAVTransportURI</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<NextURI>any-string</NextURI>			
+				<NextURIMetaData>any-string</NextURIMetaData>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>3</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetMediaInfo</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>4</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetMediaInfo_Ext</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>5</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetTransportInfo</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>6</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetPositionInfo</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>7</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetDeviceCapabilities</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>8</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetTransportSettings</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>9</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>Stop</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>10</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>Play</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<Speed>1</Speed>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>11</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>Pause</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>12</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>Record</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>	
+
+		<TestCase>
+			<Id>13</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>Seek</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<Unit>TRACK_NR</Unit>
+				<Target>1</Target>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>14</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>Next</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>15</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>Previous</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>16</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetPlayMode</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<NewPlayMode>NORMAL</NewPlayMode>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>17</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetRecordQualityMode</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<NewRecordQualityMode>0:BASIC</NewRecordQualityMode>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>18</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetCurrentTransportActions</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>19</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetDRMState</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>20</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetStateVariables</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<StateVariableList>*</StateVariableList>			
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+
+		<TestCase>
+			<Id>21</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>SetStateVariables</ActionName>
+			<InArgs>
+				<InstanceID>0</InstanceID>
+				<AVTransportUDN>any-string</AVTransportUDN>
+				<ServiceType>AVTransport:2</ServiceType>
+				<ServiceId>AVTransport</ServiceId>
+				<StateVariableValuePairs>any-string</StateVariableValuePairs>			
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+	</TestCaseList>
+</ServiceControlSyntaxTestCases>

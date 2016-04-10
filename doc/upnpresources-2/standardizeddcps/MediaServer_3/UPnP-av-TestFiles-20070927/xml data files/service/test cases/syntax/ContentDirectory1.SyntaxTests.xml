@@ -1,0 +1,146 @@
+<ServiceControlSyntaxTestCases>
+	<ServiceType>ContentDirectory</ServiceType>
+	<ServiceVersion>1</ServiceVersion>
+	<TestCaseList>
+		<TestCase>
+			<Id>1</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetSearchCapabilities</ActionName>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>2</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetSortCapabilities</ActionName>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>3</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetSystemUpdateID</ActionName>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>4</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>Browse</ActionName>
+			<InArgs>
+				<ObjectID>0</ObjectID>
+				<BrowseFlag>BrowseMetadata</BrowseFlag>
+				<Filter>dc:title</Filter>
+				<StartingIndex>0</StartingIndex>
+				<RequestedCount>0</RequestedCount>
+				<SortCriteria></SortCriteria>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>5</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>Search</ActionName>
+			<InArgs>
+				<ContainerID>0</ContainerID>
+				<SearchCriteria>dc:title contains "Rock"</SearchCriteria>
+				<Filter>dc:title</Filter>
+				<StartingIndex>0</StartingIndex>
+				<RequestedCount>0</RequestedCount>
+				<SortCriteria></SortCriteria>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>6</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>CreateObject</ActionName>
+			<InArgs>
+				<ContainerID>0</ContainerID>
+					<Elements>
+						&lt;DIDL-Lite xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:upnp="urn:schemas-upnp-org:metadata-1-0/upnp/" xmlns="urn:schemas-upnp-org:metadata-1-0/DIDL-Lite/"&gt;
+							&lt;item id="" parentID="0" restricted="false"&gt;
+								&lt;dc:title&gt;Test Object - CDS Syntax Text Case #6&lt;/dc:title&gt;
+								&lt;upnp:class&gt;object.item&lt;/upnp:class&gt;
+							&lt;/item&gt;
+						&lt;/DIDL-Lite&gt;
+					</Elements>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>7</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>DestroyObject</ActionName>
+			<InArgs>
+				<ObjectID>0</ObjectID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>8</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>UpdateObject</ActionName>
+			<InArgs>
+				<ObjectID>0</ObjectID>
+				<CurrentTagValue>any-string</CurrentTagValue>
+				<NewTagValue>any-string</NewTagValue>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>9</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>ImportResource</ActionName>
+			<InArgs>
+				<SourceURI>http://host/path/file</SourceURI>
+				<DestinationURI>http://host/path/file</DestinationURI>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>10</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>ExportResource</ActionName>
+			<InArgs>
+				<SourceURI>http://host/path/file</SourceURI>
+				<DestinationURI>http://host/path/file</DestinationURI>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>11</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>StopTransferResource</ActionName>
+			<InArgs>
+				<TransferID>0</TransferID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>12</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>GetTransferProgress</ActionName>
+			<InArgs>
+				<TransferID>0</TransferID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>13</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>DeleteResource</ActionName>
+			<InArgs>
+				<ResourceURI>http://host/path/file</ResourceURI>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+		<TestCase>
+			<Id>14</Id>
+			<Category>Valid Action And Valid InArgs</Category>
+			<ActionName>CreateReference</ActionName>
+			<InArgs>
+				<ContainerID>0</ContainerID>
+				<ObjectID>0</ObjectID>
+			</InArgs>
+			<ExpectedReturnCode>ACTION_AND_INARGS_ARE_VALID</ExpectedReturnCode>
+		</TestCase>
+	</TestCaseList>
+</ServiceControlSyntaxTestCases>

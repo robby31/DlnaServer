@@ -1,0 +1,454 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!-- saved from url=(0065)http://www.upnp.org/download/UPnP_Vendor_Implementation_Guide.htm -->
+<HTML xmlns="http://www.w3.org/TR/REC-html40" xmlns:o = 
+"urn:schemas-microsoft-com:office:office" xmlns:w = 
+"urn:schemas-microsoft-com:office:word"><HEAD><TITLE>Universal Plug and Play Vendor's Implementation Guide</TITLE>
+<META http-equiv=Content-Type content="text/html; charset=windows-1252">
+<META content=FrontPage.Editor.Document name=ProgId>
+<META content="Microsoft FrontPage 5.0" name=GENERATOR>
+<META content="Microsoft Word 9" name=Originator><!--[if gte mso 9]><xml>
+ <o:DocumentProperties>
+  <o:Author>ARLENEB</o:Author>
+  <o:LastAuthor>ARLENEB</o:LastAuthor>
+  <o:Revision>2</o:Revision>
+  <o:TotalTime>1</o:TotalTime>
+  <o:Created>2001-01-08T22:17:00Z</o:Created>
+  <o:LastSaved>2001-01-08T22:17:00Z</o:LastSaved>
+  <o:Pages>4</o:Pages>
+  <o:Words>3031</o:Words>
+  <o:Characters>17279</o:Characters>
+  <o:Company>Microsoft Corp.</o:Company>
+  <o:Lines>143</o:Lines>
+  <o:Paragraphs>34</o:Paragraphs>
+  <o:CharactersWithSpaces>21219</o:CharactersWithSpaces>
+  <o:Version>9.2720</o:Version>
+ </o:DocumentProperties>
+</xml><![endif]-->
+<STYLE>@font-face {
+	font-family: Arial Narrow;
+}
+@page Section1 {size: 8.5in 11.0in; margin: 1.0in 1.25in 1.0in 1.25in; mso-header-margin: .5in; mso-footer-margin: .5in; mso-paper-source: 0; }
+P.MsoNormal {
+	FONT-SIZE: 12pt; FONT-FAMILY: "Times New Roman"; mso-style-parent: ""; mso-pagination: widow-orphan; mso-fareast-font-family: "Times New Roman"; margin-left:0in; margin-right:0in; margin-top:0in; margin-bottom:0pt
+}
+LI.MsoNormal {
+	FONT-SIZE: 12pt; FONT-FAMILY: "Times New Roman"; mso-style-parent: ""; mso-pagination: widow-orphan; mso-fareast-font-family: "Times New Roman"; margin-left:0in; margin-right:0in; margin-top:0in; margin-bottom:0pt
+}
+DIV.MsoNormal {
+	FONT-SIZE: 12pt; FONT-FAMILY: "Times New Roman"; mso-style-parent: ""; mso-pagination: widow-orphan; mso-fareast-font-family: "Times New Roman"; margin-left:0in; margin-right:0in; margin-top:0in; margin-bottom:0pt
+}
+H1 {
+	FONT-WEIGHT: bold; FONT-SIZE: 24pt; MARGIN-LEFT: 0in; MARGIN-RIGHT: 0in; FONT-FAMILY: "Times New Roman"; mso-pagination: widow-orphan; mso-margin-top-alt: auto; mso-margin-bottom-alt: auto; mso-outline-level: 1; mso-font-kerning: 18.0pt
+}
+H2 {
+	FONT-WEIGHT: bold; FONT-SIZE: 18pt; MARGIN-LEFT: 0in; MARGIN-RIGHT: 0in; FONT-FAMILY: "Times New Roman"; mso-pagination: widow-orphan; mso-margin-top-alt: auto; mso-margin-bottom-alt: auto; mso-outline-level: 2
+}
+H3 {
+	FONT-WEIGHT: bold; FONT-SIZE: 13.5pt; MARGIN-LEFT: 0in; MARGIN-RIGHT: 0in; FONT-FAMILY: "Times New Roman"; mso-pagination: widow-orphan; mso-margin-top-alt: auto; mso-margin-bottom-alt: auto; mso-outline-level: 3
+}
+P {
+	FONT-SIZE: 12pt; MARGIN-LEFT: 0in; MARGIN-RIGHT: 0in; FONT-FAMILY: "Times New Roman"; mso-pagination: widow-orphan; mso-fareast-font-family: "Times New Roman"; mso-margin-top-alt: auto; mso-margin-bottom-alt: auto
+}
+DIV.Section1 {
+	page: Section1
+}
+</STYLE>
+</HEAD>
+<BODY lang=EN-US style="tab-interval: .5in">
+<DIV class=Section1> 
+  <H1><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'"> 
+    UPnP™ Vendor's Implementation Guide</SPAN></H1>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">5 Jan 2001.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">This document contains 
+clarifications to v1.0 of the UPnP Device Architecture that are likely to be of 
+specific interest to vendors implementing control points and/or 
+devices.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Generally, the rules 
+of underlying standards (like HTTP and XML) should be assumed where they are not 
+explicitly overridden by the UPnP Device Architecture. Specifically, any message 
+that those standards consider equivalent to examples in the UPnP Device 
+Architecture should be considered valid.</SPAN></P>
+<H2><SPAN 
+style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Addressing</SPAN></H2>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Unique Host 
+Names</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">If a UPnP device 
+chooses to provide a host name to a DHCP server and register with a DNS server 
+(when available), the device must either ensure the requested host name is 
+unique or must provide a means for the user to change the requested host name. 
+DHCP and DNS servers cannot be depended on to resolve hostname conflicts, and 
+duplicate hostnames on the same network registered in the DNS can break UPnP 
+networking.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Alternatively, since 
+UPnP provides a friendly name for the device via the friendlyName element in the 
+device (XML) description, a UPnP device may choose to not use the host name 
+capabilities of DHCP and DNS servers (even when available) and instead publish a 
+LOCATION URL with an explicit IP address. When a DHCP server is available, the 
+DHCP client within the device should register for an "IP address changed" event 
+from the DHCP server, and if the IP address changes, the device should cancel 
+all outstanding advertisements and re-advertise using the new IP address. This 
+should not occur often since the DHCP client should just keep renewing the 
+lease.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">In either case, the 
+device (XML) description does not have to be changed when the host name or IP 
+address change. All URLs within the device (XML) description may be relative to 
+the optional URLBase element. If URLBase is empty or not given, the base URL is 
+the URL from which the device (XML) description was retrieved.</SPAN></P>
+<H2><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Discovery</SPAN></H2>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">IGMP Join 
+Message</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">As the section on 
+Discovery in the UPnP Device Architecture specifies, the default TTL in UPnP 
+v1.0 is set to 4. Thus, multicast discovery messages may traverse multiple 
+routers. Control points and devices must send an IGMP join message, so 
+appropriately configured routers will forward the multicast messages to them 
+appropriately.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Startup</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">To prevent storms when 
+a large number of devices are connecting to the network at the same time (e.g., 
+after a power failure or when a router comes on line), a control point or device 
+must wait a small random time after it detects the network before sending any 
+discovery messages. A value larger than 300 milliseconds is recommended to 
+allow&nbsp;other, non-UPnP network traffic to settle, and a value smaller than 
+3,000 milliseconds is recommended to minimize recovery delay.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">As the section on 
+Discovery in the UPnP Device Architecture specifies, the recommended 
+advertisement duration is greater than 1800 seconds (&gt; 30 minutes). Each 
+advertisement in the set must have comparable durations, and the set of 
+advertisements must be refreshed (or not) as a whole. (There is no requirement 
+that the duration used by one set of advertisements is equal to the duration 
+used by a refreshing set.) Some devices may begin their advertisement--refresh 
+pattern before they actually connect to the network with the consequence that 
+control points are unaware of the new devices for an intolerably long period of 
+time.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">If a device can detect 
+when it has just been connected to a network, to prevent a network storm, the 
+device must wait a small random time (say between 300 and 3000 milliseconds) 
+after it detects the network before sending out its initial set of 
+advertisements.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">If a device cannot 
+detect when it is connected to the network, it must adjust its advertisement 
+refresh rates to accommodate for this uncertainty.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">If the device cannot 
+detect when it is connected to the network, when it is first powered up, the 
+device must wait a small random time after it successfully boots before sending 
+out its initial set of advertisements. Considering the likely installation 
+scenario for the device, the first set of advertisements and first few 
+refreshing sets should have a relatively short duration. After the device is 
+likely connected to the network, or after the device can detect it is connected 
+to the network (by receiving a request for its device (XML) description, for 
+instance), whichever comes first, the device should increase its advertisement 
+duration to match the recommended minimum.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">If a device cannot 
+detect when it is connected to the network, and if it is expected to join / 
+leave the network frequently, then the advertisement duration should be 
+consistently set to a short value, perhaps smaller than the recommended 
+minimum.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Specific device types, 
+physical network layers, and usage scenarios will dictate variations in the 
+above possibilities and specific values for advertisement durations.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Multi 
+Homed</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">For multi-homed 
+devices (and control points), advertisements (and searches) should be sent on 
+all internal interfaces to be included in UPnP networking. If a device (or 
+control point) has not registered a host name with a DNS server (or one is 
+unavailable), each advertisement (or search) must be duplicated for each 
+interface to include the IP address of the interface in the value of the 
+LOCATION header.&nbsp;</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">UPnP advertisements 
+(and searches) must not be sent on external, Internet interfaces. (This does not 
+preclude messages between UPnP devices and a suitable gateway.)</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">SSDP Default 
+Port</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">The HTTP 1.1 RFC 
+states that a HOST header value without an explicit port implies the default 
+port for the service requested. Port 1900 is the default port for SSDP messages; 
+device and control points must correctly process discovery messages without an 
+explicit port in the HOST header.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">USN Header and UDN 
+Element</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">As the sections on 
+Discovery and Description in the UPnP Device Architecture specify, the unique 
+device name is included in both the USN header of discovery messages and in the 
+UDN element of a device (XML) description. To be found, a device must advertise 
+a USN value that matches the UDN value in its device (XML) 
+description.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">CACHE-CONTROL max-age 
+Directive</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">As the section on 
+Discovery in the UPnP Device Architecture specifies, control points should wait 
+as long as is indicated in the max-age directive of the CACHE-CONTROL of the 
+device advertisement before expiring the advertisement. Control points may wait 
+a minimal amount of time longer, but devices should not rely on this behavior. 
+To ensure that the advertisements do not expire, a device should re-advertise 
+well in advance of the expiration, providing generous allowances for network 
+transmission time.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">As the section on 
+Description in the UPnP Device Architecture specifies, control points should not 
+assume that device and service (XML) descriptions are unchanged if a device 
+re-appears on the network. Specifically, a control point must check for changes 
+if it sees an announcement from a known device with a new LOCATION header value. 
+The ETAG and LAST-MODIFIED HTTP headers provide efficient means to check for 
+changes.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Response to 
+M-SEARCH</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">As the section on 
+Discovery in the UPnP Device Architecture specifies, a device responding to 
+M-SEARCH requests must generate a random number between 0 and MX that represents 
+the number of seconds the device will wait before sending a response. If an 
+M-SEARCH request matches more than one resource within a device, and thus the 
+device has multiple response, to prevent all responses from being sent at once, 
+the device should send its responses spread over the interval 
+[0..MX].</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Control points should 
+expect to receive multiple, duplicate responses. Control points should filter 
+responses using the USN header. The USN header provides an unique identifier for 
+search responses.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Be careful to send 
+search responses to the correct port. To be found, a device must send a response 
+to the source IP address and port that sent the request to the multicast 
+channel.</SPAN></P>
+<H2><SPAN 
+style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Description</SPAN></H2>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">XML</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">To correctly 
+interoperate, control points must ignore XML comments in device and service 
+(XML) descriptions.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Prohibiting XML 
+processing instructions (i.e., start with &lt;? and any word other than xml) in 
+device and service (XML) descriptions has been proposed. If prohibited, control 
+points and devices could simplify their implementations.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">UDN 
+Persistence</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">As the section on 
+Description in the UPnP Device Architecture specifies, the Unique Device Name 
+(UDN) must be the same over time for a specific device instance (i.e., must 
+survive reboots). The intention is that the UDN doesn't change very often, and 
+that it survives reboots and routine software changes. Of course, there is a 
+limit to the changes that the UDN is required to survive. If some change results 
+in a completely new device, it is reasonable for the device to expose a new UDN. 
+If the UDN is different when a device comes back on line, control points must 
+recognize the device as a novel device, and treat it accordingly.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">UUID 
+Comparison</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">To compare a pair of 
+UUIDs, arithmetically compare the corresponding fields from each UUID in order 
+of significance and according to their data type. Two UUIDs are equal if and 
+only if all the corresponding fields are equal. Note: as a practical matter, on 
+many systems comparison of two UUIDs for equality can be performed simply by 
+comparing the 128 bits of their in-memory representation considered as a 128 bit 
+unsigned integer. Here it is presumed that by the time the in-memory 
+representation is obtained the appropriate byte-order canonicalizations have 
+been carried out.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">boolean 
+dataType</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Despite the general 
+specification in the section on Description in the UPnP Device Architecture, for 
+state variables of dataType boolean, use only the value 0 for false and only the 
+value 1 for true. Do not use the values false, no, true, or yes.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">allowedValueList and 
+allowedValueRange</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Working committees may 
+delegate the definition of a state variable's allowedValueList or 
+allowedValueRange to a specific vendor. Therefore, a control point may not be 
+able to assume that the allowedValueList or allowedValueRange listed for a 
+standard state variable in the device or service (text) standard is in fact what 
+a service actually implements. To correctly interoperate, a control point must 
+retrieve the service (XML) description, and check for allowedValueList or 
+allowedValueRange elements of interest.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Versions</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">As the section on 
+Description in the UPnP Device Architecture specifies, increments in major 
+version of the UPnP protocol are not backward compatible while increments in 
+minor version are. For instance, Version 1.5 is fully backward compatible with 
+Version 1.0, while Version 2.0 makes no guarantees about backward compatibility 
+with Version 1.0.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">The minor version is 
+an integer, and comparisons between versions should be made accordingly. For 
+instance, Version 2.2 is earlier than Version 2.10, and Version 2.10 is fully 
+backward compatible with Version 2.2 (but the reverse is not true). To correctly 
+interoperate, control points and devices must compare the major and minor 
+protocol versions separately and not as a single float.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Major increments in 
+the protocol version are reserved for technical situations where changes must be 
+made that are not backward compatible. Minor increments indicate changes, 
+however significant, that are backward compatible. There is no intention to 
+constrain marketing messages, and it may be the case that changes in the minor 
+version will be used to message significant advances in capabilities for 
+customers. For instance, UPnP v1.10 may be called UPnP 10 in marketing 
+materials.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">As the section on 
+Description in the UPnP Device Architecture specifies, device (and service) 
+types have single, integer versions. Increments in the version indicate changes 
+that are backward compatible with earlier versions of the same device (or 
+service) type. If a change is required that is not backward compatible, a new 
+device (or service) type must be used.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Device and service 
+types that show up on paper documentation may have float versions; the 
+fractional component indicates progress toward the next integer version. For 
+example, urn:schemas-upnp-org:service:SwitchPower:0.9. However, device and 
+service types that are shipped must have an integer version. For example, for a 
+standard service type, urn:schemas-upnp-org:service:SwitchPower:1. Control 
+points may safely assume that device and service type versions are 
+integers.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Device and service 
+types may have an integer version larger than the version of the UPnP protocol 
+they are based upon. For instance, urn:schemas-upnp-org:service:SwitchPower:2 
+may be based upon UPnP v1.0. Each device and service (text) standard must 
+indicate which version of the UPnP protocol it is based upon.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Icon 
+Format</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">A standard icon format 
+has been proposed. If a device provides any icons, some might be required in the 
+standard format.</SPAN></P>
+<H2><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Control</SPAN></H2>
+<H3><SPAN 
+style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">CONTENT-TYPE</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">When an HTTP server 
+receives a request, and it doesn't understand the content type of the body, it 
+must return the HTTP status code 415 Unsupported Media Type. Specifically, to 
+correctly interoperate, a service must return 415 Unsupported Media Type if it 
+receives a control message with content type not equal to XML. Though the UPnP 
+Device Architecture uses only text/xml examples, application/xml is being 
+proposed as a requirement too.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">SOAP 1.1 recommends 
+including a character coding in the CONTENT-TYPE header. If none is provided, a 
+device must assume the character set is UTF-8. The XML spec requires that all 
+XML processors must be able to read entities in both the UTF-8 and UTF-16 
+encodings; though the UPnP Device Architecture uses only UTF-8 examples, UTF-16 
+is being proposed as a requirement too.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">XML</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Though not included in 
+the examples in the section on Control in the UPnP Device Architecture, the XML 
+spec recommends that the XML version declaration (usually &lt;?xml 
+version="1.0"?&gt;) prepend XML documents. Thus, the XML body of a control 
+message should be prepended with the XML version declaration. Devices and 
+control points must accept control messages that include this 
+declaration.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Prohibiting XML 
+processing instructions (i.e., start with &lt;? and any word other than xml) in 
+control messages has been proposed. If prohibited, control points and devices 
+could simplify their implementations.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">XML namespace prefixes 
+do not have to be the specific examples given in the UPnP Device Architecture. 
+For instance, in SOAP messages, the SOAP namespace prefix is listed as "s" but 
+it could be any prefix that is used consistently and that obeys the rules of the 
+general XML namespace prefix mechanism. To correctly interoperate, devices (and 
+control points) must accept control requests (and responses) that use other, 
+legal XML namespace prefixes.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">boolean 
+dataType</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Despite the general 
+specification in the section on Description in the UPnP Device Architecture, for 
+action arguments related to a state variable of dataType boolean, use only the 
+value 0 for false and only the value 1 for true. Do not use the values false, 
+no, true, or yes.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">errorCode sub element 
+of UPnPError</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">As the section on 
+Control in the UPnP Device Architecture specifies, errorCode values in the 
+700-799 range are reserved for action-specific errors for standard actions 
+defined by UPnP Forum working committees. Some working committees may define 
+common error codes across all actions they define, but there are not required 
+to. Specifically, a specific error code may not have the same meaning across all 
+actions within a service or across all services within a device. Check device 
+and service (text) standards carefully.</SPAN></P>
+<H3><SPAN 
+style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">QueryStateVariable</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">In contrast to the 
+implication in the section on Control in the UPnP Device Architecture, control 
+points must not use QueryStateVariable except in limited testing scenarios and 
+must instead use only actions explicitly defined for a service by a working 
+committee. This improves efficiency (because multiple state variables can be 
+queried by a single action message), clarifies intended use (because both the 
+write and read access patterns are explicitly identified), improves 
+interoperability (because control point authors will be interacting with the 
+service as the service designer intended), and reduces implementation size 
+(because services do not have to maintain memory for certain types of 
+non-evented state variables).</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">If a control point 
+calls QueryStateVariable on a state variable that is not buffered in memory 
+within (or otherwise available from) the service, the service must return a SOAP 
+fault with an errorCode of 404 Invalid Var.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">QueryStateVariable 
+remains useful as a limited test tool but may not be part of some future 
+versions of UPnP.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">30-Second 
+Timeout</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">The section on Control 
+in the UPnP Device Architecture specifies that a service must complete an action 
+and respond within 30 seconds, including expected transmission time. This 
+30-second timeout bounds the whole control interaction, not just periods of 
+inactivity. Specifically, the clock starts ticking when the control point starts 
+sending the request, and the clock stops ticking when the response is completely 
+received. The intention is that the action request and response will take a 
+couple of seconds given normal conditions; the remaining time is reserved to 
+allow for variability in overall network performance.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Action 
+Arguments</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">As the section on 
+Control in the UPnP Device Architecture implies, all in arguments defined for an 
+action by a service (XML) description must be provided, and must be provided in 
+the order defined, in a control request by a control point. Similarly, all out 
+arguments must be provided, and must be provided in the order defined, in the 
+response by a device. While it would be very flexible to allow subsetting and 
+reordering arguments, and while SOAP does name the arguments (which is a 
+necessary precondition for this), for simplicity's sake, this is prohibited. As 
+a result, control messages all have well-defined structures and, in many cases, 
+well-defined sizes, resulting in simpler implementations.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">If an action is 
+defined to have no in arguments, it is valid XML to combine the opening and 
+closing elements for the action name into a single element within the SOAP Body 
+element in the response. Correspondingly, if an action is defined to have no out 
+arguments, it is valid to combine the opening and closing elements for the 
+action name within the response. Specifically, in addition to 
+&lt;<I>actionName</I>&gt;&lt;/<I>actionName</I>&gt;, the following form is also 
+valid &lt;<I>actionName</I>/&gt;. To correctly interoperate, control points and 
+devices must accept the combined form.</SPAN></P>
+<H2><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Eventing</SPAN></H2>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">XML</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Though not included in 
+the examples in the section on Eventing in the UPnP Device Architecture, the XML 
+spec recommends that the XML version declaration (usually &lt;?xml 
+version="1.0"?&gt;) should prepend XML documents. Thus, the XML body of an event 
+message should be prepended with the XML version declaration. Control points 
+must accept event messages that include this declaration.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Prohibiting XML 
+processing instructions (i.e., start with &lt;? and any word other than xml) in 
+event messages has been proposed. If prohibited, control points and devices 
+could simplify their implementations.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">CALLBACK</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">As the section on 
+Eventing in the UPnP Device Architecture implies, the CALLBACK URL in a 
+subscription message must contain a URL that specifies delivery via HTTP over 
+TCP. That is, the CALLBACK URL must include at least one URL using the http: 
+scheme. Though the GENA draft also describes delivery via HTTP over UDP, TCP 
+delivery is required for event notifications to ensure that events are delivered 
+reliably.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Event Key</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">As the section on 
+Eventing in the UPnP Device Architecture specifies, an event key is maintained 
+for each subscriber, sent in the SEQ header, incremented for each event, and 
+stored in an unsigned 4 Byte representation. To correctly handle large numbers 
+of events, a service must not allow this counter to overflow and must wrap this 
+counter to 1, not 0, because 0 is the event key for the initial event 
+message.</SPAN></P>
+<H3><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Event 
+Body</SPAN></H3>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Any particular evented 
+state variable may appear at most once in an event message. That is, at most one 
+&lt;property&gt; element may contain the name and value of any specific evented 
+state variable; no duplicates are allowed within a single event message. To 
+correctly interoperate, if a service has multiple updates to a single evented 
+state variable, it must either: (a) send out a series of event messages or (b) 
+send a single event message with only the current value.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">Behavior has been 
+proposed regarding what a device should do it if has so many subscribers, and 
+events are being generated so quickly, that the device cannot bring up / tear 
+down TCP connections fast enough to deliver all events to all subscribers. A 
+device might be required to implement some additional behavior to handle this 
+circumstance.</SPAN></P>
+<P><SPAN style="COLOR: navy; FONT-FAMILY: 'Arial Narrow'">EOF</SPAN></P>
+<P 
+class=MsoNormal style="margin-bottom: 0;"><![if !supportEmptyParas]><![endif]>&nbsp;<o:p></o:p></P></DIV></BODY></HTML>
