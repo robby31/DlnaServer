@@ -1,8 +1,6 @@
 INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
-QT += webkitwidgets
-
 HEADERS += \
     $$PWD/dlnaresource.h \
     $$PWD/dlnarootfolder.h \

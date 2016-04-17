@@ -1,7 +1,7 @@
 import QtQuick 2.3
 import QtQuick.Layouts 1.1
 import QtQuick.Controls 1.2
-import QtWebKit 3.0
+import QtWebView 1.0
 import MyComponents 1.0
 
 Page {
