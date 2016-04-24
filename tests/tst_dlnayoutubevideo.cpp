@@ -48,7 +48,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
     QVERIFY(video->getDisplayName() == "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]");
 
     QVERIFY(video->metaDataTitle() == "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]");
-    QVERIFY2(video->metaDataDuration() == 193491, QString("%1").arg(video->metaDataDuration()).toUtf8());
+    QVERIFY2(video->metaDataDuration() == 193536, QString("%1").arg(video->metaDataDuration()).toUtf8());
     QVERIFY2(video->resolution() == "640x360", QString("%1").arg(video->resolution()).toUtf8());
     QVERIFY2(video->framerate() == "25/1", QString("%1").arg(video->framerate()).toUtf8());
     QVERIFY2(video->bitrate() == 4718800, QString("%1").arg(video->bitrate()).toUtf8());
@@ -57,7 +57,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
 
     QVERIFY2(video->metaDataFormat() == "mov,mp4,m4a,3gp,3g2,mj2", QString("%1").arg(video->metaDataFormat()).toUtf8());
     QVERIFY2(video->mimeType() == "video/mpeg", QString("%1").arg(video->mimeType()).toUtf8());
-    QVERIFY2(video->sourceSize() == 16060504, QString("%1").arg(video->sourceSize()).toUtf8());
+    QVERIFY2(video->sourceSize() == 15959557, QString("%1").arg(video->sourceSize()).toUtf8());
 
 
     qWarning() << "test done in" << timer.elapsed() << "ms.";
@@ -90,7 +90,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD()
     QVERIFY(video->getDisplayName() == "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]");
 
     QVERIFY(video->metaDataTitle() == "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]");
-    QVERIFY2(video->metaDataDuration() == 193491, QString("%1").arg(video->metaDataDuration()).toUtf8());
+    QVERIFY2(video->metaDataDuration() == 193536, QString("%1").arg(video->metaDataDuration()).toUtf8());
     QVERIFY2(video->resolution() == "1280x720", QString("%1").arg(video->resolution()).toUtf8());
     QVERIFY2(video->framerate() == "25/1", QString("%1").arg(video->framerate()).toUtf8());
     QVERIFY2(video->bitrate() == 4718800, QString("%1").arg(video->bitrate()).toUtf8());
@@ -99,7 +99,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD()
 
     QVERIFY2(video->metaDataFormat() == "mov,mp4,m4a,3gp,3g2,mj2", QString("%1").arg(video->metaDataFormat()).toUtf8());
     QVERIFY2(video->mimeType() == "video/mpeg", QString("%1").arg(video->mimeType()).toUtf8());
-    QVERIFY2(video->sourceSize() == 52937939, QString("%1").arg(video->sourceSize()).toUtf8());
+    QVERIFY2(video->sourceSize() == 53589572, QString("%1").arg(video->sourceSize()).toUtf8());
 
 
     qWarning() << "test done in" << timer.elapsed() << "ms.";
@@ -141,7 +141,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD_NotFound()
 
     QVERIFY2(video->metaDataFormat() == "mov,mp4,m4a,3gp,3g2,mj2", QString("%1").arg(video->metaDataFormat()).toUtf8());
     QVERIFY2(video->mimeType() == "video/mpeg", QString("%1").arg(video->mimeType()).toUtf8());
-    QVERIFY2(video->sourceSize() == 279697032, QString("%1").arg(video->sourceSize()).toUtf8());
+    QVERIFY2(video->sourceSize() == 279696392, QString("%1").arg(video->sourceSize()).toUtf8());
 
 
     qWarning() << "test done in" << timer.elapsed() << "ms.";
@@ -152,7 +152,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD_NotFound()
     video->deleteLater();
 }
 
-void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo2()
+void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG2()
 {
     Logger log;
     QElapsedTimer timer;
@@ -183,7 +183,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo2()
 
     QVERIFY2(video->metaDataFormat() == "mov,mp4,m4a,3gp,3g2,mj2", QString("%1").arg(video->metaDataFormat()).toUtf8());
     QVERIFY2(video->mimeType() == "video/mpeg", QString("%1").arg(video->mimeType()).toUtf8());
-    QVERIFY2(video->sourceSize() == 14172486, QString("%1").arg(video->sourceSize()).toUtf8());
+    QVERIFY2(video->sourceSize() == 14171846, QString("%1").arg(video->sourceSize()).toUtf8());
 
     QVERIFY(video->toTranscode() == true);
     QVERIFY2(video->getLengthInMilliSeconds()==258459, QString("%1").arg(video->getLengthInMilliSeconds()).toUtf8());
@@ -225,6 +225,79 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo2()
     video->deleteLater();
 }
 
+void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG4()
+{
+    Logger log;
+    QElapsedTimer timer;
+    timer.start();
+
+    DlnaYouTubeVideo *video = new DlnaYouTubeVideo(&log, "host", 600);
+    video->setPlaybackQuality("hq");
+    video->setTranscodeFormat(MPEG4_AAC);
+    video->moveToThread(backend);
+    video->setNetworkAccessManager(manager);
+    video->setUrl(QUrl("http://www.youtube.com/watch?v=04QzovLe2JM"));
+    bool res = video->waitUrl(15000);
+
+    qint64 duration = timer.elapsed();
+    QVERIFY2(duration < 10000, QString("Duration: %1").arg(duration).toUtf8());
+    qWarning() << "created in" << duration << "ms.";
+    QVERIFY(video->getSystemName() == "http://www.youtube.com/watch?v=04QzovLe2JM");
+    QVERIFY(video->getName() == "Muse - Exogenesis- Symphony Part 1 (Overture)");
+    QVERIFY(video->getDisplayName() == "Muse - Exogenesis- Symphony Part 1 (Overture)");
+
+    QVERIFY(video->metaDataTitle() == "Muse - Exogenesis- Symphony Part 1 (Overture)");
+    QVERIFY(video->metaDataDuration() == 258459);
+    QVERIFY(video->resolution() == "638x360");
+    QVERIFY2(video->framerate() == "25/1", QString("%1").arg(video->framerate()).toUtf8());
+    QVERIFY2(video->bitrate() == 4718800, QString("%1").arg(video->bitrate()).toUtf8());
+    QVERIFY2(video->samplerate() == 44100, QString("%1").arg(video->samplerate()).toUtf8());
+    QVERIFY2(video->channelCount() == 2, QString("%1").arg(video->channelCount()).toUtf8());
+
+    QVERIFY2(video->metaDataFormat() == "mov,mp4,m4a,3gp,3g2,mj2", QString("%1").arg(video->metaDataFormat()).toUtf8());
+    QVERIFY2(video->mimeType() == "video/mp4", QString("%1").arg(video->mimeType()).toUtf8());
+    QVERIFY2(video->sourceSize() == 14171846, QString("%1").arg(video->sourceSize()).toUtf8());
+
+    QVERIFY(video->toTranscode() == true);
+    QVERIFY2(video->getLengthInMilliSeconds()==258459, QString("%1").arg(video->getLengthInMilliSeconds()).toUtf8());
+    QVERIFY2(video->size()==152452041, QString("%1").arg(video->size()).toUtf8());
+
+    qWarning() << "test done in" << timer.elapsed() << "ms.";
+
+    // test transcoding
+    Device *device = video->getStream(0, 0, -1);
+    QVERIFY(device != 0);
+
+    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
+    QVERIFY(transcodeProcess != 0);
+
+    transcodedSize = 0;
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
+    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
+    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+    QVERIFY(transcodeProcess->open() == true);
+    emit startTranscoding();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
+    QVERIFY(transcodeProcess->bytesAvailable() == 0);
+    qWarning() << "DELTA" << video->size()-transcodedSize << qAbs(double(video->size()-transcodedSize))/video->size();
+    QVERIFY(video->size() > transcodedSize);
+    QVERIFY2(transcodedSize == 151917724, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    delete transcodeProcess;
+    transcodeProcess = 0;
+
+    QVERIFY(video->getdlnaOrgOpFlags() == "10");
+    QVERIFY(video->getdlnaOrgPN() == "MPEG_PS_PAL");
+    QVERIFY(video->getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    QVERIFY2(video->getProtocolInfo() == "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1", video->getProtocolInfo().toUtf8());
+
+    QVERIFY(video->getAlbumArt().isNull() == true);
+    QVERIFY(video->getByteAlbumArt().isNull() == true);
+
+    QVERIFY(res == true);
+    video->deleteLater();
+}
+
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
 {
     Logger log;
@@ -256,7 +329,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
 
     QVERIFY2(video->metaDataFormat() == "mov,mp4,m4a,3gp,3g2,mj2", QString("%1").arg(video->metaDataFormat()).toUtf8());
     QVERIFY2(video->mimeType() == "video/mpeg", QString("%1").arg(video->mimeType()).toUtf8());
-    QVERIFY2(video->sourceSize() == 15729931, QString("%1").arg(video->sourceSize()).toUtf8());
+    QVERIFY2(video->sourceSize() == 15729291, QString("%1").arg(video->sourceSize()).toUtf8());
 
     qWarning() << "test done in" << timer.elapsed() << "ms.";
 
@@ -275,31 +348,32 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo4()
     video->setTranscodeFormat(MPEG2_AC3);
     video->moveToThread(backend);
     video->setNetworkAccessManager(manager);
-    video->setUrl(QUrl("https://www.youtube.com/watch?v=aGHT40qkysw"));
+    video->setUrl(QUrl("https://www.youtube.com/watch?v=cmSYV5A9iuU"));
     bool res = video->waitUrl(30000);
 
     qint64 duration = timer.elapsed();
-    QVERIFY2(duration < 15000, QString("Duration: %1").arg(duration).toUtf8());
     qWarning() << "created in" << duration << "ms.";
-    QVERIFY(video->getSystemName() == "https://www.youtube.com/watch?v=aGHT40qkysw");
+    QVERIFY(video->getSystemName() == "https://www.youtube.com/watch?v=cmSYV5A9iuU");
     QVERIFY2(video->getName() == "6 Hour Jazz Music Mix by JaBig (Best of Classic Long Smooth Piano Soft Instrumental Study Playlist)", video->getName().toUtf8());
     QVERIFY(video->getDisplayName() == "6 Hour Jazz Music Mix by JaBig (Best of Classic Long Smooth Piano Soft Instrumental Study Playlist)");
 
     QVERIFY(video->metaDataTitle() == "6 Hour Jazz Music Mix by JaBig (Best of Classic Long Smooth Piano Soft Instrumental Study Playlist)");
-    QVERIFY2(video->metaDataDuration() == 22022803, QString("%1").arg(video->metaDataDuration()).toUtf8());
+    QVERIFY2(video->metaDataDuration() == 22023173, QString("%1").arg(video->metaDataDuration()).toUtf8());
     QVERIFY2(video->resolution() == "640x360", video->resolution().toUtf8());
-    QVERIFY2(video->framerate() == "30000/1001", QString("%1").arg(video->framerate()).toUtf8());
+    QVERIFY2(video->framerate() == "24/1", QString("%1").arg(video->framerate()).toUtf8());
     QVERIFY2(video->bitrate() == 4718800, QString("%1").arg(video->bitrate()).toUtf8());
     QVERIFY2(video->samplerate() == 44100, QString("%1").arg(video->samplerate()).toUtf8());
     QVERIFY2(video->channelCount() == 2, QString("%1").arg(video->channelCount()).toUtf8());
 
     QVERIFY2(video->metaDataFormat() == "mov,mp4,m4a,3gp,3g2,mj2", QString("%1").arg(video->metaDataFormat()).toUtf8());
     QVERIFY2(video->mimeType() == "video/mpeg", QString("%1").arg(video->mimeType()).toUtf8());
-    QVERIFY2(video->sourceSize() == 486171686, QString("%1").arg(video->sourceSize()).toUtf8());
+    QVERIFY2(video->sourceSize() == 470265767, QString("%1").arg(video->sourceSize()).toUtf8());
 
     qWarning() << "test done in" << timer.elapsed() << "ms.";
 
+    QVERIFY2(duration < 15000, QString("Duration: %1").arg(duration).toUtf8());
     QVERIFY(res == true);
+
     video->deleteLater();
 }
 
@@ -326,7 +400,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
 
     DlnaCachedFolder *no_artist = qobject_cast<DlnaCachedFolder*>(artists->getChild(0));
     QVERIFY2(no_artist->getDisplayName() == "No Artist", no_artist->getDisplayName().toUtf8().constData());
-    QVERIFY2(no_artist->getChildrenSize() == 159, QString("%1").arg(no_artist->getChildrenSize()).toUtf8().constData());
+    QVERIFY2(no_artist->getChildrenSize() == 187, QString("%1").arg(no_artist->getChildrenSize()).toUtf8().constData());
 
     DlnaCachedNetworkVideo* movie = 0;
     for (int index=0;index<no_artist->getChildrenSize();++index)
@@ -419,7 +493,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qWarning() << "DELTA" << movie->size()-transcodedSize << qAbs(double(movie->size()-transcodedSize))/movie->size();
     QVERIFY(movie->size() > transcodedSize);
-    QVERIFY2(transcodedSize == 115734868, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 115735244, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 }
@@ -479,7 +553,8 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
         video->deleteLater();
     }
 
-    qWarning() << "avg_time:" << sum_time/(nbErrors+nbOk) << "min_time:" << min_time << "max_time:" << max_time;
+    if (nbErrors+nbOk!=0)
+        qWarning() << "avg_time:" << sum_time/(nbErrors+nbOk) << "min_time:" << min_time << "max_time:" << max_time;
     qWarning() << "OK:" << nbOk << "KO:" << nbErrors;
     QVERIFY2(nbErrors == 0, QString("%1").arg(nbErrors).toUtf8());
 }

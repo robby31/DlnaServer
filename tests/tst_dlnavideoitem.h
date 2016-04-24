@@ -22,11 +22,10 @@ public slots:
     void LogMessage(const QString &message);
 
 private Q_SLOTS:
+    void testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3();
+    void testCase_DlnaVideoItem_MKV_MPEG2_AC3();
     void testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC();
     void testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3();
-    void testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3();
-    void testCase_DlnaVideoItem_AVI_MPEG2_AC3();
-    void testCase_DlnaVideoItem_MKV_MPEG2_AC3();
 
 private:
     TranscodeProcess* transcodeProcess;

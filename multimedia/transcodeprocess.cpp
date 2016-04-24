@@ -48,7 +48,7 @@ TranscodeProcess::~TranscodeProcess()
     {
         killProcess();
         if (!m_process.waitForFinished(1000))
-            logError("Unable to stop TranscodeProcess.");
+            logError(QString("Unable to stop TranscodeProcess (Pause flag %1).").arg(m_paused));
     }
 }
 

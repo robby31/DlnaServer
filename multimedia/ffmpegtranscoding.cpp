@@ -25,7 +25,7 @@ void FfmpegTranscoding::updateArguments()
     }
 
     QStringList arguments;
-    arguments << "-loglevel" << "error";
+//    arguments << "-loglevel" << "error";
     arguments << "-hide_banner";
     arguments << "-nostats";
 
@@ -128,6 +128,36 @@ void FfmpegTranscoding::updateArguments()
         arguments << "-s" << "736x414";
 //        arguments << "-s" << "640x360";
 
+        // set frame rate
+        double framerate = 25.0;
+        if (frameRate() == "23.976" or frameRate() == "24000/1001")
+        {
+            arguments << "-r" << "24000/1001";
+            framerate = 23.976;
+        }
+        else if (frameRate() == "29.970" or frameRate() == "30000/1001")
+        {
+            arguments << "-r" << "30000/1001";
+            framerate = 29.97;
+        }
+        else if (frameRate() == "30.000" or frameRate() == "30/1")
+        {
+            arguments << "-r" << "30";
+            framerate = 30.0;
+        }
+        else if (frameRate() == "25.000" or frameRate() == "25/1")
+        {
+            arguments << "-r" << "25";
+            framerate = 25.0;
+        }
+        else
+        {
+            // default framerate output
+            arguments << "-r" << "25";
+            framerate = 25.0;
+            logInfo(QString("Use default framerate (%1)").arg(frameRate()));
+        }
+
         // set audio options
         int audio_bitrate = 160000;  // default value for audio bitrate
         if (audioChannelCount() > 0)
@@ -160,8 +190,8 @@ void FfmpegTranscoding::updateArguments()
             video_bitrate = (bitrate()-audio_bitrate)*(1.0-0.0852);
             arguments << "-c:v" << "libx264";
 
-            arguments << "-profile:v" << "baseline" << "-level" << "3.0";
-            arguments << "-preset" << "ultrafast";
+//            arguments << "-profile:v" << "baseline" << "-level" << "3.0";
+//            arguments << "-preset" << "ultrafast";
             arguments << "-tune" << "zerolatency";
 //            arguments << "-movflags" << "+faststart";
         }
@@ -171,23 +201,16 @@ void FfmpegTranscoding::updateArguments()
             arguments << "-b:v" << QString("%1").arg(video_bitrate);
             arguments << "-minrate" << QString("%1").arg(video_bitrate);
             arguments << "-maxrate" << QString("%1").arg(video_bitrate);
-            arguments << "-bufsize" << "1835k";
-        }
 
-        // set frame rate
-        if (!frameRate().isEmpty())
-        {
-            if (frameRate() == "23.976") {
-                arguments << "-r" << "24000/1001";
-            } else if (frameRate() == "29.970") {
-                arguments << "-r" << "30000/1001";
-            } else {
-                // default framerate output
-                arguments << "-r" << "25.000";
+            if (format() == MPEG4_AAC)
+            {
+                arguments << "-bufsize" << QString("%1").arg(double(video_bitrate)/framerate);
+                arguments << "-nal-hrd" << "cbr";
             }
-        } else {
-            // default framerate output
-            arguments << "-r" << "25.000";
+            else
+            {
+                arguments << "-bufsize" << "1835k";
+            }
         }
     }
     else
