@@ -12,7 +12,7 @@ const QString DlnaVideoItem::VIDEO_TRANSCODE = "video/transcode";
 DlnaVideoItem::DlnaVideoItem(Logger *log, QString host, int port, QObject *parent):
     DlnaItem(log, host, port, parent)
 {
-    setTranscodeFormat(MPEG2_AC3);   // default transcode format
+    setTranscodeFormat(MPEG4_AAC);   // default transcode format
 }
 
 DlnaVideoItem::~DlnaVideoItem() {
