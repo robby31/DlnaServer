@@ -1,3 +1,4 @@
+#include <iostream>
 #include <QCoreApplication>
 
 #include "tst_httprange.h"
@@ -8,14 +9,13 @@
 #include "tst_dlnayoutubevideo.h"
 #include "tst_request.h"
 #include "tst_dlnacachedresources.h"
-#include <iostream>
 
-void executeTest(QObject* test, QStringList* summary, int argc, char *argv[]) {
-    if (QTest::qExec(test, argc, argv) == 0) {
+void executeTest(QObject* test, QStringList* summary, int argc, char *argv[])
+{
+    if (QTest::qExec(test, argc, argv) == 0)
         summary->append(QString(test->metaObject()->className()) + ": OK");
-    } else {
+    else
         summary->append(QString(test->metaObject()->className()) + ": KO");
-    }
 }
 
 int main(int argc, char *argv[])
@@ -52,7 +52,6 @@ int main(int argc, char *argv[])
     // print the results summary
     std::cout << std::endl;
     std::cout << "Summary:" << std::endl;
-    foreach(QString result, testsSummary) {
+    foreach(QString result, testsSummary)
         std::cout << result.toStdString() << std::endl;
-    }
 }
