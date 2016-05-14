@@ -3,6 +3,7 @@
 tst_dlnarootfolder::tst_dlnarootfolder(QObject *parent) :
     QObject(parent)
 {
+    QFfmpegProcess::setDirPath("/opt/local/bin");
 }
 
 void tst_dlnarootfolder::testCase_DlnaRootFolder()

@@ -23,12 +23,11 @@ public slots:
     void receivedTranscodedData(const QByteArray &data);
 
 private Q_SLOTS:
-    void testCase_DlnaYouTubeVideo_MPEG4();
-
     void testCase_DlnaYouTubeVideo();
     void testCase_DlnaYouTubeVideo_HD();
     void testCase_DlnaYouTubeVideo_HD_NotFound();
     void testCase_DlnaYouTubeVideo_MPEG2();
+    void testCase_DlnaYouTubeVideo_MPEG4();
     void testCase_DlnaYouTubeVideo3();
     void testCase_DlnaYouTubeVideo4();
 

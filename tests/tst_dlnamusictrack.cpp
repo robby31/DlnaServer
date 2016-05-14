@@ -6,6 +6,7 @@ tst_dlnamusictrack::tst_dlnamusictrack(QObject *parent) :
     transcodeTimer(),
     timeToOpenTranscoding(0)
 {
+    QFfmpegProcess::setDirPath("/opt/local/bin");
 }
 
 void tst_dlnamusictrack::receivedTranscodedData(const QByteArray &data)
@@ -99,6 +100,14 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     QVERIFY2(track.metaDataPerformerSort() == "Daft Punk", track.metaDataPerformerSort().toUtf8());
     QVERIFY2(track.metaDataAlbumArtist() == "Daft Punk", track.metaDataAlbumArtist().toUtf8());
     QVERIFY2(track.metaDataYear() == 2005, QString("%1").arg(track.metaDataYear()).toUtf8());
+
+    QHash<QString, double> result = track.volumeInfo();
+    QVERIFY2(result.keys().size() == 5, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
+    QVERIFY2(result["n_samples"] == 1705200, QString("%1").arg(result["n_samples"]).toUtf8());
+    QVERIFY2(result["mean_volume"] == -21.3, QString("%1").arg(result["mean_volume"]).toUtf8());
+    QVERIFY2(result["max_volume"] == -8, QString("%1").arg(result["max_volume"]).toUtf8());
+    QVERIFY2(result["histogram_7db"] == 1, QString("%1").arg(result["histogram_7db"]).toUtf8());
+    QVERIFY2(result["histogram_8db"] == 3518, QString("%1").arg(result["histogram_8db"]).toUtf8());
 
     Device* stream = track.getStream();
     QVERIFY(stream != 0);
@@ -319,6 +328,13 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
     int size = track.getByteAlbumArt().size();
     QVERIFY2(size == 16815, QString("%1").arg(size).toUtf8());
 
+    QHash<QString, double> result = track.volumeInfo();
+    QVERIFY2(result.keys().size() == 4, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
+    QVERIFY2(result["n_samples"] == 4515840, QString("%1").arg(result["n_samples"]).toUtf8());
+    QVERIFY2(result["mean_volume"] == -15.7, QString("%1").arg(result["mean_volume"]).toUtf8());
+    QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
+    QVERIFY2(result["histogram_0db"] == 18999, QString("%1").arg(result["histogram_0db"]).toUtf8());
+
     Device* stream = track.getStream();
     QVERIFY(stream != 0);
     QVERIFY(stream->open() == true);
@@ -400,6 +416,13 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
     QVERIFY(track.getAlbumArt().size().width() == 300);
     QVERIFY(track.getAlbumArt().size().height() == 300);
     QVERIFY2(track.getByteAlbumArt().size() == 5361, QString("%1").arg(track.getByteAlbumArt().size()).toUtf8());
+
+    QHash<QString, double> result = track.volumeInfo();
+    QVERIFY2(result.keys().size() == 4, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
+    QVERIFY2(result["n_samples"] == 14052024, QString("%1").arg(result["n_samples"]).toUtf8());
+    QVERIFY2(result["mean_volume"] == -12.7, QString("%1").arg(result["mean_volume"]).toUtf8());
+    QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
+    QVERIFY2(result["histogram_0db"] == 25653, QString("%1").arg(result["histogram_0db"]).toUtf8());
 
     Device* stream = track.getStream();
     QVERIFY(stream != 0);
@@ -483,6 +506,14 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_WAV() {
 
     QVERIFY(track.getAlbumArt().isNull() == true);
     QVERIFY(track.getByteAlbumArt().isNull() == true);
+
+    QHash<QString, double> result = track.volumeInfo();
+    QVERIFY2(result.keys().size() == 5, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
+    QVERIFY2(result["n_samples"] == 1705200, QString("%1").arg(result["n_samples"]).toUtf8());
+    QVERIFY2(result["mean_volume"] == -21.3, QString("%1").arg(result["mean_volume"]).toUtf8());
+    QVERIFY2(result["max_volume"] == -8, QString("%1").arg(result["max_volume"]).toUtf8());
+    QVERIFY2(result["histogram_7db"] == 1, QString("%1").arg(result["histogram_7db"]).toUtf8());
+    QVERIFY2(result["histogram_8db"] == 3518, QString("%1").arg(result["histogram_8db"]).toUtf8());
 
     HttpRange* range = 0;
     range = new HttpRange("RANGE: BYTES=0-");
@@ -596,6 +627,13 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
     int size = track.getByteAlbumArt().size();
     QVERIFY2(size == 22465, QString("%1").arg(size).toUtf8());
 
+    QHash<QString, double> result = track.volumeInfo();
+    QVERIFY2(result.keys().size() == 4, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
+    QVERIFY2(result["n_samples"] == 16664448, QString("%1").arg(result["n_samples"]).toUtf8());
+    QVERIFY2(result["mean_volume"] == -12.5, QString("%1").arg(result["mean_volume"]).toUtf8());
+    QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
+    QVERIFY2(result["histogram_0db"] == 28983, QString("%1").arg(result["histogram_0db"]).toUtf8());
+
     HttpRange* range = 0;
     range = new HttpRange("RANGE: BYTES=0-");
     range->setSize(track.size());
@@ -697,6 +735,13 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     QVERIFY2(track.getLengthInMilliSeconds() == 544626, QString("%1").arg(track.getLengthInMilliSeconds()).toUtf8());
     QVERIFY(track.samplerate() == 48000);
     QVERIFY(track.channelCount() == 2);
+
+    QHash<QString, double> result = track.volumeInfo();
+    QVERIFY2(result.keys().size() == 4, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
+    QVERIFY2(result["n_samples"] == 52284160, QString("%1").arg(result["n_samples"]).toUtf8());
+    QVERIFY2(result["mean_volume"] == -12.1, QString("%1").arg(result["mean_volume"]).toUtf8());
+    QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
+    QVERIFY2(result["histogram_0db"] == 300058, QString("%1").arg(result["histogram_0db"]).toUtf8());
 
     QVERIFY(track.getdlnaOrgOpFlags() == "10");
     QVERIFY(track.getdlnaOrgPN() == "MP3");
@@ -940,6 +985,13 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     QVERIFY(track.samplerate() == 48000);
     QVERIFY(track.channelCount() == 2);
 
+    QHash<QString, double> result = track.volumeInfo();
+    QVERIFY2(result.keys().size() == 4, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
+    QVERIFY2(result["n_samples"] == 52284160, QString("%1").arg(result["n_samples"]).toUtf8());
+    QVERIFY2(result["mean_volume"] == -12.1, QString("%1").arg(result["mean_volume"]).toUtf8());
+    QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
+    QVERIFY2(result["histogram_0db"] == 300058, QString("%1").arg(result["histogram_0db"]).toUtf8());
+
     QVERIFY(track.getdlnaOrgOpFlags() == "10");
     QVERIFY(track.getdlnaOrgPN() == "LPCM");
     QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
@@ -965,7 +1017,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     transcodeProcess->waitForFinished(-1);
     qint64 duration = transcodeTimer.elapsed();
     QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 600, QString("%1").arg(duration).toUtf8());
+    QVERIFY2(duration < 700, QString("%1").arg(duration).toUtf8());
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
@@ -1183,6 +1235,13 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
     QVERIFY(track.samplerate() == 48000);
     QVERIFY(track.channelCount() == 2);
 
+    QHash<QString, double> result = track.volumeInfo();
+    QVERIFY2(result.keys().size() == 4, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
+    QVERIFY2(result["n_samples"] == 52284160, QString("%1").arg(result["n_samples"]).toUtf8());
+    QVERIFY2(result["mean_volume"] == -12.1, QString("%1").arg(result["mean_volume"]).toUtf8());
+    QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
+    QVERIFY2(result["histogram_0db"] == 300058, QString("%1").arg(result["histogram_0db"]).toUtf8());
+
     QVERIFY(track.getdlnaOrgOpFlags() == "10");
     QVERIFY(track.getdlnaOrgPN() == "AAC_ISO_320");
     QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=AAC_ISO_320;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
@@ -1275,7 +1334,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 7);
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO_320;DLNA.ORG_OP=10;DLNA.ORG_CI=1", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "105613873", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "107705237", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:09:05");
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "192000", xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
@@ -1284,12 +1343,19 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
 
     QVERIFY(track.mimeType() == "audio/mp4");
     QVERIFY(track.format() == ALAC);
-    QVERIFY(track.size() == 105613873);
+    QVERIFY(track.size() == 107705237);
     QVERIFY2(track.bitrate() == 1536000, QString("%1").arg(track.bitrate()).toUtf8());
     QVERIFY(track.getLengthInSeconds() == 545);
     QVERIFY2(track.getLengthInMilliSeconds() == 544626, QString("%1").arg(track.getLengthInMilliSeconds()).toUtf8());
     QVERIFY(track.samplerate() == 48000);
     QVERIFY(track.channelCount() == 2);
+
+    QHash<QString, double> result = track.volumeInfo();
+    QVERIFY2(result.keys().size() == 4, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
+    QVERIFY2(result["n_samples"] == 52284160, QString("%1").arg(result["n_samples"]).toUtf8());
+    QVERIFY2(result["mean_volume"] == -12.1, QString("%1").arg(result["mean_volume"]).toUtf8());
+    QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
+    QVERIFY2(result["histogram_0db"] == 300058, QString("%1").arg(result["histogram_0db"]).toUtf8());
 
     QVERIFY(track.getdlnaOrgOpFlags() == "10");
     QVERIFY(track.getdlnaOrgPN() == "AAC_ISO_320");
@@ -1320,9 +1386,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 62844344, QString("%1").arg(transcodedBytes).toUtf8());
+    QVERIFY2(transcodedBytes == 106674276, QString("%1").arg(transcodedBytes).toUtf8());
     QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY(track.size() > transcodedBytes);
+    QVERIFY2(track.size() > transcodedBytes, QString("%1 %2").arg(track.size()).arg(transcodedBytes).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
     delete range;
