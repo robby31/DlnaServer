@@ -12,7 +12,8 @@ HEADERS += \
     ../multimedia/mediarenderermodel.h \
     ../multimedia/medialibrary.h \
     ../multimedia/streamingfile.h \
-    $$PWD/device.h
+    $$PWD/device.h \
+    $$PWD/updatemediavolumeinfo.h
 
 SOURCES += \
     ../multimedia/transcodeprocess.cpp \
@@ -22,7 +23,8 @@ SOURCES += \
     ../multimedia/mediarenderermodel.cpp \
     ../multimedia/medialibrary.cpp \
     ../multimedia/streamingfile.cpp \
-    $$PWD/device.cpp
+    $$PWD/device.cpp \
+    $$PWD/updatemediavolumeinfo.cpp
 
 
 

@@ -1,12 +1,13 @@
 #ifndef DLNAYOUTUBEVIDEO_H
 #define DLNAYOUTUBEVIDEO_H
 
-#include "dlnavideoitem.h"
-#include "ffmpegtranscoding.h"
-#include "youtube.h"
-#include <QProcess>
 #include <QTime>
 #include <QRegularExpression>
+
+#include "dlnavideoitem.h"
+#include "youtube.h"
+#include "ffmpegtranscoding.h"
+#include "qffmpegprocess.h"
 
 class DlnaYouTubeVideo : public DlnaVideoItem
 {
@@ -15,7 +16,7 @@ class DlnaYouTubeVideo : public DlnaVideoItem
 public:
     explicit DlnaYouTubeVideo(Logger* log, QString host, int port, QObject *parent = 0);
 
-    bool isValid() { return m_unavailableMessage.isEmpty() && !m_title.isEmpty() && !m_resolution.isEmpty() && m_durationInMs>0; }
+    bool isValid() { return m_unavailableMessage.isEmpty() && !m_title.isEmpty() && !resolution().isEmpty() && metaDataDuration()>0; }
     QString unavailableMessage() { return m_unavailableMessage; }
 
     // Any resource needs to represent the container or item with a String.
@@ -28,33 +29,35 @@ public:
     virtual QString getDisplayName() const { return metaDataTitle(); }
 
     //returns the size of the source
-    virtual qint64 sourceSize() const { return m_srcSize; }
+    virtual qint64 sourceSize() const;
 
-    virtual int metaDataBitrate()              const { return m_bitrate; }
-    virtual int metaDataDuration()             const { return m_durationInMs; }
+    virtual int metaDataBitrate()              const { return -1; }
+    virtual int metaDataDuration()             const;
     virtual QString metaDataTitle()            const { return m_title; }
     virtual QString metaDataGenre()            const { return QString(); }
     virtual QString metaDataPerformer()        const { return QString(); }
-    virtual QString metaDataPerformerSort()        const { return QString(); }
+    virtual QString metaDataPerformerSort()    const { return QString(); }
     virtual QString metaDataAlbum()            const { return QString(); }
     virtual QString metaDataAlbumArtist()      const { return QString(); }
     virtual int metaDataYear()                 const { return -1; }
     virtual int metaDataTrackPosition()        const { return 0; }
     virtual int metaDataDisc()                 const { return 0; }
-    virtual QString metaDataFormat()           const { return m_format; }
+    virtual QString metaDataFormat()           const;
     virtual QByteArray metaDataPicture()       const { return QByteArray(); }
     virtual QString metaDataLastModifiedDate() const { return QString(); }
 
     // returns the samplerate of the video track
-    virtual int samplerate() const { return m_samplerate; }
+    virtual int samplerate() const;
 
     //returns the channel number of the video track
-    virtual int channelCount() const { return m_channelcount; }
+    virtual int channelCount() const;
 
-    virtual QString resolution() const { return m_resolution; }
+    virtual QHash<QString, double> volumeInfo(const int timeout = 30000);
+
+    virtual QString resolution() const;
     virtual QStringList subtitleLanguages() const { return QStringList(); }
     virtual QStringList audioLanguages() const { return QStringList(); }
-    virtual QString framerate() const { return m_framerate; }
+    virtual QString framerate() const;
 
     QString streamUrl() const { return m_streamUrl; }
 
@@ -91,16 +94,8 @@ private:
     QString m_unavailableMessage;
     QString m_title;
     QString m_streamUrl;
-    QString m_format;
-    int m_srcSize;
-    int m_durationInMs;
-    QString m_resolution;
-    QString m_framerate;
-    int m_bitrate;
-    int m_samplerate;
-    int m_channelcount;
 
-    QString programFfmpeg;
+    QFfmpegProcess ffmpeg;
 
     YouTube *m_youtube;
     QMutex mutex;

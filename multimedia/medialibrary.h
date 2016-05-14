@@ -14,7 +14,7 @@ class MediaLibrary : public LogObject
     typedef QHash<QString, QHash<QString, QVariant> > StateType;
 
 public:
-    explicit MediaLibrary(Logger *log, QSqlDatabase *database, QObject *parent = 0);
+    explicit MediaLibrary(Logger *log, QSqlDatabase *database = 0, QObject *parent = 0);
     virtual ~MediaLibrary();
 
     bool open();
@@ -34,6 +34,9 @@ public:
     QVariant getmetaData(const QString &tagName, const int &idMedia) const;
     QVariant getmetaDataAlbum(const QString &tagName, const int &idMedia) const;
     QVariant getmetaDataArtist(const QString &tagName, const int &idMedia) const;
+
+    QHash<QString, double> volumeInfo(const int &idMedia);
+    bool setVolumeInfo(const int idMedia, const QHash<QString, double> info);
 
 //    void checkMetaData(const QFileInfo &fileinfo) const;
 

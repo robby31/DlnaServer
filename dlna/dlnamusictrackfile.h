@@ -51,6 +51,8 @@ public:
     //returns the channel number of the audio track
     virtual int channelCount() const;
 
+    virtual QHash<QString, double> volumeInfo(const int timeout = 30000);
+
 private:
     QFileInfo fileinfo;
     QMimeType mime_type;

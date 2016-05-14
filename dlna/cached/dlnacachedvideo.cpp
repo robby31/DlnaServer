@@ -18,6 +18,8 @@ TranscodeProcess *DlnaCachedVideo::getTranscodeProcess()
     transcodeProcess->setFrameRate(framerate());
     transcodeProcess->setAudioChannelCount(channelCount());
     transcodeProcess->setAudioSampleRate(samplerate());
+    transcodeProcess->setVolumeInfo(volumeInfo());
+
     return transcodeProcess;
 }
 
@@ -56,4 +58,19 @@ qint64 DlnaCachedVideo::getResumeTime() const
         return res - 10000;   // returns 10 seconds before resume time
     else
         return 0;
+}
+
+QHash<QString, double> DlnaCachedVideo::volumeInfo(const int timeout)
+{
+    Q_UNUSED(timeout)
+
+    if (library)
+    {
+        return library->volumeInfo(idMedia);
+    }
+    else
+    {
+        QHash<QString, double> result;
+        return result;
+    }
 }

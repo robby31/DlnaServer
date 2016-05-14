@@ -7,7 +7,8 @@ MediaLibrary::MediaLibrary(Logger* log, QSqlDatabase *database, QObject *parent)
     libraryState(0)
 //    m_acoustId(this)
 {
-    open();
+    if (db)
+        open();
 }
 
 bool MediaLibrary::open()
@@ -96,6 +97,29 @@ bool MediaLibrary::open()
         if (!query.exec("create table if not exists picture (id INTEGER PRIMARY KEY, "
                                                             "name VARCHAR UNIQUE NOT NULL)")) {
             logError("unable to create table picture in MediaLibrary " + query.lastError().text());
+            return false;
+        }
+
+//        qWarning() << query.exec("DROP TABLE param_value");
+//        qWarning() << query.exec("DROP TABLE param_name");
+
+        if (!query.exec("create table if not exists param_name (id INTEGER PRIMARY KEY, "
+                                                               "name VARCHAR UNIQUE NOT NULL)"))
+        {
+            logError("unable to create table parameter names in MediaLibrary " + query.lastError().text());
+            return false;
+        }
+
+        if (!query.exec("create table if not exists param_value (id INTEGER PRIMARY KEY, "
+                                                                "name INTEGER NOT NULL, "
+                                                                "media INTEGER NOT NULL, "
+                                                                "value VARCHAR NOT NULL, "
+                                                                "FOREIGN KEY(name) REFERENCES param_name(id), "
+                                                                "FOREIGN KEY(media) REFERENCES media(id), "
+                                                                "UNIQUE(name, media)"
+                                                                ")"))
+        {
+            logError("unable to create table parameter values in MediaLibrary " + query.lastError().text());
             return false;
         }
 
@@ -346,6 +370,85 @@ QVariant MediaLibrary::getmetaData(const QString &tagName, const int &idMedia) c
     } else {
         return QVariant();
     }
+}
+
+QHash<QString, double> MediaLibrary::volumeInfo(const int &idMedia)
+{
+    QHash<QString, double> result;
+
+    QSqlQuery query;
+
+    query.prepare("SELECT param_name.name, param_value.value from param_value LEFT OUTER JOIN param_name ON param_value.name=param_name.id WHERE param_value.media=:idmedia and param_name.name LIKE '%_volume'");
+    query.bindValue(":idmedia", idMedia);
+    if (query.exec())
+    {
+        while (query.next())
+        {
+            result[query.record().value("name").toString()] = query.record().value("value").toDouble();
+        }
+    }
+    else
+    {
+        qWarning() << query.lastQuery();
+        qWarning() << "ERROR in volumeInfo" << query.lastError().text();
+    }
+
+    return result;
+}
+
+bool MediaLibrary::setVolumeInfo(const int idMedia, const QHash<QString, double> info)
+{
+    QSqlQuery query;
+
+    foreach(const QString &param, info.keys())
+    {
+        if (param.endsWith("_volume"))
+        {
+            int paramId = -1;
+            query.prepare("SELECT id from param_name WHERE name=:name");
+            query.bindValue(":name", param);
+            if (query.exec())
+            {
+                if (query.next())
+                {
+                    paramId = query.record().value("id").toInt();
+                }
+                else
+                {
+                    qWarning() << "param not found" << param;
+                    query.prepare("INSERT INTO param_name (name) VALUES (:name)");
+                    query.bindValue(":name", param);
+                    if (!query.exec())
+                    {
+                        qWarning() << "unable to add param" << param;
+                        return false;
+                    }
+                    else
+                    {
+                        paramId = query.lastInsertId().toInt();
+                    }
+                }
+            }
+            else
+            {
+                qWarning() << "ERROR unable to find param name" << param << query.lastError().text();
+                return false;
+            }
+
+            query.prepare("INSERT INTO param_value (name, media, value) VALUES (:name, :media, :value)");
+            query.bindValue(":name", paramId);
+            query.bindValue(":media", idMedia);
+            query.bindValue(":value", info[param]);
+
+            if (!query.exec())
+            {
+                qWarning() << "ERROR" << query.lastError().text();
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 QSqlQuery MediaLibrary::getDistinctMetaData(const int &typeMedia, const QString &tagName, const QString &where) const

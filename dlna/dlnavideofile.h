@@ -48,6 +48,8 @@ public:
     //returns the channel number of the video track
     virtual int channelCount() const;
 
+    virtual QHash<QString, double> volumeInfo(const int timeout = 30000);
+
     virtual QString resolution() const;
     virtual QStringList subtitleLanguages() const;
     virtual QStringList audioLanguages() const;

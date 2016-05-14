@@ -50,6 +50,9 @@ public:
     int audioSampleRate() const                         { return m_audioSampleRate; }
     void setAudioSampleRate(const int &rate)            { m_audioSampleRate = rate; }
 
+    void setVolumeInfo(const QHash<QString, double> info);
+    QHash<QString, double> volumeInfo() const { return m_volumeInfo; }
+
     virtual bool atEnd() const;
     virtual qint64 bytesAvailable() const   { return m_process.bytesAvailable(); }
     virtual qint64 pos() const              { return m_pos; }    // position in bytes of read data
@@ -108,6 +111,7 @@ private:
     QString m_frameRate;
     int m_audioChannelCount;
     int m_audioSampleRate;
+    QHash<QString, double> m_volumeInfo;
 };
 
 #endif // TRANSCODEPROCESS_H

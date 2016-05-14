@@ -96,4 +96,8 @@ int DlnaMusicTrackFile::samplerate() const {
     return ffmpeg.getAudioSamplerate();
 }
 
+QHash<QString, double> DlnaMusicTrackFile::volumeInfo(const int timeout)
+{
+    return ffmpeg.getVolumeInfo(timeout);
+}
 

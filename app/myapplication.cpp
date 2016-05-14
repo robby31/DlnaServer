@@ -11,6 +11,8 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_requestsModel(0),
     m_renderersModel(0)
 {
+    QFfmpegProcess::setDirPath("/opt/local/bin");
+
     connect(this, SIGNAL(mainQmlLoaded(QObject*)), this, SLOT(mainQmlLoaded(QObject*)));
     addController("homePageController", &m_controller);
 
@@ -58,6 +60,10 @@ void MyApplication::serverStarted()
 
     // load the settings
     loadSettings();
+
+    // update volume informations
+    UpdateMediaVolumeInfo *volumeInfoWorker = new UpdateMediaVolumeInfo(&log);
+    QThreadPool::globalInstance()->start(volumeInfoWorker);
 }
 
 void MyApplication::setRenderersModel(MediaRendererModel *model)

@@ -47,6 +47,8 @@ public:
     //returns the channel number of the video track
     virtual int channelCount() const;
 
+    virtual QHash<QString, double> volumeInfo(const int timeout = 30000);
+
     virtual QString resolution()            const { if (library != 0) return library->getmetaData("resolution", idMedia).toString(); else return QString(); }
     virtual QStringList subtitleLanguages() const { if (library != 0) return library->getmetaData("subtitlelanguages", idMedia).toString().split(","); else return QStringList(); }
     virtual QStringList audioLanguages()    const { if (library != 0) return library->getmetaData("audiolanguages", idMedia).toString().split(","); else return QStringList(); }

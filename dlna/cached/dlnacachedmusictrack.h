@@ -46,6 +46,8 @@ public:
     //returns the channel number of the audio track
     virtual int channelCount() const { if (library != 0) return library->getmetaData("channelcount", idMedia).toInt(); else return -1; }
 
+    virtual QHash<QString, double> volumeInfo(const int timeout = 30000);
+
 private:
     MediaLibrary* library;
     int idMedia;

@@ -19,7 +19,8 @@ TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
     m_subtitleLanguages(),
     m_frameRate(""),
     m_audioChannelCount(-1),
-    m_audioSampleRate(-1)
+    m_audioSampleRate(-1),
+    m_volumeInfo()
 {
     connect(&m_process, SIGNAL(readyReadStandardOutput()), this, SLOT(dataAvailable()));
     connect(&m_process, SIGNAL(readyReadStandardError()), this, SLOT(appendTranscodingLogMessage()));
@@ -282,4 +283,9 @@ qint64 TranscodeProcess::transcodedProgress() const
         return 0;
     else
         return qint64(100.0*double(transcodedPos())/double(size()));
+}
+
+void TranscodeProcess::setVolumeInfo(const QHash<QString, double> info)
+{
+    m_volumeInfo = info;
 }

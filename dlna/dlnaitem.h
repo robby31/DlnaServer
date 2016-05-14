@@ -56,6 +56,9 @@ public:
     // returns the bitrate in bits/sec
     virtual int bitrate() const = 0;
 
+    // returns volume information
+    virtual QHash<QString, double> volumeInfo(const int timeout = 30000) = 0;
+
     virtual int metaDataBitrate() const = 0;
     virtual int metaDataDuration() const = 0;
     virtual QString metaDataTitle() const = 0;

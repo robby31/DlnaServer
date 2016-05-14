@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QSettings>
 #include <QThread>
+#include <QThreadPool>
 
 #include "application.h"
 #include "applicationcontroller.h"
@@ -11,6 +12,7 @@
 #include "logger.h"
 #include "requestlistmodel.h"
 #include "mediarenderermodel.h"
+#include "updatemediavolumeinfo.h"
 
 class MyApplication : public Application
 {

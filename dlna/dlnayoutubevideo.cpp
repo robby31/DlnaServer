@@ -8,16 +8,10 @@ DlnaYouTubeVideo::DlnaYouTubeVideo(Logger *log, QString host, int port, QObject 
     m_unavailableMessage(),
     m_title(),
     m_streamUrl(),
-    m_format(),
-    m_srcSize(-1),
-    m_durationInMs(-1),
-    m_resolution(),
-    m_framerate(),
-    m_bitrate(-1),
-    m_samplerate(-1),
-    m_channelcount(-1),
-    programFfmpeg("/opt/local/bin/ffprobe"),
-    m_youtube(0)
+    ffmpeg(this),
+    m_youtube(0),
+    mutex(),
+    replyWaitCondition()
 {
     m_youtube = new YouTube();
     connect(this, SIGNAL(destroyed()), m_youtube, SLOT(deleteLater()));
@@ -62,72 +56,7 @@ void DlnaYouTubeVideo::videoTitle(const QString &title)
 void DlnaYouTubeVideo::videoUrl(const QString &url)
 {
     if (m_analyzeStream)
-    {
-        QProcess ffmpeg;
-
-        QStringList argFfmpeg;
-        argFfmpeg << "-i" << url;
-        argFfmpeg << "-show_format";
-        argFfmpeg << "-show_entries" << "stream";
-        argFfmpeg << "-of" << "xml";
-
-        ffmpeg.start(programFfmpeg, argFfmpeg);
-
-        bool res = ffmpeg.waitForFinished(60000);
-
-        if (res)
-        {
-            QDomDocument xml_res;
-            xml_res.setContent(ffmpeg.readAll());
-            //        qWarning() << xml_res.toString();
-
-            if (xml_res.elementsByTagName("format").size() == 1)
-            {
-                QDomNode format = xml_res.elementsByTagName("format").at(0);
-                if (format.attributes().contains("format_name"))
-                    m_format = format.attributes().namedItem("format_name").nodeValue();
-
-                if (format.attributes().contains("duration"))
-                    m_durationInMs = QVariant::fromValue(format.attributes().namedItem("duration").nodeValue()).toDouble()*1000;
-
-                if (format.attributes().contains("size"))
-                    m_srcSize = QVariant::fromValue(format.attributes().namedItem("size").nodeValue()).toInt();
-            }
-            else
-            {
-                logError("ERROR: unable to get video info (format not found).");
-                ffmpeg.kill();
-                ffmpeg.waitForFinished();
-            }
-
-            QDomNodeList streams = xml_res.elementsByTagName("stream");
-            for (int i = 0; i<streams.size(); ++i)
-            {
-                QDomNode stream = streams.at(i);
-                if (stream.attributes().namedItem("codec_type").nodeValue() == "video")
-                {
-                    if (stream.attributes().contains("width") && stream.attributes().contains("height"))
-                        m_resolution = QString("%1x%2").arg(stream.attributes().namedItem("width").nodeValue()).arg(stream.attributes().namedItem("height").nodeValue());
-
-                    if (stream.attributes().contains("avg_frame_rate"))
-                        m_framerate = stream.attributes().namedItem("avg_frame_rate").nodeValue();
-                }
-                else if (stream.attributes().namedItem("codec_type").nodeValue() == "audio")
-                {
-                    if (stream.attributes().contains("channels"))
-                        m_channelcount = stream.attributes().namedItem("channels").nodeValue().toInt();
-                    if (stream.attributes().contains("sample_rate"))
-                        m_samplerate = stream.attributes().namedItem("sample_rate").nodeValue().toInt();
-                }
-            }
-        }
-        else
-        {
-            logError(QString("ERROR: timeout, unable to get video info, ffmpeg returned status %1").arg(res));
-            ffmpeg.kill();
-            ffmpeg.waitForFinished();
-        }
-    }
+        ffmpeg.setFilename(url);
 
     m_streamUrl = url;
 
@@ -165,4 +94,44 @@ TranscodeProcess *DlnaYouTubeVideo::getTranscodeProcess()
     transcodeProcess->setAudioChannelCount(channelCount());
     transcodeProcess->setAudioSampleRate(samplerate());
     return transcodeProcess;
+}
+
+QHash<QString, double> DlnaYouTubeVideo::volumeInfo(const int timeout)
+{
+    return ffmpeg.getVolumeInfo(timeout);
+}
+
+QString DlnaYouTubeVideo::metaDataFormat() const
+{
+    return ffmpeg.getFormat();
+}
+
+qint64 DlnaYouTubeVideo::sourceSize() const
+{
+    return ffmpeg.size();
+}
+
+int DlnaYouTubeVideo::metaDataDuration() const
+{
+    return ffmpeg.getDuration();
+}
+
+int DlnaYouTubeVideo::samplerate() const
+{
+    return ffmpeg.getAudioSamplerate();
+}
+
+int DlnaYouTubeVideo::channelCount() const
+{
+    return ffmpeg.getAudioChannelCount();
+}
+
+QString DlnaYouTubeVideo::resolution() const
+{
+    return ffmpeg.getVideoResolution();
+}
+
+QString DlnaYouTubeVideo::framerate() const
+{
+    return QString().sprintf("%2.3f", ffmpeg.getVideoFrameRate());
 }

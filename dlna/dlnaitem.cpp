@@ -45,8 +45,10 @@ void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
                 overheadFactor = 1.000222;
             else if (transcodeFormat == LPCM)
                 overheadFactor = 1.00001;
-            else if (transcodeFormat == AAC or transcodeFormat == ALAC)
+            else if (transcodeFormat == AAC)
                 overheadFactor = 1.01;
+            else if (transcodeFormat == ALAC)
+                overheadFactor = 1.03;
             else
                 overheadFactor = 1.0;
         }

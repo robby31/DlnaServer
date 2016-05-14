@@ -236,6 +236,21 @@ void FfmpegTranscoding::updateArguments()
         arguments << "-to" << QString("%1").arg(timeSeekEnd());
     }
 
+    // normalize audio
+    if (!volumeInfo().isEmpty() && volumeInfo().contains("mean_volume"))
+    {
+        double targetDb = -20.0;
+
+        double db = targetDb - volumeInfo()["mean_volume"];
+
+        logInfo(QString("normalize audio, volume source: %1, action: %2").arg(volumeInfo()["mean_volume"]).arg(db));
+
+        if (qAbs(db) < 20.0)
+            arguments << "-af" << QString("volume=%1dB").arg(db);
+        else
+            logInfo(QString("Invalid audio normalization : %1").arg(db));
+    }
+
     arguments << "pipe:";
 
     setArguments(arguments);

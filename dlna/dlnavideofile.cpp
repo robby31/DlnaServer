@@ -95,6 +95,11 @@ int DlnaVideoFile::samplerate() const
     return ffmpeg.getAudioSamplerate();
 }
 
+QHash<QString, double> DlnaVideoFile::volumeInfo(const int timeout)
+{
+    return ffmpeg.getVolumeInfo(timeout);
+}
+
 QString DlnaVideoFile::resolution() const {
     return ffmpeg.getVideoResolution();
 }
