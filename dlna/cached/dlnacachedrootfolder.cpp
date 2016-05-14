@@ -150,23 +150,26 @@ void DlnaCachedRootFolder::checkNetworkLink()
     int nb = 0;
     logInfo("CHECK NETWORK LINK started");
 
+
     QSqlQuery query = getAllNetworkLinks();
-    while (query.next()) {
+    while (query.next())
+    {
         ++nb;
+        DlnaYouTubeVideo *movie;
 
         QString url(query.value("filename").toString());
         bool isReachable = query.value("is_reachable").toBool();
 
-        DlnaYouTubeVideo movie(log(), host, port);
+        movie = new DlnaYouTubeVideo(log(), host, port);
         if (m_nam)
         {
-            movie.moveToThread(m_nam->thread());
-            movie.setNetworkAccessManager(m_nam);
+            movie->moveToThread(m_nam->thread());
+            movie->setNetworkAccessManager(m_nam);
         }
-        movie.setUrl(url);
-        bool res = movie.waitUrl(30000);
+        movie->setUrl(url);
+        bool res = movie->waitUrl(30000);
 
-        if (!(res && movie.isValid()))
+        if (!(res && movie->isValid()))
         {
             if (!res)
                 logWarning("TIMEOUT");
@@ -175,7 +178,7 @@ void DlnaCachedRootFolder::checkNetworkLink()
             {
                 logError(QString("link %1 is broken, title: %2").arg(query.value("filename").toString()).arg(query.value("title").toString()));
 
-                if (res && !movie.unavailableMessage().isEmpty())
+                if (res && !movie->unavailableMessage().isEmpty())
                 {
                     logWarning(QString("PUT OFFLINE %1, %2, %3").arg(query.value("id").toString()).arg(query.value("title").toString()).arg(query.value("artist").toString()));
 
@@ -205,6 +208,8 @@ void DlnaCachedRootFolder::checkNetworkLink()
             // refresh data
 //            addResource(QUrl(url));
         }
+
+        movie->deleteLater();
     }
 
     logInfo(QString("%1 links checked.").arg(nb));
