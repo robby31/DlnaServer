@@ -16,12 +16,12 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
     upnp(m_log, this),
     hostaddress(),
     serverport(SERVERPORT),
+    database(QSqlDatabase::addDatabase("QSQLITE")),
+    netManager(),
     workerRoot(this),
     workerNetwork(this),
     workerTranscoding(this),
-    database(QSqlDatabase::addDatabase("QSQLITE")),
-    listFolderAdded(),
-    netManager()
+    listFolderAdded()
 {
     if (!m_log)
         qWarning() << "log is not available for" << this;
@@ -70,6 +70,8 @@ HttpServer::~HttpServer()
 
     logTrace("Close HTTP server.");
     close();
+
+    qWarning() << "WAIT THREAD POOL" << QThreadPool::globalInstance()->waitForDone();
 }
 
 void HttpServer::folderAddedSlot(QString folder)

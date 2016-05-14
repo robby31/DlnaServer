@@ -103,15 +103,15 @@ private :
     QHostAddress hostaddress;
     int serverport;
 
+    QSqlDatabase database;
+    QNetworkAccessManager netManager;
+
     QThread workerRoot;
     QThread workerNetwork;
     QThread workerTranscoding;
 
     // root folder containing DLNA nodes
-    QSqlDatabase database;
     QStringList listFolderAdded;
-
-    QNetworkAccessManager netManager;
 };
 
 #endif // HTTPSERVER_H
