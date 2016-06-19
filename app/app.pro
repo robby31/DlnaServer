@@ -6,7 +6,8 @@ TEMPLATE = app
 SOURCES += \
     main.cpp \
     myapplication.cpp \
-    applicationcontroller.cpp
+    applicationcontroller.cpp \
+    debugitem.cpp
 
 include (../common/common.pri)
 include (../network/network.pri)
@@ -14,7 +15,8 @@ include (../../QmlApplication/QmlApplication.prf)
 
 HEADERS += \
     myapplication.h \
-    applicationcontroller.h
+    applicationcontroller.h \
+    debugitem.h
 
 SOURCES +=
 
