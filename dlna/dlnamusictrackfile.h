@@ -12,6 +12,7 @@ class DlnaMusicTrackFile : public DlnaMusicTrack
 
 public:
     explicit DlnaMusicTrackFile(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
+    ~DlnaMusicTrackFile();
 
     QFileInfo getFileInfo() const { return fileinfo; }
 
@@ -57,6 +58,9 @@ private:
     QFileInfo fileinfo;
     QMimeType mime_type;
     QFfmpegProcess ffmpeg;
+
+public:
+    static qint64 objectCounter;
 };
 
 #endif // DLNAMUSICTRACKFILE_H

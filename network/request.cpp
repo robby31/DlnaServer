@@ -1,5 +1,7 @@
 #include "request.h"
 
+qint64 Request::objectCounter = 0;
+
 const QString Request::CRLF = "\r\n";
 
 Request::Request(QObject *parent):
@@ -7,6 +9,8 @@ Request::Request(QObject *parent):
     m_roles(),
     m_log(0)
 {
+    ++objectCounter;
+
     m_roles[methodRole] = "method";
     m_roles[argumentRole] = "argument";
     m_roles[hostRole] = "host";
@@ -42,6 +46,8 @@ Request::Request(Logger* log, qintptr socket, QString uuid, QString servername, 
     timeSeekRangeEnd(-1),
     http10(true)
 {
+    ++objectCounter;
+
     m_roles[methodRole] = "method";
     m_roles[argumentRole] = "argument";
     m_roles[hostRole] = "host";
@@ -65,6 +71,7 @@ Request::Request(Logger* log, qintptr socket, QString uuid, QString servername, 
 
 Request::~Request()
 {
+    --objectCounter;
 }
 
 QVariant Request::data(int role) const

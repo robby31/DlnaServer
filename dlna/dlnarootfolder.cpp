@@ -1,9 +1,13 @@
 #include "dlnarootfolder.h"
 
+qint64 DlnaRootFolder::objectCounter = 0;
+
 DlnaRootFolder::DlnaRootFolder(Logger* log, QString host, int port, QObject *parent):
     DlnaStorageFolder(log, host, port, parent),
     children()
 {
+    ++objectCounter;
+
     connect(this, SIGNAL(addFolderSignal(QString)), this, SLOT(addFolderSlot(QString)));
     connect(this, SIGNAL(addChildSignal(DlnaResource*)), this, SLOT(addChildSlot(DlnaResource*)));
     connect(this, SIGNAL(clearChildrenSignal()), this, SLOT(clearChildrenSlot()));
@@ -13,6 +17,7 @@ DlnaRootFolder::DlnaRootFolder(Logger* log, QString host, int port, QObject *par
 }
 
 DlnaRootFolder::~DlnaRootFolder() {
+    --objectCounter;
 
 }
 

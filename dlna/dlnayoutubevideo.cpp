@@ -1,5 +1,7 @@
 #include "dlnayoutubevideo.h"
 
+qint64 DlnaYouTubeVideo::objectCounter = 0;
+
 DlnaYouTubeVideo::DlnaYouTubeVideo(Logger *log, QString host, int port, QObject *parent) :
     DlnaVideoItem(log, host, port, parent),
     m_url(),
@@ -13,13 +15,43 @@ DlnaYouTubeVideo::DlnaYouTubeVideo(Logger *log, QString host, int port, QObject 
     mutex(),
     replyWaitCondition()
 {
-    m_youtube = new YouTube();
-    connect(this, SIGNAL(destroyed()), m_youtube, SLOT(deleteLater()));
-    connect(this, SIGNAL(getVideoUrl(QString)), m_youtube, SLOT(getVideoUrl(QString)));
-    connect(m_youtube, SIGNAL(videoNotAvailable(QString)), this, SLOT(videoNotAvailable(QString)));
-    connect(m_youtube, SIGNAL(gotVideoTitle(QString)), this, SLOT(videoTitle(QString)));
-    connect(m_youtube, SIGNAL(gotVideoUrl(QString)), this, SLOT(videoUrl(QString)));
-    connect(m_youtube, SIGNAL(videoUrlError(QString)), this, SLOT(videoUrlError(QString)));
+    ++objectCounter;
+}
+
+DlnaYouTubeVideo::~DlnaYouTubeVideo()
+{
+    // if mutex is locked, wait until it is unlocked
+    mutex.lock();
+    mutex.unlock();
+
+    --objectCounter;
+}
+
+void DlnaYouTubeVideo::setNetworkAccessManager(QNetworkAccessManager *manager)
+{
+    if (manager)
+    {
+        m_youtube = new YouTube();
+        connect(this, SIGNAL(destroyed()), m_youtube, SLOT(deleteLater()));
+
+        m_youtube->setNetworkAccessManager(manager);
+        m_youtube->moveToThread(manager->thread());
+        connect(manager->thread(), SIGNAL(finished()), m_youtube, SLOT(deleteLater()));
+
+        connect(this, SIGNAL(getVideoUrl(QString)), m_youtube, SLOT(getVideoUrl(QString)));
+        connect(m_youtube, SIGNAL(videoNotAvailable(QString)), this, SLOT(videoNotAvailable(QString)));
+        connect(m_youtube, SIGNAL(gotVideoTitle(QString)), this, SLOT(videoTitle(QString)));
+        connect(m_youtube, SIGNAL(gotVideoUrl(QString)), this, SLOT(videoUrl(QString)));
+        connect(m_youtube, SIGNAL(videoUrlError(QString)), this, SLOT(videoUrlError(QString)));
+    }
+}
+
+void DlnaYouTubeVideo::setPlaybackQuality(const QString &quality)
+{
+    if (m_youtube)
+        m_youtube->setPlaybackQuality(quality);
+    else
+        logError("Unable to set playback quality because Youtube is not initialized (call setNetworkAccessManager before).");
 }
 
 void DlnaYouTubeVideo::setUrl(const QUrl &url)

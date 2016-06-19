@@ -16,7 +16,7 @@ class HttpServer : public QTcpServer
     Q_OBJECT
 
 public:
-    explicit HttpServer(Logger* log, QObject *parent = 0);
+    explicit HttpServer(Logger* log, QSqlDatabase *database, QObject *parent = 0);
     virtual ~HttpServer();
 
     QHostAddress getHost()  const { return hostaddress; }
@@ -103,8 +103,8 @@ private :
     QHostAddress hostaddress;
     int serverport;
 
-    QSqlDatabase database;
-    QNetworkAccessManager netManager;
+    QSqlDatabase *m_database;
+    QNetworkAccessManager *netManager;
 
     QThread workerRoot;
     QThread workerNetwork;

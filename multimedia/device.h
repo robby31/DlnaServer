@@ -83,6 +83,9 @@ private:
     int m_durationBuffer;       // when bitrate is known, m_maxBufferSize is set to m_durationBuffer seconds of streaming
     qint64 bytesToWrite;
     bool requestDataStarted;
+
+public:
+    qint64 static objectCounter;
 };
 
 #endif // DEVICE_H

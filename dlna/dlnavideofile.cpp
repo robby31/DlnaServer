@@ -1,16 +1,21 @@
 #include "dlnavideofile.h"
 
+qint64 DlnaVideoFile::objectCounter = 0;
+
 DlnaVideoFile::DlnaVideoFile(Logger *log, QString filename, QString host, int port, QObject *parent):
     DlnaVideoItem(log, host, port, parent),
     fileinfo(filename),
     mime_type(),
     ffmpeg(filename, this)
 {
+    ++objectCounter;
+
     QMimeDatabase db;
     mime_type = db.mimeTypeForFile(fileinfo);
 }
 
 DlnaVideoFile::~DlnaVideoFile() {
+    --objectCounter;
 
 }
 

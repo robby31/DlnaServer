@@ -103,6 +103,9 @@ private:
     // update counter for this resource.
     // When the resource needs to be refreshed, its counter should be updated.
     int updateId;
+
+public:
+    static qint64 objectCounter;
 };
 
 #endif // DLNARESOURCE_H

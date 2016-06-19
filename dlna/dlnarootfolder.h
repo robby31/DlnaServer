@@ -51,6 +51,9 @@ private slots:
 
 private:
     QList<DlnaResource*> children;
+
+public:
+    static qint64 objectCounter;
 };
 
 #endif // DLNAROOTFOLDER_H

@@ -366,7 +366,10 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                     }
 
                     if (streamWorker)
+                    {
                         streamContent->moveToThread(streamWorker);
+                        connect(streamWorker, SIGNAL(finished()), streamContent, SLOT(deleteLater()));
+                    }
                 }
             }
         }

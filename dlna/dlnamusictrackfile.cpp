@@ -1,15 +1,24 @@
 #include "dlnamusictrackfile.h"
 
+qint64 DlnaMusicTrackFile::objectCounter = 0;
+
 DlnaMusicTrackFile::DlnaMusicTrackFile(Logger* log, QString filename, QString host, int port, QObject *parent):
     DlnaMusicTrack(log, host, port, parent),
     fileinfo(filename),
     mime_type(),
     ffmpeg(filename, this)
 {    
+    ++objectCounter;
+
     QMimeDatabase db;
     mime_type = db.mimeTypeForFile(fileinfo);
 
     setTranscodeFormat(MP3);   // default transcode format
+}
+
+DlnaMusicTrackFile::~DlnaMusicTrackFile()
+{
+    --objectCounter;
 }
 
 bool DlnaMusicTrackFile::toTranscode() const

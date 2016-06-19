@@ -1,5 +1,7 @@
 #include "dlnaresource.h"
 
+qint64 DlnaResource::objectCounter = 0;
+
 DlnaResource::DlnaResource(Logger *log, QObject *parent):
     LogObject(log, parent),
     id(),
@@ -7,11 +9,12 @@ DlnaResource::DlnaResource(Logger *log, QObject *parent):
     m_needRefresh(false),
     updateId(1)
 {
+    ++objectCounter;
     qRegisterMetaType<QList<DlnaResource*> >("QList<DlnaResource*>");
 }
 
 DlnaResource::~DlnaResource() {
-
+    --objectCounter;
 }
 
 QString DlnaResource::getResourceId() const {
@@ -143,6 +146,7 @@ void DlnaResource::change_parent(QObject *old_parent, QObject *new_parent)
 
         // change the thread
         moveToThread(new_parent->thread());
+        connect(new_parent->thread(), SIGNAL(finished()), this, SLOT(deleteLater()));
 
         if (getDlnaParent())
             getDlnaParent()->change_parent(old_parent, new_parent);

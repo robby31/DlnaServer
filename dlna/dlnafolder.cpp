@@ -1,10 +1,14 @@
 #include "dlnafolder.h"
 
+qint64 DlnaFolder::objectCounter = 0;
+
 DlnaFolder::DlnaFolder(Logger* log, QString filename, QString host, int port, QObject *parent):
     DlnaStorageFolder(log, host, port, parent),
     fileinfo(filename),
     children()
 {
+    ++objectCounter;
+
     QDir folder(fileinfo.absoluteFilePath());
     QStringList filter;
     filter << "*";
@@ -31,6 +35,7 @@ DlnaFolder::DlnaFolder(Logger* log, QString filename, QString host, int port, QO
 }
 
 DlnaFolder::~DlnaFolder() {
+    --objectCounter;
 }
 
 DlnaResource *DlnaFolder::getChild(int index, QObject *parent)  {

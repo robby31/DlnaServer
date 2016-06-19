@@ -12,6 +12,7 @@ class Reply : public LogObject
 
 public:
     explicit Reply(Logger *log, const bool &http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd, QString uuid, QString servername, QString host, int port, QObject *parent = 0);
+    virtual ~Reply();
 
     bool isHttp10() const { return m_http10; }
 
@@ -130,6 +131,9 @@ private:
     static const QString EVENT_FOOTER;
 
     Request *m_request;
+
+public:
+    static qint64 objectCounter;
 };
 
 #endif // REPLY_H

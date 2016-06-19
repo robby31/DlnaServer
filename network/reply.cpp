@@ -1,5 +1,7 @@
 #include "reply.h"
 
+qint64 Reply::objectCounter = 0;
+
 const QString Reply::CRLF = "\r\n";
 
 const QString Reply::XML_HEADER = "<?xml version=\"1.0\" encoding=\"utf-8\"?>";
@@ -38,7 +40,14 @@ Reply::Reply(Logger *log, const bool &http10, const QString &method, const QStri
     xml(),
     m_request(0)
 {
+    ++objectCounter;
+
     connect(this, SIGNAL(runSignal()), this, SLOT(_run()));
+}
+
+Reply::~Reply()
+{
+    --objectCounter;
 }
 
 QString Reply::getParamHeader(const QString &param) const
@@ -107,6 +116,8 @@ void Reply::sendAnswer(const QByteArray &contentAnswer)
 
 void Reply::_run()
 {
+    QDateTime sdf;
+
     // prepare data and send answer
     QString soapaction = getRequestSoapAction();
 
@@ -115,12 +126,9 @@ void Reply::_run()
     if ((requestMethod() == "GET" || requestMethod() == "HEAD") && (requestArgument() == "description/fetch" || requestArgument().endsWith("1.0.xml"))) {
 
         setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
-        setParamHeader("Cache-Control", "no-cache");
-        setParamHeader("Expires", "0");
-        setParamHeader("Accept-Ranges", "bytes");
-        if (!isHttp10())
-            setParamHeader("Connection", "keep-alive");
-        setParamHeader("Server", servername());
+        setParamHeader("Content-Language",  "en-us");
+
+        setParamHeader("DATE", sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss").append(QString(" GMT")));
 
         QString answerContent;
 
@@ -146,6 +154,7 @@ void Reply::_run()
 
         if (!soapaction.isEmpty() && soapaction.indexOf("ConnectionManager:1#GetProtocolInfo") > -1) {
             setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
+            setParamHeader("DATE", sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss").append(QString(" GMT")));
             setParamHeader("Server", servername());
 
             QString answerContent;
@@ -164,6 +173,7 @@ void Reply::_run()
     }
     else if (requestMethod() == "POST" && requestArgument().endsWith("upnp/control/content_directory")) {
         setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
+        setParamHeader("DATE", sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss").append(QString(" GMT")));
         setParamHeader("Server", servername());
 
         QString answerContent;
@@ -295,37 +305,46 @@ void Reply::_run()
                                         startingIndex,
                                         requestCount,
                                         searchCriteria);
-        } else {
+        }
+        else
+        {
             replyDone("KO");
         }
-    } else if (requestMethod() == "SUBSCRIBE") {
-        setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
-        setParamHeader("Connection",  "close");
-        setParamHeader("SID", QString("uuid:%1").arg(uuid()));
-        setParamHeader("Server", servername());
-        setParamHeader("Timeout", "Second-1800");
-
-        if (!soapaction.isEmpty())
+    }
+    else if (requestMethod() == "SUBSCRIBE")
+    {
+        if (getRequestParamHeader("NT") == "upnp:event")
         {
-            QString cb = soapaction.replace("<", "").replace(">", "");
+            // accept subscription
+            QString callback = getRequestParamHeader("CALLBACK");
 
-            QUrl soapActionUrl = QUrl(cb);
+            QString url = callback.replace("<", "").replace(">", "");
+            QUrl soapActionUrl = QUrl(url);
             QString addr = soapActionUrl.host();
             int port = soapActionUrl.port();
 
+            LogMessage(QString("%1: init subscription to %2 on port %3"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(addr).arg(port));
+
             QTcpSocket sock;
             sock.connectToHost(addr, port);
-            if (sock.waitForConnected(1000)) {
-                sendLine(&sock, "NOTIFY /" + requestArgument() + " HTTP/1.1");
+            if (sock.waitForConnected(1000))
+            {
+                if (m_http10)
+                    sendLine(&sock, "HTTP/1.0 200 OK");
+                else
+                    sendLine(&sock, "HTTP/1.1 200 OK");
+
+                sendLine(&sock, "DATE: " + sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss").append(QString(" GMT")));
+                sendLine(&sock, "SERVER: " + servername());
                 sendLine(&sock, QString("SID: uuid:%1").arg(uuid()));
-                sendLine(&sock, "SEQ: 0");
-                sendLine(&sock, "NT: upnp:event");
-                sendLine(&sock, "NTS: upnp:propchange");
-                sendLine(&sock, QString("HOST: %1:%2").arg(addr).arg(port));
-                sendLine(&sock, "Content-Type: text/xml; charset=\"utf-8\"");
+                sendLine(&sock, "CONTENT-LENGTH: 0");
+                sendLine(&sock, "TIMEOUT: Second-1800");
+
+                replyDone("OK");
             }
-            else {
-                logError(QString("Cannot connect to %1").arg(cb));
+            else
+            {
+                logError(QString("Cannot connect to %1").arg(url));
                 replyDone("ERROR");
                 return;
             }
@@ -334,32 +353,61 @@ void Reply::_run()
             sock.close();
         }
 
-        QString answerContent;
+//        if (!soapaction.isEmpty())
+//        {
+//            QString cb = soapaction.replace("<", "").replace(">", "");
 
-        if (requestArgument().contains("connection_manager"))
-        {
-            answerContent.append(EVENT_Header.arg("urn:schemas-upnp-org:service:ConnectionManager:1"));
-            answerContent.append(EVENT_Prop.arg("SinkProtocolInfo").arg(""));
-            answerContent.append(EVENT_Prop.arg("SourceProtocolInfo").arg(""));
-            answerContent.append(EVENT_Prop.arg("CurrentConnectionIDs").arg(""));
-            answerContent.append(EVENT_FOOTER);
+//            QUrl soapActionUrl = QUrl(cb);
+//            QString addr = soapActionUrl.host();
+//            int port = soapActionUrl.port();
 
-            sendAnswer(answerContent.toUtf8());
-        }
-        else if (requestArgument().contains("content_directory"))
-        {
-            answerContent.append(EVENT_Header.arg("urn:schemas-upnp-org:service:ContentDirectory:1"));
-            answerContent.append(EVENT_Prop.arg("TransferIDs").arg(""));
-            answerContent.append(EVENT_Prop.arg("ContainerUpdateIDs").arg(""));
-            answerContent.append(EVENT_Prop.arg("SystemUpdateID").arg(1));
-            answerContent.append(EVENT_FOOTER);
+//            QTcpSocket sock;
+//            sock.connectToHost(addr, port);
+//            if (sock.waitForConnected(1000)) {
+//                sendLine(&sock, "NOTIFY /" + requestArgument() + " HTTP/1.1");
+//                sendLine(&sock, QString("SID: uuid:%1").arg(uuid()));
+//                sendLine(&sock, "SEQ: 0");
+//                sendLine(&sock, "NT: upnp:event");
+//                sendLine(&sock, "NTS: upnp:propchange");
+//                sendLine(&sock, QString("HOST: %1:%2").arg(addr).arg(port));
+//                sendLine(&sock, "Content-Type: text/xml; charset=\"utf-8\"");
+//            }
+//            else {
+//                logError(QString("Cannot connect to %1").arg(cb));
+//                replyDone("ERROR");
+//                return;
+//            }
 
-            sendAnswer(answerContent.toUtf8());
-        }
-        else
-        {
-            replyDone("Unknown argument");
-        }
+//            sock.flush();
+//            sock.close();
+//        }
+
+//        QString answerContent;
+
+//        if (requestArgument().contains("connection_manager"))
+//        {
+//            answerContent.append(EVENT_Header.arg("urn:schemas-upnp-org:service:ConnectionManager:1"));
+//            answerContent.append(EVENT_Prop.arg("SinkProtocolInfo").arg(""));
+//            answerContent.append(EVENT_Prop.arg("SourceProtocolInfo").arg(""));
+//            answerContent.append(EVENT_Prop.arg("CurrentConnectionIDs").arg(""));
+//            answerContent.append(EVENT_FOOTER);
+
+//            sendAnswer(answerContent.toUtf8());
+//        }
+//        else if (requestArgument().contains("content_directory"))
+//        {
+//            answerContent.append(EVENT_Header.arg("urn:schemas-upnp-org:service:ContentDirectory:1"));
+//            answerContent.append(EVENT_Prop.arg("TransferIDs").arg(""));
+//            answerContent.append(EVENT_Prop.arg("ContainerUpdateIDs").arg(""));
+//            answerContent.append(EVENT_Prop.arg("SystemUpdateID").arg(1));
+//            answerContent.append(EVENT_FOOTER);
+
+//            sendAnswer(answerContent.toUtf8());
+//        }
+//        else
+//        {
+//            replyDone("Unknown argument");
+//        }
 
     }
     else if ((requestMethod() == "GET" || requestMethod() == "HEAD") && (requestArgument().toLower().endsWith(".png") || requestArgument().toLower().endsWith(".jpg") || requestArgument().toLower().endsWith(".jpeg")))

@@ -33,6 +33,9 @@ public:
 private:
     QFileInfo fileinfo;
     QList<QFileInfo> children;
+
+public:
+    static qint64 objectCounter;
 };
 
 #endif // DLNAFOLDER_H

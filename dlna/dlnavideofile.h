@@ -63,6 +63,9 @@ private:
     QFileInfo fileinfo;
     QMimeType mime_type;
     QFfmpegProcess ffmpeg;
+
+public:
+    static qint64 objectCounter;
 };
 
 #endif // DLNAVIDEOFILE_H

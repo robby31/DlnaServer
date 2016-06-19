@@ -162,6 +162,9 @@ private:
     qint64 timeSeekRangeStart;
     qint64 timeSeekRangeEnd;
     bool http10;
+
+public:
+    static qint64 objectCounter;
 };
 
 #endif // REQUEST_H

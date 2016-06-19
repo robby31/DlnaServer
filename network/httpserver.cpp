@@ -9,15 +9,15 @@ const QString HttpServer::UUID = "cdc79bcf-6985-4baf-b974-e83846efd903";
 
 const int HttpServer::SERVERPORT = 5002;
 
-HttpServer::HttpServer(Logger* log, QObject *parent):
+HttpServer::HttpServer(Logger* log, QSqlDatabase *database, QObject *parent):
     QTcpServer(parent),
     SERVERNAME(QString("%1/%2 UPnP/1.1 QMS/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion())),
     m_log(log),
     upnp(m_log, this),
     hostaddress(),
     serverport(SERVERPORT),
-    database(QSqlDatabase::addDatabase("QSQLITE")),
-    netManager(),
+    m_database(database),
+    netManager(0),
     workerRoot(this),
     workerNetwork(this),
     workerTranscoding(this),
@@ -37,7 +37,7 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
     connect(this, SIGNAL(acceptError(QAbstractSocket::SocketError)),
             this, SLOT(_newConnectionError(QAbstractSocket::SocketError)));
 
-    database.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+    m_database->setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
 
     workerRoot.setObjectName("Root folder, MediaLibrary Thread");
     workerRoot.start();
@@ -48,11 +48,14 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
     workerTranscoding.setObjectName("Transcoding Thread");
     workerTranscoding.start();
 
-    netManager.moveToThread(&workerNetwork);
+    netManager = new QNetworkAccessManager();
+    netManager->moveToThread(&workerNetwork);
+    connect(&workerNetwork, SIGNAL(finished()), netManager, SLOT(deleteLater()));
 }
 
 HttpServer::~HttpServer()
 {
+    qWarning() << "QUIT SERVER";
     // stop root thread
     workerRoot.quit();
     if (!workerRoot.wait(1000))
@@ -72,6 +75,7 @@ HttpServer::~HttpServer()
     close();
 
     qWarning() << "WAIT THREAD POOL" << QThreadPool::globalInstance()->waitForDone();
+    qWarning() << "SERVER DESTROYED";
 }
 
 void HttpServer::folderAddedSlot(QString folder)
@@ -117,9 +121,10 @@ void HttpServer::_startServer()
             logTrace("HTTP server: listen " + getHost().toString() + ":" + QString("%1").arg(getPort()));
 
             // initialize the root folder
-            DlnaCachedRootFolder *rootFolder = new DlnaCachedRootFolder(m_log, &database, hostaddress.toString(), serverport);
+            DlnaCachedRootFolder *rootFolder = new DlnaCachedRootFolder(m_log, m_database, hostaddress.toString(), serverport);
             rootFolder->moveToThread(&workerRoot);
-            rootFolder->setNetworkAccessManager(&netManager);
+            connect(&workerRoot, SIGNAL(finished()), rootFolder, SLOT(deleteLater()));
+            rootFolder->setNetworkAccessManager(netManager);
 
             connect(this, SIGNAL(destroyed()), rootFolder, SLOT(deleteLater()));
             connect(this, SIGNAL(stopSignal()), rootFolder, SLOT(deleteLater()));
@@ -192,6 +197,7 @@ void HttpServer::createTcpSocket(Request *request)
         }
 
         client->moveToThread(&workerNetwork);
+        connect(&workerNetwork, SIGNAL(finished()), client, SLOT(deleteLater()));
     }
 }
 

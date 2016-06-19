@@ -1,5 +1,7 @@
 #include "device.h"
 
+qint64 Device::objectCounter = 0;
+
 const QString Device::CRLF = "\r\n";
 
 Device::Device(Logger *log, QObject *parent) :
@@ -13,13 +15,15 @@ Device::Device(Logger *log, QObject *parent) :
     bytesToWrite(0),
     requestDataStarted(false)
 {
+    ++objectCounter;
+
     connect(this, SIGNAL(openedSignal()), this, SLOT(deviceOpened()));
     connect(this, SIGNAL(readyRead()), this, SLOT(requestData()));
 }
 
 Device::~Device()
 {
-
+    --objectCounter;
 }
 
 qint64 Device::progress()

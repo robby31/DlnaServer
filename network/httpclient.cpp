@@ -1,5 +1,7 @@
 #include "httpclient.h"
 
+qint64 HttpClient::objectCounter = 0;
+
 const QString HttpClient::CRLF = "\r\n";
 
 const QString HttpClient::HTTP_200_OK = "HTTP/1.1 200 OK";
@@ -25,6 +27,8 @@ HttpClient::HttpClient(Logger *log, QObject *parent) :
     sizeWritten(0),
     timerDataSent()
 {
+    ++objectCounter;
+
     if (!m_log)
         qWarning() << "log is not available for" << this;
 
@@ -38,6 +42,8 @@ HttpClient::HttpClient(Logger *log, QObject *parent) :
 
 HttpClient::~HttpClient()
 {
+    --objectCounter;
+
     if (range)
     {
         delete range;

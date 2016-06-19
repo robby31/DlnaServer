@@ -17,11 +17,11 @@ public:
     explicit HttpClient(Logger *log, QObject *parent = 0);
     virtual ~HttpClient();
 
-    bool isHttp10() const { return m_http10; }
-
+private:
     void clear();
 
-private:
+    bool isHttp10() const { return m_http10; }
+
     bool isLogLevel(const LogLevel &level) const { return m_log ? m_log->isLevel(level) : false; }
     void logError(const QString &message)  const { if (m_log) m_log->Error(message); }
     void logDebug(const QString &message)  const { if (m_log) m_log->Debug(message); }
@@ -55,7 +55,7 @@ signals:
 
     void incomingRequest(const QString &peerAddress, const QStringList &header, const bool &is_http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd);
 
-public slots:
+private slots:
     void closeClient();
 
     void setHttp10(const bool &http10) { m_http10 = http10; }
@@ -98,6 +98,9 @@ private:
 
     qint64 sizeWritten;
     QElapsedTimer timerDataSent;
+
+public:
+    static qint64 objectCounter;
 };
 
 #endif // HTTPCLIENT_H

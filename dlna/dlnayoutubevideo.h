@@ -15,6 +15,7 @@ class DlnaYouTubeVideo : public DlnaVideoItem
 
 public:
     explicit DlnaYouTubeVideo(Logger* log, QString host, int port, QObject *parent = 0);
+    virtual ~DlnaYouTubeVideo();
 
     bool isValid() { return m_unavailableMessage.isEmpty() && !m_title.isEmpty() && !resolution().isEmpty() && metaDataDuration()>0; }
     QString unavailableMessage() { return m_unavailableMessage; }
@@ -63,16 +64,10 @@ public:
 
     void setAnalyzeStream(const bool &flag) { m_analyzeStream = flag; }
 
-    void setNetworkAccessManager(QNetworkAccessManager *manager) {
-        if (manager)
-        {
-            m_youtube->setNetworkAccessManager(manager);
-            m_youtube->moveToThread(manager->thread());
-        }
-    }
+    void setNetworkAccessManager(QNetworkAccessManager *manager);
     void setUrl(const QUrl &url);
     bool waitUrl(const int &timeout=30000);
-    void setPlaybackQuality(const QString &quality) { m_youtube->setPlaybackQuality(quality); }
+    void setPlaybackQuality(const QString &quality);
 
 protected:
     // Returns the process for transcoding
@@ -100,6 +95,9 @@ private:
     YouTube *m_youtube;
     QMutex mutex;
     QWaitCondition replyWaitCondition;
+
+public:
+    static qint64 objectCounter;
 };
 
 #endif // DLNAYOUTUBEVIDEO_H
