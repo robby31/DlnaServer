@@ -3,7 +3,8 @@
 const QString FfmpegTranscoding::PROGRAM = QString("/opt/local/bin/ffmpeg");
 
 FfmpegTranscoding::FfmpegTranscoding(Logger *log, QObject *parent) :
-    TranscodeProcess(log, parent)
+    TranscodeProcess(log, parent),
+    audioVolumeTarget(-15.0)
 {
     setProgram(PROGRAM);
 }
@@ -239,9 +240,7 @@ void FfmpegTranscoding::updateArguments()
     // normalize audio
     if (!volumeInfo().isEmpty() && volumeInfo().contains("mean_volume"))
     {
-        double targetDb = -20.0;
-
-        double db = targetDb - volumeInfo()["mean_volume"];
+        double db = audioVolumeTarget - volumeInfo()["mean_volume"];
 
         logInfo(QString("normalize audio, volume source: %1, action: %2").arg(volumeInfo()["mean_volume"]).arg(db));
 

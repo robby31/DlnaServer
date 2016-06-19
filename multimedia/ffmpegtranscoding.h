@@ -19,6 +19,7 @@ public slots:
 
 private:
     static const QString PROGRAM;
+    double audioVolumeTarget;
 };
 
 #endif // FFMPEGTRANSCODING_H
