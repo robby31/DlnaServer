@@ -17,8 +17,9 @@ void UpdateMediaVolumeInfo::run()
     QThread backend;
     backend.start();
 
-    QNetworkAccessManager manager;
-    manager.moveToThread(&backend);
+    QNetworkAccessManager *manager = new QNetworkAccessManager();
+    manager->moveToThread(&backend);
+    QObject::connect(&backend, SIGNAL(finished()), manager, SLOT(deleteLater()));
 
     MediaLibrary library(m_log);
 
@@ -56,22 +57,22 @@ void UpdateMediaVolumeInfo::run()
                 {
                     qWarning() << "Analyze internet video" << filename;
 
-                    DlnaYouTubeVideo video(m_log, "HOST", 80);
-                    video.moveToThread(&backend);
-                    video.setNetworkAccessManager(&manager);
-                    video.setUrl(filename);
-                    bool res = video.waitUrl(30000);
+                    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(m_log, "HOST", 80));
+                    video->moveToThread(&backend);
+                    QObject::connect(&backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
+                    video->setNetworkAccessManager(manager);
+                    video->setUrl(filename);
+                    bool res = video->waitUrl(30000);
 
-                    if (res && video.isValid())
+                    if (res && video->isValid())
                     {
-                        if (!library.setVolumeInfo(idMedia, video.volumeInfo(-1)))
+                        if (!library.setVolumeInfo(idMedia, video->volumeInfo(-1)))
                             qWarning() << "Unable to set volume information for" << filename;
                     }
                     else
                     {
                         qWarning() << "NO VOLUME INFO (TIMEOUT)" << filename;
                     }
-
                 }
                 else
                 {
@@ -86,4 +87,5 @@ void UpdateMediaVolumeInfo::run()
     }
 
     backend.quit();
+    manager->deleteLater();
 }

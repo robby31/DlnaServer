@@ -11,18 +11,19 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
 {
     if (m_streamUrl.isNull())
     {
-        DlnaYouTubeVideo movie(log(), host, port);
-        movie.setAnalyzeStream(false);
+        QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> movie(new DlnaYouTubeVideo(log(), host, port));
+        movie->setAnalyzeStream(false);
         if (m_nam)
         {
-            movie.moveToThread(m_nam->thread());
-            movie.setNetworkAccessManager(m_nam);
+            movie->moveToThread(m_nam->thread());
+            connect(m_nam->thread(), SIGNAL(finished()), movie.data(), SLOT(deleteLater()));
+            movie->setNetworkAccessManager(m_nam);
         }
-        movie.setUrl(getSystemName());
+        movie->setUrl(getSystemName());
 
-        bool res = movie.waitUrl(30000);
+        bool res = movie->waitUrl(30000);
         if (res)
-            m_streamUrl = movie.streamUrl();
+            m_streamUrl = movie->streamUrl();
     }
 
     if (!m_streamUrl.isEmpty())

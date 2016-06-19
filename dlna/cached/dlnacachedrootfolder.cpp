@@ -155,15 +155,15 @@ void DlnaCachedRootFolder::checkNetworkLink()
     while (query.next())
     {
         ++nb;
-        DlnaYouTubeVideo *movie;
 
         QString url(query.value("filename").toString());
         bool isReachable = query.value("is_reachable").toBool();
 
-        movie = new DlnaYouTubeVideo(log(), host, port);
+        QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> movie(new DlnaYouTubeVideo(log(), host, port));
         if (m_nam)
         {
             movie->moveToThread(m_nam->thread());
+            connect(m_nam->thread(), SIGNAL(finished()), movie.data(), SLOT(deleteLater()));
             movie->setNetworkAccessManager(m_nam);
         }
         movie->setUrl(url);
@@ -208,8 +208,6 @@ void DlnaCachedRootFolder::checkNetworkLink()
             // refresh data
 //            addResource(QUrl(url));
         }
-
-        movie->deleteLater();
     }
 
     logInfo(QString("%1 links checked.").arg(nb));
@@ -225,43 +223,44 @@ bool DlnaCachedRootFolder::addResource(QUrl url)
     data.insert("type", "video");
 //    data.insert("last_modified", fileinfo.lastModified());
 
-    DlnaYouTubeVideo movie(log(), host, port);
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> movie(new DlnaYouTubeVideo(log(), host, port));
     if (m_nam)
     {
-        movie.moveToThread(m_nam->thread());
-        movie.setNetworkAccessManager(m_nam);
+        movie->moveToThread(m_nam->thread());
+        connect(m_nam->thread(), SIGNAL(finished()), movie.data(), SLOT(deleteLater()));
+        movie->setNetworkAccessManager(m_nam);
     }
-    movie.setUrl(url.toString());
+    movie->setUrl(url.toString());
 
-    bool res = movie.waitUrl(30000);
-    if (!(res && movie.isValid()))
+    bool res = movie->waitUrl(30000);
+    if (!(res && movie->isValid()))
     {
         logError(QString("unable to add resource %1, media is not valid").arg(url.toString()));
     }
     else
     {
-        data.insert("title", movie.metaDataTitle());
-        data.insert("duration", movie.metaDataDuration());
-        data.insert("resolution", movie.resolution());
-        data.insert("samplerate", movie.samplerate());
-        data.insert("channelcount", movie.channelCount());
-        data.insert("audiolanguages", movie.audioLanguages().join(","));
-        data.insert("subtitlelanguages", movie.subtitleLanguages().join(","));
-        data.insert("framerate", movie.framerate());
-        data.insert("bitrate", movie.bitrate());
-        data.insert("format", movie.metaDataFormat());
-        data.insert("mime_type", movie.mimeType());
+        data.insert("title", movie->metaDataTitle());
+        data.insert("duration", movie->metaDataDuration());
+        data.insert("resolution", movie->resolution());
+        data.insert("samplerate", movie->samplerate());
+        data.insert("channelcount", movie->channelCount());
+        data.insert("audiolanguages", movie->audioLanguages().join(","));
+        data.insert("subtitlelanguages", movie->subtitleLanguages().join(","));
+        data.insert("framerate", movie->framerate());
+        data.insert("bitrate", movie->bitrate());
+        data.insert("format", movie->metaDataFormat());
+        data.insert("mime_type", movie->mimeType());
 
-        if (movie.metaDataTitle().isEmpty()) {
+        if (movie->metaDataTitle().isEmpty()) {
             logError(QString("unable to add resource %1, title is empty").arg(url.toString()));
         } else {
-            if (movie.metaDataDuration()<=0)
-                logWarning(QString("invalid duration %3 for %1 (%2).").arg(movie.metaDataTitle()).arg(url.toString()).arg(movie.metaDataDuration()));
-            if (movie.resolution().isEmpty())
-                logWarning(QString("invalid resolution %3 for %1 (%2).").arg(movie.metaDataTitle()).arg(url.toString()).arg(movie.resolution()));
+            if (movie->metaDataDuration()<=0)
+                logWarning(QString("invalid duration %3 for %1 (%2).").arg(movie->metaDataTitle()).arg(url.toString()).arg(movie->metaDataDuration()));
+            if (movie->resolution().isEmpty())
+                logWarning(QString("invalid resolution %3 for %1 (%2).").arg(movie->metaDataTitle()).arg(url.toString()).arg(movie->resolution()));
 
             if (!data.isEmpty()) {
-                logDebug(QString("Resource to add: %1").arg(movie.metaDataTitle()));
+                logDebug(QString("Resource to add: %1").arg(movie->metaDataTitle()));
                 if (!library.add_media(data, data_album, data_artist)) {
                     logError(QString("unable to add or update resource %1 (%2)").arg(url.toString().arg("video")));
                 } else {
