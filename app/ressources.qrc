@@ -23,5 +23,6 @@
         <file>images/web.png</file>
         <file>images/renderer.png</file>
         <file>images/requests.png</file>
+        <file>qml/content/DebugView.qml</file>
     </qresource>
 </RCC>

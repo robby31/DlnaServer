@@ -37,6 +37,10 @@ MyApplication {
             state: "NAVIGATOR"
             icon: "qrc:/images/web.png"
         }
+        ListElement {
+            title: "Debug"
+            state: "DEBUG"
+        }
     }
 
     Component {

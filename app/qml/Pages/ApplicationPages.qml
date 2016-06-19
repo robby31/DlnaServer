@@ -18,6 +18,8 @@ Item {
             sharedPage.toggleMenu()
         else if (mainWindow.state==="NAVIGATOR")
             webPage.toggleMenu()
+        else if (mainWindow.state==="DEBUG")
+            debugPage.toggleMenu()
     }
 
     RequestsView {
@@ -45,6 +47,13 @@ Item {
         id: webPage
         anchors.fill: parent
         visible: mainWindow.state === "NAVIGATOR"
+        onQuit: mainWindow.close()
+    }
+
+    DebugView {
+        id: debugPage
+        anchors.fill: parent
+        visible: mainWindow.state === "DEBUG"
         onQuit: mainWindow.close()
     }
 }

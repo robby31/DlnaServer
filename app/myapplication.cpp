@@ -1,7 +1,8 @@
 #include "myapplication.h"
 
-MyApplication::MyApplication(int &argc, char **argv):
+MyApplication::MyApplication(int &argc, char **argv, QSqlDatabase *db):
     Application(argc, argv),
+    database(db),
     settings("HOME", "QMS", this),
     m_sharedFolderModel(),
     m_controller(this),
@@ -9,24 +10,61 @@ MyApplication::MyApplication(int &argc, char **argv):
     worker(this),
     server(0),
     m_requestsModel(0),
-    m_renderersModel(0)
+    m_renderersModel(0),
+    m_debugModel(0)
 {
+    connect(this, SIGNAL(aboutToQuit()), this, SLOT(quit()));
+
     QFfmpegProcess::setDirPath("/opt/local/bin");
 
-    connect(this, SIGNAL(mainQmlLoaded(QObject*)), this, SLOT(mainQmlLoaded(QObject*)));
     addController("homePageController", &m_controller);
 
     thread()->setObjectName("QML APPLICATION THREAD");
     worker.setObjectName("WORKER APPLICATION");
     log.setLevel(INF);
 
-    server = new HttpServer(&log);
+    server = new HttpServer(&log, database);
     server->moveToThread(&worker);
     connect(&worker, SIGNAL(finished()), server, SLOT(deleteLater()));
 
     setRenderersModel(new MediaRendererModel(this));
 
     setRequestsModel(new RequestListModel(&log, this));
+
+    m_debugModel = new ListModel(new DebugItem, this);
+
+    DebugItem *item;
+    item = new DebugItem("DlnaResource", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("DlnaFolder", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("DlnaMusicTrackFile", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("DlnaRootFolder", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("DlnaVideoFile", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("DlnaYoutubeVideo", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("HttpClient", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("Request", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("Reply", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("Device", m_debugModel);
+    m_debugModel->appendRow(item);
+
+
 
     qRegisterMetaType<qintptr>("qintptr");
 
@@ -51,7 +89,7 @@ MyApplication::MyApplication(int &argc, char **argv):
 
 MyApplication::~MyApplication()
 {
-
+    qWarning() << "MYAPPLICATION DESTROYED";
 }
 
 void MyApplication::serverStarted()
@@ -106,12 +144,6 @@ void MyApplication::setRequestsModel(RequestListModel *model)
     emit requestsModelChanged();
 }
 
-void MyApplication::mainQmlLoaded(QObject *obj)
-{
-    // HMI loaded
-    connect(obj, SIGNAL(closing(QQuickCloseEvent*)), this, SLOT(quit()));
-}
-
 void MyApplication::removeFolder(const int &index) {
     if (index >=0 && index < m_sharedFolderModel.size()) {
         m_sharedFolderModel.removeAt(index);
@@ -120,6 +152,7 @@ void MyApplication::removeFolder(const int &index) {
 }
 
 void MyApplication::quit() {
+    qWarning() << "QUIT MYAPPLICATION";
     log.Trace("Quit Application.");
 
     // save the settings
@@ -128,6 +161,7 @@ void MyApplication::quit() {
     worker.quit();
     if (!worker.wait(1000))
         log.Error("Unable to stop the worker of the application");
+    qWarning() << "MYAPPLICATION DONE";
 }
 
 void MyApplication::folderAdded(const QString &folder)
