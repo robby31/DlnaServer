@@ -59,5 +59,25 @@ bool StreamingFile::open()
 
     if (res)
         emit openedSignal();
+
     return res;
+}
+
+bool StreamingFile::waitForFinished(int msecs)
+{
+    QElapsedTimer timer;
+    timer.start();
+
+    while (!atEnd())
+    {
+        emit readyRead();
+
+        if (msecs != -1 && timer.elapsed() > msecs)
+            return false;
+
+        QThread::msleep(200);
+        QThread::yieldCurrentThread();
+    }
+
+    return true;
 }

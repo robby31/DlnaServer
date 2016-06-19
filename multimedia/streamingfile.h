@@ -2,6 +2,8 @@
 #define STREAMINGFILE_H
 
 #include <QFile>
+#include <QElapsedTimer>
+#include <QThread>
 #include <QDebug>
 #include "device.h"
 
@@ -13,7 +15,7 @@ public:
     explicit StreamingFile(QString filename, Logger *log, QObject *parent = 0);
     virtual ~StreamingFile() { }
 
-    bool waitForFinished(int msecs = 30000) { Q_UNUSED(msecs) while (!atEnd())  emit readyRead(); return true; }
+    bool waitForFinished(int msecs = 30000);
 
     virtual qint64 size() const;
     virtual bool atEnd() const;
