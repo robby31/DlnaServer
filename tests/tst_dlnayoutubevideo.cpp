@@ -9,6 +9,7 @@ tst_dlnayoutubevideo::tst_dlnayoutubevideo(QObject *parent) :
     manager(0)
 {
     QFfmpegProcess::setDirPath("/opt/local/bin");
+    FfmpegTranscoding::setDirPath("/opt/local/bin");
 
     backend = new QThread();
     backend->setObjectName("TEST BACKEND");

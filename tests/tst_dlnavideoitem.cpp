@@ -7,6 +7,7 @@ tst_dlnavideoitem::tst_dlnavideoitem(QObject *parent) :
     timeToOpenTranscoding(0)
 {
     QFfmpegProcess::setDirPath("/opt/local/bin");
+    FfmpegTranscoding::setDirPath("/opt/local/bin");
 }
 
 void tst_dlnavideoitem::receivedTranscodedData(const QByteArray &data)

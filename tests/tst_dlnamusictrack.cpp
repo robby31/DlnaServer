@@ -7,6 +7,7 @@ tst_dlnamusictrack::tst_dlnamusictrack(QObject *parent) :
     timeToOpenTranscoding(0)
 {
     QFfmpegProcess::setDirPath("/opt/local/bin");
+    FfmpegTranscoding::setDirPath("/opt/local/bin");
 }
 
 void tst_dlnamusictrack::receivedTranscodedData(const QByteArray &data)
@@ -23,7 +24,7 @@ void tst_dlnamusictrack::transcodingOpened()
 
 void tst_dlnamusictrack::LogMessage(const QString &message)
 {
-//    qWarning() << message;
+    qWarning() << message;
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
