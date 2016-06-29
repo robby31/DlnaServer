@@ -48,7 +48,7 @@ void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
             else if (transcodeFormat == AAC)
                 overheadFactor = 1.01;
             else if (transcodeFormat == ALAC)
-                overheadFactor = 1.03;
+                overheadFactor = 1.08;
             else
                 overheadFactor = 1.0;
         }
