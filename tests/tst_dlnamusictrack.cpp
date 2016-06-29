@@ -23,7 +23,7 @@ void tst_dlnamusictrack::transcodingOpened()
 
 void tst_dlnamusictrack::LogMessage(const QString &message)
 {
-    qWarning() << message;
+//    qWarning() << message;
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
