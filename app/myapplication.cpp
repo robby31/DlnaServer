@@ -16,6 +16,7 @@ MyApplication::MyApplication(int &argc, char **argv, QSqlDatabase *db):
     connect(this, SIGNAL(aboutToQuit()), this, SLOT(quit()));
 
     QFfmpegProcess::setDirPath("/opt/local/bin");
+    FfmpegTranscoding::setDirPath("/opt/local/bin");
 
     addController("homePageController", &m_controller);
 

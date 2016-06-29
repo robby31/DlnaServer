@@ -1,12 +1,18 @@
 #include "ffmpegtranscoding.h"
 
-const QString FfmpegTranscoding::PROGRAM = QString("/opt/local/bin/ffmpeg");
+QString FfmpegTranscoding::EXE_DIRPATH = "";
+
+void FfmpegTranscoding::setDirPath(const QString &folder)
+{
+    EXE_DIRPATH = folder;
+}
 
 FfmpegTranscoding::FfmpegTranscoding(Logger *log, QObject *parent) :
     TranscodeProcess(log, parent),
     audioVolumeTarget(-15.0)
 {
-    setProgram(PROGRAM);
+    QDir folder(EXE_DIRPATH);
+    setProgram(folder.absoluteFilePath("ffmpeg"));
 }
 
 void FfmpegTranscoding::updateArguments()
@@ -50,7 +56,7 @@ void FfmpegTranscoding::updateArguments()
     {
         arguments << "-map" <<  "0:a";
 
-        arguments << "-f" << "mp4" << "-codec:a" << "libfdk_aac" << "-movflags" << "frag_keyframe+empty_moov";
+        arguments << "-f" << "mp4" << "-codec:a" << "libfdk_aac" << "-movflags" << "frag_keyframe+empty_moov+faststart";
 
         if (bitrate() > 0)
             arguments << "-b:a" << QString("%1").arg(bitrate());
@@ -59,7 +65,7 @@ void FfmpegTranscoding::updateArguments()
     {
         arguments << "-map" <<  "0:a";
 
-        arguments << "-f" << "mov" << "-codec:a" << "alac" << "-movflags" << "frag_keyframe+empty_moov";
+        arguments << "-f" << "mov" << "-codec:a" << "alac" << "-movflags" << "frag_keyframe+empty_moov+faststart";
 
         if (bitrate() > 0)
             arguments << "-b:a" << QString("%1").arg(bitrate());
@@ -194,7 +200,6 @@ void FfmpegTranscoding::updateArguments()
 //            arguments << "-profile:v" << "baseline" << "-level" << "3.0";
 //            arguments << "-preset" << "ultrafast";
             arguments << "-tune" << "zerolatency";
-//            arguments << "-movflags" << "+faststart";
         }
 
         if (video_bitrate>0)
