@@ -55,8 +55,6 @@ void UPNPHelper::close()
         timerAlive.stop();
         _sendByeBye();
     }
-    udpSocketBroadcast.close();
-    udpSocketReceiver.close();
 }
 
 // Function called when a request is received
@@ -165,8 +163,6 @@ void UPNPHelper::_sendReply(const QHostAddress &host, const int &port, const QBy
 
     if (socket.writeDatagram(msg, host, port) == -1)
         logError("UPNPHELPER: Unable to send reply.");
-
-    socket.close();
 }
 
 QByteArray UPNPHelper::_buildMsg(const QString &nt, const QString &nts)

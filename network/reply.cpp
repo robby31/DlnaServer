@@ -348,9 +348,6 @@ void Reply::_run()
                 replyDone("ERROR");
                 return;
             }
-
-            sock.flush();
-            sock.close();
         }
 
 //        if (!soapaction.isEmpty())
@@ -377,9 +374,6 @@ void Reply::_run()
 //                replyDone("ERROR");
 //                return;
 //            }
-
-//            sock.flush();
-//            sock.close();
 //        }
 
 //        QString answerContent;
