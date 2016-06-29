@@ -18,6 +18,7 @@ tst_dlnayoutubevideo::tst_dlnayoutubevideo(QObject *parent) :
     manager = new QNetworkAccessManager();
     connect(this, SIGNAL(destroyed()), manager, SLOT(deleteLater()));
     manager->moveToThread(backend);
+    connect(backend, SIGNAL(finished()), manager, SLOT(deleteLater()));
 
     db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
 }
@@ -34,11 +35,12 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
     QElapsedTimer timer;
     timer.start();
 
-    DlnaYouTubeVideo *video = new DlnaYouTubeVideo(&log, "host", 600);
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+    video->moveToThread(backend);
+    connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
+    video->setNetworkAccessManager(manager);
     video->setPlaybackQuality("hq");
     video->setTranscodeFormat(MPEG2_AC3);
-    video->moveToThread(backend);
-    video->setNetworkAccessManager(manager);
     video->setUrl(QUrl("https://www.youtube.com/watch?v=JrlfFTS9kGU"));
     bool res = video->waitUrl(15000);
 
@@ -72,8 +74,6 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
 
     QVERIFY(video->isValid() == true);
     QVERIFY(res == true);
-
-    video->deleteLater();
 }
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD()
@@ -82,11 +82,12 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD()
     QElapsedTimer timer;
     timer.start();
 
-    DlnaYouTubeVideo *video = new DlnaYouTubeVideo(&log, "host", 600);
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+    video->moveToThread(backend);
+    connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
+    video->setNetworkAccessManager(manager);
     video->setPlaybackQuality("720p");
     video->setTranscodeFormat(MPEG2_AC3);
-    video->moveToThread(backend);
-    video->setNetworkAccessManager(manager);
     video->setUrl(QUrl("https://www.youtube.com/watch?v=JrlfFTS9kGU"));
     bool res = video->waitUrl(15000);
 
@@ -114,8 +115,6 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD()
 
     QVERIFY(video->isValid() == true);
     QVERIFY(res == true);
-
-    video->deleteLater();
 }
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD_NotFound()
@@ -124,11 +123,12 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD_NotFound()
     QElapsedTimer timer;
     timer.start();
 
-    DlnaYouTubeVideo *video = new DlnaYouTubeVideo(&log, "host", 600);
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+    video->moveToThread(backend);
+    connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
+    video->setNetworkAccessManager(manager);
     video->setPlaybackQuality("720p");
     video->setTranscodeFormat(MPEG2_AC3);
-    video->moveToThread(backend);
-    video->setNetworkAccessManager(manager);
     video->setUrl(QUrl("https://www.youtube.com/watch?v=RQlXgAR0F4Y"));
     bool res = video->waitUrl(15000);
 
@@ -156,8 +156,6 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD_NotFound()
 
     QVERIFY(video->isValid() == true);
     QVERIFY(res == true);
-
-    video->deleteLater();
 }
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG2()
@@ -166,11 +164,12 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG2()
     QElapsedTimer timer;
     timer.start();
 
-    DlnaYouTubeVideo *video = new DlnaYouTubeVideo(&log, "host", 600);
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+    video->moveToThread(backend);
+    connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
+    video->setNetworkAccessManager(manager);
     video->setPlaybackQuality("hq");
     video->setTranscodeFormat(MPEG2_AC3);
-    video->moveToThread(backend);
-    video->setNetworkAccessManager(manager);
     video->setUrl(QUrl("http://www.youtube.com/watch?v=04QzovLe2JM"));
     bool res = video->waitUrl(15000);
 
@@ -230,7 +229,6 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG2()
     QVERIFY(video->getByteAlbumArt().isNull() == true);
 
     QVERIFY(res == true);
-    video->deleteLater();
 }
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG4()
@@ -239,11 +237,12 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG4()
     QElapsedTimer timer;
     timer.start();
 
-    DlnaYouTubeVideo *video = new DlnaYouTubeVideo(&log, "host", 600);
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+    video->moveToThread(backend);
+    connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
+    video->setNetworkAccessManager(manager);
     video->setPlaybackQuality("hq");
     video->setTranscodeFormat(MPEG4_AAC);
-    video->moveToThread(backend);
-    video->setNetworkAccessManager(manager);
     video->setUrl(QUrl("http://www.youtube.com/watch?v=04QzovLe2JM"));
     bool res = video->waitUrl(15000);
 
@@ -311,7 +310,6 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG4()
     QVERIFY(video->getByteAlbumArt().isNull() == true);
 
     QVERIFY(res == true);
-    video->deleteLater();
 }
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
@@ -320,11 +318,12 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
     QElapsedTimer timer;
     timer.start();
 
-    DlnaYouTubeVideo *video = new DlnaYouTubeVideo(&log, "host", 600);
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+    video->moveToThread(backend);
+    connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
+    video->setNetworkAccessManager(manager);
     video->setPlaybackQuality("hq");
     video->setTranscodeFormat(MPEG2_AC3);
-    video->moveToThread(backend);
-    video->setNetworkAccessManager(manager);
     video->setUrl(QUrl("http://www.youtube.com/watch?v=cXxwIZwYnok"));
     bool res = video->waitUrl(15000);
 
@@ -350,7 +349,6 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
     qWarning() << "test done in" << timer.elapsed() << "ms.";
 
     QVERIFY(res == true);
-    video->deleteLater();
 }
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo4()
@@ -359,11 +357,12 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo4()
     QElapsedTimer timer;
     timer.start();
 
-    DlnaYouTubeVideo *video = new DlnaYouTubeVideo(&log, "host", 600);
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+    video->moveToThread(backend);
+    connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
+    video->setNetworkAccessManager(manager);
     video->setPlaybackQuality("hq");
     video->setTranscodeFormat(MPEG2_AC3);
-    video->moveToThread(backend);
-    video->setNetworkAccessManager(manager);
     video->setUrl(QUrl("https://www.youtube.com/watch?v=cmSYV5A9iuU"));
     bool res = video->waitUrl(30000);
 
@@ -389,8 +388,6 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo4()
 
     QVERIFY2(duration < 15000, QString("Duration: %1").arg(duration).toUtf8());
     QVERIFY(res == true);
-
-    video->deleteLater();
 }
 
 void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
@@ -416,7 +413,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
 
     DlnaCachedFolder *no_artist = qobject_cast<DlnaCachedFolder*>(artists->getChild(0));
     QVERIFY2(no_artist->getDisplayName() == "No Artist", no_artist->getDisplayName().toUtf8().constData());
-    QVERIFY2(no_artist->getChildrenSize() == 189, QString("%1").arg(no_artist->getChildrenSize()).toUtf8().constData());
+    QVERIFY2(no_artist->getChildrenSize() == 188, QString("%1").arg(no_artist->getChildrenSize()).toUtf8().constData());
 
     DlnaCachedNetworkVideo* movie = 0;
     for (int index=0;index<no_artist->getChildrenSize();++index)
@@ -531,7 +528,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
     int nbOk = 0;
     int nbErrors = 0;
     QSqlQuery query = rootFolder.getAllNetworkLinks();
-    DlnaYouTubeVideo *video;
+
     while (query.next())
     {
         QUrl url = query.value("filename").toString();
@@ -540,8 +537,9 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
         QElapsedTimer timer;
         timer.start();
 
-        video = new DlnaYouTubeVideo(&log, "host", 600);
+        QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
         video->moveToThread(backend);
+        connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
         video->setNetworkAccessManager(manager);
         video->setUrl(url);
         bool res = video->waitUrl(60000);
@@ -570,8 +568,6 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
         }
 
         qWarning() << "check done in" << duration << "ms.";
-
-        video->deleteLater();
     }
 
     if (nbErrors+nbOk!=0)
