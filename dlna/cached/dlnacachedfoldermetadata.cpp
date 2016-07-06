@@ -4,7 +4,7 @@ DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *li
     DlnaStorageFolder(log, host, port, parent),
     library(library),
     m_name(name),
-    query(stringQuery),
+    query(stringQuery, QSqlDatabase::database("MEDIA_DATABASE")),
     stringQueryForChild(stringQueryForChild),
     nbChildren(-1),
     m_nam(0)
@@ -42,7 +42,7 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
         }
 
         child = new DlnaCachedFolder(log(), library,
-                                     QSqlQuery(childQuery),
+                                     QSqlQuery(childQuery,  QSqlDatabase::database("MEDIA_DATABASE")),
                                      childName,
                                      host, port,
                                      false, -1,

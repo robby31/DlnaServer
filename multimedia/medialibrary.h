@@ -14,19 +14,19 @@ class MediaLibrary : public LogObject
     typedef QHash<QString, QHash<QString, QVariant> > StateType;
 
 public:
-    explicit MediaLibrary(Logger *log, QSqlDatabase *database = 0, QObject *parent = 0);
+    explicit MediaLibrary(Logger *log, QObject *parent = 0);
     virtual ~MediaLibrary();
 
-    bool open();
+    bool initialize();
 
-    QSqlDatabase *getDatabase() const { return db; }
+    QSqlDatabase getDatabase() const { return QSqlDatabase::database("MEDIA_DATABASE"); }
 
-    QSqlQuery getMediaType() const { return QSqlQuery("SELECT DISTINCT id, name FROM type"); }
+    QSqlQuery getMediaType() const { return QSqlQuery("SELECT DISTINCT id, name FROM type", db); }
 
     QSqlQuery getMedia(const QString &where, const QString &orderParam="media.id", const QString &sortOption="ASC") const;
     int countMedia(const QString &where) const;
 
-    QSqlQuery getAllNetworkLinks() { return QSqlQuery("SELECT id, filename, title, artist, is_reachable from media WHERE filename like 'http%'"); }
+    QSqlQuery getAllNetworkLinks() { return QSqlQuery("SELECT id, filename, title, artist, is_reachable from media WHERE filename like 'http%'", db); }
 
     QSqlQuery getDistinctMetaData(const int &typeMedia, const QString &tagName, const QString &where = QString()) const;
     int countDistinctMetaData(const int &typeMedia, const QString &tagName) const;
@@ -63,7 +63,7 @@ signals:
 public slots:
 
 private:
-    QSqlDatabase *db;
+    QSqlDatabase db;
 
     QHash<QString, QHash<QString, QHash<QString, QString> > > foreignKeys;
     StateType *libraryState;

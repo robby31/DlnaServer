@@ -13,7 +13,8 @@ HEADERS += \
     ../multimedia/medialibrary.h \
     ../multimedia/streamingfile.h \
     $$PWD/device.h \
-    $$PWD/updatemediavolumeinfo.h
+    $$PWD/updatemediavolumeinfo.h \
+    $$PWD/checknetworklink.h
 
 SOURCES += \
     ../multimedia/transcodeprocess.cpp \
@@ -24,7 +25,8 @@ SOURCES += \
     ../multimedia/medialibrary.cpp \
     ../multimedia/streamingfile.cpp \
     $$PWD/device.cpp \
-    $$PWD/updatemediavolumeinfo.cpp
+    $$PWD/updatemediavolumeinfo.cpp \
+    $$PWD/checknetworklink.cpp
 
 
 

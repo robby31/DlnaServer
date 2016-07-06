@@ -14,6 +14,7 @@
 #include "mediarenderermodel.h"
 #include "updatemediavolumeinfo.h"
 #include "debugitem.h"
+#include "checknetworklink.h"
 
 class MyApplication : public Application
 {
@@ -26,13 +27,12 @@ class MyApplication : public Application
 
 
 public:
-    explicit MyApplication(int &argc, char **argv, QSqlDatabase *db);
-    virtual ~MyApplication();
+    explicit MyApplication(int &argc, char **argv);
 
     Q_INVOKABLE void addSharedFolder(const QUrl &folder) { if (folder.isLocalFile()) emit addFolder(folder.toLocalFile()); }
     Q_INVOKABLE void removeFolder(const int &index);
     Q_INVOKABLE void addNetworkLink(const QString &url)  { emit addLink(url); }
-    Q_INVOKABLE void startCheckNetworkLink() { emit checkNetworkLink(); }
+    Q_INVOKABLE void startCheckNetworkLink();
     Q_INVOKABLE void reloadLibrary() { emit reloadLibrarySignal(); }
 
 
@@ -53,7 +53,6 @@ signals:
 
     void addFolder(QString folder);
     void addLink(QString url);
-    void checkNetworkLink();
     void reloadLibrarySignal();
 
 
@@ -74,7 +73,7 @@ private slots:
     void serverStarted();
 
 private:
-    QSqlDatabase *database;
+    QSqlDatabase m_database;
     QSettings settings;
     QStringList m_sharedFolderModel;
 

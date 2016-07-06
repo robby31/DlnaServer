@@ -1,292 +1,285 @@
 #include "medialibrary.h"
 
-MediaLibrary::MediaLibrary(Logger* log, QSqlDatabase *database, QObject *parent) :
+MediaLibrary::MediaLibrary(Logger* log, QObject *parent) :
     LogObject(log, parent),
-    db(database),
+    db(QSqlDatabase::database("MEDIA_DATABASE")),
     foreignKeys(),
     libraryState(0)
 //    m_acoustId(this)
 {
-    if (db)
-        open();
+    initialize();
 }
 
-bool MediaLibrary::open()
+bool MediaLibrary::initialize()
 {
-    logDebug(QString("Open MediaLibrary %1").arg(db->databaseName()));
+    logDebug(QString("Initialize MediaLibrary %1").arg(db.databaseName()));
 
-    if (!db->open()) {
-        logError("unable to open database " + db->databaseName());
+    QSqlQuery query(db);
+
+    if (!query.exec("pragma foreign_keys = on;")) {
+        logError("unable to set FOREIGN KEYS in MediaLibrary " + query.lastError().text());
         return false;
-    } else {
-        QSqlQuery query;
-
-        if (!query.exec("pragma foreign_keys = on;")) {
-            logError("unable to set FOREIGN KEYS in MediaLibrary " + query.lastError().text());
-            return false;
-        }
-
-        if (!query.exec("create table if not exists media ("
-                        "id INTEGER PRIMARY KEY, "
-                        "filename VARCHAR UNIQUE NOT NULL, "
-                        "is_reachable INTEGER DEFAULT 1, "
-                        "title VARCHAR, album INTEGER, artist INTEGER, genre INTEGER, trackposition INTEGER, disc INTEGER, "
-                        "duration INTEGER, samplerate INTEGER, channelcount INTEGER, bitrate INTEGER, resolution VARCHAR, framerate VARCHAR, "
-                        "picture INTEGER, "
-                        "audiolanguages VARCHAR, subtitlelanguages VARCHAR, "
-                        "format VARCHAR, "
-                        "type INTEGER, "
-                        "mime_type INTEGER, "
-                        "rating INTEGER, "
-                        "last_modified DATETIME, "
-                        "addedDate DATETIME, "
-                        "last_played DATETIME, "
-                        "progress_played INTEGER, "
-                        "counter_played INTEGER DEFAULT 0, "
-                        "acoustid VARCHAR, "
-                        "mbid VARCHAR, "
-                        "FOREIGN KEY(type) REFERENCES type(id), "
-                        "FOREIGN KEY(mime_type) REFERENCES mime_type(id), "
-                        "FOREIGN KEY(artist) REFERENCES artist(id), "
-                        "FOREIGN KEY(album) REFERENCES album(id), "
-                        "FOREIGN KEY(picture) REFERENCES picture(id), "
-                        "FOREIGN KEY(genre) REFERENCES genre(id)"
-                        ")")) {
-            logError("unable to create table media in MediaLibrary " + query.lastError().text());
-            return false;
-        }
-
-        if (!query.exec("create table if not exists type (id INTEGER PRIMARY KEY, "
-                                                         "name VARCHAR UNIQUE NOT NULL)")) {
-            logError("unable to create table type in MediaLibrary " + query.lastError().text());
-            return false;
-        }
-
-        if (!query.exec("create table if not exists mime_type (id INTEGER PRIMARY KEY, "
-                                                              "name VARCHAR UNIQUE NOT NULL)")) {
-            logError("unable to create table mime_type in MediaLibrary " + query.lastError().text());
-            return false;
-        }
-
-        if (!query.exec("create table if not exists artist (id INTEGER PRIMARY KEY, "
-                                                           "name VARCHAR UNIQUE NOT NULL, "
-                                                           "sortname VARCHAR UNIQUE "
-                                                           ")")) {
-            logError("unable to create table artist in MediaLibrary " + query.lastError().text());
-            return false;
-        }
-
-        if (!query.exec("create table if not exists album (id INTEGER PRIMARY KEY, "
-                                                          "name VARCHAR NOT NULL, "
-                                                          "artist INTEGER, "
-                                                          "year INTEGER, "
-                                                          "FOREIGN KEY(artist) REFERENCES artist(id), "
-                                                          "UNIQUE(name, artist)"
-                                                          ")"))
-        {
-            logError("unable to create table album in MediaLibrary " + query.lastError().text());
-            return false;
-        }
-
-        if (!query.exec("create table if not exists genre (id INTEGER PRIMARY KEY, "
-                                                          "name VARCHAR UNIQUE NOT NULL)")) {
-            logError("unable to create table genre in MediaLibrary " + query.lastError().text());
-            return false;
-        }
-
-        if (!query.exec("create table if not exists picture (id INTEGER PRIMARY KEY, "
-                                                            "name VARCHAR UNIQUE NOT NULL)")) {
-            logError("unable to create table picture in MediaLibrary " + query.lastError().text());
-            return false;
-        }
-
-//        qWarning() << query.exec("DROP TABLE param_value");
-//        qWarning() << query.exec("DROP TABLE param_name");
-
-        if (!query.exec("create table if not exists param_name (id INTEGER PRIMARY KEY, "
-                                                               "name VARCHAR UNIQUE NOT NULL)"))
-        {
-            logError("unable to create table parameter names in MediaLibrary " + query.lastError().text());
-            return false;
-        }
-
-        if (!query.exec("create table if not exists param_value (id INTEGER PRIMARY KEY, "
-                                                                "name INTEGER NOT NULL, "
-                                                                "media INTEGER NOT NULL, "
-                                                                "value VARCHAR NOT NULL, "
-                                                                "FOREIGN KEY(name) REFERENCES param_name(id), "
-                                                                "FOREIGN KEY(media) REFERENCES media(id), "
-                                                                "UNIQUE(name, media)"
-                                                                ")"))
-        {
-            logError("unable to create table parameter values in MediaLibrary " + query.lastError().text());
-            return false;
-        }
-
-//        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_idmedia ON media(id)")) {
-//            logError("unable to create index in MediaLibrary " + query.lastError().text());
-//            return false;
-//        }
-
-        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_artistmedia ON media(artist)")) {
-            logError("unable to create index in MediaLibrary " + query.lastError().text());
-            return false;
-        }
-
-        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_albummedia ON media(album)")) {
-            logError("unable to create index in MediaLibrary " + query.lastError().text());
-            return false;
-        }
-
-        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_genremedia ON media(genre)")) {
-            logError("unable to create index in MediaLibrary " + query.lastError().text());
-            return false;
-        }
-
-
-        // update foreign keys
-        foreach(QString tableName, db->tables()) {
-            query.exec(QString("pragma foreign_key_list(%1);").arg(tableName));
-            while (query.next()) {
-                QHash<QString, QString> tmp;
-                tmp["table"] = query.value("table").toString();
-                tmp["to"] = query.value("to").toString();
-                foreignKeys[tableName][query.value("from").toString()] = tmp;
-            }
-        }
-
-        // check if unreachable media are still unreachable
-        if (query.exec("SELECT id, filename from media WHERE is_reachable=0"))
-        {
-            QHash<QString, QVariant> data;
-            data["is_reachable"] = QVariant(1);
-            while (query.next())
-            {
-                QString url(query.value("filename").toString());
-                if (!url.startsWith("http"))
-                {
-                    QFile fd(url);
-                    if (fd.exists())
-                    {
-                        logInfo(QString("media %1 id=%2 is now reachable").arg(fd.fileName()).arg(query.value("id").toString()));
-                        update("media", query.value("id").toInt(), data);
-                    }
-                }
-            }
-        }
-
-        // check if all media are reachable
-        if (query.exec("SELECT id, filename from media"))
-        {
-            QHash<QString, QVariant> data;
-            data["is_reachable"] = QVariant(0);
-            while (query.next()) {
-                QString url(query.value("filename").toString());
-                if (!url.startsWith("http")) {
-                    QFile fd(url);
-                    if (!fd.exists()) {
-                        logInfo(QString("unable to reach media %1 id=%2").arg(fd.fileName()).arg(query.value("id").toString()));
-                        update("media", query.value("id").toInt(), data);
-                    }
-                }
-            }
-        }
-
-        // check if all artists are used by at least one media
-        if (query.exec("SELECT artist.id, artist.name, count(media.id) from artist LEFT OUTER JOIN media ON media.artist=artist.id GROUP BY artist.id, artist.name")) {
-            while (query.next())
-                if (query.value(2).toInt()==0)
-                    logWarning(QString("Artist with no media: %1(id=%2)").arg(query.value(1).toString()).arg(query.value(0).toInt()));
-        }
-
-        // check if duration is valid
-        if (query.exec("SELECT filename, title, duration from media WHERE duration<1000")) {
-            while (query.next())
-                logWarning(QString("invalid duration: %1 (filename=%2, title=%3)").arg(query.value(2).toString()).arg(query.value(0).toString()).arg(query.value(1).toString()));
-        }
-
-        // check sortname for artists
-        query.exec("SELECT count(id) from artist");
-        if (query.next())
-        {
-            int nbArtists = query.value(0).toInt();
-            query.exec("SELECT count(id) from artist WHERE artist.sortname is null");
-            if (query.next())
-            {
-                qWarning() << query.value(0).toInt() << "artists with no sortname, total number of artists is" << nbArtists;
-            }
-        }
-
-        // check artist for albums
-        query.exec("SELECT count(id) from album");
-        if (query.next())
-        {
-            int nbAlbums = query.value(0).toInt();
-            query.exec("SELECT count(id) from album WHERE album.artist is null");
-            if (query.next())
-            {
-                qWarning() << query.value(0).toInt() << "album with no artist, total number of albums is" << nbAlbums;
-            }
-        }
-
-        // correct duration
-//        if (!query.exec(QString("UPDATE media SET duration=339776 WHERE filename='http://www.youtube.com/watch?v=a5uQMwRMHcs'")))
-//            qWarning() << query.lastError();
-
-        // update youtube link
-//        if (!query.exec(QString("UPDATE media SET filename='https://www.youtube.com/watch?v=THGgyPfiNHs' WHERE id=14960")))
-//            qWarning() << query.lastError();
-
-        if (query.exec("SELECT id, filename, title from media where is_reachable=0"))
-            while (query.next())
-                qWarning() << "OFF LINE" << query.value("id").toInt() << query.value("filename").toString().toUtf8()<< query.value("title").toString().toUtf8();
-
-        if (query.exec("SELECT count(id) from media") && query.next())
-            logInfo(QString("%1 medias in database.").arg(query.value(0).toInt()));
-
-
-        /////////////////////////////////////////////////////////
-        // update youtube link broken
-
-//        if (query.exec("SELECT id, filename, title from media WHERE filename like '%youtube%' and title like '%prayer%'"))
-//            while (query.next())
-//                qWarning() << query.value("id") << query.value("filename") << query.value("title");
-
-
-//        if (!query.exec(QString("UPDATE media SET filename='https://www.youtube.com/watch?v=JrlfFTS9kGU' where id=60")))
-//            qWarning() << query.lastError();
-
-        /////////////////////////////////////////////////////////
-
-
-//        if (query.exec("SELECT filename, counter_played from media ORDER BY counter_played"))
-//            while (query.next())
-//                qWarning() << query.value("counter_played") << query.value("filename");
-
-//        QString artist("adele");
-//        int idArtist = -1;
-//        if (query.exec("SELECT id, name from artist where name like '%"+artist+"%'"))
-//            while (query.next()) {
-//                qWarning() << "ARTIST found" << query.value("name");
-//                idArtist = query.value("id").toInt();
-//                break;
-//            }
-
-//        if (idArtist != -1) {
-//            qWarning() << "UPDATE" << artist << "=" << idArtist;
-
-////            if (!query.exec(QString("UPDATE media SET artist=%1 where type=1 and artist is null and title like '%"+artist+"%'").arg(idArtist)))
-////                qWarning() << query.lastError();
-
-//            if (query.exec("SELECT filename, title, artist from media where type=1 and title like '%"+artist+"%'"))
-//                while (query.next())
-//                    qWarning() << query.value("filename") << query.value("title") << query.value("artist");
-//        }
-
-
     }
 
-    logDebug(QString("MediaLibrary %1 opened.").arg(db->databaseName()));
+    if (!query.exec("create table if not exists media ("
+                    "id INTEGER PRIMARY KEY, "
+                    "filename VARCHAR UNIQUE NOT NULL, "
+                    "is_reachable INTEGER DEFAULT 1, "
+                    "title VARCHAR, album INTEGER, artist INTEGER, genre INTEGER, trackposition INTEGER, disc INTEGER, "
+                    "duration INTEGER, samplerate INTEGER, channelcount INTEGER, bitrate INTEGER, resolution VARCHAR, framerate VARCHAR, "
+                    "picture INTEGER, "
+                    "audiolanguages VARCHAR, subtitlelanguages VARCHAR, "
+                    "format VARCHAR, "
+                    "type INTEGER, "
+                    "mime_type INTEGER, "
+                    "rating INTEGER, "
+                    "last_modified DATETIME, "
+                    "addedDate DATETIME, "
+                    "last_played DATETIME, "
+                    "progress_played INTEGER, "
+                    "counter_played INTEGER DEFAULT 0, "
+                    "acoustid VARCHAR, "
+                    "mbid VARCHAR, "
+                    "FOREIGN KEY(type) REFERENCES type(id), "
+                    "FOREIGN KEY(mime_type) REFERENCES mime_type(id), "
+                    "FOREIGN KEY(artist) REFERENCES artist(id), "
+                    "FOREIGN KEY(album) REFERENCES album(id), "
+                    "FOREIGN KEY(picture) REFERENCES picture(id), "
+                    "FOREIGN KEY(genre) REFERENCES genre(id)"
+                    ")")) {
+        logError("unable to create table media in MediaLibrary " + query.lastError().text());
+        return false;
+    }
+
+    if (!query.exec("create table if not exists type (id INTEGER PRIMARY KEY, "
+                    "name VARCHAR UNIQUE NOT NULL)")) {
+        logError("unable to create table type in MediaLibrary " + query.lastError().text());
+        return false;
+    }
+
+    if (!query.exec("create table if not exists mime_type (id INTEGER PRIMARY KEY, "
+                    "name VARCHAR UNIQUE NOT NULL)")) {
+        logError("unable to create table mime_type in MediaLibrary " + query.lastError().text());
+        return false;
+    }
+
+    if (!query.exec("create table if not exists artist (id INTEGER PRIMARY KEY, "
+                    "name VARCHAR UNIQUE NOT NULL, "
+                    "sortname VARCHAR UNIQUE "
+                    ")")) {
+        logError("unable to create table artist in MediaLibrary " + query.lastError().text());
+        return false;
+    }
+
+    if (!query.exec("create table if not exists album (id INTEGER PRIMARY KEY, "
+                    "name VARCHAR NOT NULL, "
+                    "artist INTEGER, "
+                    "year INTEGER, "
+                    "FOREIGN KEY(artist) REFERENCES artist(id), "
+                    "UNIQUE(name, artist)"
+                    ")"))
+    {
+        logError("unable to create table album in MediaLibrary " + query.lastError().text());
+        return false;
+    }
+
+    if (!query.exec("create table if not exists genre (id INTEGER PRIMARY KEY, "
+                    "name VARCHAR UNIQUE NOT NULL)")) {
+        logError("unable to create table genre in MediaLibrary " + query.lastError().text());
+        return false;
+    }
+
+    if (!query.exec("create table if not exists picture (id INTEGER PRIMARY KEY, "
+                    "name VARCHAR UNIQUE NOT NULL)")) {
+        logError("unable to create table picture in MediaLibrary " + query.lastError().text());
+        return false;
+    }
+
+    //        qWarning() << query.exec("DROP TABLE param_value");
+    //        qWarning() << query.exec("DROP TABLE param_name");
+
+    if (!query.exec("create table if not exists param_name (id INTEGER PRIMARY KEY, "
+                    "name VARCHAR UNIQUE NOT NULL)"))
+    {
+        logError("unable to create table parameter names in MediaLibrary " + query.lastError().text());
+        return false;
+    }
+
+    if (!query.exec("create table if not exists param_value (id INTEGER PRIMARY KEY, "
+                    "name INTEGER NOT NULL, "
+                    "media INTEGER NOT NULL, "
+                    "value VARCHAR NOT NULL, "
+                    "FOREIGN KEY(name) REFERENCES param_name(id), "
+                    "FOREIGN KEY(media) REFERENCES media(id), "
+                    "UNIQUE(name, media)"
+                    ")"))
+    {
+        logError("unable to create table parameter values in MediaLibrary " + query.lastError().text());
+        return false;
+    }
+
+    //        if (!query.exec("CREATE INDEX IF NOT EXISTS idx_idmedia ON media(id)")) {
+    //            logError("unable to create index in MediaLibrary " + query.lastError().text());
+    //            return false;
+    //        }
+
+    if (!query.exec("CREATE INDEX IF NOT EXISTS idx_artistmedia ON media(artist)")) {
+        logError("unable to create index in MediaLibrary " + query.lastError().text());
+        return false;
+    }
+
+    if (!query.exec("CREATE INDEX IF NOT EXISTS idx_albummedia ON media(album)")) {
+        logError("unable to create index in MediaLibrary " + query.lastError().text());
+        return false;
+    }
+
+    if (!query.exec("CREATE INDEX IF NOT EXISTS idx_genremedia ON media(genre)")) {
+        logError("unable to create index in MediaLibrary " + query.lastError().text());
+        return false;
+    }
+
+
+    // update foreign keys
+    foreach(QString tableName, db.tables()) {
+        query.exec(QString("pragma foreign_key_list(%1);").arg(tableName));
+        while (query.next()) {
+            QHash<QString, QString> tmp;
+            tmp["table"] = query.value("table").toString();
+            tmp["to"] = query.value("to").toString();
+            foreignKeys[tableName][query.value("from").toString()] = tmp;
+        }
+    }
+
+    // check if unreachable media are still unreachable
+    if (query.exec("SELECT id, filename from media WHERE is_reachable=0"))
+    {
+        QHash<QString, QVariant> data;
+        data["is_reachable"] = QVariant(1);
+        while (query.next())
+        {
+            QString url(query.value("filename").toString());
+            if (!url.startsWith("http"))
+            {
+                QFile fd(url);
+                if (fd.exists())
+                {
+                    logInfo(QString("media %1 id=%2 is now reachable").arg(fd.fileName()).arg(query.value("id").toString()));
+                    update("media", query.value("id").toInt(), data);
+                }
+            }
+        }
+    }
+
+    // check if all media are reachable
+    if (query.exec("SELECT id, filename from media"))
+    {
+        QHash<QString, QVariant> data;
+        data["is_reachable"] = QVariant(0);
+        while (query.next()) {
+            QString url(query.value("filename").toString());
+            if (!url.startsWith("http")) {
+                QFile fd(url);
+                if (!fd.exists()) {
+                    logInfo(QString("unable to reach media %1 id=%2").arg(fd.fileName()).arg(query.value("id").toString()));
+                    update("media", query.value("id").toInt(), data);
+                }
+            }
+        }
+    }
+
+    // check if all artists are used by at least one media
+    if (query.exec("SELECT artist.id, artist.name, count(media.id) from artist LEFT OUTER JOIN media ON media.artist=artist.id GROUP BY artist.id, artist.name")) {
+        while (query.next())
+            if (query.value(2).toInt()==0)
+                logWarning(QString("Artist with no media: %1(id=%2)").arg(query.value(1).toString()).arg(query.value(0).toInt()));
+    }
+
+    // check if duration is valid
+    if (query.exec("SELECT filename, title, duration from media WHERE duration<1000")) {
+        while (query.next())
+            logWarning(QString("invalid duration: %1 (filename=%2, title=%3)").arg(query.value(2).toString()).arg(query.value(0).toString()).arg(query.value(1).toString()));
+    }
+
+    // check sortname for artists
+    query.exec("SELECT count(id) from artist");
+    if (query.next())
+    {
+        int nbArtists = query.value(0).toInt();
+        query.exec("SELECT count(id) from artist WHERE artist.sortname is null");
+        if (query.next())
+        {
+            qWarning() << query.value(0).toInt() << "artists with no sortname, total number of artists is" << nbArtists;
+        }
+    }
+
+    // check artist for albums
+    query.exec("SELECT count(id) from album");
+    if (query.next())
+    {
+        int nbAlbums = query.value(0).toInt();
+        query.exec("SELECT count(id) from album WHERE album.artist is null");
+        if (query.next())
+        {
+            qWarning() << query.value(0).toInt() << "album with no artist, total number of albums is" << nbAlbums;
+        }
+    }
+
+    // correct duration
+    //        if (!query.exec(QString("UPDATE media SET duration=339776 WHERE filename='http://www.youtube.com/watch?v=a5uQMwRMHcs'")))
+    //            qWarning() << query.lastError();
+
+    // update youtube link
+    //        if (!query.exec(QString("UPDATE media SET filename='https://www.youtube.com/watch?v=THGgyPfiNHs' WHERE id=14960")))
+    //            qWarning() << query.lastError();
+
+    if (query.exec("SELECT id, filename, title from media where is_reachable=0"))
+        while (query.next())
+            qWarning() << "OFF LINE" << query.value("id").toInt() << query.value("filename").toString().toUtf8()<< query.value("title").toString().toUtf8();
+
+    if (query.exec("SELECT count(id) from media") && query.next())
+        logInfo(QString("%1 medias in database.").arg(query.value(0).toInt()));
+
+
+    /////////////////////////////////////////////////////////
+    // update youtube link broken
+
+    //        if (query.exec("SELECT id, filename, title from media WHERE filename like '%youtube%' and title like '%prayer%'"))
+    //            while (query.next())
+    //                qWarning() << query.value("id") << query.value("filename") << query.value("title");
+
+
+    //        if (!query.exec(QString("UPDATE media SET filename='https://www.youtube.com/watch?v=JrlfFTS9kGU' where id=60")))
+    //            qWarning() << query.lastError();
+
+    /////////////////////////////////////////////////////////
+
+
+    //        if (query.exec("SELECT filename, counter_played from media ORDER BY counter_played"))
+    //            while (query.next())
+    //                qWarning() << query.value("counter_played") << query.value("filename");
+
+    //        QString artist("adele");
+    //        int idArtist = -1;
+    //        if (query.exec("SELECT id, name from artist where name like '%"+artist+"%'"))
+    //            while (query.next()) {
+    //                qWarning() << "ARTIST found" << query.value("name");
+    //                idArtist = query.value("id").toInt();
+    //                break;
+    //            }
+
+    //        if (idArtist != -1) {
+    //            qWarning() << "UPDATE" << artist << "=" << idArtist;
+
+    ////            if (!query.exec(QString("UPDATE media SET artist=%1 where type=1 and artist is null and title like '%"+artist+"%'").arg(idArtist)))
+    ////                qWarning() << query.lastError();
+
+    //            if (query.exec("SELECT filename, title, artist from media where type=1 and title like '%"+artist+"%'"))
+    //                while (query.next())
+    //                    qWarning() << query.value("filename") << query.value("title") << query.value("artist");
+    //        }
+
+
+    logDebug(QString("MediaLibrary %1 initialized.").arg(db.databaseName()));
 
     return true;
 }
@@ -302,13 +295,13 @@ QSqlQuery MediaLibrary::getMedia(const QString &where, const QString &orderParam
                              "from media "
                              "LEFT OUTER JOIN type ON media.type=type.id "
                              "WHERE %1 and is_reachable=1 "
-                             "ORDER BY %2 %3").arg(where).arg(orderParam).arg(sortOption));
+                             "ORDER BY %2 %3").arg(where).arg(orderParam).arg(sortOption), db);
 
 }
 
 QVariant MediaLibrary::getmetaDataAlbum(const QString &tagName, const int &idMedia) const
 {
-    QSqlQuery query;
+    QSqlQuery query(db);
     query.prepare("SELECT album.name AS album_name, artist.name AS artist_name, album.year AS year FROM media LEFT OUTER JOIN album ON media.album=album.id LEFT OUTER JOIN artist ON album.artist=artist.id WHERE media.id=:idMedia");
     query.bindValue(":idMedia", idMedia);
     query.exec();
@@ -329,7 +322,7 @@ QVariant MediaLibrary::getmetaDataAlbum(const QString &tagName, const int &idMed
 
 QVariant MediaLibrary::getmetaDataArtist(const QString &tagName, const int &idMedia) const
 {
-    QSqlQuery query;
+    QSqlQuery query(db);
     query.prepare("SELECT artist.name AS artist_name, artist.sortname AS artist_sort FROM media LEFT OUTER JOIN artist ON media.artist=artist.id WHERE media.id=:idMedia");
     query.bindValue(":idMedia", idMedia);
     query.exec();
@@ -349,7 +342,7 @@ QVariant MediaLibrary::getmetaDataArtist(const QString &tagName, const int &idMe
 }
 
 QVariant MediaLibrary::getmetaData(const QString &tagName, const int &idMedia) const {
-    QSqlQuery query;
+    QSqlQuery query(db);
     if (foreignKeys["media"].contains(tagName)) {
         QString foreignTable = foreignKeys["media"][tagName]["table"];
         QString foreignTo = foreignKeys["media"][tagName]["to"];
@@ -376,7 +369,7 @@ QHash<QString, double> MediaLibrary::volumeInfo(const int &idMedia)
 {
     QHash<QString, double> result;
 
-    QSqlQuery query;
+    QSqlQuery query(db);
 
     query.prepare("SELECT param_name.name, param_value.value from param_value LEFT OUTER JOIN param_name ON param_value.name=param_name.id WHERE param_value.media=:idmedia and param_name.name LIKE '%_volume'");
     query.bindValue(":idmedia", idMedia);
@@ -398,7 +391,7 @@ QHash<QString, double> MediaLibrary::volumeInfo(const int &idMedia)
 
 bool MediaLibrary::setVolumeInfo(const int idMedia, const QHash<QString, double> info)
 {
-    QSqlQuery query;
+    QSqlQuery query(db);
 
     foreach(const QString &param, info.keys())
     {
@@ -457,7 +450,7 @@ QSqlQuery MediaLibrary::getDistinctMetaData(const int &typeMedia, const QString 
     if (!where.isEmpty())
         whereQuery = "and " + where;
 
-    QSqlQuery query;
+    QSqlQuery query(db);
     if (foreignKeys["media"].contains(tagName)) {
         QString foreignTable = foreignKeys["media"][tagName]["table"];
         QString foreignTo = foreignKeys["media"][tagName]["to"];
@@ -470,7 +463,7 @@ QSqlQuery MediaLibrary::getDistinctMetaData(const int &typeMedia, const QString 
 }
 
 int MediaLibrary::countDistinctMetaData(const int &typeMedia, const QString &tagName) const {
-    QSqlQuery query;
+    QSqlQuery query(db);
     if (foreignKeys["media"].contains(tagName)) {
         QString foreignTable = foreignKeys["media"][tagName]["table"];
         QString foreignTo = foreignKeys["media"][tagName]["to"];
@@ -487,7 +480,7 @@ int MediaLibrary::countDistinctMetaData(const int &typeMedia, const QString &tag
 }
 
 int MediaLibrary::countMedia(const QString &where) const {
-    QSqlQuery query(QString("SELECT count(id) FROM media WHERE %1 and is_reachable=1").arg(where));
+    QSqlQuery query(QString("SELECT count(id) FROM media WHERE %1 and is_reachable=1").arg(where), db);
     if (query.next()) {
         return query.value(0).toInt();
     } else {
@@ -496,7 +489,7 @@ int MediaLibrary::countMedia(const QString &where) const {
 }
 
 bool MediaLibrary::insert(const QString &table, const QHash<QString, QVariant> &data) {
-    QSqlQuery query;
+    QSqlQuery query(db);
 
     QStringList l_parameters;
     QStringList l_values;
@@ -540,14 +533,14 @@ int MediaLibrary::insertForeignKey(const QString &table, const QString &paramete
     QSqlField field(parameter, value.type());
     field.setValue(value);
 
-    QSqlQuery query;
+    QSqlQuery query(db);
 
     int index = -1;
-    query.exec(QString("SELECT id FROM %1 WHERE %2 = %3").arg(table).arg(parameter).arg(db->driver()->formatValue(field)));
+    query.exec(QString("SELECT id FROM %1 WHERE %2 = %3").arg(table).arg(parameter).arg(db.driver()->formatValue(field)));
     if (query.next()) {
         index = query.value(0).toInt();
     } else {
-        if (!query.exec(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(table).arg(parameter).arg(db->driver()->formatValue(field)))) {
+        if (!query.exec(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(table).arg(parameter).arg(db.driver()->formatValue(field)))) {
             logError("unable to update MediaLibrary " + query.lastError().text());
             return -1;
         } else {
@@ -560,7 +553,7 @@ int MediaLibrary::insertForeignKey(const QString &table, const QString &paramete
 bool MediaLibrary::update(const QString &table, const int &id, const QHash<QString, QVariant> &data)
 {
     QSqlRecord record;
-    QSqlQuery query;
+    QSqlQuery query(db);
     if (query.exec(QString("SELECT * from %2 where id=%1").arg(id).arg(table)))
         if (query.next())
             record = query.record();
@@ -579,7 +572,7 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
 
                 if (record.value(elt) != index) {
                     logDebug(QString("update %1, %2, index %3 --> %4").arg(elt).arg(record.value(elt).toString()).arg(index).arg(data[elt].toString()));
-                    QSqlQuery queryUpdate;
+                    QSqlQuery queryUpdate(db);
                     if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(elt).arg(index).arg(id).arg(table)))
                         return false;
                 }
@@ -587,10 +580,10 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
             } else {
                 if (record.value(elt) != data[elt]) {
                     logDebug(QString("update %1, %2 --> %3").arg(elt).arg(record.value(elt).toString()).arg(data[elt].toString()));
-                    QSqlQuery queryUpdate;
+                    QSqlQuery queryUpdate(db);
                     QSqlField field = record.field(record.indexOf(elt));
                     field.setValue(data[elt]);
-                    if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(elt).arg(db->driver()->formatValue(field)).arg(id).arg(table)))
+                    if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(elt).arg(db.driver()->formatValue(field)).arg(id).arg(table)))
                         return false;
                 }
             }
@@ -602,7 +595,7 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
 
 bool MediaLibrary::updateFromFilename(const QString &filename, const QHash<QString, QVariant> &data)
 {
-    QSqlQuery query = QSqlQuery(QString("SELECT id from media WHERE filename=\"%1\"").arg(filename));
+    QSqlQuery query = QSqlQuery(QString("SELECT id from media WHERE filename=\"%1\"").arg(filename), db);
     if (query.next()) {
         return update("media", query.value("id").toInt(), data);
     }
@@ -630,7 +623,7 @@ int MediaLibrary::add_album(QHash<QString, QVariant> data_album)
     int id_album = -1;
     if (data_album.contains("name") && !data_album["name"].toString().isEmpty() && data_album.contains("artist"))
     {
-        QSqlQuery queryAlbum;
+        QSqlQuery queryAlbum(db);
         if (!data_album["artist"].toString().isEmpty())
         {
             queryAlbum.prepare("SELECT album.id, artist.name from album LEFT OUTER JOIN artist ON artist.id=album.artist WHERE album.name=:name and artist.name=:artist");
@@ -675,7 +668,7 @@ int MediaLibrary::add_artist(QHash<QString, QVariant> data_artist)
     int id_artist = -1;
     if (data_artist.contains("name") && !data_artist["name"].toString().isEmpty())
     {
-        QSqlQuery queryArtist;
+        QSqlQuery queryArtist(db);
         queryArtist.prepare("SELECT artist.id from artist WHERE artist.name=:name");
         queryArtist.bindValue(":name", data_artist["name"]);
 
@@ -764,7 +757,7 @@ bool MediaLibrary::contains(const QFileInfo &fileinfo) const
 
 //void MediaLibrary::checkMetaData(const QFileInfo &fileinfo) const
 //{
-//    QSqlQuery query = getMedia(QString("filename=\"%1\"").arg(fileinfo.absoluteFilePath()));
+//    QSqlQuery query = getMedia(QString("filename=\"%1\"").arg(fileinfo.absoluteFilePath()), db);
 //    if (query.next()) {
 //        if (query.value("type_media") == "audio" && fileinfo.absoluteFilePath().contains("Daft")) {
 //            qWarning() << "CHECK" << fileinfo.absoluteFilePath();
@@ -788,7 +781,7 @@ MediaLibrary::StateType *MediaLibrary::exportMediaState() const
     attributesToExport << "addedDate";
     attributesToExport << "artist";
 
-    QSqlQuery query;
+    QSqlQuery query(db);
     if (query.exec(QString("SELECT id, filename from media")))
     {
         res = new StateType();
@@ -823,11 +816,11 @@ bool MediaLibrary::resetLibrary(const QString &pathname)
 
     if (libraryState) {
         // close current database
-        db->close();
+        db.close();
 
         // open new database
-        db->setDatabaseName(pathname);
-        return open();
+        db.setDatabaseName(pathname);
+        return db.open() && initialize();
     } else {
         return false;
     }

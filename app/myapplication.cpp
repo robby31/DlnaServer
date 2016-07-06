@@ -1,8 +1,8 @@
 #include "myapplication.h"
 
-MyApplication::MyApplication(int &argc, char **argv, QSqlDatabase *db):
+MyApplication::MyApplication(int &argc, char **argv):
     Application(argc, argv),
-    database(db),
+    m_database(QSqlDatabase::addDatabase("QSQLITE", "MEDIA_DATABASE")),
     settings("HOME", "QMS", this),
     m_sharedFolderModel(),
     m_controller(this),
@@ -13,6 +13,8 @@ MyApplication::MyApplication(int &argc, char **argv, QSqlDatabase *db):
     m_renderersModel(0),
     m_debugModel(0)
 {
+    m_database.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+
     connect(this, SIGNAL(aboutToQuit()), this, SLOT(quit()));
 
     QFfmpegProcess::setDirPath("/opt/local/bin");
@@ -24,7 +26,7 @@ MyApplication::MyApplication(int &argc, char **argv, QSqlDatabase *db):
     worker.setObjectName("WORKER APPLICATION");
     log.setLevel(INF);
 
-    server = new HttpServer(&log, database);
+    server = new HttpServer(&log);
     server->moveToThread(&worker);
     connect(&worker, SIGNAL(finished()), server, SLOT(deleteLater()));
 
@@ -81,16 +83,9 @@ MyApplication::MyApplication(int &argc, char **argv, QSqlDatabase *db):
     connect(server, SIGNAL(linkAdded(QString)), this, SLOT(linkAdded(QString)));
     connect(server, SIGNAL(error_addNetworkLink(QString)), this, SLOT(linkNotAdded(QString)));
 
-    connect(this, SIGNAL(checkNetworkLink()), server, SIGNAL(checkNetworkLinkSignal()));
-
     worker.start();
 
     server->start();
-}
-
-MyApplication::~MyApplication()
-{
-    qWarning() << "MYAPPLICATION DESTROYED";
 }
 
 void MyApplication::serverStarted()
@@ -153,7 +148,6 @@ void MyApplication::removeFolder(const int &index) {
 }
 
 void MyApplication::quit() {
-    qWarning() << "QUIT MYAPPLICATION";
     log.Trace("Quit Application.");
 
     // save the settings
@@ -162,7 +156,6 @@ void MyApplication::quit() {
     worker.quit();
     if (!worker.wait(1000))
         log.Error("Unable to stop the worker of the application");
-    qWarning() << "MYAPPLICATION DONE";
 }
 
 void MyApplication::folderAdded(const QString &folder)
@@ -215,4 +208,11 @@ bool MyApplication::saveSettings()
     settings.endArray();
 
     return true;
+}
+
+void MyApplication::startCheckNetworkLink()
+{
+    // check all network links
+    CheckNetworkLink *checknetworklinkWorker = new CheckNetworkLink(&log);
+    QThreadPool::globalInstance()->start(checknetworklinkWorker);
 }

@@ -1,8 +1,8 @@
 #include "dlnacachedrootfolder.h"
 
-DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QSqlDatabase *database, QString host, int port, QObject *parent):
+DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QString host, int port, QObject *parent):
     DlnaRootFolder(log, host, port, parent),
-    library(log, database, this),
+    library(log, this),
     mimeDb(),
     rootFolder(log, host, port, this),
     recentlyPlayedChild(0),
@@ -143,74 +143,6 @@ bool DlnaCachedRootFolder::addNetworkLink(const QString &url)
 
     emit error_addNetworkLink(url);
     return false;
-}
-
-void DlnaCachedRootFolder::checkNetworkLink()
-{
-    int nb = 0;
-    logInfo("CHECK NETWORK LINK started");
-
-
-    QSqlQuery query = getAllNetworkLinks();
-    while (query.next())
-    {
-        ++nb;
-
-        QString url(query.value("filename").toString());
-        bool isReachable = query.value("is_reachable").toBool();
-
-        QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> movie(new DlnaYouTubeVideo(log(), host, port));
-        if (m_nam)
-        {
-            movie->moveToThread(m_nam->thread());
-            connect(m_nam->thread(), SIGNAL(finished()), movie.data(), SLOT(deleteLater()));
-            movie->setNetworkAccessManager(m_nam);
-        }
-        movie->setUrl(url);
-        bool res = movie->waitUrl(30000);
-
-        if (!(res && movie->isValid()))
-        {
-            if (!res)
-                logWarning("TIMEOUT");
-
-            if (isReachable)
-            {
-                logError(QString("link %1 is broken, title: %2").arg(query.value("filename").toString()).arg(query.value("title").toString()));
-
-                if (res && !movie->unavailableMessage().isEmpty())
-                {
-                    logWarning(QString("PUT OFFLINE %1, %2, %3").arg(query.value("id").toString()).arg(query.value("title").toString()).arg(query.value("artist").toString()));
-
-                    QHash<QString, QVariant> data;
-                    data["is_reachable"] = QVariant(0);
-
-                    library.updateFromFilename(url, data);
-                }
-            }
-            else
-            {
-                logWarning(QString("link %1 is still unreachable, title: %2").arg(query.value("filename").toString()).arg(query.value("title").toString()));
-            }
-        }
-        else
-        {
-            if (!isReachable)
-            {
-                logWarning(QString("PUT ONLINE %1, %2, %3").arg(query.value("id").toString()).arg(query.value("title").toString()).arg(query.value("artist").toString()));
-
-                QHash<QString, QVariant> data;
-                data["is_reachable"] = QVariant(1);
-
-                library.updateFromFilename(url, data);
-            }
-
-            // refresh data
-//            addResource(QUrl(url));
-        }
-    }
-
-    logInfo(QString("%1 links checked.").arg(nb));
 }
 
 bool DlnaCachedRootFolder::addResource(QUrl url)
@@ -426,7 +358,7 @@ void DlnaCachedRootFolder::reloadLibrary(const QStringList &localFolder)
 {
     // save network media
     QList<QString> networkMedia;
-    QSqlQuery query;
+    QSqlQuery query(QSqlDatabase::database("MEDIA_DATABASE"));
     if (query.exec("SELECT filename from media WHERE filename like 'http%' and is_reachable=1")) {
         while (query.next())
             networkMedia.append(query.value("filename").toString());
@@ -434,7 +366,7 @@ void DlnaCachedRootFolder::reloadLibrary(const QStringList &localFolder)
         logError(QString("Unable to load network media: %1").arg(query.lastError().text()));
     }
 
-    QString newDatabaseName = QString("%1.new").arg(library.getDatabase()->databaseName());
+    QString newDatabaseName = QString("%1.new").arg(library.getDatabase().databaseName());
     qWarning() << "RELOAD" << newDatabaseName;
 
     if (library.resetLibrary(newDatabaseName))

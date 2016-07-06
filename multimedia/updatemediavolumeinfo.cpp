@@ -23,7 +23,8 @@ void UpdateMediaVolumeInfo::run()
 
     MediaLibrary library(m_log);
 
-    QSqlQuery query;
+    QSqlDatabase db = QSqlDatabase::database("MEDIA_DATABASE");
+    QSqlQuery query(db);
     query.prepare("SELECT media.id, media.filename, mime_type.name from media LEFT OUTER JOIN mime_type ON media.mime_type=mime_type.id WHERE media.is_reachable=1");
 
     if (query.exec())
@@ -87,5 +88,4 @@ void UpdateMediaVolumeInfo::run()
     }
 
     backend.quit();
-    manager->deleteLater();
 }
