@@ -4,7 +4,7 @@ tst_dlnacachedresources::tst_dlnacachedresources(QObject *parent) :
     QObject(parent),
     transcodeProcess(0),
     transcodedSize(0),
-    db(QSqlDatabase::addDatabase("QSQLITE")),
+    db(QSqlDatabase::addDatabase("QSQLITE", "MEDIA_DATABASE")),
     folderKO()
 {
     db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
@@ -27,7 +27,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 15251, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 15283, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -42,7 +42,7 @@ void tst_dlnacachedresources::testCase_Library_NbAudios()
         if (query.last())
             nbAudios = query.at() + 1;
     }
-    QVERIFY2(nbAudios == 13739, QString("%1").arg(nbAudios).toUtf8().constData());
+    QVERIFY2(nbAudios == 13740, QString("%1").arg(nbAudios).toUtf8().constData());
     db.close();
 }
 
@@ -57,7 +57,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1512, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 1543, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -72,7 +72,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbums()
         if (query.last())
             nbAlbums = query.at() + 1;
     }
-    QVERIFY2(nbAlbums == 1277, QString("%1").arg(nbAlbums).toUtf8().constData());
+    QVERIFY2(nbAlbums == 1279, QString("%1").arg(nbAlbums).toUtf8().constData());
     db.close();
 }
 
@@ -87,7 +87,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbumPictures()
         if (query.last())
             nbAlbumPictures = query.at() + 1;
     }
-    QVERIFY2(nbAlbumPictures == 797, QString("%1").arg(nbAlbumPictures).toUtf8().constData());
+    QVERIFY2(nbAlbumPictures == 798, QString("%1").arg(nbAlbumPictures).toUtf8().constData());
     db.close();
 }
 
@@ -102,7 +102,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithAlbum()
         if (query.last())
             nbTracksWithAlbum = query.at() + 1;
     }
-    QVERIFY2(nbTracksWithAlbum == 13483, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
+    QVERIFY2(nbTracksWithAlbum == 13485, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
     db.close();
 }
 
@@ -117,7 +117,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithPicture()
         if (query.last())
             nbTracksWithPicture = query.at() + 1;
     }
-    QVERIFY2(nbTracksWithPicture == 9450, QString("%1").arg(nbTracksWithPicture).toUtf8().constData());
+    QVERIFY2(nbTracksWithPicture == 9451, QString("%1").arg(nbTracksWithPicture).toUtf8().constData());
     db.close();
 }
 
@@ -181,7 +181,7 @@ void tst_dlnacachedresources::testCase_Library_NbPictureWithNoAlbum()
 void tst_dlnacachedresources::testCase_DlnaCachedRootFolder()
 {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, &db, "host", 100, this);
+    DlnaCachedRootFolder rootFolder(&log, "host", 100, this);
     connect(&rootFolder, SIGNAL(error_addFolder(QString)), this, SLOT(error_addFolder(QString)));
 
     QVERIFY(rootFolder.getId() == "0");
@@ -211,7 +211,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedRootFolder()
 
 void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
 
     folderKO.clear();
     rootFolder.addFolder("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO");
@@ -360,7 +360,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
 
 void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
 
     folderKO.clear();
     rootFolder.addFolder("/Users/doudou/Movies");
@@ -497,7 +497,7 @@ int tst_dlnacachedresources::parseFolder(QString resourceId, DlnaResource *resou
 
 void tst_dlnacachedresources::testCase_PerformanceAllArtists() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
 
     folderKO.clear();
     rootFolder.addFolder("/Users/doudou/Music/iTunes/iTunes Media/Music");
@@ -526,7 +526,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllArtists() {
 
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByArtist() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
 
     DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
@@ -558,7 +558,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllTracksByArtist() {
 
 void tst_dlnacachedresources::testCase_PerformanceAllAlbums() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
 
     DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
@@ -582,7 +582,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllAlbums() {
 
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByAlbum() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
 
     DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
@@ -614,7 +614,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllTracksByAlbum() {
 
 void tst_dlnacachedresources::testCase_PerformanceAllGenres() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
 
     DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
@@ -638,7 +638,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllGenres() {
 
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByGenre() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
 
     DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)

@@ -5,7 +5,7 @@ tst_dlnayoutubevideo::tst_dlnayoutubevideo(QObject *parent) :
     transcodeProcess(0),
     transcodedSize(0),
     backend(0),
-    db(QSqlDatabase::addDatabase("QSQLITE")),
+    db(QSqlDatabase::addDatabase("QSQLITE", "MEDIA_DATABASE")),
     manager(0)
 {
     QFfmpegProcess::setDirPath("/opt/local/bin");
@@ -393,7 +393,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo4()
 
 void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
     rootFolder.setNetworkAccessManager(manager);
 
     DlnaCachedGroupedFolderMetaData *folder = 0;
@@ -414,7 +414,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
 
     DlnaCachedFolder *no_artist = qobject_cast<DlnaCachedFolder*>(artists->getChild(0));
     QVERIFY2(no_artist->getDisplayName() == "No Artist", no_artist->getDisplayName().toUtf8().constData());
-    QVERIFY2(no_artist->getChildrenSize() == 188, QString("%1").arg(no_artist->getChildrenSize()).toUtf8().constData());
+    QVERIFY2(no_artist->getChildrenSize() == 199, QString("%1").arg(no_artist->getChildrenSize()).toUtf8().constData());
 
     DlnaCachedNetworkVideo* movie = 0;
     for (int index=0;index<no_artist->getChildrenSize();++index)
@@ -520,7 +520,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
 void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
 {
     Logger log;
-    DlnaCachedRootFolder rootFolder(&log, &db, "host", 600, this);
+    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
 
     int min_time = -1;
     int max_time = -1;
