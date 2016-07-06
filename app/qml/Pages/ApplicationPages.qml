@@ -7,7 +7,6 @@ import "../content"
 
 Item {
     id: pages
-    anchors { fill:parent; topMargin: mainWindow.headerHeight }
 
     function toggleMenu() {
         if (mainWindow.state==="REQUESTS")

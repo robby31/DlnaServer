@@ -100,27 +100,12 @@ Page {
             height: 300
             visible: !tableView.visible
 
-            Rectangle {
-                id: cmd
-                width: itemText.contentWidth*1.3
-                height: itemText.contentHeight*1.3
-                border.color: "black"
-                border.width: 1
-                radius: 10
-
-                Text {
-                    id: itemText
-                    anchors { horizontalCenter: parent.horizontalCenter; verticalCenter: parent.verticalCenter }
+            RowLayout {
+                height: cmd.height
+                MyButton {
+                    id: cmd
                     text: "Back"
-                    font.family: "Helvetica"
-                    font.pointSize: 14
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: tableView.visible = true
+                    onButtonClicked: tableView.visible = true
                 }
             }
 
