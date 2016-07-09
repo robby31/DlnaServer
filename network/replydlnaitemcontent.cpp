@@ -191,13 +191,7 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
         return;
 
     foreach (DlnaResource *item, resources)
-    {
-        if (item)
-        {
-            if (item->parent() == 0)
-                item->setParent(this);
-        }
-    }
+        setDlnaResourceParent(item);
 
     m_requestResource = false;
 

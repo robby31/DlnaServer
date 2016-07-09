@@ -88,6 +88,7 @@ protected:
 
     void replyDone(const QString &status);
 
+    void setDlnaResourceParent(DlnaResource *item);
 
 protected:
     QString m_requestMethod;
