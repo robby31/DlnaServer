@@ -104,9 +104,9 @@ private :
 
     QNetworkAccessManager *netManager;
 
-    QThread workerRoot;
-    QThread workerNetwork;
-    QThread workerTranscoding;
+    QThread *workerRoot;
+    QThread *workerNetwork;
+    QThread *workerTranscoding;
 
     // root folder containing DLNA nodes
     QStringList listFolderAdded;
