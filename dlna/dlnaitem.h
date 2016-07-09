@@ -13,7 +13,6 @@ class DlnaItem : public DlnaResource
 
 public:
     explicit DlnaItem(Logger* log, QString host, int port, QObject *parent = 0);
-    virtual ~DlnaItem();
 
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName() const;

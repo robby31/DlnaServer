@@ -9,7 +9,6 @@ class DlnaVideoItem : public DlnaItem
 
 public:
     DlnaVideoItem(Logger* log, QString host, int port, QObject *parent = 0);
-    virtual ~DlnaVideoItem();
 
     // Return upnp class
     virtual QString getUpnpClass() const { return QString("object.item.videoItem"); }

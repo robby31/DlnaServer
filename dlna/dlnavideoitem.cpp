@@ -15,10 +15,6 @@ DlnaVideoItem::DlnaVideoItem(Logger *log, QString host, int port, QObject *paren
     setTranscodeFormat(MPEG4_AAC);   // default transcode format
 }
 
-DlnaVideoItem::~DlnaVideoItem() {
-
-}
-
 /*
 * Returns XML (DIDL) representation of the DLNA node. It gives a
 * complete representation of the item, with as many tags as available.

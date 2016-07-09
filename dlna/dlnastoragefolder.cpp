@@ -7,10 +7,6 @@ DlnaStorageFolder::DlnaStorageFolder(Logger* log, QString host, int port, QObjec
 {
 }
 
-DlnaStorageFolder::~DlnaStorageFolder() {
-
-}
-
 /*
 * Returns XML (DIDL) representation of the DLNA node. It gives a
 * complete representation of the item, with as many tags as available.

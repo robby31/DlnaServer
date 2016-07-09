@@ -10,7 +10,6 @@ class DlnaMusicTrack : public DlnaItem
 
 public:
     DlnaMusicTrack(Logger* log, QString host, int port, QObject *parent = 0);
-    virtual ~DlnaMusicTrack();
 
     // Return upnp class
     virtual QString getUpnpClass() const { return QString("object.item.audioItem.musicTrack"); }

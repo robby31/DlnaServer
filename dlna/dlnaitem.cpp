@@ -12,10 +12,6 @@ DlnaItem::DlnaItem(Logger *log, QString host, int port, QObject *parent) :
 {
 }
 
-DlnaItem::~DlnaItem() {
-
-}
-
 QString DlnaItem::getDisplayName() const {
     QString title = metaDataTitle();
     if (title.isEmpty())

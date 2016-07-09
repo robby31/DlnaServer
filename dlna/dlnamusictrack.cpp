@@ -15,10 +15,6 @@ DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString host, int port, QObject *par
 {
 }
 
-DlnaMusicTrack::~DlnaMusicTrack() {
-
-}
-
 void DlnaMusicTrack::updateDLNAOrgPn() {
     if (mimeType() == AUDIO_MP3_TYPEMIME) {
         setdlnaOrgPN("MP3");
