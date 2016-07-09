@@ -2,19 +2,16 @@
 
 MyApplication::MyApplication(int &argc, char **argv):
     Application(argc, argv),
-    m_database(QSqlDatabase::addDatabase("QSQLITE", "MEDIA_DATABASE")),
     settings("HOME", "QMS", this),
     m_sharedFolderModel(),
     m_controller(this),
     log(this),
-    worker(this),
+    worker(0),
     server(0),
     m_requestsModel(0),
     m_renderersModel(0),
     m_debugModel(0)
 {
-    m_database.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
-
     connect(this, SIGNAL(aboutToQuit()), this, SLOT(quit()));
 
     QFfmpegProcess::setDirPath("/opt/local/bin");
@@ -23,12 +20,17 @@ MyApplication::MyApplication(int &argc, char **argv):
     addController("homePageController", &m_controller);
 
     thread()->setObjectName("QML APPLICATION THREAD");
-    worker.setObjectName("WORKER APPLICATION");
     log.setLevel(INF);
 
+    worker = new QThread();
+    connect(this, SIGNAL(destroyed()), worker, SLOT(quit()));
+    connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
+    worker->setObjectName("WORKER APPLICATION");
+    worker->start();
+
     server = new HttpServer(&log);
-    server->moveToThread(&worker);
-    connect(&worker, SIGNAL(finished()), server, SLOT(deleteLater()));
+    server->moveToThread(worker);
+    connect(worker, SIGNAL(finished()), server, SLOT(deleteLater()));
 
     setRenderersModel(new MediaRendererModel(this));
 
@@ -82,8 +84,6 @@ MyApplication::MyApplication(int &argc, char **argv):
     connect(this, SIGNAL(addLink(QString)), server, SIGNAL(addNetworkLinkSignal(QString)));
     connect(server, SIGNAL(linkAdded(QString)), this, SLOT(linkAdded(QString)));
     connect(server, SIGNAL(error_addNetworkLink(QString)), this, SLOT(linkNotAdded(QString)));
-
-    worker.start();
 
     server->start();
 }
@@ -152,10 +152,6 @@ void MyApplication::quit() {
 
     // save the settings
     saveSettings();
-
-    worker.quit();
-    if (!worker.wait(1000))
-        log.Error("Unable to stop the worker of the application");
 }
 
 void MyApplication::folderAdded(const QString &folder)

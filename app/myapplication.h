@@ -73,7 +73,6 @@ private slots:
     void serverStarted();
 
 private:
-    QSqlDatabase m_database;
     QSettings settings;
     QStringList m_sharedFolderModel;
 
@@ -81,7 +80,7 @@ private:
 
     Logger log;
 
-    QThread worker;
+    QThread *worker;
 
     HttpServer *server;
 

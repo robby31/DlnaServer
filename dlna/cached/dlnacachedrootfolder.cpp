@@ -366,7 +366,7 @@ void DlnaCachedRootFolder::reloadLibrary(const QStringList &localFolder)
         logError(QString("Unable to load network media: %1").arg(query.lastError().text()));
     }
 
-    QString newDatabaseName = QString("%1.new").arg(library.getDatabase().databaseName());
+    QString newDatabaseName = QString("%1.new").arg(library.databaseName());
     qWarning() << "RELOAD" << newDatabaseName;
 
     if (library.resetLibrary(newDatabaseName))

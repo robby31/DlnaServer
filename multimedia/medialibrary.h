@@ -19,7 +19,7 @@ public:
 
     bool initialize();
 
-    QSqlDatabase getDatabase() const { return QSqlDatabase::database("MEDIA_DATABASE"); }
+    QString databaseName() const { return db.databaseName(); }
 
     QSqlQuery getMediaType() const { return QSqlQuery("SELECT DISTINCT id, name FROM type", db); }
 
