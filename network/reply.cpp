@@ -453,13 +453,7 @@ void Reply::dlnaResources(QObject *requestor, QList<DlnaResource *> resources)
         return;  // ignore resources
 
     foreach (DlnaResource *item, resources)
-    {
-        if (item)
-        {
-            if (item->parent() == 0)
-                item->setParent(this);
-        }
-    }
+        setDlnaResourceParent(item);
 
     QString soapaction = getRequestSoapAction();
 
@@ -598,5 +592,16 @@ void Reply::bytesSentSlot(const qint64 &size, const qint64 &towrite)
     if (!keepReplyOpened && towrite == 0)
     {
         replyDone("OK");
+    }
+}
+
+void Reply::setDlnaResourceParent(DlnaResource *item)
+{
+    if (item && item->parent() == 0)
+    {
+        qDebug() << "set parent" << item << this;
+        item->setParent(this);
+
+        setDlnaResourceParent(item->getDlnaParent());
     }
 }
