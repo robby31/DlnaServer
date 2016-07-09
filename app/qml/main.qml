@@ -9,7 +9,8 @@ import "Pages"
 MyApplication {
     id: mainWindow
     title: "QT Media Server"
-    minimumWidth: 600
+    minimumWidth: 700
+    width: minimumWidth
 
     controller: homePageController
     modelButtons : mybuttons
