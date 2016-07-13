@@ -6,8 +6,8 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_sharedFolderModel(),
     m_controller(this),
     log(this),
-    worker(0),
-    server(0),
+    netManager(this),
+    server(&log, backendThread(), &netManager),
     m_requestsModel(0),
     m_renderersModel(0),
     m_debugModel(0)
@@ -21,16 +21,6 @@ MyApplication::MyApplication(int &argc, char **argv):
 
     thread()->setObjectName("QML APPLICATION THREAD");
     log.setLevel(INF);
-
-    worker = new QThread();
-    connect(this, SIGNAL(destroyed()), worker, SLOT(quit()));
-    connect(worker, SIGNAL(finished()), worker, SLOT(deleteLater()));
-    worker->setObjectName("WORKER APPLICATION");
-    worker->start();
-
-    server = new HttpServer(&log);
-    server->moveToThread(worker);
-    connect(worker, SIGNAL(finished()), server, SLOT(deleteLater()));
 
     setRenderersModel(new MediaRendererModel(this));
 
@@ -73,19 +63,19 @@ MyApplication::MyApplication(int &argc, char **argv):
 
     qRegisterMetaType<qintptr>("qintptr");
 
-    connect(server, SIGNAL(serverStarted()), this, SLOT(serverStarted()));
-    connect(server, SIGNAL(createRequest(qintptr,QString,QString,QString,int)), m_requestsModel, SLOT(createRequest(qintptr,QString,QString,QString,int)));
-    connect(m_requestsModel, SIGNAL(newRequest(Request*)), server, SLOT(newRequest(Request*)));
-    connect(this, SIGNAL(reloadLibrarySignal()), server, SLOT(reloadLibrary()));
-    connect(this, SIGNAL(addFolder(QString)), server, SLOT(_addFolder(QString)));
-    connect(server, SIGNAL(folderAdded(QString)), this, SLOT(folderAdded(QString)));
-    connect(server, SIGNAL(error_addFolder(QString)), this, SLOT(folderNotAdded(QString)));
+    connect(&server, SIGNAL(serverStarted()), this, SLOT(serverStarted()));
+    connect(&server, SIGNAL(createRequest(qintptr,QString,QString,QString,int)), m_requestsModel, SLOT(createRequest(qintptr,QString,QString,QString,int)));
+    connect(m_requestsModel, SIGNAL(newRequest(Request*)), &server, SLOT(newRequest(Request*)));
+    connect(this, SIGNAL(reloadLibrarySignal()), &server, SLOT(reloadLibrary()));
+    connect(this, SIGNAL(addFolder(QString)), &server, SLOT(_addFolder(QString)));
+    connect(&server, SIGNAL(folderAdded(QString)), this, SLOT(folderAdded(QString)));
+    connect(&server, SIGNAL(error_addFolder(QString)), this, SLOT(folderNotAdded(QString)));
 
-    connect(this, SIGNAL(addLink(QString)), server, SIGNAL(addNetworkLinkSignal(QString)));
-    connect(server, SIGNAL(linkAdded(QString)), this, SLOT(linkAdded(QString)));
-    connect(server, SIGNAL(error_addNetworkLink(QString)), this, SLOT(linkNotAdded(QString)));
+    connect(this, SIGNAL(addLink(QString)), &server, SIGNAL(addNetworkLinkSignal(QString)));
+    connect(&server, SIGNAL(linkAdded(QString)), this, SLOT(linkAdded(QString)));
+    connect(&server, SIGNAL(error_addNetworkLink(QString)), this, SLOT(linkNotAdded(QString)));
 
-    server->start();
+    server.start();
 }
 
 void MyApplication::serverStarted()
@@ -96,7 +86,7 @@ void MyApplication::serverStarted()
     loadSettings();
 
     // update volume informations
-    UpdateMediaVolumeInfo *volumeInfoWorker = new UpdateMediaVolumeInfo(&log);
+    UpdateMediaVolumeInfo *volumeInfoWorker = new UpdateMediaVolumeInfo(&log, &netManager);
     QThreadPool::globalInstance()->start(volumeInfoWorker);
 }
 
@@ -107,16 +97,9 @@ void MyApplication::setRenderersModel(MediaRendererModel *model)
 
     m_renderersModel = model;
 
-    if (server)
-    {
-        connect(server, SIGNAL(newRenderer(QString,int,QString)), m_renderersModel, SLOT(addRenderer(QString,int,QString)));
-        connect(server, SIGNAL(servingRenderer(QString,QString)), m_renderersModel, SLOT(serving(QString,QString)));
-        connect(server, SIGNAL(stopServingRenderer(QString)), m_renderersModel, SLOT(stopServing(QString)));
-    }
-    else
-    {
-        log.Error("Unable to connect signals/slots between server and renderersModel.");
-    }
+    connect(&server, SIGNAL(newRenderer(QString,int,QString)), m_renderersModel, SLOT(addRenderer(QString,int,QString)));
+    connect(&server, SIGNAL(servingRenderer(QString,QString)), m_renderersModel, SLOT(serving(QString,QString)));
+    connect(&server, SIGNAL(stopServingRenderer(QString)), m_renderersModel, SLOT(stopServing(QString)));
 
     emit renderersModelChanged();
 }
@@ -128,14 +111,7 @@ void MyApplication::setRequestsModel(RequestListModel *model)
 
     m_requestsModel = model;
 
-    if (server)
-    {
-        connect(server, SIGNAL(deleteRequest(Request*)), m_requestsModel, SLOT(requestDestroyed(Request*)));
-    }
-    else
-    {
-        log.Error("Unable to connect signals/slots between server and requestsModel.");
-    }
+    connect(&server, SIGNAL(deleteRequest(Request*)), m_requestsModel, SLOT(requestDestroyed(Request*)));
 
     emit requestsModelChanged();
 }
@@ -209,6 +185,6 @@ bool MyApplication::saveSettings()
 void MyApplication::startCheckNetworkLink()
 {
     // check all network links
-    CheckNetworkLink *checknetworklinkWorker = new CheckNetworkLink(&log);
+    CheckNetworkLink *checknetworklinkWorker = new CheckNetworkLink(&log, &netManager);
     QThreadPool::globalInstance()->start(checknetworklinkWorker);
 }

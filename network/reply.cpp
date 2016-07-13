@@ -81,7 +81,7 @@ void Reply::sendLine(QTcpSocket *client, const QString &msg)
 
         tmp.append(msg.toUtf8()).append(CRLF.toUtf8());
 
-        if (!client->isWritable())
+        if (!client->isValid() or !client->isWritable() or !client->isOpen())
             logError("HTTP Request: Unable to send line: " + msg + ", client is not ready.");
         else if (client->write(tmp) == -1)
             logError("HTTP Request: Unable to send line: " + msg + ", " + client->errorString());
@@ -599,7 +599,6 @@ void Reply::setDlnaResourceParent(DlnaResource *item)
 {
     if (item && item->parent() == 0)
     {
-        qDebug() << "set parent" << item << this;
         item->setParent(this);
 
         setDlnaResourceParent(item->getDlnaParent());

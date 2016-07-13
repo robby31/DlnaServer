@@ -79,7 +79,7 @@ void HttpClient::closeClient()
         else
         {
             appendLogSignal(QString("%2: Close client (%1)"+CRLF).arg(socketDescriptor()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-            disconnectFromHost();
+            close();
         }
     }
 }
@@ -90,7 +90,7 @@ void HttpClient::sendTextLine(const QString &msg)
 
     tmp.append(msg.toUtf8()).append(CRLF.toUtf8());
 
-    if (!isWritable())
+    if (!isValid() or !isWritable() or !isOpen())
         logError("HTTP Request: Unable to send line: " + msg + ", client is not ready.");
     else if (write(tmp) == -1)
         logError("HTTP Request: Unable to send line: " + msg + ", " + errorString());
@@ -133,27 +133,32 @@ void HttpClient::sendHeader(const QHash<QString, QString> &header)
 }
 
 void HttpClient::sendData(const QByteArray &data)
-{    
+{
     // send the content
-    if (!isWritable())
+    if (!isValid() or !isWritable() or !isOpen())
     {
         QString msg = QString("HTTP request: Unable to send content, client not ready.");
         logError(msg);
         appendLogSignal(QString("%1: %2"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(msg));
     }
-    else if (write(data) == -1)
+    else
     {
-        QString msg = QString("HTTP request: Unable to send content, %1").arg(errorString());
-        logError(msg);
-        appendLogSignal(QString("%1: %2"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(msg));
-    }
-    else if (isLogLevel(DEBG))
-    {
-        QString msg = QString("%3: HttpClient::sendData - bytes written=%1, bytes to write=%2"+CRLF).arg(data.size()).arg(bytesToWrite()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
-        appendLogSignal(msg);
-    }
+        qint64 bytesWritten = write(data);
 
-//    flush();
+        if (bytesWritten == -1)
+        {
+            QString msg = QString("HTTP request: Unable to send content, %1").arg(errorString());
+            logError(msg);
+            appendLogSignal(QString("%1: %2"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(msg));
+        }
+        else if (isLogLevel(DEBG))
+        {
+            QString msg = QString("%3: HttpClient::sendData - bytes written=%1, bytes to write=%2"+CRLF).arg(bytesWritten).arg(bytesToWrite()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
+            appendLogSignal(msg);
+        }
+
+        //    flush();
+    }
 }
 
 void HttpClient::setArgument(const QString &argument)
@@ -328,6 +333,9 @@ void HttpClient::requestReceived()
 void HttpClient::clientError(QAbstractSocket::SocketError error)
 {
     emit appendLogSignal(QString("%2: Network Error: %1, %3"+CRLF).arg(error).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(errorString()));
+
+    if (error == RemoteHostClosedError)
+        deleteLater();
 }
 
 void HttpClient::_bytesWritten(const qint64 &size)

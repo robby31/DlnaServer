@@ -1,8 +1,9 @@
 #include "checknetworklink.h"
 
-CheckNetworkLink::CheckNetworkLink(Logger *log):
+CheckNetworkLink::CheckNetworkLink(Logger *log, QNetworkAccessManager *nam):
     QRunnable(),
-    m_log(log)
+    m_log(log),
+    m_nam(nam)
 {
 
 }
@@ -15,13 +16,6 @@ CheckNetworkLink::~CheckNetworkLink()
 void CheckNetworkLink::run()
 {
     m_log->Info("CHECK NETWORK LINK started");
-
-    QThread backend;
-    backend.start();
-
-    QNetworkAccessManager *manager = new QNetworkAccessManager();
-    manager->moveToThread(&backend);
-    QObject::connect(&backend, SIGNAL(finished()), manager, SLOT(deleteLater()));
 
     MediaLibrary library(m_log);
 
@@ -37,9 +31,9 @@ void CheckNetworkLink::run()
         bool isReachable = query.value("is_reachable").toBool();
 
         QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> movie(new DlnaYouTubeVideo(m_log, "HOST", 80));
-        movie->moveToThread(manager->thread());
-        QObject::connect(manager->thread(), SIGNAL(finished()), movie.data(), SLOT(deleteLater()));
-        movie->setNetworkAccessManager(manager);
+        movie->moveToThread(m_nam->thread());
+        QObject::connect(m_nam->thread(), SIGNAL(finished()), movie.data(), SLOT(deleteLater()));
+        movie->setNetworkAccessManager(m_nam);
 
         movie->setUrl(url);
         bool res = movie->waitUrl(30000);
@@ -86,8 +80,4 @@ void CheckNetworkLink::run()
     }
 
     m_log->Info(QString("%1 links checked.").arg(nb));
-
-    backend.quit();
-    if (!backend.wait(1000))
-        m_log->Error("Unable to stop backend");
 }

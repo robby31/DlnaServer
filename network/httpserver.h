@@ -16,7 +16,7 @@ class HttpServer : public QTcpServer
     Q_OBJECT
 
 public:
-    explicit HttpServer(Logger* log, QObject *parent = 0);
+    explicit HttpServer(Logger* log, QThread *backend, QNetworkAccessManager *nam, QObject *parent = 0);
     virtual ~HttpServer();
 
     QHostAddress getHost()  const { return hostaddress; }
@@ -102,10 +102,10 @@ private :
     QHostAddress hostaddress;
     int serverport;
 
+    QThread *m_backend;
     QNetworkAccessManager *netManager;
 
     QThread *workerRoot;
-    QThread *workerNetwork;
     QThread *workerTranscoding;
 
     // root folder containing DLNA nodes

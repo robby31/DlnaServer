@@ -80,9 +80,8 @@ private:
 
     Logger log;
 
-    QThread *worker;
-
-    HttpServer *server;
+    QNetworkAccessManager netManager;
+    HttpServer server;
 
     // list of requests received by server
     RequestListModel *m_requestsModel;

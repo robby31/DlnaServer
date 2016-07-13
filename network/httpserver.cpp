@@ -9,16 +9,16 @@ const QString HttpServer::UUID = "cdc79bcf-6985-4baf-b974-e83846efd903";
 
 const int HttpServer::SERVERPORT = 5002;
 
-HttpServer::HttpServer(Logger* log, QObject *parent):
+HttpServer::HttpServer(Logger* log, QThread *backend, QNetworkAccessManager *nam, QObject *parent):
     QTcpServer(parent),
     SERVERNAME(QString("%1/%2 UPnP/1.1 QMS/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion())),
     m_log(log),
     upnp(m_log, this),
     hostaddress(),
     serverport(SERVERPORT),
-    netManager(0),
+    m_backend(backend),
+    netManager(nam),
     workerRoot(0),
-    workerNetwork(0),
     workerTranscoding(0),
     listFolderAdded()
 {
@@ -42,21 +42,11 @@ HttpServer::HttpServer(Logger* log, QObject *parent):
     workerRoot->setObjectName("Root folder, MediaLibrary Thread");
     workerRoot->start();
 
-    workerNetwork = new QThread();
-    connect(this, SIGNAL(destroyed()), workerNetwork, SLOT(quit()));
-    connect(workerNetwork, SIGNAL(finished()), workerNetwork, SLOT(deleteLater()));
-    workerNetwork->setObjectName("Network, request, reply Thread");
-    workerNetwork->start();
-
     workerTranscoding = new QThread();
     connect(this, SIGNAL(destroyed()), workerTranscoding, SLOT(quit()));
     connect(workerTranscoding, SIGNAL(finished()), workerTranscoding, SLOT(deleteLater()));
     workerTranscoding->setObjectName("Transcoding Thread");
     workerTranscoding->start();
-
-    netManager = new QNetworkAccessManager();
-    netManager->moveToThread(workerNetwork);
-    connect(workerNetwork, SIGNAL(finished()), netManager, SLOT(deleteLater()));
 }
 
 HttpServer::~HttpServer()
@@ -152,7 +142,7 @@ void HttpServer::createTcpSocket(Request *request)
 {
     if (request)
     {
-        HttpClient *client = new HttpClient(m_log);
+        HttpClient *client = new HttpClient(m_log, this);
 
         if (!client->setSocketDescriptor(request->socketDescriptor()))
         {
@@ -182,9 +172,6 @@ void HttpServer::createTcpSocket(Request *request)
             connect(client, SIGNAL(headerSent()), request, SIGNAL(headerSent()));
             connect(request, SIGNAL(sendData(QByteArray)), client, SLOT(sendData(QByteArray)));
         }
-
-        client->moveToThread(workerNetwork);
-        connect(workerNetwork, SIGNAL(finished()), client, SLOT(deleteLater()));
     }
 }
 
@@ -214,7 +201,7 @@ void HttpServer::_readyToReply(const QString &method, const QString &argument, c
 
     if ((method == "GET" || method == "HEAD") && argument.startsWith("get/"))
     {
-        reply = new ReplyDlnaItemContent(m_log, workerTranscoding, http10, method, argument, paramsHeader, content, range, timeSeekRangeStart, timeSeekRangeEnd, UUID, QString("%1").arg(SERVERNAME), getHost().toString(), getPort(), this);
+        reply = new ReplyDlnaItemContent(m_log, workerTranscoding, http10, method, argument, paramsHeader, content, range, timeSeekRangeStart, timeSeekRangeEnd, UUID, QString("%1").arg(SERVERNAME), getHost().toString(), getPort());
         connect(reply, SIGNAL(startServingRendererSignal(QString)), request, SLOT(startServingRenderer(QString)));
         connect(reply, SIGNAL(stopServingRendererSignal()), request, SLOT(stopServingRenderer()));
         connect(reply, SIGNAL(servingSignal(QString,int)), this, SLOT(_servingProgress(QString,int)));
@@ -224,7 +211,7 @@ void HttpServer::_readyToReply(const QString &method, const QString &argument, c
     }
     else
     {
-        reply = new Reply(m_log, http10, method, argument, paramsHeader, content, range, timeSeekRangeStart, timeSeekRangeEnd, UUID, QString("%1").arg(SERVERNAME), getHost().toString(), getPort(), this);
+        reply = new Reply(m_log, http10, method, argument, paramsHeader, content, range, timeSeekRangeStart, timeSeekRangeEnd, UUID, QString("%1").arg(SERVERNAME), getHost().toString(), getPort());
     }
 
     reply->setRequest(request);
@@ -246,6 +233,9 @@ void HttpServer::_readyToReply(const QString &method, const QString &argument, c
 
     connect(reply, SIGNAL(finishedSignal()), request, SLOT(replyFinished()));
     connect(reply, SIGNAL(finishedSignal()), reply, SLOT(deleteLater()));
+
+    reply->moveToThread(m_backend);
+    connect(m_backend, SIGNAL(finished()), reply, SLOT(deleteLater()));
 
     reply->run();
 }

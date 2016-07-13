@@ -9,13 +9,14 @@
 class CheckNetworkLink : public QRunnable
 {
 public:
-    CheckNetworkLink(Logger *log);
+    CheckNetworkLink(Logger *log, QNetworkAccessManager *nam);
     ~CheckNetworkLink();
 
     void run();
 
 private:
     Logger *m_log;
+    QNetworkAccessManager *m_nam;
 };
 
 #endif // CHECKNETWORKLINK_H

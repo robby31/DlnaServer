@@ -52,7 +52,9 @@ void Device::requestData()
     {
         if (!atEnd() && bytesAvailable() > 0)
         {
-            int bytesToRead = maxBufferSize() - bytesToWrite;
+            qint64 bytesToRead = maxBufferSize() - bytesToWrite;
+            if (bytesToRead > 500000)
+                bytesToRead = 500000;
             if (bytesToRead > 0) {
                 // read the stream
                 QByteArray bytesToSend = read(bytesToRead);

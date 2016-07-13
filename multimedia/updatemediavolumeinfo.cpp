@@ -1,26 +1,20 @@
 #include "updatemediavolumeinfo.h"
 
-UpdateMediaVolumeInfo::UpdateMediaVolumeInfo(Logger *log):
+UpdateMediaVolumeInfo::UpdateMediaVolumeInfo(Logger *log, QNetworkAccessManager *nam):
     QRunnable(),
-    m_log(log)
+    m_log(log),
+    m_nam(nam)
 {
 
 }
 
 UpdateMediaVolumeInfo::~UpdateMediaVolumeInfo()
 {
-    qWarning() << "Volume Information update finished" << this;
+    qDebug() << "Volume Information update finished" << this;
 }
 
 void UpdateMediaVolumeInfo::run()
 {
-    QThread backend;
-    backend.start();
-
-    QNetworkAccessManager *manager = new QNetworkAccessManager();
-    manager->moveToThread(&backend);
-    QObject::connect(&backend, SIGNAL(finished()), manager, SLOT(deleteLater()));
-
     MediaLibrary library(m_log);
 
     QSqlDatabase db = QSqlDatabase::database("MEDIA_DATABASE");
@@ -40,7 +34,7 @@ void UpdateMediaVolumeInfo::run()
             {
                 if (mime_type.startsWith("audio/"))
                 {
-                    qWarning() << "Analyze audio" << filename;
+                    qDebug() << "Analyze audio" << filename;
 
                     DlnaMusicTrackFile track(m_log, filename, "HOST", 80);
                     if (!library.setVolumeInfo(idMedia, track.volumeInfo()))
@@ -48,7 +42,7 @@ void UpdateMediaVolumeInfo::run()
                 }
                 else if (mime_type.startsWith("video/")  && !filename.startsWith("http"))
                 {
-                    qWarning() << "Analyze local video" << filename;
+                    qDebug() << "Analyze local video" << filename;
 
                     DlnaVideoFile movie(m_log, filename, "HOST", 80);
                     if (!library.setVolumeInfo(idMedia, movie.volumeInfo(-1)))
@@ -56,12 +50,12 @@ void UpdateMediaVolumeInfo::run()
                 }
                 else if (mime_type.startsWith("video/") && filename.startsWith("http"))
                 {
-                    qWarning() << "Analyze internet video" << filename;
+                    qDebug() << "Analyze internet video" << filename;
 
                     QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(m_log, "HOST", 80));
-                    video->moveToThread(&backend);
-                    QObject::connect(&backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
-                    video->setNetworkAccessManager(manager);
+                    video->moveToThread(m_nam->thread());
+                    QObject::connect(m_nam->thread(), SIGNAL(finished()), video.data(), SLOT(deleteLater()));
+                    video->setNetworkAccessManager(m_nam);
                     video->setUrl(filename);
                     bool res = video->waitUrl(30000);
 
@@ -84,8 +78,6 @@ void UpdateMediaVolumeInfo::run()
     }
     else
     {
-        qWarning() << "ERROR in request" << query.lastError().text();
+        qCritical() << "ERROR in request" << query.lastError().text();
     }
-
-    backend.quit();
 }
