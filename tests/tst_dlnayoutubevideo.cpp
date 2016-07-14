@@ -512,7 +512,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qWarning() << "DELTA" << movie->size()-transcodedSize << qAbs(double(movie->size()-transcodedSize))/movie->size();
     QVERIFY(movie->size() > transcodedSize);
-    QVERIFY2(transcodedSize == 115735244, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 115734304, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     delete transcodeProcess;
     transcodeProcess = 0;
 }
