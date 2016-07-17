@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QtTest>
 
+#include "mysqldatabase.h"
 #include "dlnayoutubevideo.h"
 #include "cached/dlnacachednetworkvideo.h"
 #include "cached/dlnacachedrootfolder.h"

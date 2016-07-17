@@ -5,7 +5,7 @@ tst_dlnayoutubevideo::tst_dlnayoutubevideo(QObject *parent) :
     transcodeProcess(0),
     transcodedSize(0),
     backend(0),
-    db(QSqlDatabase::addDatabase("QSQLITE", "MEDIA_DATABASE")),
+    db(CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE")),
     manager(0)
 {
     QFfmpegProcess::setDirPath("/opt/local/bin");

@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QtTest>
 
+#include "mysqldatabase.h"
 #include "cached/dlnacachedrootfolder.h"
 #include "cached/dlnacachedfolder.h"
 

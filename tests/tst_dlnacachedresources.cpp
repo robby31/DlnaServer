@@ -4,7 +4,7 @@ tst_dlnacachedresources::tst_dlnacachedresources(QObject *parent) :
     QObject(parent),
     transcodeProcess(0),
     transcodedSize(0),
-    db(QSqlDatabase::addDatabase("QSQLITE", "MEDIA_DATABASE")),
+    db(CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE")),
     folderKO()
 {
     db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
@@ -18,7 +18,6 @@ void tst_dlnacachedresources::receivedTranscodedData(const QByteArray &data)
 
 void tst_dlnacachedresources::testCase_Library_NbMedias()
 {
-    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     QVERIFY(db.open() == true);
     QSqlQuery query(db);
 
@@ -33,7 +32,6 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
 
 void tst_dlnacachedresources::testCase_Library_NbAudios()
 {
-    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     QVERIFY(db.open() == true);
     QSqlQuery query(db);
 
@@ -48,7 +46,6 @@ void tst_dlnacachedresources::testCase_Library_NbAudios()
 
 void tst_dlnacachedresources::testCase_Library_NbVideos()
 {
-    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     QVERIFY(db.open() == true);
     QSqlQuery query(db);
 
@@ -63,7 +60,6 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
 
 void tst_dlnacachedresources::testCase_Library_NbAlbums()
 {
-    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     QVERIFY(db.open() == true);
     QSqlQuery query(db);
 
@@ -78,7 +74,6 @@ void tst_dlnacachedresources::testCase_Library_NbAlbums()
 
 void tst_dlnacachedresources::testCase_Library_NbAlbumPictures()
 {
-    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     QVERIFY(db.open() == true);
     QSqlQuery query(db);
 
@@ -93,7 +88,6 @@ void tst_dlnacachedresources::testCase_Library_NbAlbumPictures()
 
 void tst_dlnacachedresources::testCase_Library_NbTracksWithAlbum()
 {
-    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     QVERIFY(db.open() == true);
     QSqlQuery query(db);
 
@@ -108,7 +102,6 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithAlbum()
 
 void tst_dlnacachedresources::testCase_Library_NbTracksWithPicture()
 {
-    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     QVERIFY(db.open() == true);
     QSqlQuery query(db);
 
@@ -123,7 +116,6 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithPicture()
 
 void tst_dlnacachedresources::testCase_Library_NbAlbumsWithSeveralPicture()
 {
-    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     QVERIFY(db.open() == true);
     QSqlQuery query(db);
 
@@ -145,7 +137,6 @@ void tst_dlnacachedresources::testCase_Library_NbAlbumsWithSeveralPicture()
 
 void tst_dlnacachedresources::testCase_Library_NbPictureNotUsed()
 {
-    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     QVERIFY(db.open() == true);
     QSqlQuery query(db);
 
@@ -163,7 +154,6 @@ void tst_dlnacachedresources::testCase_Library_NbPictureNotUsed()
 
 void tst_dlnacachedresources::testCase_Library_NbPictureWithNoAlbum()
 {
-    db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     QVERIFY(db.open() == true);
     QSqlQuery query(db);
 
