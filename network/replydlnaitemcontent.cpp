@@ -263,7 +263,7 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                 setParamHeader("contentFeatures.dlna.org", dlna->getDlnaContentFeatures());
 
             if (!getRequestMediaInfoSec().isNull())
-                setParamHeader("MediaInfo.sec", QString("SEC_Duration=%1").arg(dlna->getLengthInMilliSeconds()));
+                setParamHeader("MediaInfo.sec", QString("SEC_Duration=%1;").arg(dlna->getLengthInMilliSeconds()));
 
             if (dlna->getdlnaOrgOpFlags().at(1) == '1')
                 setParamHeader("Accept-Ranges", "bytes");
