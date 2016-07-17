@@ -14,6 +14,12 @@ MyApplication::MyApplication(int &argc, char **argv):
 {
     connect(this, SIGNAL(aboutToQuit()), this, SLOT(quit()));
 
+    // create database in backend Thread
+    CreateDatabaseThread *dbBackend = new CreateDatabaseThread();
+    dbBackend->moveToThread(backendThread());
+    connect(backendThread(), SIGNAL(finished()), dbBackend, SLOT(deleteLater()));
+    dbBackend->run();
+
     QFfmpegProcess::setDirPath("/opt/local/bin");
     FfmpegTranscoding::setDirPath("/opt/local/bin");
 
@@ -120,6 +126,18 @@ void MyApplication::removeFolder(const int &index) {
     if (index >=0 && index < m_sharedFolderModel.size()) {
         m_sharedFolderModel.removeAt(index);
         emit sharedFolderModelChanged();
+    }
+}
+
+void MyApplication::refreshFolder(const int &index)
+{
+    if (index >=0 && index < m_sharedFolderModel.size())
+    {
+        QString path = m_sharedFolderModel.at(index);
+
+        // scan the folder in background
+        CachedRootFolderReadDirectory *readDirectoryWorker = new CachedRootFolderReadDirectory(&log, QDir(path));
+        QThreadPool::globalInstance()->start(readDirectoryWorker);
     }
 }
 

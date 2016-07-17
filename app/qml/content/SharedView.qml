@@ -119,6 +119,11 @@ Page {
             }
 
             Button {
+                text: "Refresh"
+                onClicked: _app.refreshFolder(view.currentIndex)
+            }
+
+            Button {
                 text: "Reload library"
                 onClicked: _app.reloadLibrary()
             }
