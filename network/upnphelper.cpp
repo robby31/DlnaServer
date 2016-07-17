@@ -110,7 +110,7 @@ void UPNPHelper::_processPendingDatagrams()
                 }
                 else
                 {
-                    logError(QString("Invalid ST value: %1").arg(stValue));
+                    logWarning(QString("Invalid ST value: %1").arg(stValue));
                 }
             }
             else
