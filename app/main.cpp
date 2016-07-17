@@ -1,8 +1,9 @@
 #include "myapplication.h"
+#include "mysqldatabase.h"
 
 int main(int argc, char** argv)
 {
-    QSqlDatabase database = QSqlDatabase::addDatabase("QSQLITE", "MEDIA_DATABASE");
+    QSqlDatabase database = CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE");
     database.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
 
     qmlRegisterType<RequestListModel>("myTypes", 1, 0, "RequestListModel");
@@ -16,7 +17,7 @@ int main(int argc, char** argv)
 
     int ret = app.exec();
 
-    database.removeDatabase("MEDIA_DATABASE");
+    qDebug() << QSqlDatabase::connectionNames();
 
     return ret;
 }

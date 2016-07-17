@@ -18,7 +18,8 @@ HEADERS += \
     ../dlna/dlnastoragefolder.h \
     ../dlna/dlnayoutubevideo.h \
     ../dlna/cached/dlnacachednetworkvideo.h \
-    ../dlna/cached/dlnacachedgroupedfoldermetadata.h
+    ../dlna/cached/dlnacachedgroupedfoldermetadata.h \
+    $$PWD/cached/cachedrootfolderreaddirectory.h
 
 SOURCES += \
     $$PWD/dlnaresource.cpp \
@@ -37,7 +38,8 @@ SOURCES += \
     ../dlna/dlnastoragefolder.cpp \
     ../dlna/dlnayoutubevideo.cpp \
     ../dlna/cached/dlnacachednetworkvideo.cpp \
-    ../dlna/cached/dlnacachedgroupedfoldermetadata.cpp
+    ../dlna/cached/dlnacachedgroupedfoldermetadata.cpp \
+    $$PWD/cached/cachedrootfolderreaddirectory.cpp
 
 include (../multimedia/multimedia.pri)
 include (../youtube/youtube.pri)

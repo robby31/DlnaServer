@@ -5,6 +5,7 @@
 #include <QtSql>
 
 #include "logobject.h"
+#include "mysqldatabase.h"
 //#include "acoustid.h"
 
 class MediaLibrary : public LogObject
@@ -17,14 +18,16 @@ public:
     explicit MediaLibrary(Logger *log, QObject *parent = 0);
     virtual ~MediaLibrary();
 
-    QString databaseName() const { return QSqlDatabase::database("MEDIA_DATABASE").databaseName(); }
+    bool isValid();
 
-    QSqlQuery getMediaType() const { return QSqlQuery("SELECT DISTINCT id, name FROM type", QSqlDatabase::database("MEDIA_DATABASE")); }
+    QString databaseName() const { return GET_DATABASE("MEDIA_DATABASE").databaseName(); }
+
+    QSqlQuery getMediaType() const { return QSqlQuery("SELECT DISTINCT id, name FROM type", GET_DATABASE("MEDIA_DATABASE")); }
 
     QSqlQuery getMedia(const QString &where, const QString &orderParam="media.id", const QString &sortOption="ASC") const;
     int countMedia(const QString &where) const;
 
-    QSqlQuery getAllNetworkLinks() { return QSqlQuery("SELECT id, filename, title, artist, is_reachable from media WHERE filename like 'http%'", QSqlDatabase::database("MEDIA_DATABASE")); }
+    QSqlQuery getAllNetworkLinks() { return QSqlQuery("SELECT id, filename, title, artist, is_reachable from media WHERE filename like 'http%'", GET_DATABASE("MEDIA_DATABASE")); }
 
     QSqlQuery getDistinctMetaData(const int &typeMedia, const QString &tagName, const QString &where = QString()) const;
     int countDistinctMetaData(const int &typeMedia, const QString &tagName) const;

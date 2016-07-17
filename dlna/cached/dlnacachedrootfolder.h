@@ -12,6 +12,7 @@
 #include "dlnacachedgroupedfoldermetadata.h"
 #include "dlnarootfolder.h"
 #include "dlnayoutubevideo.h"
+#include "cachedrootfolderreaddirectory.h"
 
 class DlnaCachedRootFolder : public DlnaRootFolder
 {
@@ -24,8 +25,9 @@ public:
 
     void setNetworkAccessManager(QNetworkAccessManager *nam);
 
-private:
     void readDirectory(QDir folder);
+
+private:
 
     void addResource(QFileInfo fileinfo);
     bool addResource(QUrl url);

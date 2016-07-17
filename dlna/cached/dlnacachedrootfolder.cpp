@@ -120,8 +120,11 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QString host, int port, 
 
 bool DlnaCachedRootFolder::addFolderSlot(QString path)
 {
-    if (QFileInfo(path).isDir()) {
-        readDirectory(QDir(path));
+    if (QFileInfo(path).isDir())
+    {
+        // scan the folder in background
+        CachedRootFolderReadDirectory *readDirectoryWorker = new CachedRootFolderReadDirectory(log(), QDir(path));
+        QThreadPool::globalInstance()->start(readDirectoryWorker);
 
         rootFolder.addFolder(path);
 
@@ -358,7 +361,7 @@ void DlnaCachedRootFolder::reloadLibrary(const QStringList &localFolder)
 {
     // save network media
     QList<QString> networkMedia;
-    QSqlQuery query(QSqlDatabase::database("MEDIA_DATABASE"));
+    QSqlQuery query(GET_DATABASE("MEDIA_DATABASE"));
     if (query.exec("SELECT filename from media WHERE filename like 'http%' and is_reachable=1")) {
         while (query.next())
             networkMedia.append(query.value("filename").toString());
