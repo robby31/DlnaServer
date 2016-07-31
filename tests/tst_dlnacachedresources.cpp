@@ -26,7 +26,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 15300, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 15304, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -54,7 +54,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1560, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 1564, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
