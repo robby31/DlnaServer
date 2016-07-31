@@ -29,9 +29,9 @@ public:
     explicit DebugItem(QObject *parent = 0);
     explicit DebugItem(const QString &name, QObject *parent = 0);
 
-    virtual QHash<int, QByteArray> roleNames() const { return m_roles; }
-    virtual QVariant data(int role) const;
-    virtual bool setData(const QVariant &value, const int &role);
+    virtual QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE { return m_roles; }
+    virtual QVariant data(int role) const Q_DECL_OVERRIDE;
+    virtual bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
 
 private:
     QVariant counterValue() const;

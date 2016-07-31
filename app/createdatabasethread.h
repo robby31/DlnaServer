@@ -12,7 +12,7 @@ class CreateDatabaseThread : public QObject
 
 public:
     explicit CreateDatabaseThread(QObject *parent = 0);
-    virtual ~CreateDatabaseThread();
+    virtual ~CreateDatabaseThread() Q_DECL_OVERRIDE;
 
     void run() { emit runSignal(); }
 
