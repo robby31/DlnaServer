@@ -8,8 +8,7 @@ void FfmpegTranscoding::setDirPath(const QString &folder)
 }
 
 FfmpegTranscoding::FfmpegTranscoding(Logger *log, QObject *parent) :
-    TranscodeProcess(log, parent),
-    audioVolumeTarget(-15.0)
+    TranscodeProcess(log, parent)
 {
     QDir folder(EXE_DIRPATH);
     setProgram(folder.absoluteFilePath("ffmpeg"));
@@ -243,14 +242,7 @@ void FfmpegTranscoding::updateArguments()
     }
 
     // normalize audio
-    if (!volumeInfo().isEmpty() && volumeInfo().contains("mean_volume"))
-    {
-        double db = audioVolumeTarget - volumeInfo()["mean_volume"];
-
-        logDebug(QString("normalize audio, volume source: %1, action: %2").arg(volumeInfo()["mean_volume"]).arg(db));
-
-        arguments << "-af" << QString("volume=%1dB").arg(db);
-    }
+    arguments << "-af" << "dynaudnorm";
 
     arguments << "pipe:";
 

@@ -14,7 +14,7 @@ public:
     static void setDirPath(const QString &folder);
 
 private:
-    virtual void updateArguments();
+    virtual void updateArguments() Q_DECL_OVERRIDE;
 
 signals:
 
@@ -22,7 +22,6 @@ public slots:
 
 private:
     static QString EXE_DIRPATH;
-    double audioVolumeTarget;
 };
 
 #endif // FFMPEGTRANSCODING_H
