@@ -15,7 +15,7 @@ class HttpClient : public QTcpSocket
 
 public:
     explicit HttpClient(Logger *log, QObject *parent = 0);
-    virtual ~HttpClient();
+    virtual ~HttpClient() Q_DECL_OVERRIDE;
 
 private:
     void clear();
