@@ -104,7 +104,13 @@ Page {
                 height: cmd.height
                 MyButton {
                     id: cmd
-                    text: "Back"
+
+                    sourceComponent: Text {
+                        text: "Back"
+                        font.pointSize: 12
+                        clip: true
+                    }
+
                     onButtonClicked: tableView.visible = true
                 }
             }
