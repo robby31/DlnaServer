@@ -597,7 +597,7 @@ void Reply::bytesSentSlot(const qint64 &size, const qint64 &towrite)
 
 void Reply::setDlnaResourceParent(DlnaResource *item)
 {
-    if (item && item->parent() == 0)
+    if (item && QString(item->metaObject()->className()) != "DlnaCachedRootFolder" && item->parent() == 0)
     {
         item->setParent(this);
 
