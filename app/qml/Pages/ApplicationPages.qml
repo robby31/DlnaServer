@@ -19,6 +19,8 @@ Item {
             webPage.toggleMenu()
         else if (mainWindow.state==="DEBUG")
             debugPage.toggleMenu()
+        else if (mainWindow.state==="LIBRARY")
+            libraryPage.toggleMenu()
     }
 
     RequestsView {
@@ -53,6 +55,13 @@ Item {
         id: debugPage
         anchors.fill: parent
         visible: mainWindow.state === "DEBUG"
+        onQuit: mainWindow.close()
+    }
+
+    LibraryView {
+        id: libraryPage
+        anchors.fill: parent
+        visible: mainWindow.state === "LIBRARY"
         onQuit: mainWindow.close()
     }
 }

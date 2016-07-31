@@ -9,7 +9,7 @@ import "Pages"
 MyApplication {
     id: mainWindow
     title: "QT Media Server"
-    minimumWidth: 700
+    minimumWidth: 800
     width: minimumWidth
 
     controller: homePageController
@@ -39,8 +39,14 @@ MyApplication {
             icon: "qrc:/images/web.png"
         }
         ListElement {
+            title: "Library"
+            state: "LIBRARY"
+            icon: "qrc:/images/media.png"
+        }
+        ListElement {
             title: "Debug"
             state: "DEBUG"
+            icon: "qrc:/images/debug.png"
         }
     }
 

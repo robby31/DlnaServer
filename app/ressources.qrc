@@ -24,5 +24,9 @@
         <file>images/renderer.png</file>
         <file>images/requests.png</file>
         <file>qml/content/DebugView.qml</file>
+        <file>qml/content/LibraryView.qml</file>
+        <file>images/clear.png</file>
+        <file>images/media.png</file>
+        <file>images/debug.png</file>
     </qresource>
 </RCC>
