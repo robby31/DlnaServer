@@ -7,6 +7,7 @@
 
 #include "logger.h"
 #include "upnphelper.h"
+#include "httpclient.h"
 #include "cached/dlnacachedrootfolder.h"
 #include "reply.h"
 #include "replydlnaitemcontent.h"
@@ -17,7 +18,7 @@ class HttpServer : public QTcpServer
 
 public:
     explicit HttpServer(Logger* log, QThread *backend, QNetworkAccessManager *nam, QObject *parent = 0);
-    virtual ~HttpServer();
+    virtual ~HttpServer() Q_DECL_OVERRIDE;
 
     QHostAddress getHost()  const { return hostaddress; }
     int getPort()           const { return serverPort(); }
@@ -33,7 +34,7 @@ public:
     static const int SERVERPORT;
 
 protected:
-    virtual void incomingConnection(qintptr socketDescriptor);
+    virtual void incomingConnection(qintptr socketDescriptor) Q_DECL_OVERRIDE;
 
 signals:
     void startSignal();
@@ -58,6 +59,7 @@ signals:
     void newRenderer(const QString &ip, const int &port, const QString &userAgent);
 
     void updateMediaData(const QString &filename, const QHash<QString, QVariant> &data);
+    void updateMediaFromId(const int &id, const QHash<QString, QVariant> &data);
     void incrementCounterPlayedSignal(const QString &filename);
 
     void getDLNAResourcesSignal(QObject *sender, QString objectId, bool returnChildren, int start, int count, QString searchStr);
@@ -104,9 +106,6 @@ private :
 
     QThread *m_backend;
     QNetworkAccessManager *netManager;
-
-    QThread *workerRoot;
-    QThread *workerTranscoding;
 
     // root folder containing DLNA nodes
     QStringList listFolderAdded;

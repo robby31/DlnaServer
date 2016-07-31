@@ -18,8 +18,6 @@ HttpServer::HttpServer(Logger* log, QThread *backend, QNetworkAccessManager *nam
     serverport(SERVERPORT),
     m_backend(backend),
     netManager(nam),
-    workerRoot(0),
-    workerTranscoding(0),
     listFolderAdded()
 {
     if (!m_log)
@@ -35,18 +33,6 @@ HttpServer::HttpServer(Logger* log, QThread *backend, QNetworkAccessManager *nam
 
     connect(this, SIGNAL(acceptError(QAbstractSocket::SocketError)),
             this, SLOT(_newConnectionError(QAbstractSocket::SocketError)));
-
-    workerRoot = new QThread();
-    connect(this, SIGNAL(destroyed()), workerRoot, SLOT(quit()));
-    connect(workerRoot, SIGNAL(finished()), workerRoot, SLOT(deleteLater()));
-    workerRoot->setObjectName("Root folder, MediaLibrary Thread");
-    workerRoot->start();
-
-    workerTranscoding = new QThread();
-    connect(this, SIGNAL(destroyed()), workerTranscoding, SLOT(quit()));
-    connect(workerTranscoding, SIGNAL(finished()), workerTranscoding, SLOT(deleteLater()));
-    workerTranscoding->setObjectName("Transcoding Thread");
-    workerTranscoding->start();
 }
 
 HttpServer::~HttpServer()
@@ -54,7 +40,7 @@ HttpServer::~HttpServer()
     logTrace("Close HTTP server.");
     close();
 
-    qWarning() << "WAIT THREAD POOL" << QThreadPool::globalInstance()->waitForDone();
+    QThreadPool::globalInstance()->waitForDone();
 }
 
 void HttpServer::folderAddedSlot(QString folder)
@@ -101,8 +87,6 @@ void HttpServer::_startServer()
 
             // initialize the root folder
             DlnaCachedRootFolder *rootFolder = new DlnaCachedRootFolder(m_log, hostaddress.toString(), serverport);
-            rootFolder->moveToThread(workerRoot);
-            connect(workerRoot, SIGNAL(finished()), rootFolder, SLOT(deleteLater()));
             rootFolder->setNetworkAccessManager(netManager);
 
             connect(this, SIGNAL(destroyed()), rootFolder, SLOT(deleteLater()));
@@ -118,11 +102,15 @@ void HttpServer::_startServer()
 
             connect(this, SIGNAL(incrementCounterPlayedSignal(QString)), rootFolder, SLOT(incrementCounterPlayed(QString)));
             connect(this, SIGNAL(updateMediaData(QString,QHash<QString,QVariant>)), rootFolder, SLOT(updateLibrary(QString,QHash<QString,QVariant>)));
+            connect(this, SIGNAL(updateMediaFromId(int,QHash<QString,QVariant>)), rootFolder, SLOT(updateLibraryFromId(int,QHash<QString,QVariant>)));
 
             connect(this, SIGNAL(getDLNAResourcesSignal(QObject*, QString,bool,int,int,QString)), rootFolder, SLOT(requestDlnaResources(QObject*, QString,bool,int,int,QString)));
             connect(rootFolder, SIGNAL(dlnaResources(QObject*,QList<DlnaResource*>)), this, SIGNAL(dlnaResources(QObject*,QList<DlnaResource*>)));
 
             connect(this, SIGNAL(reloadLibrarySignal(QStringList)), rootFolder, SLOT(reloadLibrary(QStringList)));
+
+            rootFolder->moveToThread(m_backend);
+            connect(m_backend, SIGNAL(finished()), rootFolder, SLOT(deleteLater()));
 
             upnp.setServerUrl(getURL());
             upnp.start();
@@ -201,7 +189,7 @@ void HttpServer::_readyToReply(const QString &method, const QString &argument, c
 
     if ((method == "GET" || method == "HEAD") && argument.startsWith("get/"))
     {
-        reply = new ReplyDlnaItemContent(m_log, workerTranscoding, http10, method, argument, paramsHeader, content, range, timeSeekRangeStart, timeSeekRangeEnd, UUID, QString("%1").arg(SERVERNAME), getHost().toString(), getPort());
+        reply = new ReplyDlnaItemContent(m_log, m_backend, http10, method, argument, paramsHeader, content, range, timeSeekRangeStart, timeSeekRangeEnd, UUID, QString("%1").arg(SERVERNAME), getHost().toString(), getPort());
         connect(reply, SIGNAL(startServingRendererSignal(QString)), request, SLOT(startServingRenderer(QString)));
         connect(reply, SIGNAL(stopServingRendererSignal()), request, SLOT(stopServingRenderer()));
         connect(reply, SIGNAL(servingSignal(QString,int)), this, SLOT(_servingProgress(QString,int)));
