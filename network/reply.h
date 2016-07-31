@@ -1,6 +1,7 @@
 #ifndef REPLY_H
 #define REPLY_H
 
+#include <QTcpSocket>
 #include "logobject.h"
 #include "request.h"
 #include "dlnarootfolder.h"

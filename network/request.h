@@ -5,7 +5,6 @@
 #include <QElapsedTimer>
 
 #include "logger.h"
-#include "httpclient.h"
 #include "httprange.h"
 #include "Models/listmodel.h"
 
