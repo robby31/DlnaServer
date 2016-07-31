@@ -8,7 +8,8 @@ SOURCES += \
     myapplication.cpp \
     applicationcontroller.cpp \
     debugitem.cpp \
-    createdatabasethread.cpp
+    createdatabasethread.cpp \
+    checknetworklinkitem.cpp
 
 include (../common/common.pri)
 include (../network/network.pri)
@@ -18,7 +19,8 @@ HEADERS += \
     myapplication.h \
     applicationcontroller.h \
     debugitem.h \
-    createdatabasethread.h
+    createdatabasethread.h \
+    checknetworklinkitem.h
 
 SOURCES +=
 
