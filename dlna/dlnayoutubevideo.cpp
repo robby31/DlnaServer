@@ -13,9 +13,12 @@ DlnaYouTubeVideo::DlnaYouTubeVideo(Logger *log, QString host, int port, QObject 
     ffmpeg(this),
     m_youtube(0),
     mutex(),
-    replyWaitCondition()
+    replyWaitCondition(),
+    m_error()
 {
     ++objectCounter;
+
+    connect(&ffmpeg, SIGNAL(mediaReady()), this, SLOT(ffmpegReady()));
 }
 
 DlnaYouTubeVideo::~DlnaYouTubeVideo()
@@ -76,7 +79,7 @@ void DlnaYouTubeVideo::setUrl(const QUrl &url)
 void DlnaYouTubeVideo::videoUrlError(const QString &message)
 {
     m_videoUrlInProgress = false;
-    logError(message);
+    m_error = message;
     replyWaitCondition.wakeAll();
 }
 
@@ -87,11 +90,25 @@ void DlnaYouTubeVideo::videoTitle(const QString &title)
 
 void DlnaYouTubeVideo::videoUrl(const QString &url)
 {
-    if (m_analyzeStream)
-        ffmpeg.setFilename(url);
-
     m_streamUrl = url;
 
+    if (m_analyzeStream)
+    {
+        ffmpeg.setFilename(url);
+
+        // wait ffmpeg is ready to declare process finished
+    }
+    else
+    {
+        // url is found, ffmpeg is not run to probe the media so process finished
+        m_videoUrlInProgress = false;
+        replyWaitCondition.wakeAll();
+    }
+}
+
+void DlnaYouTubeVideo::ffmpegReady()
+{
+    // url is found and ffmpeg is ready, process finished
     m_videoUrlInProgress = false;
     replyWaitCondition.wakeAll();
 }

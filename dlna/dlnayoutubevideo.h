@@ -19,6 +19,7 @@ public:
 
     bool isValid() { return m_unavailableMessage.isEmpty() && !m_title.isEmpty() && !resolution().isEmpty() && metaDataDuration()>0; }
     QString unavailableMessage() { return m_unavailableMessage; }
+    QString lastError() { return m_error; }
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.
@@ -81,6 +82,7 @@ private slots:
     void videoTitle(const QString &title);
     void videoUrlError(const QString &message);
     void videoNotAvailable(const QString &message) { m_unavailableMessage  = message; }
+    void ffmpegReady();
 
 private:
     QUrl m_url;
@@ -95,6 +97,8 @@ private:
     YouTube *m_youtube;
     QMutex mutex;
     QWaitCondition replyWaitCondition;
+
+    QString m_error;
 
 public:
     static qint64 objectCounter;
