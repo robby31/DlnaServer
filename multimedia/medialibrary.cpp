@@ -186,7 +186,7 @@ bool MediaLibrary::initialize()
         }
 
         // check if all media are reachable
-        if (query.exec("SELECT id, filename from media"))
+        if (query.exec("SELECT id, filename from media WHERE is_reachable=1"))
         {
             QHash<QString, QVariant> data;
             data["is_reachable"] = QVariant(0);
@@ -203,10 +203,20 @@ bool MediaLibrary::initialize()
         }
 
         // check if all artists are used by at least one media
-        if (query.exec("SELECT artist.id, artist.name, count(media.id) from artist LEFT OUTER JOIN media ON media.artist=artist.id GROUP BY artist.id, artist.name")) {
+        if (query.exec("SELECT artist_id, artist_name, count(id) FROM "
+                       "(SELECT artist.id AS artist_id, artist.name AS artist_name, media.id AS id from artist "
+                       "LEFT OUTER JOIN media ON media.artist=artist.id "
+                       "UNION "
+                       "SELECT artist.id AS artist_id, artist.name AS artist_name, album.id AS id from artist "
+                       "LEFT OUTER JOIN album ON album.artist=artist.id)"
+                       "GROUP BY artist_id, artist_name")) {
             while (query.next())
                 if (query.value(2).toInt()==0)
                     logWarning(QString("Artist with no media: %1(id=%2)").arg(query.value(1).toString()).arg(query.value(0).toInt()));
+        }
+        else
+        {
+            qDebug() << "ERROR in check artists" << query.lastError().text();
         }
 
         // check if duration is valid
@@ -246,10 +256,6 @@ bool MediaLibrary::initialize()
         // update youtube link
         //        if (!query.exec(QString("UPDATE media SET filename='https://www.youtube.com/watch?v=THGgyPfiNHs' WHERE id=14960")))
         //            qWarning() << query.lastError();
-
-        if (query.exec("SELECT id, filename, title from media where is_reachable=0"))
-            while (query.next())
-                qDebug() << "OFF LINE" << query.value("id").toInt() << query.value("filename").toString().toUtf8()<< query.value("title").toString().toUtf8();
 
         if (query.exec("SELECT count(id) from media") && query.next())
             logInfo(QString("%1 medias in database.").arg(query.value(0).toInt()));
@@ -701,6 +707,11 @@ bool MediaLibrary::updateFromFilename(const QString &filename, const QHash<QStri
     return false;
 }
 
+bool MediaLibrary::updateFromId(const int &id, const QHash<QString, QVariant> &data)
+{
+    return update("media", id, data);
+}
+
 bool MediaLibrary::incrementCounterPlayed(const QString &filename)
 {
     QSqlQuery query = getMedia(QString("filename=\"%1\"").arg(filename));
@@ -807,9 +818,11 @@ bool MediaLibrary::add_media(QHash<QString, QVariant> data, QHash<QString, QVari
     if (id_artist != -1)
         data["artist"] = id_artist;
 
-    QSqlQuery query = getMedia(QString("filename=\"%1\"").arg(data["filename"].toString()));
+    QSqlQuery query(GET_DATABASE("MEDIA_DATABASE"));
+    query.prepare("SELECT id, last_modified FROM media WHERE filename=:filename");
+    query.bindValue(":filename", data["filename"]);
 
-    if (query.next()) {
+    if (query.exec() && query.next()) {
         // media already stored in library
         QDateTime lastModified = query.value("last_modified").toDateTime();
 

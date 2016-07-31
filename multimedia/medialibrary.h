@@ -46,6 +46,7 @@ public:
     int add_album(QHash<QString, QVariant> data_album);
     int add_artist(QHash<QString, QVariant> data_artist);
     bool updateFromFilename(const QString &filename, const QHash<QString, QVariant> &data);
+    bool updateFromId(const int &id, const QHash<QString, QVariant> &data);
     bool incrementCounterPlayed(const QString &filename);
 
     bool resetLibrary(const QString &pathname);
