@@ -197,7 +197,7 @@ bool DlnaCachedRootFolder::addResource(QUrl url)
             if (!data.isEmpty()) {
                 logDebug(QString("Resource to add: %1").arg(movie->metaDataTitle()));
                 if (!library.add_media(data, data_album, data_artist)) {
-                    logError(QString("unable to add or update resource %1 (%2)").arg(url.toString().arg("video")));
+                    logError(QString("unable to add or update resource %1 (%2)").arg(url.toString()).arg("video"));
                 } else {
                     return true;
                 }
@@ -324,6 +324,25 @@ void DlnaCachedRootFolder::updateLibrary(const QString &filename, const QHash<QS
     recentlyPlayedChild->needRefresh();
     resumeChild->needRefresh();
     favoritesChild->needRefresh();
+}
+
+void DlnaCachedRootFolder::updateLibraryFromId(const int &id, const QHash<QString, QVariant> &data)
+{
+    if (!library.updateFromId(id, data))
+        logError(QString("Unable to update library: media id %1").arg(id));
+
+    recentlyPlayedChild->needRefresh();
+    resumeChild->needRefresh();
+    favoritesChild->needRefresh();
+
+    if (data.contains("filename"))
+    {
+        // refresh the media
+        if (data["filename"].toString().startsWith("http"))
+            addResource(QUrl(data["filename"].toString()));
+        else
+            addResource(QFileInfo(data["filename"].toString()));
+    }
 }
 
 void DlnaCachedRootFolder::incrementCounterPlayed(const QString &filename)

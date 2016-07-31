@@ -10,7 +10,9 @@ MyApplication::MyApplication(int &argc, char **argv):
     server(&log, backendThread(), &netManager),
     m_requestsModel(0),
     m_renderersModel(0),
-    m_debugModel(0)
+    m_debugModel(0),
+    m_checkNetworkLinkModel(0),
+    m_checkInProgress(-1)
 {
     connect(this, SIGNAL(aboutToQuit()), this, SLOT(quit()));
 
@@ -80,6 +82,8 @@ MyApplication::MyApplication(int &argc, char **argv):
     connect(this, SIGNAL(addLink(QString)), &server, SIGNAL(addNetworkLinkSignal(QString)));
     connect(&server, SIGNAL(linkAdded(QString)), this, SLOT(linkAdded(QString)));
     connect(&server, SIGNAL(error_addNetworkLink(QString)), this, SLOT(linkNotAdded(QString)));
+
+    connect(this, SIGNAL(updateMediaFromId(int,QHash<QString,QVariant>)), &server, SIGNAL(updateMediaFromId(int,QHash<QString,QVariant>)));
 
     server.start();
 }
@@ -202,7 +206,113 @@ bool MyApplication::saveSettings()
 
 void MyApplication::startCheckNetworkLink()
 {
-    // check all network links
-    CheckNetworkLink *checknetworklinkWorker = new CheckNetworkLink(&log, &netManager);
-    QThreadPool::globalInstance()->start(checknetworklinkWorker);
+    if (m_checkNetworkLinkModel)
+    {
+        qCritical() << "check network link already in progress.";
+    }
+    else
+    {
+        // check all network links
+        CheckNetworkLink *checknetworklinkWorker = new CheckNetworkLink(&log, &netManager);
+        connect(checknetworklinkWorker, SIGNAL(addMessage(QString,QString)), this, SLOT(checkNetworkLinkMessage(QString, QString)));
+        connect(checknetworklinkWorker, SIGNAL(progress(int)), this, SLOT(checkNetworkLinkProgress(int)));
+        connect(this, SIGNAL(abortCheckNetworkLink()), checknetworklinkWorker, SLOT(abort()));
+        connect(this, SIGNAL(aboutToQuit()), checknetworklinkWorker, SLOT(abort()));
+
+        setNetworkLinkModel(new ListModel(new CheckNetworkLinkItem, this));
+
+        QThreadPool::globalInstance()->start(checknetworklinkWorker);
+    }
+}
+
+void MyApplication::removeMedia(const int &id)
+{
+    QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
+
+    db.transaction();
+
+    QSqlQuery query(db);
+
+    // remove media
+    if (query.prepare("DELETE FROM media WHERE id=:id"))
+    {
+        query.bindValue(":id", id);
+        if (!query.exec())
+        {
+            log.Error(QString("unable to remove media(%1) : %2.").arg(id).arg(query.lastError().text()));
+            db.rollback();
+        }
+        else
+        {
+            db.commit();
+        }
+    }
+    else
+    {
+        db.rollback();
+    }
+}
+
+void MyApplication::checkNetworkLinkMessage(QString name, QString message)
+{
+    if (m_checkNetworkLinkModel)
+    {
+        CheckNetworkLinkItem *item = new CheckNetworkLinkItem(name, message, m_checkNetworkLinkModel);
+        m_checkNetworkLinkModel->appendRow(item);
+    }
+    else
+    {
+        qCritical() << "ERROR in checkNetworkLinkMessage, model is not initialized.";
+    }
+}
+
+void MyApplication::checkNetworkLinkProgress(const int &value)
+{
+    setcheckInProgress(value);
+}
+
+void MyApplication::setcheckInProgress(const int &value)
+{
+    if (m_checkInProgress != value)
+    {
+        m_checkInProgress = value;
+        emit checkInProgressChanged();
+    }
+}
+
+void MyApplication::abortCheckLink()
+{
+    emit abortCheckNetworkLink();
+}
+
+void MyApplication::closeCheckLink()
+{
+    if (m_checkInProgress != -1)
+    {
+        qCritical() << "unable to close check links, it is still in progress.";
+    }
+    else
+    {
+        setNetworkLinkModel(0);
+    }
+}
+
+
+void MyApplication::setNetworkLinkModel(ListModel *model)
+{
+    if (m_checkNetworkLinkModel != model)
+    {
+        if (m_checkNetworkLinkModel)
+            m_checkNetworkLinkModel->deleteLater();
+
+        m_checkNetworkLinkModel = model;
+        emit checkNetworkLinkModelChanged();
+    }
+}
+
+void MyApplication::updateFilenameMedia(const int &id, const QString &pathname)
+{
+    QHash<QString,QVariant> data;
+    data["filename"] = pathname;
+    emit updateMediaFromId(id, data);
 }

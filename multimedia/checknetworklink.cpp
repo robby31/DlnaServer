@@ -3,14 +3,10 @@
 CheckNetworkLink::CheckNetworkLink(Logger *log, QNetworkAccessManager *nam):
     QRunnable(),
     m_log(log),
-    m_nam(nam)
+    m_nam(nam),
+    m_abort(false)
 {
 
-}
-
-CheckNetworkLink::~CheckNetworkLink()
-{
-    qWarning() << "Check network links finished" << this;
 }
 
 void CheckNetworkLink::run()
@@ -22,17 +18,26 @@ void CheckNetworkLink::run()
 
         if (database.isValid())
         {
-            m_log->Info("CHECK NETWORK LINK started");
+            emit progress(0);
 
             MediaLibrary library(m_log);
 
             int nb = 0;
 
             QSqlQuery query = library.getAllNetworkLinks();
+
+            query.last();
+            int total = query.at();
+
+            query.exec();
             while (query.next())
             {
-                qDebug() << "check" << query.record().value("title");
                 ++nb;
+                emit progress(nb*100/total);
+                if (m_abort)
+                    break;  // Abort process
+
+                QString name = QString("%1 %2").arg(query.value("artist").toString()).arg(query.value("title").toString());
 
                 QString url(query.value("filename").toString());
                 bool isReachable = query.value("is_reachable").toBool();
@@ -47,16 +52,11 @@ void CheckNetworkLink::run()
 
                 if (!(res && movie->isValid()))
                 {
-                    if (!res)
-                        m_log->Warning("TIMEOUT");
-
                     if (isReachable)
                     {
-                        m_log->Error(QString("link %1 is broken, title: %2").arg(query.value("filename").toString()).arg(query.value("title").toString()));
-
                         if (res && !movie->unavailableMessage().isEmpty())
                         {
-                            m_log->Warning(QString("PUT OFFLINE %1, %2, %3").arg(query.value("id").toString()).arg(query.value("title").toString()).arg(query.value("artist").toString()));
+                            emit addMessage(name, QString("put OFFLINE - %1").arg(movie->unavailableMessage()));
 
                             QHash<QString, QVariant> data;
                             data["is_reachable"] = QVariant(0);
@@ -66,14 +66,14 @@ void CheckNetworkLink::run()
                     }
                     else
                     {
-                        m_log->Warning(QString("link %1 is still unreachable, title: %2").arg(query.value("filename").toString()).arg(query.value("title").toString()));
+                        emit addMessage(name, QString("link is still unreachable - %1").arg(movie->unavailableMessage()));
                     }
                 }
                 else
                 {
                     if (!isReachable)
                     {
-                        m_log->Warning(QString("PUT ONLINE %1, %2, %3").arg(query.value("id").toString()).arg(query.value("title").toString()).arg(query.value("artist").toString()));
+                        emit addMessage(name, "put ONLINE");
 
                         QHash<QString, QVariant> data;
                         data["is_reachable"] = QVariant(1);
@@ -82,11 +82,9 @@ void CheckNetworkLink::run()
                     }
 
                     // refresh data
-                    //            addResource(QUrl(url));
+                    emit refresh(QUrl(url));
                 }
             }
-
-            m_log->Info(QString("%1 links checked.").arg(nb));
         }
         else
         {
@@ -95,4 +93,11 @@ void CheckNetworkLink::run()
     }
 
     REMOVE_DATABASE("MEDIA_DATABASE");
+
+    emit progress(-1);
+}
+
+void CheckNetworkLink::abort()
+{
+    m_abort = true;
 }

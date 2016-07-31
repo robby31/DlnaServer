@@ -54,7 +54,7 @@ Page {
                 anchors.leftMargin: 5
                 anchors.topMargin: 5
                 anchors.bottomMargin: 5
-                color: view.currentIndex == index ? "lightsteelblue" : "#00000000"
+                color: view.currentIndex == index ? theme.highlightSelectColor : "#00000000"
                 radius: parent.height/4
                 border.width: 2
 
@@ -84,6 +84,8 @@ Page {
         height: 300
         anchors.fill: parent
         spacing: 4
+
+        visible: !checklinkview.visible
 
         RowLayout {
             spacing: 4
@@ -129,16 +131,145 @@ Page {
             }
         }
 
-        ListView {
-            id: view
+        ScrollView {
             Layout.fillHeight: true
             Layout.fillWidth: true
+
+            ListView {
+            id: view
+            anchors.fill: parent
             clip: true
             model: _app.sharedFolderModel
             delegate: folderDelegate
             preferredHighlightEnd: 150
             preferredHighlightBegin: 50
+            }
         }
 
+    }
+
+    Component {
+        id: checklinkDelegate
+
+        Item {
+            id: delegate
+            width: parent.width
+            height: 40
+
+            Rectangle {
+                id: hover
+                anchors.fill: parent
+                color: theme.hoverColor
+                visible: mouseArea.containsMouse
+            }
+
+            Rectangle {
+                id: highlight
+                anchors.fill: parent
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: theme.highlightGradientStart }
+                    GradientStop { position: 1.0; color: theme.highlightGradientEnd }
+                }
+                visible: mouseArea.pressed
+            }
+
+            Rectangle {
+                id: selected
+                anchors.fill: parent
+                color: theme.highlightSelectColor
+                visible: delegate.ListView.isCurrentItem
+            }
+
+            MouseArea {
+                id: mouseArea
+                anchors.fill: parent
+                hoverEnabled: true
+                onClicked: checklinklistview.currentIndex = index
+            }
+
+            Row {
+                width: parent.width-10
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.verticalCenter: parent.verticalCenter
+                spacing: 5
+
+                Text {
+                    id: textMessage
+                    text: model["message"]
+                    width: contentWidth
+                    anchors.verticalCenter: parent.verticalCenter
+                    clip: true
+
+                    color: model["message"] === "put ONLINE" ? "green" : (model["message"] === "put OFFLINE" ? "red" : "blue")
+                }
+
+                Text {
+                    id: textName
+                    text: model["name"]
+                    width: parent.width-textMessage.width
+                    height: contentHeight
+                    anchors.verticalCenter: parent.verticalCenter
+                    clip: true
+                }
+            }
+
+            Rectangle {
+                id: separatorBottom
+                width: parent.width
+                height: 1
+                anchors { left: parent.left; bottom: parent.bottom }
+                color: theme.separatorColor
+            }
+        }
+    }
+
+    ColumnLayout {
+        id: checklinkview
+        anchors.fill: parent
+        spacing: 4
+        visible: checklinklistview.model !== null
+
+        Rectangle {
+            id: header
+            Layout.fillWidth: true
+            height: 40
+
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: theme.gradientStartColor }
+                GradientStop { position: 1.0; color: theme.gradientEndColor }
+            }
+
+            MyButton {
+                id: closeButton
+                anchors { right: header.right; rightMargin: 10 }
+                hovered: true
+                sourceComponent: Text { width: contentWidth; height: contentHeight; text: "Close" }
+                onButtonClicked: _app.closeCheckLink()
+            }
+        }
+
+        ScrollView {
+            Layout.fillHeight: true
+            Layout.fillWidth: true
+
+            ListView {
+                id: checklinklistview
+                anchors.fill: parent
+                clip: true
+                model: _app.checkNetworkLinkModel
+                delegate: checklinkDelegate
+                preferredHighlightEnd: 150
+                preferredHighlightBegin: 50
+            }
+        }
+    }
+
+    BusyIndicator {
+        id: busyindicator
+        anchors.fill: parent
+        activity: "Check Network links"
+        activityProgress: _app.checkInProgress
+        visible: _app.checkInProgress >= 0
+        onCancel: _app.abortCheckLink()
     }
 }

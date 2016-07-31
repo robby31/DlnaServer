@@ -16,6 +16,7 @@
 #include "debugitem.h"
 #include "checknetworklink.h"
 #include "createdatabasethread.h"
+#include "checknetworklinkitem.h"
 
 class MyApplication : public Application
 {
@@ -26,6 +27,8 @@ class MyApplication : public Application
     Q_PROPERTY(MediaRendererModel *renderersModel READ renderersModel WRITE setRenderersModel NOTIFY renderersModelChanged)
     Q_PROPERTY(ListModel *debugModel READ debugModel NOTIFY debugModelChanged)
 
+    Q_PROPERTY(ListModel *checkNetworkLinkModel READ checkNetworkLinkModel WRITE setNetworkLinkModel NOTIFY checkNetworkLinkModelChanged)
+    Q_PROPERTY(int checkInProgress READ checkInProgress WRITE setcheckInProgress NOTIFY checkInProgressChanged)
 
 public:
     explicit MyApplication(int &argc, char **argv);
@@ -36,13 +39,22 @@ public:
     Q_INVOKABLE void addNetworkLink(const QString &url)  { emit addLink(url); }
     Q_INVOKABLE void startCheckNetworkLink();
     Q_INVOKABLE void reloadLibrary() { emit reloadLibrarySignal(); }
+    Q_INVOKABLE void removeMedia(const int &id);
+    Q_INVOKABLE void updateFilenameMedia(const int &id, const QString &pathname);
 
+    void setNetworkLinkModel(ListModel *model);
+    void setcheckInProgress(const int &value);
+    Q_INVOKABLE void abortCheckLink();
+    Q_INVOKABLE void closeCheckLink();
 
 private:
     QStringList sharedFolderModel()      const { return m_sharedFolderModel; }
     RequestListModel *requestsModel()    const { return m_requestsModel;     }
     MediaRendererModel *renderersModel() const { return m_renderersModel;    }
-    ListModel *debugModel() const { return m_debugModel; }
+    ListModel *debugModel()              const { return m_debugModel; }
+
+    ListModel *checkNetworkLinkModel()   const { return m_checkNetworkLinkModel; }
+    int checkInProgress()                const { return m_checkInProgress; }
 
     bool loadSettings();
     bool saveSettings();
@@ -52,10 +64,16 @@ signals:
     void requestsModelChanged();
     void renderersModelChanged();
     void debugModelChanged();
+    void checkNetworkLinkModelChanged();
+    void checkInProgressChanged();
 
     void addFolder(QString folder);
     void addLink(QString url);
     void reloadLibrarySignal();
+
+    void abortCheckNetworkLink();
+
+    void updateMediaFromId(const int &id, const QHash<QString, QVariant> &data);
 
 
 private slots:
@@ -73,6 +91,9 @@ private slots:
     void quit();
 
     void serverStarted();
+
+    void checkNetworkLinkMessage(QString name, QString message);
+    void checkNetworkLinkProgress(const int &value);
 
 private:
     QSettings settings;
@@ -92,6 +113,8 @@ private:
     MediaRendererModel *m_renderersModel;
 
     ListModel *m_debugModel;
+    ListModel *m_checkNetworkLinkModel;
+    int m_checkInProgress;
 };
 
 #endif // MYAPPLICATION_H

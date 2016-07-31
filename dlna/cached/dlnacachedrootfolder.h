@@ -38,6 +38,7 @@ signals:
 
 private slots:
     void updateLibrary(const QString &filename, const QHash<QString, QVariant> &data);
+    void updateLibraryFromId(const int &id, const QHash<QString, QVariant> &data);
     void incrementCounterPlayed(const QString &filename);
 
     // returns true if the folder is added to Root.
