@@ -703,7 +703,7 @@ bool MediaLibrary::updateFromFilename(const QString &filename, const QHash<QStri
         return update("media", query.value("id").toInt(), data);
     }
 
-    qDebug() << "updateFromFilename" << filename << "not found";
+    qCritical() << "updateFromFilename" << filename << "not found";
     return false;
 }
 
