@@ -20,7 +20,7 @@ signals:
 
 
 private slots:
-    void createRequest(qintptr socket, QString uuid, QString servername, QString host, int port);
+    void createRequest(HttpClient *client, QString uuid, QString servername, QString host, int port);
     void requestDestroyed(Request *request);
 
 

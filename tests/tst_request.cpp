@@ -12,7 +12,7 @@ void TestRequest::testCase_request()
     Logger log;
     DlnaRootFolder rootFolder(&log, "host", 400);
     HttpClient client(&log);
-    Request request(&log, client.socketDescriptor(), "uuid", "server name", "host IP", 56);
+    Request request(&log, &client, "uuid", "server name", "host IP", 56);
 
     QVERIFY2(request.data(Request::hostRole) == "host IP (-1)", request.data(Request::hostRole).toString().toUtf8());
     QVERIFY(request.data(Request::argumentRole) == "");

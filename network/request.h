@@ -6,6 +6,7 @@
 
 #include "logger.h"
 #include "httprange.h"
+#include "httpclient.h"
 #include "Models/listmodel.h"
 
 
@@ -16,7 +17,7 @@ class Request: public ListItem
 public:
     explicit Request(QObject *parent = 0);
     explicit Request(Logger *log,
-                     qintptr socket,
+                     HttpClient *client,
                      QString uuid,
                      QString servername, QString host, int port,
                      QObject *parent = 0);
@@ -44,7 +45,9 @@ public:
 
     bool isHttp10() const { return http10; }
 
-    qintptr socketDescriptor() const { return m_socket; }
+    HttpClient *client() const { return m_client; }
+    void setClient(HttpClient *client);
+
     QString getServername() const { return servername; }
     int getPort() const { return port; }
     QString getUuid() const { return uuid; }
@@ -115,6 +118,8 @@ private slots:
     void requestReceived(const QString &peerAddress, const QStringList &header, const bool &is_http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd);
     void replyFinished();
 
+    void clientDestroyed();
+
 private:
     // Carriage return and line feed.
     static const QString CRLF;
@@ -122,7 +127,7 @@ private:
     QHash<int, QByteArray> m_roles;
 
     Logger *m_log;
-    qintptr m_socket;
+    HttpClient *m_client;
 
     QString requestLog;  // internal log
 

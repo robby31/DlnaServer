@@ -7,7 +7,8 @@ const QString Request::CRLF = "\r\n";
 Request::Request(QObject *parent):
     ListItem(parent),
     m_roles(),
-    m_log(0)
+    m_log(0),
+    m_client(0)
 {
     ++objectCounter;
 
@@ -25,11 +26,11 @@ Request::Request(QObject *parent):
     m_roles[transcodeLogRole] = "transcode_log";
 }
 
-Request::Request(Logger* log, qintptr socket, QString uuid, QString servername, QString host, int port, QObject *parent):
+Request::Request(Logger* log, HttpClient *client, QString uuid, QString servername, QString host, int port, QObject *parent):
     ListItem(parent),
     m_roles(),
     m_log(log),
-    m_socket(socket),
+    m_client(0),
     replyNumber(0),
     replyInProgress(false),  // by default no reply is in progress, we wait a request
     m_status(),
@@ -65,6 +66,7 @@ Request::Request(Logger* log, qintptr socket, QString uuid, QString servername, 
     setStatus("init");
     setHost(host);
     setNetworkStatus("connected");
+    setClient(client);
 
     logTrace("Request: receiving a request from " + data(peerAddressRole).toString());
 }
@@ -72,6 +74,34 @@ Request::Request(Logger* log, qintptr socket, QString uuid, QString servername, 
 Request::~Request()
 {
     --objectCounter;
+}
+
+void Request::setClient(HttpClient *client)
+{
+    m_client = client;
+
+    qRegisterMetaType<QHash<QString, QString> >("QHash<QString, QString>>");
+    qRegisterMetaType<QAbstractSocket::SocketState>("QAbstractSocket::SocketState");
+
+    connect(m_client, SIGNAL(destroyed()), this, SLOT(clientDestroyed()));
+    connect(m_client, SIGNAL(appendLogSignal(QString)), this, SLOT(appendLog(QString)));
+    connect(m_client, SIGNAL(appendAnswerSignal(QString)), this, SLOT(appendAnswer(QString)));
+    connect(m_client, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(stateChanged(QAbstractSocket::SocketState)));
+    connect(m_client, SIGNAL(incomingRequest(QString,QStringList,bool,QString,QString,QHash<QString,QString>,QString,HttpRange*,int,int)), this, SLOT(requestReceived(QString,QStringList,bool,QString,QString,QHash<QString,QString>,QString,HttpRange*,int,int)));
+
+    connect(m_client, SIGNAL(disconnected()), this, SIGNAL(clientDisconnected()));
+    connect(this, SIGNAL(closeClient()), m_client, SLOT(closeClient()));
+    connect(m_client, SIGNAL(bytesSent(qint64,qint64)), this, SIGNAL(bytesSent(qint64,qint64)));
+    connect(this, SIGNAL(sendTextLineToClientSignal(QString)), m_client, SLOT(sendTextLine(QString)));
+    connect(this, SIGNAL(sendHeaderSignal(QHash<QString,QString>)), m_client, SLOT(sendHeader(QHash<QString,QString>)));
+    connect(this, SIGNAL(sendDataToClientSignal(QByteArray)), m_client, SLOT(sendData(QByteArray)));
+    connect(m_client, SIGNAL(headerSent()), this, SIGNAL(headerSent()));
+    connect(this, SIGNAL(sendData(QByteArray)), m_client, SLOT(sendData(QByteArray)));
+}
+
+void Request::clientDestroyed()
+{
+    m_client = 0;
 }
 
 QVariant Request::data(int role) const
@@ -84,7 +114,10 @@ QVariant Request::data(int role) const
         return m_argument;
 
     case hostRole:
-        return QString("%1 (%2)").arg(m_host).arg(socketDescriptor());
+        if (m_client)
+            return QString("%1 (%2)").arg(m_host).arg(m_client->socketDescriptor());
+        else
+            return QString("%1 (-)").arg(m_host);
 
     case peerAddressRole:
         return m_peerAddress;
@@ -243,7 +276,11 @@ void Request::requestReceived(const QString &peerAddress, const QStringList &hea
     }
     else
     {
-        qWarning() << QString("unable to read request (socket %1), a reply is in progress.").arg(socketDescriptor()).toUtf8().constData();
+        if (m_client)
+            qWarning() << QString("unable to read request (socket %1), a reply is in progress.").arg(m_client->socketDescriptor()).toUtf8().constData();
+        else
+            qWarning() << QString("unable to read request, a reply is in progress.");
+
     }
 }
 

@@ -54,7 +54,7 @@ signals:
     void servingRenderer(const QString &ip, const QString &mediaName);
     void stopServingRenderer(const QString &ip);
 
-    void createRequest(qintptr socket, QString uuid, QString servername, QString host, int port);
+    void createRequest(HttpClient *client, QString uuid, QString servername, QString host, int port);
     void deleteRequest(Request *request);
     void newRenderer(const QString &ip, const int &port, const QString &userAgent);
 
@@ -71,6 +71,7 @@ private slots:
     void _logDestroyed() { m_log = 0; }
 
     void _startServer();
+    void newIncomingConnection();
     void _newConnectionError(const QAbstractSocket::SocketError &error);  // error during new connection
     void _readyToReply(const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const bool &http10, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd);                                                 // reply shall be sent
 
@@ -79,8 +80,7 @@ private slots:
 
     void _addFolder(const QString &folder);
 
-    void requestDLNAResourcesSignal(QString objectId, bool returnChildren, int start, int count, QString searchStr) { emit getDLNAResourcesSignal(sender(), objectId, returnChildren, start, count, searchStr); }
-
+    void requestDLNAResourcesSignal(QString objectId, bool returnChildren, int start, int count, QString searchStr);
     void newRequest(Request *request);
 
     void reloadLibrary();
@@ -92,8 +92,6 @@ private:
     void logDebug(const QString &message)  const { if (m_log) m_log->Debug(message); }
     void logInfo(const QString &message)   const { if (m_log) m_log->Info(message); }
     void logTrace(const QString &message)  const { if (m_log) m_log->Trace(message); }
-
-    void createTcpSocket(Request *request);
 
 private :
     QString SERVERNAME;

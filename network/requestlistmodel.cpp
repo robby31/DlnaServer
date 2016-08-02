@@ -18,9 +18,9 @@ RequestListModel::~RequestListModel()
     qWarning() << "Remove all requests, size =" << rowCount();
 }
 
-void RequestListModel::createRequest(qintptr socket, QString uuid, QString servername, QString host, int port)
+void RequestListModel::createRequest(HttpClient *client, QString uuid, QString servername, QString host, int port)
 {
-    Request *request = new Request(m_log, socket, uuid, servername, host, port, this);
+    Request *request = new Request(m_log, client, uuid, servername, host, port, this);
 
     insertRow(0, request);
 
