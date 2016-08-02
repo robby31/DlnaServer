@@ -22,6 +22,7 @@ tst_dlnayoutubevideo::tst_dlnayoutubevideo(QObject *parent) :
     connect(backend, SIGNAL(finished()), manager, SLOT(deleteLater()));
 
     db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+    db.setConnectOptions("Pooling=True;Max Pool Size=100;");
 }
 
 void tst_dlnayoutubevideo::receivedTranscodedData(const QByteArray &data)

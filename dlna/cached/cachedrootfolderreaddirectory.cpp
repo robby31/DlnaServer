@@ -18,6 +18,7 @@ void CachedRootFolderReadDirectory::run()
         // initialize database in current Thread
         QSqlDatabase database = CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE");
         database.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+        database.setConnectOptions("Pooling=True;Max Pool Size=100;");
 
         if (database.isValid())
         {

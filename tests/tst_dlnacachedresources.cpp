@@ -8,6 +8,7 @@ tst_dlnacachedresources::tst_dlnacachedresources(QObject *parent) :
     folderKO()
 {
     db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+    db.setConnectOptions("Pooling=True;Max Pool Size=100;");
 }
 
 void tst_dlnacachedresources::receivedTranscodedData(const QByteArray &data)
