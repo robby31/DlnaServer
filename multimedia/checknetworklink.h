@@ -1,21 +1,21 @@
 #ifndef CHECKNETWORKLINK_H
 #define CHECKNETWORKLINK_H
 
-#include <QRunnable>
+#include "Worker/myrunnable.h"
 
 #include "Models/listmodel.h"
 #include "logger.h"
 #include "medialibrary.h"
 #include "dlnayoutubevideo.h"
 
-class CheckNetworkLink : public QObject, public QRunnable
+class CheckNetworkLink : public MyRunnable
 {
     Q_OBJECT
 
 public:
-    CheckNetworkLink(Logger *log, QNetworkAccessManager *nam);
+    explicit CheckNetworkLink(Logger *log, QNetworkAccessManager *nam);
 
-    void run();
+    void run() Q_DECL_OVERRIDE;
 
 signals:
     void addMessage(QString name, QString message);
@@ -23,12 +23,10 @@ signals:
     void refresh(const QUrl &url);
 
 private slots:
-    void abort();
 
 private:
     Logger *m_log;
     QNetworkAccessManager *m_nam;
-    bool m_abort;
 };
 
 #endif // CHECKNETWORKLINK_H

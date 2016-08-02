@@ -1,10 +1,9 @@
 #include "checknetworklink.h"
 
 CheckNetworkLink::CheckNetworkLink(Logger *log, QNetworkAccessManager *nam):
-    QRunnable(),
+    MyRunnable(),
     m_log(log),
-    m_nam(nam),
-    m_abort(false)
+    m_nam(nam)
 {
 
 }
@@ -15,6 +14,7 @@ void CheckNetworkLink::run()
         // initialize database in current Thread
         QSqlDatabase database = CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE");
         database.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
+        database.setConnectOptions("Pooling=True;Max Pool Size=100;");
 
         if (database.isValid())
         {
@@ -34,7 +34,7 @@ void CheckNetworkLink::run()
             {
                 ++nb;
                 emit progress(nb*100/total);
-                if (m_abort)
+                if (isAborted())
                     break;  // Abort process
 
                 QString name = QString("%1 %2").arg(query.value("artist").toString()).arg(query.value("title").toString());
@@ -95,9 +95,4 @@ void CheckNetworkLink::run()
     REMOVE_DATABASE("MEDIA_DATABASE");
 
     emit progress(-1);
-}
-
-void CheckNetworkLink::abort()
-{
-    m_abort = true;
 }
