@@ -72,7 +72,7 @@ MyApplication::MyApplication(int &argc, char **argv):
     qRegisterMetaType<qintptr>("qintptr");
 
     connect(&server, SIGNAL(serverStarted()), this, SLOT(serverStarted()));
-    connect(&server, SIGNAL(createRequest(qintptr,QString,QString,QString,int)), m_requestsModel, SLOT(createRequest(qintptr,QString,QString,QString,int)));
+    connect(&server, SIGNAL(createRequest(HttpClient*,QString,QString,QString,int)), m_requestsModel, SLOT(createRequest(HttpClient*,QString,QString,QString,int)));
     connect(m_requestsModel, SIGNAL(newRequest(Request*)), &server, SLOT(newRequest(Request*)));
     connect(this, SIGNAL(reloadLibrarySignal()), &server, SLOT(reloadLibrary()));
     connect(this, SIGNAL(addFolder(QString)), &server, SLOT(_addFolder(QString)));
@@ -96,8 +96,8 @@ void MyApplication::serverStarted()
     loadSettings();
 
     // update volume informations
-    UpdateMediaVolumeInfo *volumeInfoWorker = new UpdateMediaVolumeInfo(&log, &netManager);
-    QThreadPool::globalInstance()->start(volumeInfoWorker);
+//    UpdateMediaVolumeInfo *volumeInfoWorker = new UpdateMediaVolumeInfo(&log, &netManager);
+//    QThreadPool::globalInstance()->start(volumeInfoWorker);
 }
 
 void MyApplication::setRenderersModel(MediaRendererModel *model)
