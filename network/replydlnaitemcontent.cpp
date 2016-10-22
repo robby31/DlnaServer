@@ -20,7 +20,6 @@ ReplyDlnaItemContent::ReplyDlnaItemContent(Logger *log, QThread *streamWorker, c
     streamingWithErrors(false),
     m_maxBufferSize(1024*1024*10)   // 10 MBytes by default when bitrate is unknown
 {
-    timerStatus.setTimerType(Qt::PreciseTimer);
     timerStatus.setInterval(UPDATE_STATUS_PERIOD);
     connect(&timerStatus, SIGNAL(timeout()), this, SLOT(updateStatus()));
 
@@ -84,7 +83,7 @@ void ReplyDlnaItemContent::updateStatus()
     if (clockUpdateStatus.isValid()) {
         int delta = clockUpdateStatus.restart() - UPDATE_STATUS_PERIOD;
 
-        if (qAbs(delta) > UPDATE_STATUS_PERIOD/2)
+        if (qAbs(delta) > UPDATE_STATUS_PERIOD/3)
         {
             QString msg = QString("%1: UPDATE STATUS delta %3 <%2>").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(mediaFilename).arg(delta);
             logInfo(msg);
@@ -348,9 +347,9 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
 
                     if (getRequest())
                     {
-                        connect(getRequest(), SIGNAL(headerSent()), streamContent, SLOT(startRequestData()));
-                        connect(getRequest(), SIGNAL(bytesSent(qint64,qint64)), streamContent, SLOT(bytesSent(qint64,qint64)));
-                        connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), getRequest(), SIGNAL(sendData(QByteArray)));
+                        connect(getRequest()->client(), SIGNAL(headerSent()), streamContent, SLOT(startRequestData()));
+                        connect(getRequest()->client(), SIGNAL(bytesSent(qint64,qint64)), streamContent, SLOT(bytesSent(qint64,qint64)));
+                        connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), getRequest()->client(), SLOT(sendData(QByteArray)));
                     }
 
                     if (streamContent->open())

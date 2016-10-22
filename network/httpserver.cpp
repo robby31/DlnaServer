@@ -172,7 +172,7 @@ void HttpServer::_newConnectionError(const QAbstractSocket::SocketError &error) 
 
 void HttpServer::_readyToReply(const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const bool &http10, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd)
 {
-    Request* request = (Request*) sender();
+    Request* request = qobject_cast<Request*>(sender());
     Reply* reply = 0;
 
     if ((method == "GET" || method == "HEAD") && argument.startsWith("get/"))
@@ -195,11 +195,11 @@ void HttpServer::_readyToReply(const QString &method, const QString &argument, c
     connect(reply, SIGNAL(getDLNAResourcesSignal(QString,bool,int,int,QString)), this, SLOT(requestDLNAResourcesSignal(QString,bool,int,int,QString)));
     connect(this, SIGNAL(dlnaResources(QObject*,QList<DlnaResource*>)), reply, SLOT(dlnaResources(QObject*,QList<DlnaResource*>)));
 
-    connect(reply, SIGNAL(closeClientSignal()), request, SIGNAL(closeClient()));
-    connect(request, SIGNAL(bytesSent(qint64,qint64)), reply, SLOT(bytesSentSlot(qint64,qint64)));
-    connect(reply, SIGNAL(sendTextLineToClientSignal(QString)), request, SIGNAL(sendTextLineToClientSignal(QString)));
-    connect(reply, SIGNAL(sendHeaderSignal(QHash<QString,QString>)), request, SIGNAL(sendHeaderSignal(QHash<QString,QString>)));
-    connect(reply, SIGNAL(sendDataToClientSignal(QByteArray)), request, SIGNAL(sendData(QByteArray)));
+    connect(reply, SIGNAL(closeClientSignal()), request->client(), SLOT(closeClient()));
+    connect(request->client(), SIGNAL(bytesSent(qint64,qint64)), reply, SLOT(bytesSentSlot(qint64,qint64)));
+    connect(reply, SIGNAL(sendTextLineToClientSignal(QString)), request->client(), SLOT(sendTextLine(QString)));
+    connect(reply, SIGNAL(sendHeaderSignal(QHash<QString,QString>)), request->client(), SLOT(sendHeader(QHash<QString,QString>)));
+    connect(reply, SIGNAL(sendDataToClientSignal(QByteArray)), request->client(), SLOT(sendData(QByteArray)));
 
     connect(reply, SIGNAL(appendAnswerSignal(QString)), request, SLOT(appendAnswer(QString)));
     connect(reply, SIGNAL(logTextSignal(QString)), request, SLOT(appendLog(QString)));

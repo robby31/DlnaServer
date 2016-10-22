@@ -97,7 +97,6 @@ private:
     qint64 timeSeekRangeEnd;
 
     qint64 sizeWritten;
-    QElapsedTimer timerDataSent;
 
 public:
     static qint64 objectCounter;

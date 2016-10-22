@@ -90,13 +90,6 @@ void Request::setClient(HttpClient *client)
     connect(m_client, SIGNAL(incomingRequest(QString,QStringList,bool,QString,QString,QHash<QString,QString>,QString,HttpRange*,int,int)), this, SLOT(requestReceived(QString,QStringList,bool,QString,QString,QHash<QString,QString>,QString,HttpRange*,int,int)));
 
     connect(m_client, SIGNAL(disconnected()), this, SIGNAL(clientDisconnected()));
-    connect(this, SIGNAL(closeClient()), m_client, SLOT(closeClient()));
-    connect(m_client, SIGNAL(bytesSent(qint64,qint64)), this, SIGNAL(bytesSent(qint64,qint64)));
-    connect(this, SIGNAL(sendTextLineToClientSignal(QString)), m_client, SLOT(sendTextLine(QString)));
-    connect(this, SIGNAL(sendHeaderSignal(QHash<QString,QString>)), m_client, SLOT(sendHeader(QHash<QString,QString>)));
-    connect(this, SIGNAL(sendDataToClientSignal(QByteArray)), m_client, SLOT(sendData(QByteArray)));
-    connect(m_client, SIGNAL(headerSent()), this, SIGNAL(headerSent()));
-    connect(this, SIGNAL(sendData(QByteArray)), m_client, SLOT(sendData(QByteArray)));
 }
 
 void Request::clientDestroyed()

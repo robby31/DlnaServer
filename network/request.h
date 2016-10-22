@@ -87,13 +87,6 @@ signals:
     void deleteRequest(Request *request);
 
     void clientDisconnected();
-    void closeClient();
-    void bytesSent(const qint64 &size, const qint64 &bytesToWrite);
-    void sendTextLineToClientSignal(const QString &msg);
-    void sendHeaderSignal(const QHash<QString, QString> &header);
-    void sendDataToClientSignal(const QByteArray &data);
-    void headerSent();
-    void sendData(const QByteArray &data);
 
 private slots:
     void setStatus(const QString &status)           { setData(status, statusRole);          }

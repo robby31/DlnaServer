@@ -24,15 +24,12 @@ HttpClient::HttpClient(Logger *log, QObject *parent) :
     range(0),
     timeSeekRangeStart(-1),
     timeSeekRangeEnd(-1),
-    sizeWritten(0),
-    timerDataSent()
+    sizeWritten(0)
 {
     ++objectCounter;
 
     if (!m_log)
         qWarning() << "log is not available for" << this;
-
-    timerDataSent.start();
 
     connect(this, SIGNAL(readyRead()), this, SLOT(readSocket()));
     connect(this, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(clientError(QAbstractSocket::SocketError)));
@@ -342,12 +339,8 @@ void HttpClient::_bytesWritten(const qint64 &size)
 {
     sizeWritten += size;
 
-//        qWarning() << QString("%1: %2 bytes sent, %4 total bytes sent, %3 bytes to write.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size).arg(bytesToWrite()).arg(sizeWritten);
+//    qWarning() << QString("%1: %2 bytes sent, %4 total bytes sent, %3 bytes to write.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size).arg(bytesToWrite()).arg(sizeWritten);
 
-    if (timerDataSent.elapsed() > 500 or sizeWritten > bytesToWrite())
-    {
-        emit bytesSent(sizeWritten, bytesToWrite());
-        sizeWritten = 0;
-        timerDataSent.restart();
-    }
+    emit bytesSent(sizeWritten, bytesToWrite());
+    sizeWritten = 0;
 }
