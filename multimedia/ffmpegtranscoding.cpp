@@ -55,7 +55,7 @@ void FfmpegTranscoding::updateArguments()
     {
         arguments << "-map" <<  "0:a";
 
-        arguments << "-f" << "mp4" << "-codec:a" << "libfdk_aac" << "-movflags" << "frag_keyframe+empty_moov+faststart";
+        arguments << "-f" << "ipod" << "-codec:a" << "libfdk_aac";
 
         if (bitrate() > 0)
             arguments << "-b:a" << QString("%1").arg(bitrate());
@@ -64,7 +64,7 @@ void FfmpegTranscoding::updateArguments()
     {
         arguments << "-map" <<  "0:a";
 
-        arguments << "-f" << "mov" << "-codec:a" << "alac" << "-movflags" << "frag_keyframe+empty_moov+faststart";
+        arguments << "-f" << "ipod" << "-codec:a" << "alac" << "-sample_fmt" << "s16p" << "-movflags" << "frag_keyframe+empty_moov+faststart";
 
         if (bitrate() > 0)
             arguments << "-b:a" << QString("%1").arg(bitrate());
@@ -87,7 +87,7 @@ void FfmpegTranscoding::updateArguments()
         if (bitrate() > 0)
             arguments << "-b:a" << QString("%1").arg(bitrate());
     }
-    else if (format() == MPEG2_AC3 or format() == MPEG4_AAC)
+    else if (format() == MPEG2_AC3 or format() == MPEG4_AAC or format() == H264_AC3)
     {
         if (!audioLanguages().contains("fre") && !audioLanguages().contains("fra"))
         {
@@ -169,7 +169,7 @@ void FfmpegTranscoding::updateArguments()
         if (audioChannelCount() > 0)
             audio_bitrate = audioChannelCount()*80000;   // if audio channel count is valid, define bitrate = channel * 80kb/s
 
-        if (format() == MPEG2_AC3)
+        if (format() == MPEG2_AC3 or format() == H264_AC3)
             arguments << "-c:a" << "ac3";
         else if (format() == MPEG4_AAC)
             arguments << "-c:a" << "libfdk_aac";
@@ -190,7 +190,7 @@ void FfmpegTranscoding::updateArguments()
             video_bitrate = (bitrate()-audio_bitrate)*(1.0-0.0847);
             arguments << "-c:v" << "mpeg2video";
         }
-        else if (format() == MPEG4_AAC)
+        else if (format() == MPEG4_AAC or format() == H264_AC3)
         {
             // muxing overhead: 8.52%
             video_bitrate = (bitrate()-audio_bitrate)*(1.0-0.0852);
@@ -207,7 +207,7 @@ void FfmpegTranscoding::updateArguments()
             arguments << "-minrate" << QString("%1").arg(video_bitrate);
             arguments << "-maxrate" << QString("%1").arg(video_bitrate);
 
-            if (format() == MPEG4_AAC)
+            if (format() == MPEG4_AAC or format() == H264_AC3)
             {
                 arguments << "-bufsize" << QString("%1").arg(double(video_bitrate)/framerate);
                 arguments << "-nal-hrd" << "cbr";
@@ -242,7 +242,7 @@ void FfmpegTranscoding::updateArguments()
     }
 
     // normalize audio
-    arguments << "-af" << "dynaudnorm";
+//    arguments << "-af" << "dynaudnorm";
 
     arguments << "pipe:";
 
