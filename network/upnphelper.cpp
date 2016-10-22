@@ -214,8 +214,8 @@ void UPNPHelper::_sendAlive()
 
     if (counterAlive>1)
     {
-        // after 3 Alive sent, sending every 15 minutes
-        timerAlive.start(900000);
+        // after 3 Alive sent, sending every 10 minutes
+        timerAlive.start(600000);
 
         // stop counting
         counterAlive = -1;
