@@ -240,16 +240,19 @@ void MyApplication::removeMedia(const int &id)
         if (!query.exec())
         {
             log.Error(QString("unable to remove media(%1) : %2.").arg(id).arg(query.lastError().text()));
-            db.rollback();
+            if (!db.rollback())
+                qCritical() << "unable to rollback" << db.lastError().text();
         }
         else
         {
-            db.commit();
+            if (!db.commit())
+                qCritical() << "unable to commit" << db.lastError().text();
         }
     }
     else
     {
-        db.rollback();
+        if (!db.rollback())
+            qCritical() << "unable to rollback" << db.lastError().text();
     }
 }
 

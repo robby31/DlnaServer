@@ -482,9 +482,15 @@ bool MediaLibrary::setVolumeInfo(const int idMedia, const QHash<QString, double>
         }
 
         if (ret)
-            db.commit();
+        {
+            if (!db.commit())
+                qCritical() << "unable to commit" << db.lastError().text();
+        }
         else
-            db.rollback();
+        {
+            if (!db.rollback())
+                qCritical() << "unable to rollback" << db.lastError().text();
+        }
     }
 
     return ret;
@@ -570,6 +576,8 @@ bool MediaLibrary::insert(const QString &table, const QHash<QString, QVariant> &
                     query.bindValue(QString(":%1").arg(elt), index);
                     if (index == -1) {
                         logError("unable to bind " + elt);
+                        if (!db.rollback())
+                            qCritical() << "unable to rollback" << db.lastError().text();
                         return false;
                     }
                 } else {
@@ -583,9 +591,15 @@ bool MediaLibrary::insert(const QString &table, const QHash<QString, QVariant> &
         }
 
         if (ret)
-            db.commit();
+        {
+            if (!db.commit())
+                qCritical() << "unable to commit" << db.lastError().text();
+        }
         else
-            db.rollback();
+        {
+            if (!db.rollback())
+                qCritical() << "unable to rollback" << db.lastError().text();
+        }
     }
 
     return ret;
@@ -607,18 +621,14 @@ int MediaLibrary::insertForeignKey(const QString &table, const QString &paramete
     }
     else
     {
-        db.transaction();
-
         if (!query.exec(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(table).arg(parameter).arg(db.driver()->formatValue(field))))
         {
             logError("unable to update MediaLibrary " + query.lastError().text());
-            db.rollback();
             return -1;
         }
         else
         {
             index = query.lastInsertId().toInt();
-            db.commit();
         }
     }
     return index;
@@ -628,10 +638,13 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
 {
     QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
     QSqlRecord record;
-    QSqlQuery query(db);
-    if (query.exec(QString("SELECT * from %2 where id=%1").arg(id).arg(table)))
-        if (query.next())
-            record = query.record();
+
+    {
+        QSqlQuery query(db);
+        if (query.exec(QString("SELECT * from %2 where id=%1").arg(id).arg(table)))
+            if (query.next())
+                record = query.record();
+    }
 
     if (record.isEmpty())
     {
@@ -658,18 +671,25 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
                     // replace the value of the foreign key by its id
                     int index = insertForeignKey(foreignTable, "name", data[elt]);
 
-                    if (record.value(elt) != index)
+                    if (index == -1)
+                    {
+                        qCritical() << "unable to bind " << elt;
+                        if (!db.rollback())
+                            qCritical() << "unable to rollback" << db.lastError().text();
+                        return false;
+                    }
+                    else if (record.value(elt) != index)
                     {
                         logDebug(QString("update %1, %2, index %3 --> %4").arg(elt).arg(record.value(elt).toString()).arg(index).arg(data[elt].toString()));
                         QSqlQuery queryUpdate(db);
                         if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(elt).arg(index).arg(id).arg(table)))
                         {
-                            qDebug() << queryUpdate.lastError().text();
-                            db.rollback();
+                            qCritical() << queryUpdate.lastError().text();
+                            if (!db.rollback())
+                                qCritical() << "unable to rollback" << db.lastError().text();
                             return false;
                         }
                     }
-
                 }
                 else
                 {
@@ -682,7 +702,8 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
                         if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(elt).arg(db.driver()->formatValue(field)).arg(id).arg(table)))
                         {
                             qDebug() << queryUpdate.lastError().text();
-                            db.rollback();
+                            if (!db.rollback())
+                                qCritical() << "unable to rollback" << db.lastError().text();
                             return false;
                         }
                     }
@@ -690,7 +711,11 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
             }
         }
 
-        db.commit();
+        if (!db.commit())
+        {
+            qDebug() << "unable to commit" << db.lastError().text();
+            return false;
+        }
     }
 
     return true;
@@ -698,13 +723,23 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
 
 bool MediaLibrary::updateFromFilename(const QString &filename, const QHash<QString, QVariant> &data)
 {
-    QSqlQuery query = QSqlQuery(QString("SELECT id from media WHERE filename=\"%1\"").arg(filename), GET_DATABASE("MEDIA_DATABASE"));
-    if (query.next()) {
-        return update("media", query.value("id").toInt(), data);
+    int id = -1;
+
+    {
+        QSqlQuery query = QSqlQuery(QString("SELECT id from media WHERE filename=\"%1\"").arg(filename), GET_DATABASE("MEDIA_DATABASE"));
+        if (query.next())
+            id = query.value("id").toInt();
     }
 
-    qCritical() << "updateFromFilename" << filename << "not found";
-    return false;
+    if (id != -1)
+    {
+        return update("media", id, data);
+    }
+    else
+    {
+        qCritical() << "updateFromFilename" << filename << "not found";
+        return false;
+    }
 }
 
 bool MediaLibrary::updateFromId(const int &id, const QHash<QString, QVariant> &data)

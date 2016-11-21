@@ -320,7 +320,10 @@ void DlnaCachedRootFolder::readDirectory(QDir folder)
 void DlnaCachedRootFolder::updateLibrary(const QString &filename, const QHash<QString, QVariant> &data)
 {
     if (!library.updateFromFilename(filename, data))
+    {
         logError(QString("Unable to update library: %1").arg(filename));
+        qDebug() << "unable to update library" << filename << data;
+    }
     recentlyPlayedChild->needRefresh();
     resumeChild->needRefresh();
     favoritesChild->needRefresh();
