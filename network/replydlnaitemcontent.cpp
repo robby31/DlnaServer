@@ -83,7 +83,7 @@ void ReplyDlnaItemContent::updateStatus()
     if (clockUpdateStatus.isValid()) {
         int delta = clockUpdateStatus.restart() - UPDATE_STATUS_PERIOD;
 
-        if (qAbs(delta) > UPDATE_STATUS_PERIOD/3)
+        if (qAbs(delta) > UPDATE_STATUS_PERIOD/5)
         {
             QString msg = QString("%1: UPDATE STATUS delta %3 <%2>").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(mediaFilename).arg(delta);
             logInfo(msg);
@@ -110,11 +110,23 @@ void ReplyDlnaItemContent::updateStatus()
             emit networkStatusSignal(QString("Time: %5 Buffer: %1% (%4 KB - %3 seconds), Speed: %2 KB/s").arg(int(100.0*double(bytesToWrite)/double(m_maxBufferSize))).arg(networkSpeed).arg(bufferTime).arg(m_maxBufferSize/1024).arg(QTime(0, 0).addMSecs(clockSending.elapsedFromBeginning()).toString("hh:mm:ss")));
         }
 
-
         if (lastNetBytesSent!=-1 && lastNetBytesSent==networkBytesSent)
-            clockSending.pause();
-        else if (networkBytesSent > 0)
+        {
+            // no data sent since last function call
+
+            if (!clockSending.isStatePaused())
+            {
+                clockSending.pause();
+                emit logTextSignal(QString("%1 : PAUSE network"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+            }
+
+            emit networkPaused();
+        }
+        else if (networkBytesSent > 0 && clockSending.isStatePaused())
+        {
             clockSending.start();
+            emit logTextSignal(QString("%1 : START network, %2 bytes sent."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(networkBytesSent-lastNetBytesSent));
+        }            
 
         lastNetBytesSent = networkBytesSent;
     }
@@ -344,12 +356,14 @@ void ReplyDlnaItemContent::dlnaResources(QObject *requestor, QList<DlnaResource 
                     connect(streamContent, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
                     connect(streamContent, SIGNAL(errorRaised(QString)), this, SLOT(streamingError(QString)));
                     connect(streamContent, SIGNAL(endReached()), this, SLOT(streamingCompleted()));
+                    connect(this, SIGNAL(networkPaused()), streamContent, SLOT(networkPaused()));
 
                     if (getRequest())
                     {
                         connect(getRequest()->client(), SIGNAL(headerSent()), streamContent, SLOT(startRequestData()));
                         connect(getRequest()->client(), SIGNAL(bytesSent(qint64,qint64)), streamContent, SLOT(bytesSent(qint64,qint64)));
                         connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), getRequest()->client(), SLOT(sendData(QByteArray)));
+                        connect(this, SIGNAL(networkPaused()), getRequest()->client(), SLOT(networkPaused()));
                     }
 
                     if (streamContent->open())

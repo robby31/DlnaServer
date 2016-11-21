@@ -69,6 +69,7 @@ private slots:
     void startRequestData();
     void requestData();
     void bytesSent(const qint64 &size, const qint64 &towrite);
+    void networkPaused();
 
 private:
     // Carriage return and line feed.

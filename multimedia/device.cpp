@@ -84,3 +84,9 @@ void Device::bytesSent(const qint64 &size, const qint64 &towrite)
     if (!atEnd() && towrite < maxBufferSize()*3/4)
         requestData();
 }
+
+void Device::networkPaused()
+{
+    appendLog(QString("%1: device network paused, bytes to write: %2, bytes available: %3"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesToWrite).arg(bytesAvailable()));
+    requestData();
+}

@@ -69,6 +69,8 @@ private slots:
     void clientError(QAbstractSocket::SocketError error);
     void readSocket();
 
+    void networkPaused();
+
 private:
     // Carriage return and line feed.
     static const QString CRLF;
@@ -95,8 +97,6 @@ private:
     HttpRange* range;
     qint64 timeSeekRangeStart;
     qint64 timeSeekRangeEnd;
-
-    qint64 sizeWritten;
 
 public:
     static qint64 objectCounter;

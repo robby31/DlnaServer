@@ -23,8 +23,7 @@ HttpClient::HttpClient(Logger *log, QObject *parent) :
     m_content(),
     range(0),
     timeSeekRangeStart(-1),
-    timeSeekRangeEnd(-1),
-    sizeWritten(0)
+    timeSeekRangeEnd(-1)
 {
     ++objectCounter;
 
@@ -337,10 +336,12 @@ void HttpClient::clientError(QAbstractSocket::SocketError error)
 
 void HttpClient::_bytesWritten(const qint64 &size)
 {
-    sizeWritten += size;
+//    qWarning() << QString("%1: %2 bytes sent, %4 total bytes sent, %3 bytes to write.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size).arg(bytesToWrite()).arg(size);
 
-//    qWarning() << QString("%1: %2 bytes sent, %4 total bytes sent, %3 bytes to write.").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(size).arg(bytesToWrite()).arg(sizeWritten);
+    emit bytesSent(size, bytesToWrite());
+}
 
-    emit bytesSent(sizeWritten, bytesToWrite());
-    sizeWritten = 0;
+void HttpClient::networkPaused()
+{
+    emit appendLogSignal(QString("%1: httpclient network paused, bytes to write: %2"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesToWrite()));
 }

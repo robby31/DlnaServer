@@ -22,6 +22,8 @@ signals:
     //   status = 1 if error occurs
     void servingFinishedSignal(QString filename, int status);
 
+    void networkPaused();
+
 
 private slots:
     // close the request
