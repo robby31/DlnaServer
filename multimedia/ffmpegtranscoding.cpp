@@ -126,7 +126,7 @@ void FfmpegTranscoding::updateArguments()
             arguments << "-map" << "0:v:0";
         }
 
-        // set container format to AVI
+        // set container format to MPEGTS
         arguments << "-f" << "mpegts";
 
 //        arguments << "-s" << "1920x1080";
