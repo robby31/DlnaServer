@@ -28,5 +28,6 @@
         <file>images/clear.png</file>
         <file>images/media.png</file>
         <file>images/debug.png</file>
+        <file>icon.icns</file>
     </qresource>
 </RCC>

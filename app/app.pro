@@ -27,4 +27,20 @@ SOURCES +=
 RESOURCES += \
     ressources.qrc
 
+mac {
+    ICON = icon.icns
+}
+
+DISTFILES += \
+    app.iconset/icon_512x512.png \
+    app.iconset/icon_512x512@2x.png \
+    app.iconset/icon_128x128.png \
+    app.iconset/icon_128x128@2x.png \
+    app.iconset/icon_32x32.png \
+    app.iconset/icon_32x32@2x.png \
+    app.iconset/icon_16x16.png \
+    app.iconset/icon_16x16@2x.png \
+    app.iconset/icon_256x256.png \
+    app.iconset/icon_256x256@2x.png \
+    icon.icns
 
