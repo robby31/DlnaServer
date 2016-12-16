@@ -541,7 +541,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_WAV() {
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 3410596, QString("%1").arg(transcodedBytes).toUtf8().constData());
+    QVERIFY2(transcodedBytes == 3410622, QString("%1").arg(transcodedBytes).toUtf8().constData());
     QVERIFY(transcodeProcess->atEnd() == true);
     QVERIFY(track.size() > transcodedBytes);
     delete transcodeProcess;
