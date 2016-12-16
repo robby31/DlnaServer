@@ -8,7 +8,8 @@ void FfmpegTranscoding::setDirPath(const QString &folder)
 }
 
 FfmpegTranscoding::FfmpegTranscoding(Logger *log, QObject *parent) :
-    TranscodeProcess(log, parent)
+    TranscodeProcess(log, parent),
+    variable_bitrate(false)
 {
     QDir folder(EXE_DIRPATH);
     setProgram(folder.absoluteFilePath("ffmpeg"));
@@ -34,6 +35,9 @@ void FfmpegTranscoding::updateArguments()
 //    arguments << "-loglevel" << "error";
     arguments << "-hide_banner";
     arguments << "-nostats";
+
+//    arguments << "-probesize" << "5000";
+    arguments << "-analyzeduration" << "0";
 
     if (!ssOption.isEmpty())
         arguments << "-ss" << ssOption;
@@ -182,18 +186,21 @@ void FfmpegTranscoding::updateArguments()
         if (audioChannelCount() > 0)
             arguments << "-ac" << QString("%1").arg(audioChannelCount());
 
+        if (variable_bitrate)
+            arguments << "-af" << "aresample=async=1000";
+
         // set video options
-        int video_bitrate = -1;
+        double overhead = 0.0;
         if (format() == MPEG2_AC3)
         {
             // muxing overhead: 8.47%
-            video_bitrate = (bitrate()-audio_bitrate)*(1.0-0.0847);
+            overhead = 0.0847;
             arguments << "-c:v" << "mpeg2video";
         }
         else if (format() == MPEG4_AAC or format() == H264_AC3)
         {
             // muxing overhead: 8.52%
-            video_bitrate = (bitrate()-audio_bitrate)*(1.0-0.0852);
+            overhead = 0.0852;
             arguments << "-c:v" << "libx264";
 
 //            arguments << "-profile:v" << "baseline" << "-level" << "3.0";
@@ -201,8 +208,11 @@ void FfmpegTranscoding::updateArguments()
             arguments << "-tune" << "zerolatency";
         }
 
-        if (video_bitrate>0)
+        if (!variable_bitrate && overhead<1.0 && overhead >= 0.0)
         {
+            // constant bitrate
+            int video_bitrate = (bitrate()-audio_bitrate)*(1.0-overhead);
+
             arguments << "-b:v" << QString("%1").arg(video_bitrate);
             arguments << "-minrate" << QString("%1").arg(video_bitrate);
             arguments << "-maxrate" << QString("%1").arg(video_bitrate);
@@ -215,6 +225,21 @@ void FfmpegTranscoding::updateArguments()
             else
             {
                 arguments << "-bufsize" << "1835k";
+            }
+        }
+        else
+        {
+            // default : variable bitrate
+            if (format() == MPEG4_AAC or format() == H264_AC3)
+            {
+                arguments << "-crf" << "18";   // Very High quality
+//                arguments << "-crf" << "23";   // High quality
+//                arguments << "-crf" << "28";   // Low quality
+
+            }
+            else
+            {
+                arguments << "-qscale:v" << "3";
             }
         }
     }
@@ -247,4 +272,9 @@ void FfmpegTranscoding::updateArguments()
     arguments << "pipe:";
 
     setArguments(arguments);
+}
+
+void FfmpegTranscoding::setVariableBitrate(const bool &flag)
+{
+    variable_bitrate = flag;
 }
