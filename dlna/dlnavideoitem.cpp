@@ -120,9 +120,16 @@ int DlnaVideoItem::bitrate() const
 {
     // returns bitrate in bits/sec
     if (toTranscode())
-        return 4718800;
+    {
+        if (format() == H264_AC3 or format() == MPEG4_AAC)
+            return 2718800;
+        else
+            return 4718800;
+    }
     else
+    {
         return metaDataBitrate();
+    }
 }
 
 QString DlnaVideoItem::mimeType() const {
