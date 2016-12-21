@@ -190,17 +190,12 @@ void FfmpegTranscoding::updateArguments()
             arguments << "-af" << "aresample=async=1000";
 
         // set video options
-        double overhead = 0.0;
         if (format() == MPEG2_AC3)
         {
-            // muxing overhead: 8.47%
-            overhead = 0.0847;
             arguments << "-c:v" << "mpeg2video";
         }
         else if (format() == MPEG4_AAC or format() == H264_AC3)
         {
-            // muxing overhead: 8.52%
-            overhead = 0.0852;
             arguments << "-c:v" << "libx264";
 
 //            arguments << "-profile:v" << "baseline" << "-level" << "3.0";
@@ -208,10 +203,10 @@ void FfmpegTranscoding::updateArguments()
             arguments << "-tune" << "zerolatency";
         }
 
-        if (!variable_bitrate && overhead<1.0 && overhead >= 0.0)
+        if (!variable_bitrate)
         {
             // constant bitrate
-            int video_bitrate = (bitrate()-audio_bitrate)*(1.0-overhead);
+            int video_bitrate = (bitrate()-audio_bitrate);
 
             arguments << "-b:v" << QString("%1").arg(video_bitrate);
             arguments << "-minrate" << QString("%1").arg(video_bitrate);
