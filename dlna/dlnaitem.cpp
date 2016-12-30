@@ -45,7 +45,7 @@ void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
                 overheadFactor = 1.01;
             else if (transcodeFormat == ALAC)
                 overheadFactor = 1.08;
-            else if (transcodeFormat == MPEG4_AAC or transcodeFormat == H264_AC3)
+            else if (transcodeFormat == H264_AAC or transcodeFormat == H264_AC3)
                 overheadFactor = 1.0970;
             else if (transcodeFormat == MPEG2_AC3)
                 overheadFactor = 1.0847;

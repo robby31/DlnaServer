@@ -244,7 +244,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG4()
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
     video->setPlaybackQuality("hq");
-    video->setTranscodeFormat(MPEG4_AAC);
+    video->setTranscodeFormat(H264_AAC);
     video->setUrl(QUrl("http://www.youtube.com/watch?v=04QzovLe2JM"));
     bool res = video->waitUrl(15000);
 

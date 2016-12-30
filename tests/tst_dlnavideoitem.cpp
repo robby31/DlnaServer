@@ -35,10 +35,10 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     log.setLevel(INF);
 
     DlnaVideoFile movie(&log, "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi", "host", 600);
-    movie.setTranscodeFormat(MPEG4_AAC);
+    movie.setTranscodeFormat(H264_AAC);
 
     QVERIFY(movie.toTranscode()==true);
-    QVERIFY(movie.format() == MPEG4_AAC);
+    QVERIFY(movie.format() == H264_AAC);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi");
     QVERIFY2(movie.bitrate()==4718800, QString("%1").arg(movie.bitrate()).toUtf8().constData());
     QVERIFY2(movie.getLengthInMilliSeconds()==8090173, QString("%1").arg(movie.getLengthInMilliSeconds()).toUtf8().constData());

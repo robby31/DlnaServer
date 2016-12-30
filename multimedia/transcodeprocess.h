@@ -9,7 +9,7 @@
 #include "device.h"
 
 // Format available for transcoding
-enum TranscodeFormatAvailable {UNKNOWN, MP3, LPCM, AAC, ALAC, WAV, MPEG2_AC3, MPEG4_AAC, H264_AC3};
+enum TranscodeFormatAvailable {UNKNOWN, MP3, LPCM, AAC, ALAC, WAV, MPEG2_AC3, H264_AAC, H264_AC3};
 
 class TranscodeProcess : public Device
 {

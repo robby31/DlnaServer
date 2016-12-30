@@ -91,7 +91,7 @@ void FfmpegTranscoding::updateArguments()
         if (bitrate() > 0)
             arguments << "-b:a" << QString("%1").arg(bitrate());
     }
-    else if (format() == MPEG2_AC3 or format() == MPEG4_AAC or format() == H264_AC3)
+    else if (format() == MPEG2_AC3 or format() == H264_AAC or format() == H264_AC3)
     {
         if (!audioLanguages().contains("fre") && !audioLanguages().contains("fra"))
         {
@@ -175,7 +175,7 @@ void FfmpegTranscoding::updateArguments()
 
         if (format() == MPEG2_AC3 or format() == H264_AC3)
             arguments << "-c:a" << "ac3";
-        else if (format() == MPEG4_AAC)
+        else if (format() == H264_AAC)
             arguments << "-c:a" << "libfdk_aac";
 
         arguments << "-b:a" << QString("%1").arg(audio_bitrate);
@@ -194,7 +194,7 @@ void FfmpegTranscoding::updateArguments()
         {
             arguments << "-c:v" << "mpeg2video";
         }
-        else if (format() == MPEG4_AAC or format() == H264_AC3)
+        else if (format() == H264_AAC or format() == H264_AC3)
         {
             arguments << "-c:v" << "libx264";
 
@@ -212,7 +212,7 @@ void FfmpegTranscoding::updateArguments()
             arguments << "-minrate" << QString("%1").arg(video_bitrate);
             arguments << "-maxrate" << QString("%1").arg(video_bitrate);
 
-            if (format() == MPEG4_AAC or format() == H264_AC3)
+            if (format() == H264_AAC or format() == H264_AC3)
             {
                 arguments << "-bufsize" << QString("%1").arg(double(video_bitrate)/framerate);
                 arguments << "-nal-hrd" << "cbr";
@@ -225,7 +225,7 @@ void FfmpegTranscoding::updateArguments()
         else
         {
             // default : variable bitrate
-            if (format() == MPEG4_AAC or format() == H264_AC3)
+            if (format() == H264_AAC or format() == H264_AC3)
             {
                 arguments << "-crf" << "18";   // Very High quality
 //                arguments << "-crf" << "23";   // High quality
