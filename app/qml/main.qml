@@ -9,6 +9,7 @@ import "Pages"
 MyApplication {
     id: mainWindow
     title: "QT Media Server"
+    logoCompany: "qrc:///images/icon-32.png"
     minimumWidth: 800
     width: minimumWidth
 
