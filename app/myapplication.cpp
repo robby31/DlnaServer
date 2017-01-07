@@ -233,20 +233,38 @@ void MyApplication::removeMedia(const int &id)
 
     QSqlQuery query(db);
 
-    // remove media
-    if (query.prepare("DELETE FROM media WHERE id=:id"))
+    if (query.prepare("DELETE FROM param_value WHERE media=:id"))
     {
         query.bindValue(":id", id);
         if (!query.exec())
         {
-            log.Error(QString("unable to remove media(%1) : %2.").arg(id).arg(query.lastError().text()));
+            log.Error(QString("unable to remove param values for media(%1) : %2.").arg(id).arg(query.lastError().text()));
             if (!db.rollback())
                 qCritical() << "unable to rollback" << db.lastError().text();
         }
         else
         {
-            if (!db.commit())
-                qCritical() << "unable to commit" << db.lastError().text();
+            // remove media
+            if (query.prepare("DELETE FROM media WHERE id=:id"))
+            {
+                query.bindValue(":id", id);
+                if (!query.exec())
+                {
+                    log.Error(QString("unable to remove media(%1) : %2.").arg(id).arg(query.lastError().text()));
+                    if (!db.rollback())
+                        qCritical() << "unable to rollback" << db.lastError().text();
+                }
+                else
+                {
+                    if (!db.commit())
+                        qCritical() << "unable to commit" << db.lastError().text();
+                }
+            }
+            else
+            {
+                if (!db.rollback())
+                    qCritical() << "unable to rollback" << db.lastError().text();
+            }
         }
     }
     else
