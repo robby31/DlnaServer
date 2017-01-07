@@ -98,7 +98,7 @@ void DecryptYoutubeSignature::decryptSignature()
             QString funcName(funcExpMatch.captured(1));
 
             QRegularExpression extractFuncExp(QString("(?:function\\s+\\Q%1\\E|[{;]\\s*var\\s*\\Q%1\\E\\s*=\\s*function|\\Q%1\\E\\s*=\\s*function)\\s*"
-                                                      "\\(([^)]*)\\)\\s*"
+                                                      "\\(([^)]+)\\)\\s*"
                                                       "\\{([^}]+)\\}").arg(funcName));
             QRegularExpressionMatch extractFuncExpMach = extractFuncExp.match(webpage);
 
