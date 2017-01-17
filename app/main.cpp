@@ -1,6 +1,5 @@
 #include "myapplication.h"
 #include "mysqldatabase.h"
-#include "Models/sqllistmodel.h"
 
 int main(int argc, char** argv)
 {
@@ -10,8 +9,6 @@ int main(int argc, char** argv)
 
     qmlRegisterType<RequestListModel>("myTypes", 1, 0, "RequestListModel");
     qmlRegisterType<MediaRendererModel>("myTypes", 1, 0, "MediaRendererModel");
-    qmlRegisterType<ListModel>("myTypes", 1, 0, "CListModel");
-    qmlRegisterType<SqlListModel>("myTypes", 1, 0, "SqlListModel");
 
     MyApplication app(argc, argv);
 
