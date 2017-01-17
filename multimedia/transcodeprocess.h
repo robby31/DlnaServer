@@ -5,6 +5,7 @@
 #include <QElapsedTimer>
 #include <QDebug>
 #include <QDateTime>
+#include <QThread>
 
 #include "device.h"
 
@@ -19,8 +20,8 @@ public:
     explicit TranscodeProcess(Logger* log, QObject *parent = 0);
     virtual ~TranscodeProcess();
 
-    bool waitForFinished(int msecs = 30000) { return m_process.waitForFinished(msecs); }
-    int exitCode()  const { return m_process.exitCode(); }
+    bool waitForFinished(int msecs = 30000) { return m_process->waitForFinished(msecs); }
+    int exitCode()  const { return m_process->exitCode(); }
     bool isKilled() const { return killTranscodeProcess; }
 
     void setUrl(const QString &url)                             { m_url = url; }
@@ -54,15 +55,15 @@ public:
     QHash<QString, double> volumeInfo() const { return m_volumeInfo; }
 
     virtual bool atEnd() const;
-    virtual qint64 bytesAvailable() const   { return m_process.bytesAvailable(); }
+    virtual qint64 bytesAvailable() const   { return m_process->bytesAvailable(); }
     virtual qint64 pos() const              { return m_pos; }    // position in bytes of read data
 
     virtual bool open()         { emit openSignal(QIODevice::ReadOnly); return true; }
     virtual bool isOpen() const { return m_opened; }
 
 protected:
-    void setProgram(const QString &program)         { m_process.setProgram(program);        }
-    void setArguments(const QStringList &arguments) { m_process.setArguments(arguments);    }
+    void setProgram(const QString &program)         { m_process->setProgram(program);        }
+    void setArguments(const QStringList &arguments) { m_process->setArguments(arguments);    }
 
 private:
     virtual QByteArray read(qint64 maxlen);
@@ -84,21 +85,19 @@ private slots:
 
     void pause();
     void resume();
-    void _pause_resume_error(const QProcess::ProcessError &error);
 
 
 private:
     // Carriage return and line feed.
     static const QString CRLF;
 
-    QProcess m_process;
+    QProcess *m_process;
     bool m_opened;
     QString m_url;
 
     qint64 m_pos;
     qint64 m_size;
 
-    QProcess processPauseResume;
     QElapsedTimer transcodeClock;
     bool killTranscodeProcess;  // true if the application aborts the transcoding
     bool m_paused;              // true if the transcoding has been paused
