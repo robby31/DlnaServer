@@ -14,6 +14,13 @@ CONFIG   -= app_bundle
 
 TEMPLATE = app
 
+DEFINES += SRCDIR=\\\"$$PWD/\\\"
+DEFINES += PROFILING
+
+include (../common/common.pri)
+include (../network/network.pri)
+include (../../QmlApplication/QmlApplication.prf)
+
 SOURCES += tst_request.cpp \
     tst_httprange.cpp \
     main.cpp \
@@ -23,13 +30,6 @@ SOURCES += tst_request.cpp \
     tst_dlnavideoitem.cpp \
     tst_dlnacachedresources.cpp \
     tst_dlnayoutubevideo.cpp
-
-DEFINES += SRCDIR=\\\"$$PWD/\\\"
-DEFINES += PROFILING
-
-include (../common/common.pri)
-include (../network/network.pri)
-include (../../QmlApplication/QmlApplication.prf)
 
 HEADERS += \
     tst_request.h \
