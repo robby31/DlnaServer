@@ -177,7 +177,7 @@ void HttpServer::_readyToReply(const QString &method, const QString &argument, c
 
     if ((method == "GET" || method == "HEAD") && argument.startsWith("get/"))
     {
-        reply = new ReplyDlnaItemContent(m_log, m_backend, http10, method, argument, paramsHeader, content, range, timeSeekRangeStart, timeSeekRangeEnd, UUID, QString("%1").arg(SERVERNAME), getHost().toString(), getPort());
+        reply = new ReplyDlnaItemContent(m_log, http10, method, argument, paramsHeader, content, range, timeSeekRangeStart, timeSeekRangeEnd, UUID, QString("%1").arg(SERVERNAME), getHost().toString(), getPort());
         connect(reply, SIGNAL(startServingRendererSignal(QString)), request, SLOT(startServingRenderer(QString)));
         connect(reply, SIGNAL(stopServingRendererSignal()), request, SLOT(stopServingRenderer()));
         connect(reply, SIGNAL(servingSignal(QString,int)), this, SLOT(_servingProgress(QString,int)));

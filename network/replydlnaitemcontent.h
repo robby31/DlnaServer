@@ -8,7 +8,7 @@ class ReplyDlnaItemContent : public Reply
     Q_OBJECT
 
 public:
-    explicit ReplyDlnaItemContent(Logger *log, QThread *streamWorker, const bool &http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd, QString uuid, QString servername, QString host, int port, QObject *parent = 0);
+    explicit ReplyDlnaItemContent(Logger *log, const bool &http10, const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd, QString uuid, QString servername, QString host, int port, QObject *parent = 0);
 
 signals:
     void startServingRendererSignal(const QString &mediaName);
@@ -54,8 +54,6 @@ private slots:
 
 private:
     static const int UPDATE_STATUS_PERIOD;
-
-    QThread *streamWorker;
 
     bool m_closed;
 
