@@ -3,14 +3,6 @@ QT += qml quick widgets network xml sql webview
 TARGET = QT_Media_Server
 TEMPLATE = app
 
-SOURCES += \
-    main.cpp \
-    myapplication.cpp \
-    applicationcontroller.cpp \
-    debugitem.cpp \
-    createdatabasethread.cpp \
-    checknetworklinkitem.cpp
-
 include (../common/common.pri)
 include (../network/network.pri)
 include (../../QmlApplication/QmlApplication.prf)
@@ -22,7 +14,13 @@ HEADERS += \
     createdatabasethread.h \
     checknetworklinkitem.h
 
-SOURCES +=
+SOURCES += \
+    main.cpp \
+    myapplication.cpp \
+    applicationcontroller.cpp \
+    debugitem.cpp \
+    createdatabasethread.cpp \
+    checknetworklinkitem.cpp
 
 RESOURCES += \
     ressources.qrc
