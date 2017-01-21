@@ -3,6 +3,7 @@
 tst_dlnavideoitem::tst_dlnavideoitem(QObject *parent) :
     QObject(parent),
     transcodeProcess(0),
+    transcodedSize(0),
     transcodeTimer(),
     timeToOpenTranscoding(0)
 {

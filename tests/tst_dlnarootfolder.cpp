@@ -140,6 +140,7 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QVERIFY(item_found->getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_OP=10;DLNA.ORG_CI=1");
 
     rootFolder.addFolder("/Users/doudou/Movies");
+    QThreadPool::globalInstance()->waitForDone();
     QVERIFY(rootFolder.getChild(0) != 0);
     QVERIFY(rootFolder.getChildrenSize() == 3);
 

@@ -27,7 +27,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 15304, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 15370, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -41,7 +41,7 @@ void tst_dlnacachedresources::testCase_Library_NbAudios()
         if (query.last())
             nbAudios = query.at() + 1;
     }
-    QVERIFY2(nbAudios == 13740, QString("%1").arg(nbAudios).toUtf8().constData());
+    QVERIFY2(nbAudios == 13739, QString("%1").arg(nbAudios).toUtf8().constData());
     db.close();
 }
 
@@ -55,7 +55,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1564, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 1631, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -97,7 +97,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithAlbum()
         if (query.last())
             nbTracksWithAlbum = query.at() + 1;
     }
-    QVERIFY2(nbTracksWithAlbum == 13485, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
+    QVERIFY2(nbTracksWithAlbum == 13484, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
     db.close();
 }
 
@@ -111,7 +111,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithPicture()
         if (query.last())
             nbTracksWithPicture = query.at() + 1;
     }
-    QVERIFY2(nbTracksWithPicture == 9451, QString("%1").arg(nbTracksWithPicture).toUtf8().constData());
+    QVERIFY2(nbTracksWithPicture == 9450, QString("%1").arg(nbTracksWithPicture).toUtf8().constData());
     db.close();
 }
 
@@ -187,14 +187,17 @@ void tst_dlnacachedresources::testCase_DlnaCachedRootFolder()
 
     folderKO.clear();
     rootFolder.addFolder("/Users/doudou/Music/iTunes/iTunes Media/Video");
+    QThreadPool::globalInstance()->waitForDone();
     QVERIFY(folderKO == "/Users/doudou/Music/iTunes/iTunes Media/Video");
 
     folderKO.clear();
     rootFolder.addFolder("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO");
+    QThreadPool::globalInstance()->waitForDone();
     QVERIFY(folderKO.isEmpty());
 
     folderKO.clear();
     rootFolder.addFolder("/Users/doudou/Movies/Films/Comédie");
+    QThreadPool::globalInstance()->waitForDone();
     QVERIFY(folderKO.isEmpty());
     QVERIFY(rootFolder.getChildrenSize() == 8);
     QVERIFY(rootFolder.getChild(0) != 0);
@@ -206,6 +209,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
 
     folderKO.clear();
     rootFolder.addFolder("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO");
+    QThreadPool::globalInstance()->waitForDone();
     QVERIFY(folderKO.isEmpty());
     QVERIFY(rootFolder.getChildrenSize() == 8);
 
@@ -286,7 +290,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().size() == 7, QString("%1").arg(xml_res.elementsByTagName("res").at(0).attributes().size()).toUtf8());
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:03:09");
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:03:09", xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "40000");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "7561158");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "44100");
@@ -355,6 +359,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
 
     folderKO.clear();
     rootFolder.addFolder("/Users/doudou/Movies");
+    QThreadPool::globalInstance()->waitForDone();
     QVERIFY(folderKO.isEmpty());
 
     DlnaCachedFolder* folder = 0;
@@ -492,6 +497,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllArtists() {
 
     folderKO.clear();
     rootFolder.addFolder("/Users/doudou/Music/iTunes/iTunes Media/Music");
+    QThreadPool::globalInstance()->waitForDone();
     QVERIFY(folderKO.isEmpty());
 
     DlnaCachedGroupedFolderMetaData* folder = 0;
