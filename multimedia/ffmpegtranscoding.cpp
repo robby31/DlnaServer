@@ -178,7 +178,14 @@ void FfmpegTranscoding::updateArguments()
         else if (format() == H264_AAC)
             arguments << "-c:a" << "libfdk_aac";
 
-        arguments << "-b:a" << QString("%1").arg(audio_bitrate);
+        if (!variable_bitrate)
+        {
+            arguments << "-b:a" << QString("%1").arg(audio_bitrate);
+        }
+        else
+        {
+            arguments << "-vbr" << "3";
+        }
 
         if (audioSampleRate() > 0)
             arguments << "-ar" << QString("%1").arg(audioSampleRate());
@@ -186,8 +193,8 @@ void FfmpegTranscoding::updateArguments()
         if (audioChannelCount() > 0)
             arguments << "-ac" << QString("%1").arg(audioChannelCount());
 
-        if (variable_bitrate)
-            arguments << "-af" << "aresample=async=1000";
+//        if (variable_bitrate)
+//            arguments << "-af" << "aresample=async=1000";
 
         // set video options
         if (format() == MPEG2_AC3)
@@ -198,7 +205,7 @@ void FfmpegTranscoding::updateArguments()
         {
             arguments << "-c:v" << "libx264";
 
-//            arguments << "-profile:v" << "baseline" << "-level" << "3.0";
+            arguments << "-profile:v" << "baseline" << "-level" << "3.0";
 //            arguments << "-preset" << "ultrafast";
             arguments << "-tune" << "zerolatency";
         }

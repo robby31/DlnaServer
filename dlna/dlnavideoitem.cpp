@@ -124,7 +124,7 @@ int DlnaVideoItem::bitrate() const
         if (format() == H264_AC3 or format() == H264_AAC)
             return 2500000;
         else
-            return 4718800;
+            return 4558800;
     }
     else
     {
