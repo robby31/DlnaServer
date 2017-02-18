@@ -78,9 +78,6 @@ signals:
     // emit signal when reply may be prepared and sent
     void readyToReply(const QString &method, const QString &argument, const QHash<QString, QString> &paramsHeader, const bool &http10, const QString &content, HttpRange *range, const int &timeSeekRangeStart, const int &timeSeekRangeEnd);
 
-    // emit signal to add a new renderer
-    void newRenderer(const QString &ip, const int &port, const QString &userAgent);
-
     void startServingRendererSignal(const QString &ip, const QString &mediaName);
     void stopServingRendererSignal(const QString &ip);
 

@@ -8,7 +8,22 @@ Request::Request(QObject *parent):
     ListItem(parent),
     m_roles(),
     m_log(0),
-    m_client(0)
+    m_client(0),
+    replyNumber(0),
+    replyInProgress(false),  // by default no reply is in progress, we wait a request
+    m_status(),
+    m_networkStatus(),
+    m_duration(0),
+    m_date(),
+    uuid(-1),
+    servername(),
+    m_host(),
+    port(-1),
+    m_content(""),
+    m_range(0),
+    timeSeekRangeStart(-1),
+    timeSeekRangeEnd(-1),
+    http10(true)
 {
     ++objectCounter;
 
@@ -261,11 +276,6 @@ void Request::requestReceived(const QString &peerAddress, const QStringList &hea
         this->timeSeekRangeEnd = timeSeekRangeEnd;
 
         emit readyToReply(method, argument, paramsHeader, isHttp10(), data(contentRole).toString(), getRange(), getTimeSeekRangeStart(), getTimeSeekRangeEnd());
-
-        if (data(argumentRole) == "description/fetch") {
-            // new renderer is connecting to server
-            emit newRenderer(data(peerAddressRole).toString(), getPort(), getParamHeader("USER-AGENT"));
-        }
     }
     else
     {
