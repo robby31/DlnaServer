@@ -123,7 +123,7 @@ bool DlnaCachedRootFolder::addFolderSlot(QString path)
     if (QFileInfo(path).isDir())
     {
         // scan the folder in background
-        CachedRootFolderReadDirectory *readDirectoryWorker = new CachedRootFolderReadDirectory(log(), QDir(path));
+        CachedRootFolderReadDirectory *readDirectoryWorker = new CachedRootFolderReadDirectory(QDir(path));
         QThreadPool::globalInstance()->start(readDirectoryWorker);
 
         rootFolder.addFolder(path);

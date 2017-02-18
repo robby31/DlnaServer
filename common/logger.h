@@ -11,7 +11,7 @@ class Logger: public QObject
     Q_OBJECT
 
 public:
-    Logger(QObject *parent = 0);
+    explicit Logger(QObject *parent = 0);
 
     void setLevel(const LogLevel &level) { m_level = level; }
     bool isLevel(const LogLevel &level) const { return m_level <= level; }

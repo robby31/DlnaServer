@@ -1,10 +1,11 @@
 #include "cachedrootfolderreaddirectory.h"
 
-CachedRootFolderReadDirectory::CachedRootFolderReadDirectory(Logger *log, QDir folder):
-    m_log(log),
+CachedRootFolderReadDirectory::CachedRootFolderReadDirectory(QDir folder):
+    QRunnable(),
+    m_log(),
     m_folder(folder)
 {
-
+    m_log.setLevel(INF);
 }
 
 CachedRootFolderReadDirectory::~CachedRootFolderReadDirectory()
@@ -22,7 +23,7 @@ void CachedRootFolderReadDirectory::run()
 
         if (database.isValid())
         {
-            DlnaCachedRootFolder root(m_log, "HOST", 80);
+            DlnaCachedRootFolder root(&m_log, "HOST", 80);
             root.readDirectory(m_folder);
         }
         else

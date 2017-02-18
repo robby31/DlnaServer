@@ -10,13 +10,13 @@ class CachedRootFolderReadDirectory : public QRunnable
 {
 
 public:
-    CachedRootFolderReadDirectory(Logger *log, QDir folder);
+    CachedRootFolderReadDirectory(QDir folder);
     ~CachedRootFolderReadDirectory();
 
     void run();
 
 private:
-    Logger *m_log;
+    Logger m_log;
     QDir m_folder;
 };
 
