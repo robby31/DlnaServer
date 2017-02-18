@@ -419,7 +419,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue() == "1280x688");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "2");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "589850", xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue().toUtf8().constData());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "569850", xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue().toUtf8().constData());
 //    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "3973129325", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8().constData());
     xml_res.clear();
 
@@ -439,7 +439,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     QVERIFY(movie->toTranscode() == true);
     QVERIFY(movie->mimeType() == "video/mpeg");
 //    QVERIFY(movie->size() == 3973129325);
-    QVERIFY(movie->bitrate() == 4718800);
+    QVERIFY(movie->bitrate() == 4558800);
 //    QVERIFY(movie->getLengthInSeconds() == 6736);
 //    QVERIFY(movie->getLengthInMilliSeconds() == 6735830);
     QVERIFY(movie->samplerate() == 48000);

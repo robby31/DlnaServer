@@ -1387,7 +1387,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 112014405, QString("%1").arg(transcodedBytes).toUtf8());
+    QVERIFY2(transcodedBytes == 62844301, QString("%1").arg(transcodedBytes).toUtf8());
     QVERIFY(transcodeProcess->atEnd()==true);
     QVERIFY2(track.size() > transcodedBytes, QString("%1 %2").arg(track.size()).arg(transcodedBytes).toUtf8());
     delete transcodeProcess;
