@@ -96,7 +96,7 @@ void MyApplication::serverStarted()
     loadSettings();
 
     // update volume informations
-//    UpdateMediaVolumeInfo *volumeInfoWorker = new UpdateMediaVolumeInfo(&log, &netManager);
+//    UpdateMediaVolumeInfo *volumeInfoWorker = new UpdateMediaVolumeInfo(&netManager);
 //    QThreadPool::globalInstance()->start(volumeInfoWorker);
 }
 
@@ -107,7 +107,7 @@ void MyApplication::setRenderersModel(MediaRendererModel *model)
 
     m_renderersModel = model;
 
-    connect(&server, SIGNAL(newRenderer(QString,int,QString)), m_renderersModel, SLOT(addRenderer(QString,int,QString)));
+    connect(&server, SIGNAL(newMediaRenderer(QHostAddress,int,SsdpMessage)), m_renderersModel, SLOT(addMediaRenderer(QHostAddress,int,SsdpMessage)));
     connect(&server, SIGNAL(servingRenderer(QString,QString)), m_renderersModel, SLOT(serving(QString,QString)));
     connect(&server, SIGNAL(stopServingRenderer(QString)), m_renderersModel, SLOT(stopServing(QString)));
 
@@ -140,7 +140,7 @@ void MyApplication::refreshFolder(const int &index)
         QString path = m_sharedFolderModel.at(index);
 
         // scan the folder in background
-        CachedRootFolderReadDirectory *readDirectoryWorker = new CachedRootFolderReadDirectory(&log, QDir(path));
+        CachedRootFolderReadDirectory *readDirectoryWorker = new CachedRootFolderReadDirectory(QDir(path));
         QThreadPool::globalInstance()->start(readDirectoryWorker);
     }
 }
