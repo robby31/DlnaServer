@@ -91,12 +91,24 @@ void DecryptYoutubeSignature::decryptSignature()
         cacheJsEngine[m_playerId] = new QJSEngine();
         QJSEngine *jsEngine = cacheJsEngine[m_playerId];
 
+        QString funcName;
+
         QRegularExpression funcExp("\\.sig\\|\\|([a-zA-Z0-9$]+)\\(");
         QRegularExpressionMatch funcExpMatch = funcExp.match(webpage);
         if (funcExpMatch.hasMatch())
         {
-            QString funcName(funcExpMatch.captured(1));
+            funcName = funcExpMatch.captured(1);
+        }
+        else
+        {
+            QRegularExpression funcExpv2("&&k.set\\(\"signature\",(\\w+)");
+            QRegularExpressionMatch funcExpMatchv2 = funcExpv2.match(webpage);
+            if (funcExpMatchv2.hasMatch())
+                funcName = funcExpMatchv2.captured(1);
+        }
 
+        if (!funcName.isNull())
+        {
             QRegularExpression extractFuncExp(QString("(?:function\\s+\\Q%1\\E|[{;]\\s*var\\s*\\Q%1\\E\\s*=\\s*function|\\Q%1\\E\\s*=\\s*function)\\s*"
                                                       "\\(([^)]+)\\)\\s*"
                                                       "\\{([^}]+)\\}").arg(funcName));
@@ -160,7 +172,8 @@ void DecryptYoutubeSignature::decryptSignature()
             cacheJsEngine.remove(m_playerId);
             cacheJsFun.remove(m_playerId);
 
-            emit error(QString("Unable to locate function to decrypt signature"));
+            emit error(QString("Unable to locate function to decrypt signature (%1)").arg(reply->request().url().url()));
+            qCritical() << "Unable to locate function to decrypt signature" << reply->request().url();
         }
     }
 
