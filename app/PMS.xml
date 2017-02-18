@@ -6,7 +6,7 @@
 	</specVersion>
 	<device>
 		<deviceType>urn:schemas-upnp-org:device:MediaServer:1</deviceType>
-                <friendlyName>[servername]</friendlyName>
+                <friendlyName>QT Media Server</friendlyName>
                 <manufacturer>G HIMBERT</manufacturer>
                 <manufacturerURL></manufacturerURL>
                 <modelDescription>UPnP/AV 1.1 Compliant Media Server</modelDescription>
