@@ -12,13 +12,13 @@ class UpdateMediaVolumeInfo : public QRunnable
 {
 
 public:
-    UpdateMediaVolumeInfo(Logger *log, QNetworkAccessManager *nam);
+    UpdateMediaVolumeInfo(QNetworkAccessManager *nam);
     ~UpdateMediaVolumeInfo();
 
     void run();
 
 private:
-    Logger *m_log;
+    Logger m_log;
     QNetworkAccessManager *m_nam;
 };
 

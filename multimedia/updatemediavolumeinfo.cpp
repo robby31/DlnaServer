@@ -1,8 +1,8 @@
 #include "updatemediavolumeinfo.h"
 
-UpdateMediaVolumeInfo::UpdateMediaVolumeInfo(Logger *log, QNetworkAccessManager *nam):
+UpdateMediaVolumeInfo::UpdateMediaVolumeInfo(QNetworkAccessManager *nam):
     QRunnable(),
-    m_log(log),
+    m_log(),
     m_nam(nam)
 {
 
@@ -21,7 +21,7 @@ void UpdateMediaVolumeInfo::run()
         database.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
         database.setConnectOptions("Pooling=True;Max Pool Size=100;");
 
-        MediaLibrary library(m_log);
+        MediaLibrary library(&m_log);
 
         if (library.isValid())
         {
@@ -44,7 +44,7 @@ void UpdateMediaVolumeInfo::run()
                         {
                             qDebug() << "Analyze audio" << filename;
 
-                            DlnaMusicTrackFile track(m_log, filename, "HOST", 80);
+                            DlnaMusicTrackFile track(&m_log, filename, "HOST", 80);
                             if (!library.setVolumeInfo(idMedia, track.volumeInfo()))
                                 qWarning() << "Unable to set volume information for" << filename;
                         }
@@ -52,7 +52,7 @@ void UpdateMediaVolumeInfo::run()
                         {
                             qDebug() << "Analyze local video" << filename;
 
-                            DlnaVideoFile movie(m_log, filename, "HOST", 80);
+                            DlnaVideoFile movie(&m_log, filename, "HOST", 80);
                             if (!library.setVolumeInfo(idMedia, movie.volumeInfo(-1)))
                                 qWarning() << "Unable to set volume information for" << filename;
                         }
@@ -60,7 +60,7 @@ void UpdateMediaVolumeInfo::run()
                         {
                             qDebug() << "Analyze internet video" << filename;
 
-                            QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(m_log, "HOST", 80));
+                            QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&m_log, "HOST", 80));
                             video->moveToThread(m_nam->thread());
                             QObject::connect(m_nam->thread(), SIGNAL(finished()), video.data(), SLOT(deleteLater()));
                             video->setNetworkAccessManager(m_nam);
