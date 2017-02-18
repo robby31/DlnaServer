@@ -509,6 +509,8 @@ void YouTube::parseVideoPage()
                             QString jsplayer_url_json = jsonObject["assets"].toObject()["js"].toString();
                             if (jsplayer_url_json.startsWith("//"))
                                 jsplayer_url_json = QString("https:")+jsplayer_url_json;
+                            if (jsplayer_url_json.startsWith("/"))
+                                jsplayer_url_json = QString("https://s.ytimg.com")+jsplayer_url_json;
 
                             DecryptYoutubeSignature *request = new DecryptYoutubeSignature(nam, url, encrypted_sig, QUrl(jsplayer_url_json), this);
                             connect(request, SIGNAL(error(QString)), this, SIGNAL(videoUrlError(QString)));
