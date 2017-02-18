@@ -6,12 +6,12 @@ MediaRendererModel::MediaRendererModel(QObject *parent) :
 
 }
 
-void MediaRendererModel::addRenderer(const QString &ip, const int &port, const QString &userAgent)
+void MediaRendererModel::addMediaRenderer(const QHostAddress &ip, const int &port, const SsdpMessage &info)
 {
-    MediaRenderer *renderer = getFromIp(ip);
+    MediaRenderer *renderer = getFromIp(ip.toString());
     if (!renderer)
     {
-        renderer = new MediaRenderer(ip, port, userAgent, this);
+        renderer = new MediaRenderer(ip.toString(), port, info.getHeader("SERVER"), this);
         appendRow(renderer);
     }
 }

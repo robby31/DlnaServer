@@ -56,7 +56,7 @@ signals:
 
     void createRequest(HttpClient *client, QString uuid, QString servername, QString host, int port);
     void deleteRequest(Request *request);
-    void newRenderer(const QString &ip, const int &port, const QString &userAgent);
+    void newMediaRenderer(const QHostAddress &host, const int &port, const SsdpMessage &info);
 
     void updateMediaData(const QString &filename, const QHash<QString, QVariant> &data);
     void updateMediaFromId(const int &id, const QHash<QString, QVariant> &data);

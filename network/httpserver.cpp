@@ -28,6 +28,8 @@ HttpServer::HttpServer(Logger* log, QThread *backend, QNetworkAccessManager *nam
 
     upnp.setUuid(UUID);
     upnp.setServerName(SERVERNAME);
+    upnp.setNetworkManager(nam);
+    connect(&upnp, SIGNAL(newMediaRenderer(QHostAddress,int,SsdpMessage)), this, SIGNAL(newMediaRenderer(QHostAddress,int,SsdpMessage)));
 
     connect(this, SIGNAL(startSignal()), this, SLOT(_startServer()));
 
@@ -114,6 +116,7 @@ void HttpServer::_startServer()
             connect(m_backend, SIGNAL(finished()), rootFolder, SLOT(deleteLater()));
 
             upnp.setServerUrl(getURL());
+            upnp.setHost(getHost().toString() + ":" + QString("%1").arg(getPort()));
             upnp.start();
 
             emit serverStarted();
@@ -155,10 +158,9 @@ void HttpServer::newRequest(Request *request)
     {
         // connection between request and httpserver
         connect(request, SIGNAL(readyToReply(QString,QString,QHash<QString,QString>,bool,QString,HttpRange*,int,int)), this, SLOT(_readyToReply(QString,QString,QHash<QString,QString>,bool,QString,HttpRange*,int,int)));
-        connect(request, SIGNAL(newRenderer(QString,int,QString)), this, SIGNAL(newRenderer(QString,int,QString)));
         connect(request, SIGNAL(startServingRendererSignal(QString,QString)), this, SIGNAL(servingRenderer(QString,QString)));
         connect(request, SIGNAL(stopServingRendererSignal(QString)), this, SIGNAL(stopServingRenderer(QString)));
-        connect(request, SIGNAL(deleteRequest(Request*)), this, SIGNAL(deleteRequest(Request*)));
+//        connect(request, SIGNAL(deleteRequest(Request*)), this, SIGNAL(deleteRequest(Request*)));
     }
     else
     {
@@ -248,4 +250,3 @@ void HttpServer::requestDLNAResourcesSignal(QString objectId, bool returnChildre
 {
     emit getDLNAResourcesSignal(sender(), objectId, returnChildren, start, count, searchStr);
 }
-

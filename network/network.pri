@@ -10,7 +10,8 @@ HEADERS += \
     ../network/elapsedtimer.h \
     ../network/reply.h \
     ../network/replydlnaitemcontent.h \
-    $$PWD/httpclient.h
+    $$PWD/httpclient.h \
+    $$PWD/ssdpmessage.h
 
 SOURCES += \
     $$PWD/upnphelper.cpp \
@@ -21,6 +22,7 @@ SOURCES += \
     ../network/elapsedtimer.cpp \
     ../network/reply.cpp \
     ../network/replydlnaitemcontent.cpp \
-    $$PWD/httpclient.cpp
+    $$PWD/httpclient.cpp \
+    $$PWD/ssdpmessage.cpp
 
 include (../dlna/dlna.pri)

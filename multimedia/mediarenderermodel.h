@@ -4,6 +4,8 @@
 #include <QDebug>
 #include "mediarenderer.h"
 #include "Models/listmodel.h"
+#include "ssdpmessage.h"
+#include <QHostAddress>
 
 class MediaRendererModel : public ListModel
 {
@@ -19,7 +21,7 @@ signals:
 
 
 private slots:
-    void addRenderer(const QString &ip, const int &port, const QString &userAgent);
+    void addMediaRenderer(const QHostAddress &ip, const int &port, const SsdpMessage &info);
 
     // the renderer is serving a new media
     void serving(const QString &ip, const QString &mediaName);
