@@ -465,7 +465,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     transcodeProcess->waitForFinished(-1);
     QVERIFY(transcodeProcess->exitCode() == 0);
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedSize == 5826308, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 6106804, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
     QVERIFY(movie->size() > transcodedSize);
     delete transcodeProcess;
     transcodeProcess = 0;

@@ -561,15 +561,15 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
             if (res && !video->unavailableMessage().isEmpty())
                 qWarning() << "VIDEO NOT AVAILABLE" << url << res << video->isValid() << video->metaDataTitle() << video->metaDataDuration() << video->getLengthInMilliSeconds() << video->metaDataBitrate();
             else
-                qWarning() << "ERROR TIMEOUT" << url;
+                qCritical() << "ERROR TIMEOUT" << url;
         }
         else
         {
             ++nbOk;
-            qWarning() << "OK" << url << res << video->isValid() << video->metaDataTitle() << video->metaDataDuration() << video->getLengthInMilliSeconds() << video->metaDataBitrate();
+            qDebug() << "OK" << url << res << video->isValid() << video->metaDataTitle() << video->metaDataDuration() << video->getLengthInMilliSeconds() << video->metaDataBitrate();
         }
 
-        qWarning() << "check done in" << duration << "ms.";
+        qDebug() << "check done in" << duration << "ms.";
     }
 
     if (nbErrors+nbOk!=0)
