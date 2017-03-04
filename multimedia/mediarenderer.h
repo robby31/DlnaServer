@@ -2,6 +2,7 @@
 #define MEDIARENDERER_H
 
 #include "Models/listmodel.h"
+#include "upnprootdevice.h"
 
 
 class MediaRenderer : public ListItem
@@ -10,31 +11,33 @@ class MediaRenderer : public ListItem
 
 public:
     explicit MediaRenderer(QObject *parent = 0);
-    explicit MediaRenderer(const QString &ip, const int &port, const QString &userAgent, QObject *parent = 0);
+    explicit MediaRenderer(UpnpRootDevice *device, QObject *parent = 0);
 
     enum Roles {
         statusRole = Qt::UserRole+1,
         nameRole,
         networkAddressRole,
-        userAgentRole,
+        iconUrlRole,
+        availableRole
     };
+
+    virtual QString id() const Q_DECL_OVERRIDE;
 
     virtual QHash<int, QByteArray> roleNames() const { return m_roles; }
     virtual QVariant data(int role) const;
     virtual bool setData(const QVariant &value, const int &role);
 
 signals:
+    void removeRenderer();
 
 private slots:
+    void deviceItemChanged(QVector<int> roles);
 
 private:
     QHash<int, QByteArray> m_roles;
 
-    QString ip;
-    int port;
-    QString userAgent;
+    UpnpRootDevice *m_device;
     QString status;
-    QString name;
 };
 
 #endif // MEDIARENDERER_H

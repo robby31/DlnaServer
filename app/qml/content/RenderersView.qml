@@ -28,41 +28,13 @@ Page {
         }
     }
 
-    ColumnLayout {
-        id: mainLayout
+    ListView {
+        id: listview
+
         anchors.fill: parent
-        spacing: 4
+        clip: true
 
-        TableView{
-            id: tableView
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            anchors.margins: Qt.platform.os === "osx" ? 12 : 6
-            model: _app.renderersModel
-
-            TableViewColumn {
-                role: "networkAddress"
-                title: "IP"
-                width: 200
-            }
-
-            TableViewColumn {
-                role: "status"
-                title: "Status"
-                width: 200
-            }
-
-            TableViewColumn {
-                role: "name"
-                title: "Name"
-                width: 300
-            }
-
-            TableViewColumn {
-                role: "userAgent"
-                title: "UserAgent"
-                width: 300
-            }
-        }
+        model: _app.renderersModel
+        delegate: MediaRendererDelegate { }
     }
 }

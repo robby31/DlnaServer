@@ -6,38 +6,48 @@ MediaRendererModel::MediaRendererModel(QObject *parent) :
 
 }
 
-void MediaRendererModel::addMediaRenderer(const QHostAddress &ip, const int &port, const SsdpMessage &info)
+void MediaRendererModel::addMediaRenderer(UpnpRootDevice *device)
 {
-    MediaRenderer *renderer = getFromIp(ip.toString());
+    MediaRenderer *renderer = qobject_cast<MediaRenderer*>(find(device->uuid()));
     if (!renderer)
     {
-        renderer = new MediaRenderer(ip.toString(), port, info.getHeader("SERVER"), this);
+        renderer = new MediaRenderer(device, this);
+        connect(renderer, SIGNAL(destroyed(QObject*)), this, SLOT(rendererDestroyed(QObject*)));
+        connect(renderer, SIGNAL(removeRenderer()), this, SLOT(removeRenderer()));
         appendRow(renderer);
     }
 }
 
-MediaRenderer* MediaRendererModel::getFromIp(const QString &ip) const
+void MediaRendererModel::rendererDestroyed(QObject *object)
 {
-    foreach (ListItem* item, m_list)
-    {
-        MediaRenderer *renderer = qobject_cast<MediaRenderer*>(item);
-        if (renderer && renderer->data(MediaRenderer::networkAddressRole) == ip)
-            return renderer;
-    }
+    MediaRenderer *renderer = qobject_cast<MediaRenderer*>(object);
 
-    return 0;
+    QModelIndex index = indexFromItem(renderer);
+
+    if (index.isValid())
+        removeRow(index.row());
+}
+
+void MediaRendererModel::removeRenderer()
+{
+    MediaRenderer *renderer = qobject_cast<MediaRenderer*>(sender());
+
+    QModelIndex index = indexFromItem(renderer);
+
+    if (index.isValid())
+        removeRow(index.row());
 }
 
 void MediaRendererModel::serving(const QString &ip, const QString &mediaName)
 {
-    MediaRenderer* renderer = getFromIp(ip);
-    if (renderer)
-        renderer->setData(QString("Serving %1").arg(mediaName), MediaRenderer::statusRole);
+//    MediaRenderer* renderer = getFromIp(ip);
+//    if (renderer)
+//        renderer->setData(QString("Serving %1").arg(mediaName), MediaRenderer::statusRole);
 }
 
 void MediaRendererModel::stopServing(const QString &ip)
 {
-    MediaRenderer* renderer = getFromIp(ip);
-    if (renderer)
-        renderer->setData("standby", MediaRenderer::statusRole);
+//    MediaRenderer* renderer = getFromIp(ip);
+//    if (renderer)
+//        renderer->setData("standby", MediaRenderer::statusRole);
 }

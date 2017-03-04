@@ -3,31 +3,37 @@
 MediaRenderer::MediaRenderer(QObject *parent) :
     ListItem(parent),
     m_roles(),
-    ip(),
-    port(),
-    userAgent(),
-    status("standby"),
-    name("DefaultRenderer")
+    m_device(0),
+    status("standby")
 {
     m_roles[statusRole] = "status";
     m_roles[nameRole] = "name";
     m_roles[networkAddressRole] = "networkAddress";
-    m_roles[userAgentRole] = "userAgent";
+    m_roles[iconUrlRole] = "iconurl";
+    m_roles[availableRole] = "available";
 }
 
-MediaRenderer::MediaRenderer(const QString &ip, const int &port, const QString &userAgent, QObject *parent) :
+MediaRenderer::MediaRenderer(UpnpRootDevice *device, QObject *parent) :
     ListItem(parent),
     m_roles(),
-    ip(ip),
-    port(port),
-    userAgent(userAgent),
-    status("standby"),
-    name("DefaultRenderer")
+    m_device(device),
+    status("standby")
 {
     m_roles[statusRole] = "status";
     m_roles[nameRole] = "name";
     m_roles[networkAddressRole] = "networkAddress";
-    m_roles[userAgentRole] = "userAgent";
+    m_roles[iconUrlRole] = "iconurl";
+    m_roles[availableRole] = "available";
+
+    connect(m_device, SIGNAL(itemChanged(QVector<int>)), this, SLOT(deviceItemChanged(QVector<int>)));
+}
+
+QString MediaRenderer::id() const
+{
+    if (m_device)
+        return m_device->uuid();
+    else
+        return ListItem::id();
 }
 
 QVariant MediaRenderer::data(int role) const
@@ -36,11 +42,25 @@ QVariant MediaRenderer::data(int role) const
     case statusRole:
         return status;
     case nameRole:
-        return name;
+        if (m_device)
+            return m_device->friendlyName();
+        else
+            return QString();
     case networkAddressRole:
-        return ip;
-    case userAgentRole:
-        return userAgent;
+        if (m_device)
+            return m_device->host().toString();
+        else
+            return QString();
+    case iconUrlRole:
+        if (m_device)
+            return m_device->iconUrl();
+        else
+            return QString();
+    case availableRole:
+        if (m_device)
+            return m_device->available();
+        else
+            return false;
     default:
         return QVariant::Invalid;
     }
@@ -63,32 +83,16 @@ bool MediaRenderer::setData(const QVariant &value, const int &role)
         }
         return true;
 
-    case nameRole:
-        if (value != name)
-        {
-            name = value.toString();
-            emit itemChanged(roles);
-        }
-        return true;
-
-    case networkAddressRole:
-        if (value != ip)
-        {
-            ip = value.toString();
-            emit itemChanged(roles);
-        }
-        return true;
-
-    case userAgentRole:
-        if (value != userAgent)
-        {
-            userAgent = value.toString();
-            emit itemChanged(roles);
-        }
-        return true;
-
     default:
         qWarning() << "unable to set data" << value << role;
         return false;
     }
+}
+
+void MediaRenderer::deviceItemChanged(QVector<int> roles)
+{
+    emit itemChanged();
+
+    if (roles.contains(UpnpRootDevice::AvailableRole) && m_device->available() == false)
+        emit removeRenderer();
 }

@@ -107,7 +107,7 @@ void MyApplication::setRenderersModel(MediaRendererModel *model)
 
     m_renderersModel = model;
 
-    connect(&server, SIGNAL(newMediaRenderer(QHostAddress,int,SsdpMessage)), m_renderersModel, SLOT(addMediaRenderer(QHostAddress,int,SsdpMessage)));
+    connect(&server, SIGNAL(newMediaRenderer(UpnpRootDevice*)), m_renderersModel, SLOT(addMediaRenderer(UpnpRootDevice*)));
     connect(&server, SIGNAL(servingRenderer(QString,QString)), m_renderersModel, SLOT(serving(QString,QString)));
     connect(&server, SIGNAL(stopServingRenderer(QString)), m_renderersModel, SLOT(stopServing(QString)));
 

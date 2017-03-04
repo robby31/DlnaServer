@@ -6,7 +6,7 @@
 #include <QSysInfo>
 
 #include "logger.h"
-#include "upnphelper.h"
+#include "upnpcontrolpoint.h"
 #include "httpclient.h"
 #include "cached/dlnacachedrootfolder.h"
 #include "reply.h"
@@ -56,7 +56,7 @@ signals:
 
     void createRequest(HttpClient *client, QString uuid, QString servername, QString host, int port);
     void deleteRequest(Request *request);
-    void newMediaRenderer(const QHostAddress &host, const int &port, const SsdpMessage &info);
+    void newMediaRenderer(UpnpRootDevice* device);
 
     void updateMediaData(const QString &filename, const QHash<QString, QVariant> &data);
     void updateMediaFromId(const int &id, const QHash<QString, QVariant> &data);
@@ -86,6 +86,10 @@ private slots:
     void reloadLibrary();
     void folderAddedSlot(QString folder);
 
+    void advertiseSlot();
+
+    void newRootDevice(UpnpRootDevice *device);
+
 private:
     bool isLogLevel(const LogLevel &level) const { return m_log ? m_log->isLevel(level) : false; }
     void logError(const QString &message)  const { if (m_log) m_log->Error(message); }
@@ -98,7 +102,9 @@ private :
 
     Logger* m_log;
 
-    UPNPHelper upnp;
+    UpnpControlPoint upnp;
+    UpnpTimer m_timerDiscover;
+
     QHostAddress hostaddress;
     int serverport;
 

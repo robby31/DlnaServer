@@ -123,8 +123,8 @@ void Reply::_run()
 
     logTrace("ANSWER: " + requestMethod() + " " + requestArgument());
 
-    if ((requestMethod() == "GET" || requestMethod() == "HEAD") && (requestArgument() == "description/fetch" || requestArgument().endsWith("1.0.xml"))) {
-
+    if ((requestMethod() == "GET" || requestMethod() == "HEAD") && requestArgument() == "description/fetch")
+    {
         setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
         setParamHeader("Content-Language",  "en-us");
 
@@ -139,10 +139,51 @@ void Reply::_run()
             inputStream.close();
 
             // replace parameter by its value
-            answerContent.replace(QString("[servername]"), servername());
             answerContent.replace(QString("[uuid]"), QString("uuid:%1").arg(uuid()));
             answerContent.replace(QString("[host]"), host());
             answerContent.replace(QString("[port]"), QString("%1").arg(port()));
+        }
+        else {
+            logError("Unable to read PMS.xml for description/fetch answer.");
+        }
+
+        sendAnswer(answerContent.toUtf8());
+    }
+    else if ((requestMethod() == "GET" || requestMethod() == "HEAD") && requestArgument() == "UPnP_AV_ConnectionManager_1.0.xml")
+    {
+        setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
+        setParamHeader("Content-Language",  "en-us");
+
+        setParamHeader("DATE", sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss").append(QString(" GMT")));
+
+        QString answerContent;
+
+        QFile inputStream(":/UPnP_AV_ConnectionManager_1.0.xml");
+        if (inputStream.open(QFile::ReadOnly | QFile::Text)) {
+            // read file PMS.xml
+            answerContent = inputStream.readAll();
+            inputStream.close();
+        }
+        else {
+            logError("Unable to read PMS.xml for description/fetch answer.");
+        }
+
+        sendAnswer(answerContent.toUtf8());
+    }
+    else if ((requestMethod() == "GET" || requestMethod() == "HEAD") && requestArgument() == "UPnP_AV_ContentDirectory_1.0.xml")
+    {
+        setParamHeader("Content-Type",  "text/xml; charset=\"utf-8\"");
+        setParamHeader("Content-Language",  "en-us");
+
+        setParamHeader("DATE", sdf.currentDateTime().toString("ddd, dd MMM yyyy hh:mm:ss").append(QString(" GMT")));
+
+        QString answerContent;
+
+        QFile inputStream(":/UPnP_AV_ContentDirectory_1.0.xml");
+        if (inputStream.open(QFile::ReadOnly | QFile::Text)) {
+            // read file PMS.xml
+            answerContent = inputStream.readAll();
+            inputStream.close();
         }
         else {
             logError("Unable to read PMS.xml for description/fetch answer.");

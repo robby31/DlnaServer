@@ -13,7 +13,8 @@ HttpServer::HttpServer(Logger* log, QThread *backend, QNetworkAccessManager *nam
     QTcpServer(parent),
     SERVERNAME(QString("%1/%2 UPnP/1.1 QMS/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion())),
     m_log(log),
-    upnp(m_log, this),
+    upnp(this),
+    m_timerDiscover(3, 600000, this),
     hostaddress(),
     serverport(SERVERPORT),
     m_backend(backend),
@@ -26,10 +27,12 @@ HttpServer::HttpServer(Logger* log, QThread *backend, QNetworkAccessManager *nam
     connect(m_log, SIGNAL(destroyed()), this, SLOT(_logDestroyed()));
     connect(this, SIGNAL(folderAdded(QString)), this, SLOT(folderAddedSlot(QString)));
 
-    upnp.setUuid(UUID);
-    upnp.setServerName(SERVERNAME);
     upnp.setNetworkManager(nam);
-    connect(&upnp, SIGNAL(newMediaRenderer(QHostAddress,int,SsdpMessage)), this, SIGNAL(newMediaRenderer(QHostAddress,int,SsdpMessage)));
+
+    connect(&upnp, SIGNAL(newRootDevice(UpnpRootDevice*)), this, SLOT(newRootDevice(UpnpRootDevice*)));
+
+    connect(&m_timerDiscover, SIGNAL(timeout()), this, SLOT(advertiseSlot()));
+    m_timerDiscover.start(2000);
 
     connect(this, SIGNAL(startSignal()), this, SLOT(_startServer()));
 
@@ -115,9 +118,9 @@ void HttpServer::_startServer()
             rootFolder->moveToThread(m_backend);
             connect(m_backend, SIGNAL(finished()), rootFolder, SLOT(deleteLater()));
 
-            upnp.setServerUrl(getURL());
             upnp.setHost(getHost().toString() + ":" + QString("%1").arg(getPort()));
-            upnp.start();
+
+            upnp.addLocalRootDevice(UUID, getURL()+"/description/fetch");
 
             emit serverStarted();
         }
@@ -126,7 +129,7 @@ void HttpServer::_startServer()
 
 void HttpServer::incomingConnection(qintptr socketDescriptor)
 {
-    // create client socked
+    // create client socket
     HttpClient *client = new HttpClient(m_log, this);
 
     if (!client->setSocketDescriptor(socketDescriptor))
@@ -249,4 +252,15 @@ void HttpServer::reloadLibrary()
 void HttpServer::requestDLNAResourcesSignal(QString objectId, bool returnChildren, int start, int count, QString searchStr)
 {
     emit getDLNAResourcesSignal(sender(), objectId, returnChildren, start, count, searchStr);
+}
+
+void HttpServer::advertiseSlot()
+{
+    upnp.sendDiscover(UpnpRootDevice::UPNP_ROOTDEVICE);
+}
+
+void HttpServer::newRootDevice(UpnpRootDevice *device)
+{
+    if (device->deviceType() == "urn:schemas-upnp-org:device:MediaRenderer:1")
+        emit newMediaRenderer(device);
 }

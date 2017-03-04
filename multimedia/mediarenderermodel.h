@@ -14,14 +14,14 @@ class MediaRendererModel : public ListModel
 public:
     explicit MediaRendererModel(QObject *parent = 0);
 
-    MediaRenderer* getFromIp(const QString &ip) const;
-
 
 signals:
 
 
 private slots:
-    void addMediaRenderer(const QHostAddress &ip, const int &port, const SsdpMessage &info);
+    void addMediaRenderer(UpnpRootDevice *device);
+    void rendererDestroyed(QObject *object);
+    void removeRenderer();
 
     // the renderer is serving a new media
     void serving(const QString &ip, const QString &mediaName);
