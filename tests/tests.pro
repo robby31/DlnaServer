@@ -12,6 +12,8 @@ TARGET = tst_request
 CONFIG   += console
 CONFIG   -= app_bundle
 
+CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
+
 TEMPLATE = app
 
 DEFINES += SRCDIR=\\\"$$PWD/\\\"

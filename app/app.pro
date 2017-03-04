@@ -40,5 +40,7 @@ DISTFILES += \
     app.iconset/icon_16x16@2x.png \
     app.iconset/icon_256x256.png \
     app.iconset/icon_256x256@2x.png \
-    icon.icns
+    icon.icns \
+    UPnP_AV_ConnectionManager_1.0.xml \
+    UPnP_AV_ContentDirectory_1.0.xml
 

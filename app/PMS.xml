@@ -73,14 +73,14 @@
 				<serviceId>urn:upnp-org:serviceId:ContentDirectory</serviceId>
 				<SCPDURL>/UPnP_AV_ContentDirectory_1.0.xml</SCPDURL>
 				<controlURL>/upnp/control/content_directory</controlURL>
-				<eventSubURL>/upnp/event/content_directory</eventSubURL>
+                                <eventSubURL>/upnp/event/content_directory</eventSubURL>
 			</service>
 			<service>
 				<serviceType>urn:schemas-upnp-org:service:ConnectionManager:1</serviceType>
 				<serviceId>urn:upnp-org:serviceId:ConnectionManager</serviceId>
 				<SCPDURL>/UPnP_AV_ConnectionManager_1.0.xml</SCPDURL>
 				<controlURL>/upnp/control/connection_manager</controlURL>
-				<eventSubURL>/upnp/event/connection_manager</eventSubURL>
+                                <eventSubURL>/upnp/event/connection_manager</eventSubURL>
 			</service>
 		</serviceList>
                 <presentationURL>http://[host]:[port]/console/index.html</presentationURL>
