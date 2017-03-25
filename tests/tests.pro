@@ -23,7 +23,7 @@ include (../common/common.pri)
 include (../network/network.pri)
 include (../../QmlApplication/QmlApplication.prf)
 
-SOURCES += tst_request.cpp \
+SOURCES += \
     tst_httprange.cpp \
     main.cpp \
     tst_dlnarootfolder.cpp \
@@ -34,7 +34,6 @@ SOURCES += tst_request.cpp \
     tst_dlnayoutubevideo.cpp
 
 HEADERS += \
-    tst_request.h \
     tst_httprange.h \
     tst_dlnarootfolder.h \
     tst_dlnafolder.h \
