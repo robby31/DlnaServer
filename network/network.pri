@@ -2,7 +2,6 @@ INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
 HEADERS += \
-    $$PWD/httpserver.h \
     $$PWD/request.h \
     $$PWD/requestlistmodel.h \
     ../network/httprange.h \
@@ -12,7 +11,6 @@ HEADERS += \
     $$PWD/httpclient.h
 
 SOURCES += \
-    $$PWD/httpserver.cpp \
     $$PWD/request.cpp \
     $$PWD/requestlistmodel.cpp \
     ../network/httprange.cpp \
