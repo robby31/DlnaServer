@@ -8,7 +8,6 @@
 
 #include "application.h"
 #include "applicationcontroller.h"
-#include "httpserver.h"
 #include "logger.h"
 #include "requestlistmodel.h"
 #include "mediarenderermodel.h"
@@ -17,6 +16,10 @@
 #include "checknetworklink.h"
 #include "createdatabasethread.h"
 #include "checknetworklinkitem.h"
+#include "upnpcontrolpoint.h"
+#include "cached/cachedrootfolderreaddirectory.h"
+#include "servicecontentdirectory.h"
+#include "serviceconnectionmanager.h"
 
 class MyApplication : public Application
 {
@@ -46,6 +49,12 @@ public:
     void setcheckInProgress(const int &value);
     Q_INVOKABLE void abortCheckLink();
     Q_INVOKABLE void closeCheckLink();
+
+    // identifier of the render (unique)
+    static const QString UUID;
+
+    // Server port
+    static const int SERVERPORT;
 
 private:
     QStringList sharedFolderModel()      const { return m_sharedFolderModel; }
@@ -95,6 +104,17 @@ private slots:
     void checkNetworkLinkMessage(QString name, QString message);
     void checkNetworkLinkProgress(const int &value);
 
+    void advertiseSlot();
+
+    void newRootDevice(UpnpRootDevice *device);
+    void newRequest(HttpRequest *request);
+    void requestCompleted(HttpRequest *request);
+
+    void contentDirectoryDestroyed(QObject *obj);
+    void connectionManagerDestroyed(QObject *obj);
+
+    void servingFinishedSignal(QString host, QString filename, int status);
+
 private:
     QSettings settings;
     QStringList m_sharedFolderModel;
@@ -104,7 +124,9 @@ private:
     Logger log;
 
     QNetworkAccessManager netManager;
-    HttpServer server;
+
+    UpnpTimer m_timerDiscover;
+    UpnpControlPoint m_upnp;
 
     // list of requests received by server
     RequestListModel *m_requestsModel;
@@ -115,6 +137,9 @@ private:
     ListModel *m_debugModel;
     ListModel *m_checkNetworkLinkModel;
     int m_checkInProgress;
+
+    ServiceConnectionManager *m_connectionManager;
+    ServiceContentDirectory *m_contentDirectory;
 };
 
 #endif // MYAPPLICATION_H
