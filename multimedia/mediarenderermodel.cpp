@@ -40,14 +40,28 @@ void MediaRendererModel::removeRenderer()
 
 void MediaRendererModel::serving(const QString &ip, const QString &mediaName)
 {
-//    MediaRenderer* renderer = getFromIp(ip);
-//    if (renderer)
-//        renderer->setData(QString("Serving %1").arg(mediaName), MediaRenderer::statusRole);
+    MediaRenderer* renderer = rendererFromIp(ip);
+    if (renderer)
+    {
+        if (mediaName.isEmpty())
+            renderer->setData("standby", MediaRenderer::statusRole);
+        else
+            renderer->setData(QString("Serving %1").arg(mediaName), MediaRenderer::statusRole);
+    }
+    else
+    {
+        qCritical() << this << "unable to find renderer" << ip;
+    }
 }
 
-void MediaRendererModel::stopServing(const QString &ip)
+MediaRenderer *MediaRendererModel::rendererFromIp(const QString &ip)
 {
-//    MediaRenderer* renderer = getFromIp(ip);
-//    if (renderer)
-//        renderer->setData("standby", MediaRenderer::statusRole);
+    for (int i=0;i<rowCount();++i)
+    {
+        MediaRenderer *renderer = qobject_cast<MediaRenderer*>(at(i));
+        if (renderer->netWorkAddress() == ip)
+            return renderer;
+    }
+
+    return 0;
 }

@@ -27,11 +27,14 @@ public:
     virtual QVariant data(int role) const;
     virtual bool setData(const QVariant &value, const int &role);
 
+    QString netWorkAddress() const;
+
 signals:
     void removeRenderer();
 
 private slots:
     void deviceItemChanged(QVector<int> roles);
+    void deviceDestroyed(QObject *obj);
 
 private:
     QHash<int, QByteArray> m_roles;

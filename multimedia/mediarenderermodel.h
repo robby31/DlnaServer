@@ -4,7 +4,6 @@
 #include <QDebug>
 #include "mediarenderer.h"
 #include "Models/listmodel.h"
-#include "ssdpmessage.h"
 #include <QHostAddress>
 
 class MediaRendererModel : public ListModel
@@ -14,18 +13,18 @@ class MediaRendererModel : public ListModel
 public:
     explicit MediaRendererModel(QObject *parent = 0);
 
+    MediaRenderer *rendererFromIp(const QString &ip);
 
 signals:
 
 
-private slots:
+public slots:
     void addMediaRenderer(UpnpRootDevice *device);
     void rendererDestroyed(QObject *object);
     void removeRenderer();
 
     // the renderer is serving a new media
     void serving(const QString &ip, const QString &mediaName);
-    void stopServing(const QString &ip);
 };
 
 #endif // MEDIARENDERERMODEL_H
