@@ -54,8 +54,7 @@ Item {
         Label {
             anchors { verticalCenter: parent.verticalCenter }
             text: name
-            width: 200
-            Layout.preferredWidth: width
+            Layout.fillWidth: true
             elide: Text.ElideRight
             color: delegate.color
         }
@@ -63,7 +62,8 @@ Item {
         Label {
             anchors { verticalCenter: parent.verticalCenter }
             text: status
-            Layout.fillWidth: true
+            width: (parent.width-320)/2
+            Layout.preferredWidth: width
             elide: Text.ElideRight
             color: delegate.color
         }
