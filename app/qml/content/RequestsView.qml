@@ -33,64 +33,17 @@ Page {
         anchors.fill: parent
         spacing: 4
 
-        TableView{
-            id: tableView
+        ListView {
+            id: listview
             Layout.fillHeight: true
             Layout.fillWidth: true
-            anchors.margins: Qt.platform.os === "osx" ? 12 : 6
+
             model: _app.requestsModel
+            delegate: RequestDelegate { }
 
-            TableViewColumn {
-                role: "date"
-                title: "Date"
-                width: 200
-            }
-
-            TableViewColumn {
-                role: "status"
-                title: "Status"
-                width: 150
-            }
-
-            TableViewColumn {
-                role: "network_status"
-                title: "NetworkStatus"
-                width: 120
-            }
-
-            TableViewColumn {
-                role: "duration"
-                title: "ResponseTime"
-                width: 120
-            }
-
-            TableViewColumn {
-                role: "peerAddress"
-                title: "Client"
-                width: 120
-            }
-
-            TableViewColumn {
-                role: "host"
-                title: "Host"
-                width: 150
-            }
-
-            TableViewColumn {
-                role: "method"
-                title: "Method"
-                width: 120
-            }
-
-            TableViewColumn {
-                role: "argument"
-                title: "Argument"
-                width: 200
-            }
-
-            onDoubleClicked: {
-                request.requestIndex = currentRow
-                tableView.visible = false
+            function selectRequest(index) {
+                request.requestIndex = index
+                listview.visible = false
             }
         }
 
@@ -98,7 +51,7 @@ Page {
             id: requestColumn
             Layout.fillWidth: true
             height: 300
-            visible: !tableView.visible
+            visible: !listview.visible
 
             RowLayout {
                 height: cmd.height
@@ -111,7 +64,7 @@ Page {
                         clip: true
                     }
 
-                    onButtonClicked: tableView.visible = true
+                    onButtonClicked: listview.visible = true
                 }
             }
 
