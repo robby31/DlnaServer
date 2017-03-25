@@ -39,7 +39,7 @@ MyApplication::MyApplication(int &argc, char **argv):
 
     setRenderersModel(new MediaRendererModel(this));
 
-    setRequestsModel(new RequestListModel(&log, this));
+    setRequestsModel(new RequestListModel(this));
 
     m_debugModel = new ListModel(new DebugItem, this);
 
