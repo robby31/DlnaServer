@@ -101,7 +101,7 @@ void DecryptYoutubeSignature::decryptSignature()
         }
         else
         {
-            QRegularExpression funcExpv2("&&k.set\\(\"signature\",(\\w+)");
+            QRegularExpression funcExpv2("&&k.set\\(\"signature\",([a-zA-Z0-9$]+)");
             QRegularExpressionMatch funcExpMatchv2 = funcExpv2.match(webpage);
             if (funcExpMatchv2.hasMatch())
                 funcName = funcExpMatchv2.captured(1);
