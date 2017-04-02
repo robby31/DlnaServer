@@ -22,12 +22,6 @@ QVariant DebugItem::counterValue() const
 {
     if (m_name == "DlnaResource")
         return QVariant(DlnaResource::objectCounter);
-    else if (m_name == "HttpClient")
-        return QVariant(HttpClient::objectCounter);
-    else if (m_name == "Request")
-        return QVariant(Request::objectCounter);
-    else if (m_name == "Reply")
-        return QVariant(Reply::objectCounter);
     else if (m_name == "Device")
         return QVariant(Device::objectCounter);
     else if (m_name == "DlnaFolder")

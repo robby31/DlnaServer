@@ -6,9 +6,6 @@
 #include <QDebug>
 #include "Models/listitem.h"
 #include "dlnaresource.h"
-#include "httpclient.h"
-#include "request.h"
-#include "reply.h"
 #include "device.h"
 #include "dlnafolder.h"
 #include "dlnamusictrackfile.h"
