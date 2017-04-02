@@ -5,7 +5,6 @@
 #include <QElapsedTimer>
 #include <QDebug>
 #include <QDateTime>
-#include <QThread>
 
 #include "device.h"
 
@@ -24,7 +23,6 @@ public:
     int exitCode()  const { return m_process->exitCode(); }
     bool isKilled() const { return killTranscodeProcess; }
 
-    void setUrl(const QString &url)                             { m_url = url; }
     QString url() const { return m_url; }
 
     void setSize(const qint64 size);
@@ -58,7 +56,7 @@ public:
     virtual qint64 bytesAvailable() const   { return m_process->bytesAvailable(); }
     virtual qint64 pos() const              { return m_pos; }    // position in bytes of read data
 
-    virtual bool open()         { emit openSignal(QIODevice::ReadOnly); return true; }
+    virtual bool open();
     virtual bool isOpen() const { return m_opened; }
 
 protected:
@@ -74,6 +72,9 @@ private:
 signals:
     void openSignal(const QIODevice::OpenMode &open);
 
+public slots:
+    void setUrl(const QString &url);
+    
 private slots:
     void _open(const QIODevice::OpenMode &open);
     void processStarted();

@@ -53,7 +53,7 @@ void TranscodeProcess::dataAvailable()
     if (isLogLevel(DEBG))
         appendLog(QString("%1: received %2 bytes transcoding data."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
 
-    if (!m_opened && bytesAvailable() > 0)
+    if (!m_opened && bytesAvailable() > maxBufferSize()*0.2)
     {
         m_opened = true;
         emit openedSignal();
@@ -261,4 +261,24 @@ qint64 TranscodeProcess::transcodedProgress() const
 void TranscodeProcess::setVolumeInfo(const QHash<QString, double> info)
 {
     m_volumeInfo = info;
+}
+
+void TranscodeProcess::setUrl(const QString &url)
+{ 
+    m_url = url;
+    emit readyToOpen();
+}
+
+bool TranscodeProcess::open()
+{
+    if (m_url.isEmpty())
+    {
+        qCritical() << "url is not defined";
+        return false;
+    }
+    else
+    {
+        emit openSignal(QIODevice::ReadOnly);
+        return true;
+    }
 }

@@ -6,19 +6,17 @@ const QString Device::CRLF = "\r\n";
 
 Device::Device(Logger *log, QObject *parent) :
     LogObject(log, parent),
-    m_range(0),
+    m_range(Q_NULLPTR),
     timeseek_start(-1),
     timeseek_end(-1),
     m_bitrate(-1),
     m_maxBufferSize(1024*1024*10),   // 10 MBytes by default when bitrate is unknown
     m_durationBuffer(20),
-    bytesToWrite(0),
     requestDataStarted(false)
 {
     ++objectCounter;
 
     connect(this, SIGNAL(openedSignal()), this, SLOT(deviceOpened()));
-    connect(this, SIGNAL(readyRead()), this, SLOT(requestData()));
 }
 
 Device::~Device()
@@ -26,67 +24,130 @@ Device::~Device()
     --objectCounter;
 }
 
+void Device::appendLog(const QString &msg)
+{
+    emit LogMessage(msg);
+}
+
+HttpRange *Device::range() const
+{
+    return m_range;
+}
+
+void Device::setRange(HttpRange *range)
+{
+    if (range)
+        m_range = range;
+    else
+        qCritical() << "invalid range" << range;
+}
+
 qint64 Device::progress()
 {
-    if (size()==0)
+    if (size() == 0)
         return 0;
     else
         return qint64(100.0*double(pos())/double(size()));
 }
 
+qint64 Device::timeSeekStart() const
+{
+    return timeseek_start;
+}
+
+qint64 Device::timeSeekEnd() const
+{
+    return timeseek_end;
+}
+
+void Device::setTimeSeek(qint64 start, qint64 end)
+{
+    timeseek_start = start;
+    timeseek_end = end;
+}
+
+qint64 Device::maxBufferSize() const
+{
+    return m_maxBufferSize;
+}
+
+void Device::setMaxBufferSize(const qint64 &size)
+{
+    if (size > 0)
+        m_maxBufferSize = size;
+    else
+        qCritical() << "setMaxBufferSize : invalid size" << size;
+}
+
+qint64 Device::bitrate() const
+{
+    return m_bitrate;
+}
+
+void Device::setBitrate(const qint64 &bitrate)
+{
+    if (bitrate > 0)
+    {
+        m_bitrate = bitrate;
+        setMaxBufferSize(m_bitrate/8*durationBuffer());
+    }
+    else
+    {
+        qCritical() << "invalid bitrate" << bitrate;
+    }
+}
+
+int Device::durationBuffer() const
+{
+    return m_durationBuffer;
+}
+
+void Device::setDurationBuffer(int duration)
+{
+    if (duration > 0)
+    {
+        m_durationBuffer = duration;
+
+        setBitrate(m_bitrate);
+    }
+    else
+    {
+        qCritical() << "invalid duration" << duration;
+    }
+}
+
 void Device::deviceOpened()
 {
-    emit LogMessage(QString("%1: device opened, %2 bytes available."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
-    emit status("Streaming");
+    appendLog(QString("%1: device opened, %3 bytes to send, %2 bytes available."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()).arg(size()));
 }
 
 void Device::startRequestData()
 {
-    appendLog(QString("%1: START REQUEST DATA"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+    appendLog(QString("%1: START REQUEST DATA : %2 bytes available"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
+
     requestDataStarted = true;
+    emit status("Streaming");
+
+    requestData(m_maxBufferSize);
 }
 
-void Device::requestData()
+void Device::requestData(qint64 maxlen)
 {
     if (requestDataStarted)
     {
         if (!atEnd() && bytesAvailable() > 0)
         {
-            qint64 bytesToRead = maxBufferSize() - bytesToWrite;
-            if (bytesToRead > 30000)
-                bytesToRead = 30000;
-            if (bytesToRead > 0) {
-                // read the stream
-                QByteArray bytesToSend = read(bytesToRead);
-                bytesToWrite += bytesToSend.size();
-                if (!bytesToSend.isEmpty())
-                    emit sendDataToClientSignal(bytesToSend);
-            }
+            // read the stream
+            QByteArray bytesToSend = read(maxlen);
+            if (!bytesToSend.isEmpty())
+                emit sendDataToClientSignal(bytesToSend);
 
             if (atEnd())
                 emit endReached();
         }
         else
         {
-            if (isLogLevel(DEBG))
-                appendLog(QString("%1: sendDataToClient no data available"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+            qDebug() << QString("%1: sendDataToClient no data available").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
         }
     }
-}
-
-void Device::bytesSent(const qint64 &size, const qint64 &towrite)
-{
-    Q_UNUSED(size)
-
-    bytesToWrite = towrite;
-
-//    logInfo(QString("bytesSent atEnd?%1 towrite:%2 bufferLimit:%3 size:%4").arg(atEnd()).arg(towrite).arg(maxBufferSize()).arg(size));
-    if (!atEnd() && towrite < maxBufferSize()*3/4)
-        requestData();
-}
-
-void Device::networkPaused()
-{
-    appendLog(QString("%1: device network paused, bytes to write: %2, bytes available: %3"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesToWrite).arg(bytesAvailable()));
-    requestData();
 }

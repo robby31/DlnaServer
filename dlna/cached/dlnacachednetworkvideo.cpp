@@ -9,27 +9,39 @@ DlnaCachedNetworkVideo::DlnaCachedNetworkVideo(Logger* log, QNetworkAccessManage
 
 TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
 {
-    if (m_streamUrl.isNull())
-    {
-        QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> movie(new DlnaYouTubeVideo(log(), host, port));
-        movie->setAnalyzeStream(false);
-        if (m_nam)
-        {
-            movie->moveToThread(m_nam->thread());
-            connect(m_nam->thread(), SIGNAL(finished()), movie.data(), SLOT(deleteLater()));
-            movie->setNetworkAccessManager(m_nam);
-        }
-        movie->setUrl(getSystemName());
+    FfmpegTranscoding* transcodeProcess = Q_NULLPTR;
 
-        bool res = movie->waitUrl(30000);
-        if (res)
-            m_streamUrl = movie->streamUrl();
+    QString sysName = getSystemName();
+
+    if (sysName.startsWith("http") && sysName.contains("youtube"))
+    {
+        // YOUTUBE stream
+        if (!m_nam)
+        {
+            qCritical() << "network not initialised, cannot manage Youtube stream.";
+            return 0;
+        }
+        else
+        {
+            transcodeProcess = new FfmpegTranscoding(log());
+
+            // request from Youtube url for streaming
+            DlnaYouTubeVideo *movie = new DlnaYouTubeVideo(log(), host, port, transcodeProcess);
+            connect(movie, SIGNAL(streamUrlDefined(QString)), transcodeProcess, SLOT(setUrl(QString)));
+            movie->setAnalyzeStream(false);
+            movie->setNetworkAccessManager(m_nam);
+            movie->setUrl(sysName);
+        }
+    }
+    else if (!m_streamUrl.isEmpty())
+    {
+        // local video
+        transcodeProcess = new FfmpegTranscoding(log());
+        transcodeProcess->setUrl(m_streamUrl);
     }
 
-    if (!m_streamUrl.isEmpty())
+    if (transcodeProcess)
     {
-        FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log());
-        transcodeProcess->setUrl(m_streamUrl);
         transcodeProcess->setLengthInSeconds(getLengthInSeconds());
         transcodeProcess->setFormat(transcodeFormat);
         transcodeProcess->setBitrate(bitrate());
@@ -44,7 +56,7 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
     }
     else
     {
-        logError("Invalid streaming url.");
+        logError("No stream to return.");
         return 0;
     }
 }

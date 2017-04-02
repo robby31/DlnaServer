@@ -64,9 +64,8 @@ Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 time
 
         if (process)
         {
-            if (process->url().isEmpty())
-                process->setUrl(getSystemName());
-            process->setRange(range);
+            if (range)
+                process->setRange(range);
             process->setTimeSeek(timeseek_start, timeseek_end);
             process->setBitrate(bitrate());
             process->setSize(size());
@@ -77,7 +76,8 @@ Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 time
     else
     {
         StreamingFile* tmp = new StreamingFile(getSystemName(), log());
-        tmp->setRange(range);
+        if (range)
+            tmp->setRange(range);
         tmp->setTimeSeek(timeseek_start, timeseek_end);
         return tmp;
     }

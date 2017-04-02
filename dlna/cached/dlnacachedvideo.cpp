@@ -10,6 +10,7 @@ DlnaCachedVideo::DlnaCachedVideo(Logger* log, MediaLibrary* library, int idMedia
 TranscodeProcess *DlnaCachedVideo::getTranscodeProcess()
 {
     FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log());
+    transcodeProcess->setUrl(getSystemName());
     transcodeProcess->setLengthInSeconds(getLengthInSeconds());
     transcodeProcess->setFormat(transcodeFormat);
     transcodeProcess->setBitrate(bitrate());

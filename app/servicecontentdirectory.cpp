@@ -2,7 +2,8 @@
 
 ServiceContentDirectory::ServiceContentDirectory(Logger *log, QString host, int port, QObject *parent):
     QObject(parent),
-    rootFolder(log, host, port)
+    rootFolder(log, host, port),
+    backend(Q_NULLPTR)
 {
     connect(this, SIGNAL(folderAdded(QString)), this, SLOT(folderAddedSlot(QString)));
 
@@ -16,11 +17,18 @@ ServiceContentDirectory::ServiceContentDirectory(Logger *log, QString host, int 
 
     connect(this, SIGNAL(reloadLibrarySignal(QStringList)), &rootFolder, SLOT(reloadLibrary(QStringList)));
 
+    connect(this, SIGNAL(incrementCounterPlayedSignal(QString)), &rootFolder, SLOT(incrementCounterPlayed(QString)));
+    connect(this, SIGNAL(updateMediaData(QString,QHash<QString,QVariant>)), &rootFolder, SLOT(updateLibrary(QString,QHash<QString,QVariant>)));
     connect(this, SIGNAL(updateMediaFromId(int,QHash<QString,QVariant>)), &rootFolder, SLOT(updateLibraryFromId(int,QHash<QString,QVariant>)));
 
     connect(this, SIGNAL(getDLNAResourcesSignal(QObject*, QString,bool,int,int,QString)), &rootFolder, SLOT(requestDlnaResources(QObject*, QString,bool,int,int,QString)));
     connect(&rootFolder, SIGNAL(dlnaResources(QObject*,QList<DlnaResource*>)), this, SIGNAL(dlnaResources(QObject*,QList<DlnaResource*>)));
 
+}
+
+void ServiceContentDirectory::setBackendThread(QThread *thread)
+{
+    backend = thread;
 }
 
 void ServiceContentDirectory::setNetworkAccessManager(QNetworkAccessManager *nam)
@@ -219,7 +227,6 @@ void ServiceContentDirectory::reply(HttpRequest *request)
                         if (!request->header("TIMESEEKRANGE.DLNA.ORG").isEmpty())
                         {
                             readTimeSeekRange(QString("TIMESEEKRANGE.DLNA.ORG: %1").arg(request->header("TIMESEEKRANGE.DLNA.ORG")), &timeSeekRangeStart, &timeSeekRangeEnd);
-                            qWarning() << "TIMESEEKRANGE.DLNA.ORG" << request->header("TIMESEEKRANGE.DLNA.ORG") << timeSeekRangeStart << timeSeekRangeEnd;
                         }
 
                         QStringList m_header;
@@ -276,7 +283,8 @@ void ServiceContentDirectory::reply(HttpRequest *request)
 
                                 QString mediaFilename = dlna->getSystemName();
                                 request->setRequestedResource(mediaFilename);
-                                emit servingSignal(request->peerAddress().toString(), mediaFilename, 0);
+                                request->setRequestedDisplayName(dlna->getDisplayName());
+                                servingMedia(mediaFilename, 0);
 
                                 // recover resume time
                                 qint64 resume = dlna->getResumeTime();
@@ -310,32 +318,25 @@ void ServiceContentDirectory::reply(HttpRequest *request)
 
                                     request->setMaxBufferSize(streamContent->maxBufferSize());
 
+                                    connect(streamContent, SIGNAL(readyToOpen()), this, SLOT(streamReadyToOpen()));
                                     connect(streamContent, SIGNAL(openedSignal()), request, SLOT(streamOpened()));
+                                    connect(streamContent, SIGNAL(openedSignal()), streamContent, SLOT(startRequestData()));
                                     connect(streamContent, SIGNAL(status(QString)), request, SLOT(streamingStatus(QString)));
                                     connect(streamContent, SIGNAL(LogMessage(QString)), request, SLOT(logMessage(QString)));
                                     connect(streamContent, SIGNAL(errorRaised(QString)), request, SLOT(streamError(QString)));
                                     connect(streamContent, SIGNAL(endReached()), request, SLOT(streamingCompleted()));
-//                                    connect(request, SIGNAL(networkPaused()), streamContent, SLOT(networkPaused()));
 
-                                    connect(request, SIGNAL(bytesSent(qint64,qint64)), streamContent, SLOT(bytesSent(qint64,qint64)));
+                                    connect(request, SIGNAL(requestStreamingData(qint64)), streamContent, SLOT(requestData(qint64)));
                                     connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), request, SLOT(sendPartialData(QByteArray)));
 
-                                    if (streamContent->open())
-                                    {
-                                        connect(request, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SIGNAL(servingFinishedSignal(QString,QString,int)));
+                                    connect(request, SIGNAL(servingSignal(QString,int)), this, SLOT(servingMedia(QString,int)));
 
-                                        request->logMessage(QString("Streaming started, %1 bytes to send.").arg(streamContent->size()));
-                                        emit servingRendererSignal(request->peerAddress().toString(), dlna->getDisplayName());
+                                    connect(request, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SIGNAL(servingFinishedSignal(QString,QString,int)));
+                                    connect(request, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SLOT(servingFinished(QString,QString,int)));
 
-                                        streamContent->startRequestData();
-                                        streamContent->requestData();
-                                    }
-                                    else
-                                    {
-                                        request->logMessage(QString("Streaming failed."));
-                                        request->setError("Streaming failed.");
-                                        request->close();
-                                    }
+                                    connect(request, SIGNAL(servingRendererSignal(QString,QString)), this, SIGNAL(servingRendererSignal(QString,QString)));
+
+                                    streamContent->open();
                                 }
                             }
                         }
@@ -361,6 +362,12 @@ void ServiceContentDirectory::reply(HttpRequest *request)
     }
 }
 
+void ServiceContentDirectory::streamReadyToOpen()
+{
+    Device *stream = qobject_cast<Device*>(sender());
+    stream->open();
+}
+
 void ServiceContentDirectory::readTimeSeekRange(const QString &data, qint64 *start, qint64 *end)
 {
     QRegularExpression pattern("timeseekrange\\.dlna\\.org:\\s*npt\\s*=\\s*(\\d+)\\-?(\\d*)", QRegularExpression::CaseInsensitiveOption);
@@ -380,3 +387,19 @@ void ServiceContentDirectory::readTimeSeekRange(const QString &data, qint64 *sta
     }
 }
 
+void ServiceContentDirectory::servingFinished(QString host, QString filename, int status)
+{
+    Q_UNUSED(host)
+
+    if (status == 0)
+        emit incrementCounterPlayedSignal(filename);
+}
+
+void ServiceContentDirectory::servingMedia(QString filename, int playedDurationInMs)
+{
+    QHash<QString, QVariant> data;
+    data.insert("last_played", QDateTime::currentDateTime());
+    if (playedDurationInMs>0)
+        data.insert("progress_played", playedDurationInMs);
+    emit updateMediaData(filename, data);
+}

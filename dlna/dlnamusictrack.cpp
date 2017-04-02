@@ -192,6 +192,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess()
 {
     FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log());
+    transcodeProcess->setUrl(getSystemName());
     transcodeProcess->setLengthInSeconds(getLengthInSeconds());
     transcodeProcess->setFormat(transcodeFormat);
     transcodeProcess->setBitrate(bitrate());

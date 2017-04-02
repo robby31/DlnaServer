@@ -109,6 +109,7 @@ void DlnaYouTubeVideo::videoTitle(const QString &title)
 void DlnaYouTubeVideo::videoUrl(const QString &url)
 {
     mutex.lock();
+
     m_streamUrl = url;
 
     if (m_analyzeStream)
@@ -123,6 +124,8 @@ void DlnaYouTubeVideo::videoUrl(const QString &url)
             m_videoUrlInProgress = false;
             replyWaitCondition.wakeAll();
         }
+        
+        emit streamUrlDefined(url);        
     }
 
     mutex.unlock();
@@ -138,6 +141,8 @@ void DlnaYouTubeVideo::ffmpegReady()
         m_videoUrlInProgress = false;
         replyWaitCondition.wakeAll();
     }
+    
+    emit streamUrlDefined(m_streamUrl);
 
     mutex.unlock();
 }
@@ -162,7 +167,6 @@ TranscodeProcess *DlnaYouTubeVideo::getTranscodeProcess()
 {
     FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log());
 
-    transcodeProcess->setUrl(m_streamUrl);
     transcodeProcess->setLengthInSeconds(getLengthInSeconds());
     transcodeProcess->setFormat(transcodeFormat);
     transcodeProcess->setBitrate(bitrate());
