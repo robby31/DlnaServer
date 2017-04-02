@@ -100,6 +100,7 @@ private slots:
     void quit();
 
     void serverStarted();
+    void serverError(const QString &message);
 
     void checkNetworkLinkMessage(QString name, QString message);
     void checkNetworkLinkProgress(const int &value);
@@ -113,7 +114,7 @@ private slots:
     void contentDirectoryDestroyed(QObject *obj);
     void connectionManagerDestroyed(QObject *obj);
 
-    void servingFinishedSignal(QString host, QString filename, int status);
+    void servingMediaFinished(QString host, QString filename, int status);
 
 private:
     QSettings settings;

@@ -24,10 +24,10 @@ MyApplication::MyApplication(int &argc, char **argv):
     connect(this, SIGNAL(aboutToQuit()), this, SLOT(quit()));
 
     // create database in backend Thread
-    CreateDatabaseThread *dbBackend = new CreateDatabaseThread();
-    dbBackend->moveToThread(backendThread());
-    connect(backendThread(), SIGNAL(finished()), dbBackend, SLOT(deleteLater()));
-    dbBackend->run();
+//    CreateDatabaseThread *dbBackend = new CreateDatabaseThread();
+//    dbBackend->moveToThread(backendThread());
+//    connect(backendThread(), SIGNAL(finished()), dbBackend, SLOT(deleteLater()));
+//    dbBackend->run();
 
     QFfmpegProcess::setDirPath("/opt/local/bin");
     FfmpegTranscoding::setDirPath("/opt/local/bin");
@@ -79,6 +79,7 @@ MyApplication::MyApplication(int &argc, char **argv):
 
     UpnpRootDevice *device = m_upnp.addLocalRootDevice(SERVERPORT, UUID, "/description/fetch");
     connect(device, SIGNAL(serverStarted()), this, SLOT(serverStarted()));
+    connect(device, SIGNAL(serverError(QString)), this, SLOT(serverError(QString)));
     connect(device, SIGNAL(newRequest(HttpRequest*)), this, SLOT(newRequest(HttpRequest*)));
     connect(device, SIGNAL(requestCompleted(HttpRequest*)), this, SLOT(requestCompleted(HttpRequest*)));
     device->startServer();
@@ -123,8 +124,9 @@ void MyApplication::serverStarted()
         connect(this, SIGNAL(updateMediaFromId(int,QHash<QString,QVariant>)), m_contentDirectory, SIGNAL(updateMediaFromId(int,QHash<QString,QVariant>)));
 
         connect(m_contentDirectory, SIGNAL(servingRendererSignal(QString,QString)), m_renderersModel, SLOT(serving(QString,QString)));
-        connect(m_contentDirectory, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SLOT(servingFinishedSignal(QString,QString,int)));
+        connect(m_contentDirectory, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SLOT(servingMediaFinished(QString,QString,int)));
 
+        m_contentDirectory->setBackendThread(backendThread());
         m_contentDirectory->setNetworkAccessManager(&netManager);
     }
     else
@@ -138,6 +140,11 @@ void MyApplication::serverStarted()
     // update volume informations
 //    UpdateMediaVolumeInfo *volumeInfoWorker = new UpdateMediaVolumeInfo(&netManager);
 //    QThreadPool::globalInstance()->start(volumeInfoWorker);
+}
+
+void MyApplication::serverError(const QString &message)
+{
+    m_controller.popMessage(message, UiServices::POP_ERROR);
 }
 
 void MyApplication::contentDirectoryDestroyed(QObject *obj)
@@ -468,9 +475,7 @@ void MyApplication::requestCompleted(HttpRequest *request)
     }
 }
 
-void MyApplication::servingFinishedSignal(QString host, QString filename, int status)
+void MyApplication::servingMediaFinished(QString host, QString filename, int status)
 {
-    qWarning() << this << "servingFinishedSignal";
-
     m_renderersModel->serving(host, QString());
 }
