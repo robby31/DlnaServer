@@ -2,22 +2,12 @@ INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
 HEADERS += \
-    $$PWD/request.h \
     $$PWD/requestlistmodel.h \
-    ../network/httprange.h \
-    ../network/elapsedtimer.h \
-    ../network/reply.h \
-    ../network/replydlnaitemcontent.h \
-    $$PWD/httpclient.h
+    ../network/httprange.h
 
 SOURCES += \
-    $$PWD/request.cpp \
     $$PWD/requestlistmodel.cpp \
-    ../network/httprange.cpp \
-    ../network/elapsedtimer.cpp \
-    ../network/reply.cpp \
-    ../network/replydlnaitemcontent.cpp \
-    $$PWD/httpclient.cpp
+    ../network/httprange.cpp
 
 include (../dlna/dlna.pri)
 include (../../Upnp/UpnpLibrary/UpnpLibrary.prf)
