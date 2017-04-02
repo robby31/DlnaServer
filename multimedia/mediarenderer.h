@@ -23,9 +23,9 @@ public:
 
     virtual QString id() const Q_DECL_OVERRIDE;
 
-    virtual QHash<int, QByteArray> roleNames() const { return m_roles; }
-    virtual QVariant data(int role) const;
-    virtual bool setData(const QVariant &value, const int &role);
+    virtual QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
+    virtual QVariant data(int role) const Q_DECL_OVERRIDE;
+    virtual bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
 
     QString netWorkAddress() const;
 

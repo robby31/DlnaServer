@@ -29,6 +29,11 @@ MediaRenderer::MediaRenderer(UpnpRootDevice *device, QObject *parent) :
     connect(m_device, SIGNAL(destroyed(QObject*)), this, SLOT(deviceDestroyed(QObject*)));
 }
 
+QHash<int, QByteArray> MediaRenderer::roleNames() const
+{
+    return m_roles;
+}
+
 QString MediaRenderer::id() const
 {
     if (m_device)
