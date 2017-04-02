@@ -7,7 +7,6 @@
 #include "tst_dlnamusictrack.h"
 #include "tst_dlnavideoitem.h"
 #include "tst_dlnayoutubevideo.h"
-#include "tst_request.h"
 #include "tst_dlnacachedresources.h"
 
 void executeTest(QObject* test, QStringList* summary, int argc, char *argv[])
@@ -36,9 +35,6 @@ int main(int argc, char *argv[])
 
     tst_dlnacachedresources test7;
     executeTest(&test7, &testsSummary, argc, argv);
-
-    TestRequest test6;
-    executeTest(&test6, &testsSummary, argc, argv);
 
     tst_dlnayoutubevideo test5_1;
     executeTest(&test5_1, &testsSummary, argc, argv);
