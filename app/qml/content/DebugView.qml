@@ -61,11 +61,14 @@ Page {
         }
     }
 
-    ListView {
-        id: listView
+    ScrollView {
         anchors.fill: parent
-        model: _app.debugModel
-        delegate: debugDelegate
+
+        ListView {
+            id: listView
+            model: _app.debugModel
+            delegate: debugDelegate
+        }
     }
 
     Timer {

@@ -28,13 +28,16 @@ Page {
         }
     }
 
-    ListView {
-        id: listview
-
+    ScrollView {
         anchors.fill: parent
-        clip: true
 
-        model: _app.renderersModel
-        delegate: MediaRendererDelegate { }
+        ListView {
+            id: listview
+
+            clip: true
+
+            model: _app.renderersModel
+            delegate: MediaRendererDelegate { }
+        }
     }
 }

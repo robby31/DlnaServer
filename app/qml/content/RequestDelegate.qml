@@ -55,7 +55,7 @@ Item {
         Label {
             anchors { verticalCenter: parent.verticalCenter }
             text: network_status
-            width: 120
+            width: 500
             Layout.preferredWidth: width
             elide: Text.ElideRight
             color: delegate.color
@@ -64,25 +64,26 @@ Item {
         Label {
             anchors { verticalCenter: parent.verticalCenter }
             text: duration
-            width: 120
+            width: contentWidth
             Layout.preferredWidth: width
-            elide: Text.ElideRight
+            Layout.minimumWidth: contentWidth
+            //elide: Text.ElideRight
             color: delegate.color
         }
 
         Label {
             anchors { verticalCenter: parent.verticalCenter }
             text: peerAddress
-            width: 120
+            width: contentWidth
             Layout.preferredWidth: width
-            elide: Text.ElideRight
+            //elide: Text.ElideRight
             color: delegate.color
         }
 
         Label {
             anchors { verticalCenter: parent.verticalCenter }
             text: host
-            width: 120
+            width: 100
             Layout.preferredWidth: width
             elide: Text.ElideRight
             color: delegate.color
@@ -91,7 +92,7 @@ Item {
         Label {
             anchors { verticalCenter: parent.verticalCenter }
             text: operation
-            width: 120
+            width: 80
             Layout.preferredWidth: width
             elide: Text.ElideRight
             color: delegate.color
@@ -100,7 +101,7 @@ Item {
         Label {
             anchors { verticalCenter: parent.verticalCenter }
             text: url
-            width: 300
+            width: 250
             Layout.preferredWidth: width
             elide: Text.ElideRight
             color: delegate.color

@@ -33,24 +33,26 @@ Page {
         anchors.fill: parent
         spacing: 4
 
-        ListView {
-            id: listview
+        ScrollView {
             Layout.fillHeight: true
             Layout.fillWidth: true
 
-            model: _app.requestsModel
-            delegate: RequestDelegate { }
+            ListView {
+                id: listview
 
-            function selectRequest(index) {
-                request.requestIndex = index
-                listview.visible = false
+                model: _app.requestsModel
+                delegate: RequestDelegate { }
+
+                function selectRequest(index) {
+                    request.requestIndex = index
+                    listview.visible = false
+                }
             }
         }
 
         ColumnLayout {
             id: requestColumn
-            Layout.fillWidth: true
-            height: 300
+            anchors.fill: parent
             visible: !listview.visible
 
             RowLayout {
