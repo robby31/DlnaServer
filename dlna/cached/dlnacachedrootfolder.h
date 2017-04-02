@@ -30,7 +30,7 @@ public:
 private:
 
     void addResource(QFileInfo fileinfo);
-    bool addResource(QUrl url);
+    void addResource(QUrl url);
 
 signals:
     void linkAdded(QString url);
@@ -44,7 +44,10 @@ private slots:
     // returns true if the folder is added to Root.
     virtual bool addFolderSlot(QString path);
 
-    bool addNetworkLink(const QString &url);
+    void addNetworkLink(const QString &url);
+
+    void networkLinkAnalyzed(const QString &streamingUrl);
+    void networkLinkError(const QString &message);
 
 public slots:
     void reloadLibrary(const QStringList &localFolder);

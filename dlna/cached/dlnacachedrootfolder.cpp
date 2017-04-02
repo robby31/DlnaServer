@@ -136,44 +136,34 @@ bool DlnaCachedRootFolder::addFolderSlot(QString path)
     return false;
 }
 
-bool DlnaCachedRootFolder::addNetworkLink(const QString &url)
+void DlnaCachedRootFolder::addNetworkLink(const QString &url)
 {
-    if (addResource(QUrl(url))) {
-        lastAddedChild->needRefresh();
-        emit linkAdded(url);
-        return true;
-    }
-
-    emit error_addNetworkLink(url);
-    return false;
+    addResource(QUrl(url));
 }
 
-bool DlnaCachedRootFolder::addResource(QUrl url)
+void DlnaCachedRootFolder::addResource(QUrl url)
 {
-    QHash<QString, QVariant> data;
-    QHash<QString, QVariant> data_album;
-    QHash<QString, QVariant> data_artist;
-
-    data.insert("filename", url.toString());
-    data.insert("type", "video");
-//    data.insert("last_modified", fileinfo.lastModified());
-
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> movie(new DlnaYouTubeVideo(log(), host, port));
-    if (m_nam)
-    {
-        movie->moveToThread(m_nam->thread());
-        connect(m_nam->thread(), SIGNAL(finished()), movie.data(), SLOT(deleteLater()));
-        movie->setNetworkAccessManager(m_nam);
-    }
+    DlnaYouTubeVideo *movie = new DlnaYouTubeVideo(log(), host, port, this);
+    connect(movie, SIGNAL(streamUrlDefined(QString)), this, SLOT(networkLinkAnalyzed(QString)));
+    movie->setNetworkAccessManager(m_nam);
     movie->setUrl(url.toString());
+}
 
-    bool res = movie->waitUrl(30000);
-    if (!(res && movie->isValid()))
+
+void DlnaCachedRootFolder::networkLinkAnalyzed(const QString &streamingUrl)
+{
+    Q_UNUSED(streamingUrl)
+
+    DlnaYouTubeVideo *movie = qobject_cast<DlnaYouTubeVideo*>(sender());
+    if (movie)
     {
-        logError(QString("unable to add resource %1, media is not valid").arg(url.toString()));
-    }
-    else
-    {
+        QHash<QString, QVariant> data;
+        QHash<QString, QVariant> data_album;
+        QHash<QString, QVariant> data_artist;
+
+        data.insert("filename", movie->url());
+        data.insert("type", "video");
+
         data.insert("title", movie->metaDataTitle());
         data.insert("duration", movie->metaDataDuration());
         data.insert("resolution", movie->resolution());
@@ -186,26 +176,57 @@ bool DlnaCachedRootFolder::addResource(QUrl url)
         data.insert("format", movie->metaDataFormat());
         data.insert("mime_type", movie->mimeType());
 
-        if (movie->metaDataTitle().isEmpty()) {
-            logError(QString("unable to add resource %1, title is empty").arg(url.toString()));
-        } else {
+        if (movie->metaDataTitle().isEmpty())
+        {
+            logError(QString("unable to add resource %1, title is empty").arg(movie->url().toString()));
+            emit error_addNetworkLink(movie->url().toString());
+        }
+        else
+        {
             if (movie->metaDataDuration()<=0)
-                logWarning(QString("invalid duration %3 for %1 (%2).").arg(movie->metaDataTitle()).arg(url.toString()).arg(movie->metaDataDuration()));
+                logWarning(QString("invalid duration %3 for %1 (%2).").arg(movie->metaDataTitle()).arg(movie->url().toString()).arg(movie->metaDataDuration()));
             if (movie->resolution().isEmpty())
-                logWarning(QString("invalid resolution %3 for %1 (%2).").arg(movie->metaDataTitle()).arg(url.toString()).arg(movie->resolution()));
+                logWarning(QString("invalid resolution %3 for %1 (%2).").arg(movie->metaDataTitle()).arg(movie->url().toString()).arg(movie->resolution()));
 
-            if (!data.isEmpty()) {
+            if (!data.isEmpty())
+            {
                 logDebug(QString("Resource to add: %1").arg(movie->metaDataTitle()));
-                if (!library.add_media(data, data_album, data_artist)) {
-                    logError(QString("unable to add or update resource %1 (%2)").arg(url.toString()).arg("video"));
-                } else {
-                    return true;
+                if (!library.add_media(data, data_album, data_artist))
+                {
+                    logError(QString("unable to add or update resource %1 (%2)").arg(movie->url().toString()).arg("video"));
+                    emit error_addNetworkLink(movie->metaDataTitle());
+                }
+                else
+                {
+                    lastAddedChild->needRefresh();
+                    emit linkAdded(movie->metaDataTitle());
                 }
             }
         }
-    }
 
-    return false;
+        movie->deleteLater();
+    }
+    else
+    {
+        qCritical() << "invalid sender" << sender();
+    }
+}
+
+
+void DlnaCachedRootFolder::networkLinkError(const QString &message)
+{
+    qCritical() << "ERROR, link not added" << message;
+
+    DlnaYouTubeVideo *movie = qobject_cast<DlnaYouTubeVideo*>(sender());
+    if (movie)
+    {
+        emit error_addNetworkLink(movie->url().toString());
+        movie->deleteLater();
+    }
+    else
+    {
+        qCritical() << "invalid sender" << sender();
+    }
 }
 
 void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
@@ -404,9 +425,9 @@ void DlnaCachedRootFolder::reloadLibrary(const QStringList &localFolder)
                 res = false;
 
         // load network media
-        foreach (const QString &url, networkMedia)
-            if (!addNetworkLink(url))
-                res = false;
+//        foreach (const QString &url, networkMedia)
+//            if (!addNetworkLink(url))
+//                res = false;
 
         if (!res)
             logError("Library reloaded with errors.");
