@@ -5,7 +5,6 @@
 #include <QtTest>
 
 #include "dlnamusictrackfile.h"
-#include "request.h"
 #include <QElapsedTimer>
 
 class tst_dlnamusictrack : public QObject
