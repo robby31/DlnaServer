@@ -66,6 +66,7 @@ public:
     void setAnalyzeStream(const bool &flag) { m_analyzeStream = flag; }
 
     void setNetworkAccessManager(QNetworkAccessManager *manager);
+    QUrl url() const;
     void setUrl(const QUrl &url);
     bool waitUrl(const int &timeout=30000);
     void setPlaybackQuality(const QString &quality);
@@ -76,6 +77,7 @@ protected:
 
 signals:
     void getVideoUrl(const QString &videoId);
+    void videoUrlErrorSignal(const QString &message);
     void streamUrlDefined(const QString &url);
 
 private slots:

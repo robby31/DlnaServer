@@ -61,6 +61,11 @@ void DlnaYouTubeVideo::setPlaybackQuality(const QString &quality)
     mutex.unlock();
 }
 
+QUrl DlnaYouTubeVideo::url() const
+{
+    return m_url;
+}
+
 void DlnaYouTubeVideo::setUrl(const QUrl &url)
 {
     mutex.lock();
@@ -97,6 +102,8 @@ void DlnaYouTubeVideo::videoUrlError(const QString &message)
     }
 
     mutex.unlock();
+
+    emit videoUrlErrorSignal(message);
 }
 
 void DlnaYouTubeVideo::videoTitle(const QString &title)
