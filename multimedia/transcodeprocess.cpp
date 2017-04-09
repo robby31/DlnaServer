@@ -60,11 +60,11 @@ void TranscodeProcess::dataAvailable()
     }
 
     // manage buffer
-    if (m_process->state() == QProcess::Running)
-    {
-        if (bytesAvailable() > maxBufferSize() && !m_paused)
-            pause();
-    }
+//    if (m_process->state() == QProcess::Running)
+//    {
+//        if (bytesAvailable() > maxBufferSize() && !m_paused)
+//            pause();
+//    }
 
     if (m_opened)
         emit readyRead();
@@ -106,8 +106,8 @@ QByteArray TranscodeProcess::read(qint64 maxlen)
          data = m_process->read(maxlen);
      m_pos += data.size();
 
-    if (m_paused && m_process->state() != QProcess::NotRunning && bytesAvailable() < (maxBufferSize()*0.75))
-        resume();
+//    if (m_paused && m_process->state() != QProcess::NotRunning && bytesAvailable() < (maxBufferSize()*0.75))
+//        resume();
 
     qint64 newProgress = progress();
 
@@ -281,4 +281,9 @@ bool TranscodeProcess::open()
         emit openSignal(QIODevice::ReadOnly);
         return true;
     }
+}
+
+bool TranscodeProcess::isReadyToOpen() const
+{
+    return !m_url.isEmpty();
 }

@@ -39,6 +39,8 @@ public:
 
     void appendLog(const QString &msg);
 
+    virtual bool isReadyToOpen() const = 0;
+
 protected:
     virtual void updateArguments() = 0;
 

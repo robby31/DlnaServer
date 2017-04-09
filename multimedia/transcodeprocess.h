@@ -26,7 +26,7 @@ public:
     QString url() const { return m_url; }
 
     void setSize(const qint64 size);
-    virtual qint64 size() const;
+    virtual qint64 size() const Q_DECL_OVERRIDE;
 
     qint64 lengthInSeconds() const                          { return m_lengthInSeconds; }
     void setLengthInSeconds(const qint64 length)            { m_lengthInSeconds = length; }
@@ -52,19 +52,21 @@ public:
     void setVolumeInfo(const QHash<QString, double> info);
     QHash<QString, double> volumeInfo() const { return m_volumeInfo; }
 
-    virtual bool atEnd() const;
-    virtual qint64 bytesAvailable() const   { return m_process->bytesAvailable(); }
-    virtual qint64 pos() const              { return m_pos; }    // position in bytes of read data
+    virtual bool atEnd() const Q_DECL_OVERRIDE;
+    virtual qint64 bytesAvailable() const Q_DECL_OVERRIDE  { return m_process->bytesAvailable(); }
+    virtual qint64 pos() const  Q_DECL_OVERRIDE            { return m_pos; }    // position in bytes of read data
 
-    virtual bool open();
-    virtual bool isOpen() const { return m_opened; }
+    virtual bool open() Q_DECL_OVERRIDE;
+    virtual bool isOpen() const Q_DECL_OVERRIDE { return m_opened; }
+
+    virtual bool isReadyToOpen() const Q_DECL_OVERRIDE;
 
 protected:
     void setProgram(const QString &program)         { m_process->setProgram(program);        }
     void setArguments(const QStringList &arguments) { m_process->setArguments(arguments);    }
 
 private:
-    virtual QByteArray read(qint64 maxlen);
+    virtual QByteArray read(qint64 maxlen) Q_DECL_OVERRIDE;
 
     qint64 transcodedPos() const { return pos() + bytesAvailable(); }  // position in bytes of transcoded data
     qint64 transcodedProgress() const;

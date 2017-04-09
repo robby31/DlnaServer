@@ -4,6 +4,7 @@ StreamingFile::StreamingFile(QString filename, Logger *log, QObject *parent) :
     Device(log, parent),
     m_file(filename, parent)
 {
+    emit readyToOpen();
 }
 
 qint64 StreamingFile::size() const
@@ -79,5 +80,10 @@ bool StreamingFile::waitForFinished(int msecs)
         QThread::yieldCurrentThread();
     }
 
+    return true;
+}
+
+bool StreamingFile::isReadyToOpen() const
+{
     return true;
 }
