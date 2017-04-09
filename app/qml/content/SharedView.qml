@@ -241,7 +241,7 @@ Page {
 
             MyButton {
                 id: closeButton
-                anchors { right: header.right; rightMargin: 10 }
+                anchors { right: header.right; rightMargin: 10; verticalCenter: parent.verticalCenter }
                 hovered: true
                 sourceComponent: Text { width: contentWidth; height: contentHeight; text: "Close" }
                 onButtonClicked: _app.closeCheckLink()
