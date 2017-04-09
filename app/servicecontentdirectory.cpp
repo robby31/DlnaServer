@@ -198,7 +198,7 @@ void ServiceContentDirectory::reply(HttpRequest *request)
 
                 if (dlna)
                 {
-                    if (request->url().fileName().startsWith("thumbnail0000"))
+                    if (request->url().fileName(QUrl::FullyEncoded).startsWith("thumbnail0000"))
                     {
                         request->replyData(dlna->getByteAlbumArt(), "image/jpeg");
                     }
@@ -336,7 +336,8 @@ void ServiceContentDirectory::reply(HttpRequest *request)
 
                                     connect(request, SIGNAL(servingRendererSignal(QString,QString)), this, SIGNAL(servingRendererSignal(QString,QString)));
 
-                                    streamContent->open();
+                                    if (streamContent->isReadyToOpen())
+                                        streamContent->open();
                                 }
                             }
                         }
