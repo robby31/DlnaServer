@@ -35,6 +35,7 @@ class MyApplication : public Application
 
 public:
     explicit MyApplication(int &argc, char **argv);
+    virtual ~MyApplication() Q_DECL_OVERRIDE;
 
     Q_INVOKABLE void addSharedFolder(const QUrl &folder) { if (folder.isLocalFile()) emit addFolder(folder.toLocalFile()); }
     Q_INVOKABLE void removeFolder(const int &index);
@@ -49,9 +50,6 @@ public:
     void setcheckInProgress(const int &value);
     Q_INVOKABLE void abortCheckLink();
     Q_INVOKABLE void closeCheckLink();
-
-    // identifier of the render (unique)
-    static const QString UUID;
 
     // Server port
     static const int SERVERPORT;

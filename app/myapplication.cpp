@@ -1,7 +1,5 @@
 #include "myapplication.h"
 
-const QString MyApplication::UUID = "cdc79bcf-6985-4baf-b974-e83846efd903";
-
 const int MyApplication::SERVERPORT = 5002;
 
 MyApplication::MyApplication(int &argc, char **argv):
@@ -77,7 +75,7 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_upnp.setNetworkManager(&netManager);
     connect(&m_upnp, SIGNAL(newRootDevice(UpnpRootDevice*)), this, SLOT(newRootDevice(UpnpRootDevice*)));
 
-    UpnpRootDevice *device = m_upnp.addLocalRootDevice(SERVERPORT, UUID, "/description/fetch");
+    UpnpRootDevice *device = m_upnp.addLocalRootDevice(SERVERPORT, m_upnp.generateUuid(), "/description/fetch");
     connect(device, SIGNAL(serverStarted()), this, SLOT(serverStarted()));
     connect(device, SIGNAL(serverError(QString)), this, SLOT(serverError(QString)));
     connect(device, SIGNAL(newRequest(HttpRequest*)), this, SLOT(newRequest(HttpRequest*)));
@@ -88,6 +86,11 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_timerDiscover.start(2000);
 
     qRegisterMetaType<qintptr>("qintptr");
+}
+
+MyApplication::~MyApplication()
+{
+    QThreadPool::globalInstance()->waitForDone();
 }
 
 void MyApplication::serverStarted()
@@ -416,66 +419,77 @@ void MyApplication::requestCompleted(HttpRequest *request)
 {
     qDebug() << "request completed, ready for reply" << request;
 
-    request->setServerName(m_upnp.serverName());
+    UpnpRootDevice *device = qobject_cast<UpnpRootDevice *>(sender());
 
-    if (request->operation() == QNetworkAccessManager::GetOperation && request->url().toString() == "/description/fetch")
+    if (device)
     {
-        QFile inputStream(":/PMS.xml");
-        if (inputStream.open(QFile::ReadOnly | QFile::Text)) {
-            // read file PMS.xml
-            QString data = inputStream.readAll();
-            inputStream.close();
+        request->setServerName(m_upnp.serverName());
 
-            // replace parameter by its value
-            data.replace(QString("[uuid]"), QString("uuid:%1").arg(UUID));
-            data.replace(QString("[host]"), m_upnp.host().toString());
-            data.replace(QString("[port]"), QString("%1").arg(SERVERPORT));
+        if (request->operation() == QNetworkAccessManager::GetOperation && request->url().toString() == "/description/fetch")
+        {
+            QFile inputStream(":/PMS.xml");
+            if (inputStream.open(QFile::ReadOnly | QFile::Text)) {
+                // read file PMS.xml
+                QString data = inputStream.readAll();
+                inputStream.close();
 
-            request->replyData(data.toUtf8());
+                // replace parameter by its value
+                data.replace(QString("[uuid]"), QString("uuid:%1").arg(device->uuid()));
+                data.replace(QString("[host]"), m_upnp.host().toString());
+                data.replace(QString("[port]"), QString("%1").arg(SERVERPORT));
+
+                request->replyData(data.toUtf8());
+            }
+            else {
+                qCritical() << "Unable to read PMS.xml for description/fetch answer.";
+            }
         }
-        else {
-            qCritical() << "Unable to read PMS.xml for description/fetch answer.";
+        else if (request->operation() == QNetworkAccessManager::GetOperation && request->url().toString() == "/UPnP_AV_ConnectionManager_1.0.xml")
+        {
+            request->replyFile(":/UPnP_AV_ConnectionManager_1.0.xml");
         }
-    }
-    else if (request->operation() == QNetworkAccessManager::GetOperation && request->url().toString() == "/UPnP_AV_ConnectionManager_1.0.xml")
-    {
-        request->replyFile(":/UPnP_AV_ConnectionManager_1.0.xml");
-    }
-    else if (request->operation() == QNetworkAccessManager::GetOperation && request->url().toString() == "/UPnP_AV_ContentDirectory_1.0.xml")
-    {
-        request->replyFile(":/UPnP_AV_ContentDirectory_1.0.xml");
-    }
-    else if (request->operation() == QNetworkAccessManager::GetOperation && request->url().toString().startsWith("/images/"))
-    {
-        request->replyFile(":" + request->url().toString());
-    }
-    else if (request->url().toString().startsWith("/get/"))
-    {
-        m_contentDirectory->reply(request);
-    }
-    else if (request->url().toString() == "/upnp/control/content_directory")
-    {
-        m_contentDirectory->reply(request);
-    }
-    else if (request->url().toString() == "/upnp/event/content_directory")
-    {
-        m_contentDirectory->reply(request);
-    }
-    else if (request->url().toString() == "/upnp/control/connection_manager")
-    {
-        m_connectionManager->reply(request);
-    }
-    else if (request->url().toString() == "/upnp/event/connection_manager")
-    {
-        m_connectionManager->reply(request);
+        else if (request->operation() == QNetworkAccessManager::GetOperation && request->url().toString() == "/UPnP_AV_ContentDirectory_1.0.xml")
+        {
+            request->replyFile(":/UPnP_AV_ContentDirectory_1.0.xml");
+        }
+        else if (request->operation() == QNetworkAccessManager::GetOperation && request->url().toString().startsWith("/images/"))
+        {
+            request->replyFile(":" + request->url().toString());
+        }
+        else if (request->url().toString().startsWith("/get/"))
+        {
+            m_contentDirectory->reply(request);
+        }
+        else if (request->url().toString() == "/upnp/control/content_directory")
+        {
+            m_contentDirectory->reply(request);
+        }
+        else if (request->url().toString() == "/upnp/event/content_directory")
+        {
+            m_contentDirectory->reply(request);
+        }
+        else if (request->url().toString() == "/upnp/control/connection_manager")
+        {
+            m_connectionManager->reply(request);
+        }
+        else if (request->url().toString() == "/upnp/event/connection_manager")
+        {
+            m_connectionManager->reply(request);
+        }
+        else
+        {
+            qCritical() << "unknwon request to reply" << request->operationString() << request->url().toString();
+        }
     }
     else
     {
-        qCritical() << "unknwon request to reply" << request->operationString() << request->url().toString();
+        qCritical() << "invalid device" << device << sender();
     }
 }
 
 void MyApplication::servingMediaFinished(QString host, QString filename, int status)
 {
+    Q_UNUSED(filename)
+    Q_UNUSED(status)
     m_renderersModel->serving(host, QString());
 }
