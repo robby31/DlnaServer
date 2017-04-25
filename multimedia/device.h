@@ -2,7 +2,7 @@
 #define DEVICE_H
 
 #include "logobject.h"
-#include <httprange.h>
+#include <Http/httprange.h>
 
 class Device : public LogObject
 {

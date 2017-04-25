@@ -2,12 +2,10 @@ INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
 HEADERS += \
-    $$PWD/requestlistmodel.h \
-    ../network/httprange.h
+    $$PWD/requestlistmodel.h
 
 SOURCES += \
-    $$PWD/requestlistmodel.cpp \
-    ../network/httprange.cpp
+    $$PWD/requestlistmodel.cpp
 
 include (../dlna/dlna.pri)
 include (../../Upnp/UpnpLibrary/UpnpLibrary.prf)

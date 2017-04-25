@@ -1,7 +1,6 @@
 #include <iostream>
 #include <QCoreApplication>
 
-#include "tst_httprange.h"
 #include "tst_dlnarootfolder.h"
 #include "tst_dlnafolder.h"
 #include "tst_dlnamusictrack.h"
@@ -23,9 +22,6 @@ int main(int argc, char *argv[])
     app.setAttribute(Qt::AA_Use96Dpi, true);
 
     QStringList testsSummary;
-
-    tst_httprange test1;
-    executeTest(&test1, &testsSummary, argc, argv);
 
     tst_dlnarootfolder test2;
     executeTest(&test2, &testsSummary, argc, argv);
