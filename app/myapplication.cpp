@@ -10,7 +10,7 @@ MyApplication::MyApplication(int &argc, char **argv):
     log(this),
     netManager(this),
     m_timerDiscover(3, 600000, this),
-    m_upnp(this),
+    m_upnp(this, 5050),
     m_requestsModel(Q_NULLPTR),
     m_renderersModel(Q_NULLPTR),
     m_debugModel(Q_NULLPTR),
