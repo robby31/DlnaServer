@@ -2,14 +2,14 @@
 <root xmlns="urn:schemas-upnp-org:device-1-0" configId="0">
 	<specVersion>
 		<major>1</major>
-                <minor>1</minor>
+                <minor>0</minor>
 	</specVersion>
 	<device>
 		<deviceType>urn:schemas-upnp-org:device:MediaServer:1</deviceType>
                 <friendlyName>QT Media Server</friendlyName>
                 <manufacturer>G HIMBERT</manufacturer>
                 <manufacturerURL></manufacturerURL>
-                <modelDescription>UPnP/AV 1.1 Compliant Media Server</modelDescription>
+                <modelDescription>UPnP/AV 1.0 Compliant Media Server</modelDescription>
                 <modelName>QMS</modelName>
 		<modelNumber>01</modelNumber>
                 <modelURL></modelURL>
