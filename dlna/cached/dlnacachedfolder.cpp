@@ -39,6 +39,8 @@ void DlnaCachedFolder::refreshContent()
                 nbChildren = limitSizeMax;
         }
     }
+
+    emit dlnaContentUpdated();
 }
 
 DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {

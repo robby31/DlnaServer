@@ -60,15 +60,6 @@ MyApplication::MyApplication(int &argc, char **argv):
     item = new DebugItem("DlnaYoutubeVideo", m_debugModel);
     m_debugModel->appendRow(item);
 
-    item = new DebugItem("HttpClient", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("Request", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("Reply", m_debugModel);
-    m_debugModel->appendRow(item);
-
     item = new DebugItem("Device", m_debugModel);
     m_debugModel->appendRow(item);
 
@@ -129,7 +120,6 @@ void MyApplication::serverStarted()
         connect(m_contentDirectory, SIGNAL(servingRendererSignal(QString,QString)), m_renderersModel, SLOT(serving(QString,QString)));
         connect(m_contentDirectory, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SLOT(servingMediaFinished(QString,QString,int)));
 
-        m_contentDirectory->setBackendThread(backendThread());
         m_contentDirectory->setNetworkAccessManager(&netManager);
     }
     else

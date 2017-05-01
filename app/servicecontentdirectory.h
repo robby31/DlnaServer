@@ -15,11 +15,12 @@ class ServiceContentDirectory : public QObject
 public:
     explicit ServiceContentDirectory(Logger* log, QString host, int port, QObject *parent = 0);
 
-    void setBackendThread(QThread *thread);
-
     void setNetworkAccessManager(QNetworkAccessManager *nam);
 
     void reply(HttpRequest *request);
+
+private:
+    DlnaResource *getDlnaResource(const QString &deviceUuid, const QString &objId);
 
 signals:
     void addFolderSignal(QString folder);
@@ -37,9 +38,6 @@ signals:
     void updateMediaFromId(const int &id, const QHash<QString, QVariant> &data);
     void incrementCounterPlayedSignal(const QString &filename);
 
-    void getDLNAResourcesSignal(QObject *sender, QString objectId, bool returnChildren, int start, int count, QString searchStr);
-    void dlnaResources(QObject* sender, QList<DlnaResource*>);
-
     void servingRendererSignal(QString ip, const QString &mediaName);
 
     // emit signal when serving is finished
@@ -55,8 +53,6 @@ private slots:
 
     void reloadLibrary();
 
-    void requestDLNAResourcesSignal(QString objectId, bool returnChildren, int start, int count, QString searchStr);
-
     void readTimeSeekRange(const QString &data, qint64 *start, qint64*end);
 
     void streamReadyToOpen();
@@ -65,6 +61,8 @@ private slots:
 
     void servingFinished(QString host, QString filename, int status);
 
+    void dlnaContentUpdated();
+
 
 private:
     DlnaCachedRootFolder rootFolder;
@@ -72,7 +70,7 @@ private:
     // root folder containing DLNA nodes
     QStringList listFolderAdded;
 
-    QThread *backend;
+    QHash<QString, DlnaResource*> m_dlnaresources;
 };
 
 #endif // SERVICECONTENTDIRECTORY_H

@@ -2,8 +2,7 @@
 
 ServiceContentDirectory::ServiceContentDirectory(Logger *log, QString host, int port, QObject *parent):
     QObject(parent),
-    rootFolder(log, host, port),
-    backend(Q_NULLPTR)
+    rootFolder(log, host, port)
 {
     connect(this, SIGNAL(folderAdded(QString)), this, SLOT(folderAddedSlot(QString)));
 
@@ -20,15 +19,6 @@ ServiceContentDirectory::ServiceContentDirectory(Logger *log, QString host, int 
     connect(this, SIGNAL(incrementCounterPlayedSignal(QString)), &rootFolder, SLOT(incrementCounterPlayed(QString)));
     connect(this, SIGNAL(updateMediaData(QString,QHash<QString,QVariant>)), &rootFolder, SLOT(updateLibrary(QString,QHash<QString,QVariant>)));
     connect(this, SIGNAL(updateMediaFromId(int,QHash<QString,QVariant>)), &rootFolder, SLOT(updateLibraryFromId(int,QHash<QString,QVariant>)));
-
-    connect(this, SIGNAL(getDLNAResourcesSignal(QObject*, QString,bool,int,int,QString)), &rootFolder, SLOT(requestDlnaResources(QObject*, QString,bool,int,int,QString)));
-    connect(&rootFolder, SIGNAL(dlnaResources(QObject*,QList<DlnaResource*>)), this, SIGNAL(dlnaResources(QObject*,QList<DlnaResource*>)));
-
-}
-
-void ServiceContentDirectory::setBackendThread(QThread *thread)
-{
-    backend = thread;
 }
 
 void ServiceContentDirectory::setNetworkAccessManager(QNetworkAccessManager *nam)
@@ -52,11 +42,6 @@ void ServiceContentDirectory::folderAddedSlot(QString folder)
 void ServiceContentDirectory::reloadLibrary()
 {
     emit reloadLibrarySignal(listFolderAdded);
-}
-
-void ServiceContentDirectory::requestDLNAResourcesSignal(QString objectId, bool returnChildren, int start, int count, QString searchStr)
-{
-    emit getDLNAResourcesSignal(sender(), objectId, returnChildren, start, count, searchStr);
 }
 
 void ServiceContentDirectory::reply(HttpRequest *request)
@@ -189,169 +174,142 @@ void ServiceContentDirectory::reply(HttpRequest *request)
         {
             QString objectID = l_path.at(l_path.size()-2);
 
-            QObject context;
-            QList<DlnaResource*> l_dlna = rootFolder.getDLNAResources(objectID, false, 0, 0, "", &context);
+            DlnaItem *dlna = qobject_cast<DlnaItem*>(getDlnaResource(request->deviceUuid(), objectID));
 
-            if (l_dlna.size() == 1)
+            if (dlna)
             {
-                DlnaItem *dlna = qobject_cast<DlnaItem*>(l_dlna.at(0));
-
-                if (dlna)
+                if (request->url().fileName(QUrl::FullyEncoded).startsWith("thumbnail0000"))
                 {
-                    if (request->url().fileName(QUrl::FullyEncoded).startsWith("thumbnail0000"))
-                    {
-                        request->replyData(dlna->getByteAlbumArt(), "image/jpeg");
-                    }
-                    else
-                    {
-                        HttpRange *range = 0;
-                        if (!request->header("RANGE").isEmpty())
-                        {
-                            range = new HttpRange(QString("RANGE: %1").arg(request->header("RANGE")));
-                            if (range->isNull())
-                            {
-                                // invalid range, ignore it
-                                delete range;
-                                range = 0;
-                                qCritical() << "Invalid range in request: " + request->header("RANGE");
-                            }
-                            else
-                            {
-                                // update range with size of dlna object
-                                range->setSize(dlna->size());
-                            }
-                        }
-
-                        qint64 timeSeekRangeStart = -1;
-                        qint64 timeSeekRangeEnd = -1;
-                        if (!request->header("TIMESEEKRANGE.DLNA.ORG").isEmpty())
-                        {
-                            readTimeSeekRange(QString("TIMESEEKRANGE.DLNA.ORG: %1").arg(request->header("TIMESEEKRANGE.DLNA.ORG")), &timeSeekRangeStart, &timeSeekRangeEnd);
-                        }
-
-                        QStringList m_header;
-                        m_header << QString("Content-Type: %1").arg(dlna->mimeType());
-
-                        if (!request->header("GETCONTENTFEATURES.DLNA.ORG").isEmpty())
-                            m_header << QString("contentFeatures.dlna.org: %1").arg(dlna->getDlnaContentFeatures());
-
-                        if (!request->header("transferMode.dlna.org").isEmpty())
-                            m_header << QString("transferMode.dlna.org: %1").arg(request->header("transferMode.dlna.org"));
-
-                        if (!request->header("GETMEDIAINFO.SEC").isEmpty())
-                            m_header << QString("MediaInfo.sec: SEC_Duration=%1;").arg(dlna->getLengthInMilliSeconds());
-
-                        if (dlna->getdlnaOrgOpFlags().at(1) == '1')
-                            m_header << QString("Accept-Ranges: bytes");
-
-                        if (request->version() != "HTTP/1.0")
-                            m_header << QString("Connection: keep-alive");
-
-                        m_header << QString("SERVER: %1").arg(request->serverName());
-
-                        m_header << QString("Content-Length: %1").arg(dlna->size());
-
-                        if (range)
-                            m_header << QString("Content-Range: bytes %1-%2/%3").arg(range->getStartByte()).arg(range->getEndByte()).arg(dlna->size());
-
-                        if (timeSeekRangeStart >= 0 && dlna->getLengthInMilliSeconds() > 0)
-                        {
-                            QTime start_time(0, 0, 0);
-                            start_time = start_time.addSecs(timeSeekRangeStart);
-
-                            QTime end_time(0, 0, 0);
-                            if (timeSeekRangeEnd != -1)
-                            {
-                                end_time = end_time.addSecs(timeSeekRangeEnd);
-                            } else {
-                                end_time = end_time.addMSecs(dlna->getLengthInMilliSeconds());
-                            }
-
-                            QTime length_time(0, 0, 0);
-                            length_time = length_time.addMSecs(dlna->getLengthInMilliSeconds());
-
-                            m_header << QString("TimeSeekRange.dlna.org: npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z")).arg(end_time.toString("hh:mm:ss,z")).arg(length_time.toString("hh:mm:ss,z"));
-                            m_header << QString("X-Seek-Range: npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z")).arg(end_time.toString("hh:mm:ss,z")).arg(length_time.toString("hh:mm:ss,z"));
-                            m_header << QString("X-AvailableSeekRange: 1 npt=%1-%2").arg(0).arg(dlna->getLengthInSeconds());
-                        }
-
-                        if (request->sendHeader(m_header))
-                        {
-                            if (request->operation() == QNetworkAccessManager::GetOperation)
-                            {
-                                request->logMessage(QString("%1 bytes to send in %2.").arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")));
-
-                                QString mediaFilename = dlna->getSystemName();
-                                request->setRequestedResource(mediaFilename);
-                                request->setRequestedDisplayName(dlna->getDisplayName());
-                                servingMedia(mediaFilename, 0);
-
-                                // recover resume time
-                                qint64 resume = dlna->getResumeTime();
-                                if (resume>0) {
-                                    timeSeekRangeStart = resume/1000;
-                                    request->setClockSending(timeSeekRangeStart*1000);
-                                }
-
-                                Device *streamContent = dlna->getStream(range, timeSeekRangeStart, timeSeekRangeEnd);
-
-                                QTcpSocket *socket = request->tcpSocket();
-
-                                if (!streamContent or !socket)
-                                {
-                                    // No inputStream indicates that transcoding / remuxing probably crashed.
-                                    QString message = QString("There is no inputstream to return for %1.").arg(dlna->getDisplayName());
-                                    request->logMessage(message);
-                                    request->setError(message);
-                                    request->close();
-
-                                    if (streamContent)
-                                        streamContent->deleteLater();
-                                }
-                                else
-                                {
-                                    streamContent->setParent(socket);
-                                    connect(socket, SIGNAL(disconnected()), streamContent, SLOT(deleteLater()));
-
-                                    if (dlna->bitrate()>0)
-                                        streamContent->setBitrate(dlna->bitrate());
-
-                                    request->setMaxBufferSize(streamContent->maxBufferSize());
-
-                                    connect(streamContent, SIGNAL(readyToOpen()), this, SLOT(streamReadyToOpen()));
-                                    connect(streamContent, SIGNAL(openedSignal()), request, SLOT(streamOpened()));
-                                    connect(streamContent, SIGNAL(openedSignal()), streamContent, SLOT(startRequestData()));
-                                    connect(streamContent, SIGNAL(status(QString)), request, SLOT(streamingStatus(QString)));
-                                    connect(streamContent, SIGNAL(LogMessage(QString)), request, SLOT(logMessage(QString)));
-                                    connect(streamContent, SIGNAL(errorRaised(QString)), request, SLOT(streamError(QString)));
-                                    connect(streamContent, SIGNAL(endReached()), request, SLOT(streamingCompleted()));
-
-                                    connect(request, SIGNAL(requestStreamingData(qint64)), streamContent, SLOT(requestData(qint64)));
-                                    connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), request, SLOT(sendPartialData(QByteArray)));
-
-                                    connect(request, SIGNAL(servingSignal(QString,int)), this, SLOT(servingMedia(QString,int)));
-
-                                    connect(request, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SIGNAL(servingFinishedSignal(QString,QString,int)));
-                                    connect(request, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SLOT(servingFinished(QString,QString,int)));
-
-                                    connect(request, SIGNAL(servingRendererSignal(QString,QString)), this, SIGNAL(servingRendererSignal(QString,QString)));
-
-                                    if (streamContent->isReadyToOpen())
-                                        streamContent->open();
-                                }
-                            }
-                        }
-                    }
+                    request->replyData(dlna->getByteAlbumArt(), "image/jpeg");
                 }
                 else
                 {
-                    request->setError(QString("invalid DLNA resource %1, %2 results found.").arg(objectID).arg(l_dlna.size()));
-                    request->close();
+                    HttpRange *range = request->range(dlna->size());
+
+                    qint64 timeSeekRangeStart = -1;
+                    qint64 timeSeekRangeEnd = -1;
+                    if (!request->header("TIMESEEKRANGE.DLNA.ORG").isEmpty())
+                    {
+                        readTimeSeekRange(QString("TIMESEEKRANGE.DLNA.ORG: %1").arg(request->header("TIMESEEKRANGE.DLNA.ORG")), &timeSeekRangeStart, &timeSeekRangeEnd);
+                    }
+
+                    QStringList m_header;
+                    m_header << QString("Content-Type: %1").arg(dlna->mimeType());
+
+                    if (!request->header("GETCONTENTFEATURES.DLNA.ORG").isEmpty())
+                        m_header << QString("contentFeatures.dlna.org: %1").arg(dlna->getDlnaContentFeatures());
+
+                    if (!request->header("transferMode.dlna.org").isEmpty())
+                        m_header << QString("transferMode.dlna.org: %1").arg(request->header("transferMode.dlna.org"));
+
+                    if (!request->header("GETMEDIAINFO.SEC").isEmpty())
+                        m_header << QString("MediaInfo.sec: SEC_Duration=%1;").arg(dlna->getLengthInMilliSeconds());
+
+                    if (dlna->getdlnaOrgOpFlags().at(1) == '1')
+                        m_header << QString("Accept-Ranges: bytes");
+
+                    if (request->version() != "HTTP/1.0")
+                        m_header << QString("Connection: keep-alive");
+
+                    m_header << QString("SERVER: %1").arg(request->serverName());
+
+                    m_header << QString("Content-Length: %1").arg(dlna->size());
+
+                    if (range)
+                        m_header << QString("Content-Range: bytes %1-%2/%3").arg(range->getStartByte()).arg(range->getEndByte()).arg(dlna->size());
+
+                    if (timeSeekRangeStart >= 0 && dlna->getLengthInMilliSeconds() > 0)
+                    {
+                        QTime start_time(0, 0, 0);
+                        start_time = start_time.addSecs(timeSeekRangeStart);
+
+                        QTime end_time(0, 0, 0);
+                        if (timeSeekRangeEnd != -1)
+                        {
+                            end_time = end_time.addSecs(timeSeekRangeEnd);
+                        } else {
+                            end_time = end_time.addMSecs(dlna->getLengthInMilliSeconds());
+                        }
+
+                        QTime length_time(0, 0, 0);
+                        length_time = length_time.addMSecs(dlna->getLengthInMilliSeconds());
+
+                        m_header << QString("TimeSeekRange.dlna.org: npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z")).arg(end_time.toString("hh:mm:ss,z")).arg(length_time.toString("hh:mm:ss,z"));
+                        m_header << QString("X-Seek-Range: npt=%1-%2/%3").arg(start_time.toString("hh:mm:ss,z")).arg(end_time.toString("hh:mm:ss,z")).arg(length_time.toString("hh:mm:ss,z"));
+                        m_header << QString("X-AvailableSeekRange: 1 npt=%1-%2").arg(0).arg(dlna->getLengthInSeconds());
+                    }
+
+                    if (request->sendHeader(m_header))
+                    {
+                        if (request->operation() == QNetworkAccessManager::GetOperation)
+                        {
+                            request->logMessage(QString("%1 bytes to send in %2.").arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")));
+
+                            QString mediaFilename = dlna->getSystemName();
+                            request->setRequestedResource(mediaFilename);
+                            request->setRequestedDisplayName(dlna->getDisplayName());
+                            servingMedia(mediaFilename, 0);
+
+                            // recover resume time
+                            qint64 resume = dlna->getResumeTime();
+                            if (resume>0) {
+                                timeSeekRangeStart = resume/1000;
+                                request->setClockSending(timeSeekRangeStart*1000);
+                            }
+
+                            Device *streamContent = dlna->getStream(range, timeSeekRangeStart, timeSeekRangeEnd);
+
+                            QTcpSocket *socket = request->tcpSocket();
+
+                            if (!streamContent or !socket)
+                            {
+                                // No inputStream indicates that transcoding / remuxing probably crashed.
+                                QString message = QString("There is no inputstream to return for %1.").arg(dlna->getDisplayName());
+                                request->logMessage(message);
+                                request->setError(message);
+                                request->close();
+
+                                if (streamContent)
+                                    streamContent->deleteLater();
+                            }
+                            else
+                            {
+                                streamContent->setParent(socket);
+                                connect(socket, SIGNAL(disconnected()), streamContent, SLOT(deleteLater()));
+
+                                if (dlna->bitrate()>0)
+                                    streamContent->setBitrate(dlna->bitrate());
+
+                                request->setMaxBufferSize(streamContent->maxBufferSize());
+
+                                connect(streamContent, SIGNAL(readyToOpen()), this, SLOT(streamReadyToOpen()));
+                                connect(streamContent, SIGNAL(openedSignal()), request, SLOT(streamOpened()));
+                                connect(streamContent, SIGNAL(openedSignal()), streamContent, SLOT(startRequestData()));
+                                connect(streamContent, SIGNAL(status(QString)), request, SLOT(streamingStatus(QString)));
+                                connect(streamContent, SIGNAL(LogMessage(QString)), request, SLOT(logMessage(QString)));
+                                connect(streamContent, SIGNAL(errorRaised(QString)), request, SLOT(streamError(QString)));
+                                connect(streamContent, SIGNAL(endReached()), request, SLOT(streamingCompleted()));
+
+                                connect(request, SIGNAL(requestStreamingData(qint64)), streamContent, SLOT(requestData(qint64)));
+                                connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), request, SLOT(sendPartialData(QByteArray)));
+
+                                connect(request, SIGNAL(servingSignal(QString,int)), this, SLOT(servingMedia(QString,int)));
+
+                                connect(request, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SIGNAL(servingFinishedSignal(QString,QString,int)));
+                                connect(request, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SLOT(servingFinished(QString,QString,int)));
+
+                                connect(request, SIGNAL(servingRendererSignal(QString,QString)), this, SIGNAL(servingRendererSignal(QString,QString)));
+
+                                if (streamContent->isReadyToOpen())
+                                    streamContent->open();
+                            }
+                        }
+                    }
                 }
             }
             else
             {
-                request->setError(QString("DLNA resource not found %1, %2 results found.").arg(objectID).arg(l_dlna.size()));
+                request->setError(QString("invalid DLNA resource %1.").arg(objectID));
                 request->close();
             }
         }
@@ -403,4 +361,57 @@ void ServiceContentDirectory::servingMedia(QString filename, int playedDurationI
     if (playedDurationInMs>0)
         data.insert("progress_played", playedDurationInMs);
     emit updateMediaData(filename, data);
+}
+
+DlnaResource *ServiceContentDirectory::getDlnaResource(const QString &deviceUuid, const QString &objId)
+{
+    QString dlnaresourceID = QString("%1_%2").arg(deviceUuid).arg(objId);
+
+    if (m_dlnaresources.contains(dlnaresourceID))
+    {
+        return m_dlnaresources[dlnaresourceID];
+    }
+    else
+    {
+        qDebug() << "request" << objId << "from" << deviceUuid;
+
+        QObject context;
+        QList<DlnaResource*> l_dlna = rootFolder.getDLNAResources(objId, false, 0, 0, "", &context);
+        if (l_dlna.size() == 1)
+        {
+            // store dlna object in cache
+            m_dlnaresources[dlnaresourceID] = l_dlna.at(0);
+            l_dlna.at(0)->setParent(this);
+            if (l_dlna.at(0)->getDlnaParent())
+                connect(l_dlna.at(0)->getDlnaParent(), SIGNAL(dlnaContentUpdated()), this, SLOT(dlnaContentUpdated()), Qt::UniqueConnection);
+            return m_dlnaresources[dlnaresourceID];
+        }
+    }
+
+    return 0;
+}
+
+void ServiceContentDirectory::dlnaContentUpdated()
+{
+    DlnaResource *dlna = qobject_cast<DlnaResource*>(sender());
+    if (dlna)
+    {
+        // remove from cache chid object of dlna resource updated
+        qDebug() << "dlna content updated" << dlna->getResourceId();
+        QString id = QString("_%1").arg(dlna->getResourceId());
+        foreach (const QString &param, m_dlnaresources.keys())
+        {
+            if (param.contains(id))
+            {
+                qDebug() << "remove child" << param << "from cache";
+                DlnaResource *resource = m_dlnaresources[param];
+                m_dlnaresources.remove(param);
+                resource->deleteLater();
+            }
+        }
+    }
+    else
+    {
+        qCritical() << "invalid dlna object" << sender();
+    }
 }
