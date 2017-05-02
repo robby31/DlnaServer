@@ -12,7 +12,7 @@ DecryptYoutubeSignature::DecryptYoutubeSignature(QNetworkAccessManager *nam, QSt
     m_playerId(),
     m_playerType()
 {
-    QRegularExpression id_m(".*?-([a-zA-Z0-9_-]+)(?:/watch_as3|/html5player|/base)?\\.([a-z]+)$");
+    QRegularExpression id_m(".*?-([a-zA-Z0-9_-]+).*(?:/watch_as3|/html5player|/base)?\\.([a-z]+)$");
     QRegularExpressionMatch match = id_m.match(urlForDecoding.toString());
     if (match.hasMatch())
     {
