@@ -85,6 +85,7 @@ void ServiceConnectionManager::reply(HttpRequest *request)
     }
     else
     {
-        qCritical() << this << "unknown request to reply" << request->operationString() << request->url();
+        request->setError(QString("unknown request to reply : %1 %2").arg(request->operationString()).arg(request->url().toString()));
+        request->close();
     }
 }
