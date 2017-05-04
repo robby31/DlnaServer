@@ -36,6 +36,7 @@ protected:
 signals:
 
 public slots:
+    virtual void close() Q_DECL_OVERRIDE;
 
 private:
     QFile m_file;

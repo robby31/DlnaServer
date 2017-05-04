@@ -56,10 +56,12 @@ signals:
     void endReached();
     void readyRead();
     void readyToOpen();
+    void closed();
 
 public slots:
     void startRequestData();
     void requestData(qint64 maxlen);
+    virtual void close() = 0;
 
 private slots:
     void deviceOpened();

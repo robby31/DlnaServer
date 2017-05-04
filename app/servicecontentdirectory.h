@@ -20,7 +20,7 @@ public:
     void reply(HttpRequest *request);
 
 private:
-    DlnaResource *getDlnaResource(const QString &deviceUuid, const QString &objId);
+    DlnaResource *getDlnaResource(const QString &hostaddress, const QString &objId);
 
 signals:
     void addFolderSignal(QString folder);
@@ -62,6 +62,8 @@ private slots:
     void servingFinished(QString host, QString filename, int status);
 
     void dlnaContentUpdated();
+
+    void mediaRendererDestroyed(const QString &hostaddress);
 
 
 private:

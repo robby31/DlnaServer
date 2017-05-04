@@ -87,3 +87,9 @@ bool StreamingFile::isReadyToOpen() const
 {
     return true;
 }
+
+void StreamingFile::close()
+{
+    m_file.close();
+    emit closed();
+}

@@ -36,9 +36,20 @@ TranscodeProcess::~TranscodeProcess()
     QString msg = QString("DESTROY TranscodeProcess, bytes available:%1, state:%2, paused?%3, durationBuffer:%4, maxBufferSize:%5").arg(bytesAvailable()).arg(m_process->state()).arg(m_paused).arg(durationBuffer()).arg(maxBufferSize());
     logDebug(msg);
 
+    close();
+    m_process->deleteLater();
+}
+
+void TranscodeProcess::close()
+{
     killProcess();
     m_process->close();
-    m_process->deleteLater();
+    m_opened = false;
+    m_pos = 0;
+    transcodeClock.invalidate();
+    killTranscodeProcess = false;
+    m_paused = false;
+    emit closed();
 }
 
 void TranscodeProcess::_open(const QIODevice::OpenMode &open)
@@ -53,7 +64,7 @@ void TranscodeProcess::dataAvailable()
     if (isLogLevel(DEBG))
         appendLog(QString("%1: received %2 bytes transcoding data."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
 
-    if (!m_opened && bytesAvailable() > maxBufferSize()*0.2)
+    if (!m_opened && bytesAvailable() > maxBufferSize()*0.05)
     {
         m_opened = true;
         emit openedSignal();

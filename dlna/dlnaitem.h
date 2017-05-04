@@ -85,6 +85,8 @@ public:
 
     void setUserAgent(QString userAgent) { m_userAgent = userAgent; emit userAgentChanged(); }
 
+    void setStream(Device *stream);
+
 protected:
     // Returns the process for transcoding
     virtual TranscodeProcess* getTranscodeProcess() = 0;
@@ -94,6 +96,9 @@ private:
 
 signals:
     void userAgentChanged();
+
+private slots:
+    void streamDestroyed(QObject *obj);
 
 protected:
     QString host;
@@ -138,6 +143,8 @@ protected:
     QString m_userAgent;
 
     double overheadFactor;
+
+    Device *m_stream;
 };
 
 #endif // DLNAITEM_H

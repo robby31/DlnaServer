@@ -76,7 +76,8 @@ signals:
 
 public slots:
     void setUrl(const QString &url);
-    
+    virtual void close() Q_DECL_OVERRIDE;
+
 private slots:
     void _open(const QIODevice::OpenMode &open);
     void processStarted();

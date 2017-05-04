@@ -8,7 +8,8 @@ DlnaItem::DlnaItem(Logger *log, QString host, int port, QObject *parent) :
     dlnaOrgOpFlags("01"),      // seek by byte (exclusive)
     dlnaOrgPN(),
     m_userAgent(),
-    overheadFactor(1.0)
+    overheadFactor(1.0),
+    m_stream(Q_NULLPTR)
 {
 }
 
@@ -57,6 +58,16 @@ void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
 
 Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 timeseek_end)
 {
+    if (m_stream)
+    {
+        qDebug() << "stream in cache" << m_stream << m_stream->isOpen();
+        if (!m_stream->isOpen())
+        {
+            m_stream->setTimeSeek(timeseek_start, timeseek_end);
+            return m_stream;
+        }
+    }
+
     if (toTranscode())
     {
         // DLNA node shall be transcoded
@@ -71,6 +82,8 @@ Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 time
             process->setSize(size());
         }
 
+        setStream(process);
+
         return process;
     }
     else
@@ -79,6 +92,9 @@ Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 time
         if (range)
             tmp->setRange(range);
         tmp->setTimeSeek(timeseek_start, timeseek_end);
+
+        setStream(tmp);
+
         return tmp;
     }
 }
@@ -116,4 +132,24 @@ qint64 DlnaItem::size() const {
     } else {
         return sourceSize();
     }
+}
+
+void DlnaItem::setStream(Device *stream)
+{
+    if (stream)
+    {
+        connect(stream, SIGNAL(destroyed(QObject*)), this, SLOT(streamDestroyed(QObject*)));
+        connect(this, SIGNAL(destroyed(QObject*)), stream, SLOT(deleteLater()));
+        m_stream = stream;
+    }
+    else
+    {
+        qCritical() << "invalid stream" << stream;
+    }
+}
+
+void DlnaItem::streamDestroyed(QObject *obj)
+{
+    qWarning() << "stream destroyed" << obj;
+    m_stream = Q_NULLPTR;
 }

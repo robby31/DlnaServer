@@ -16,7 +16,7 @@ public:
     MediaRenderer *rendererFromIp(const QString &ip);
 
 signals:
-
+    void mediaRendererDestroyed(const QString &hostaddress);
 
 public slots:
     void addMediaRenderer(UpnpRootDevice *device);

@@ -106,6 +106,8 @@ void MyApplication::serverStarted()
         m_contentDirectory = new ServiceContentDirectory(&log, device->host().toString(), device->port(), this);
         connect(m_contentDirectory, SIGNAL(destroyed(QObject*)), this, SLOT(contentDirectoryDestroyed(QObject*)));
 
+        connect(m_renderersModel, SIGNAL(mediaRendererDestroyed(QString)), m_contentDirectory, SLOT(mediaRendererDestroyed(QString)));
+
         connect(this, SIGNAL(addFolder(QString)), m_contentDirectory, SLOT(_addFolder(QString)));
         connect(m_contentDirectory, SIGNAL(folderAdded(QString)), this, SLOT(folderAdded(QString)));
         connect(m_contentDirectory, SIGNAL(error_addFolder(QString)), this, SLOT(folderNotAdded(QString)));

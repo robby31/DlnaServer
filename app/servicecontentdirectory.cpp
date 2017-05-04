@@ -174,7 +174,7 @@ void ServiceContentDirectory::reply(HttpRequest *request)
         {
             QString objectID = l_path.at(l_path.size()-2);
 
-            DlnaItem *dlna = qobject_cast<DlnaItem*>(getDlnaResource(request->deviceUuid(), objectID));
+            DlnaItem *dlna = qobject_cast<DlnaItem*>(getDlnaResource(request->peerAddress().toString(), objectID));
 
             if (dlna)
             {
@@ -274,21 +274,21 @@ void ServiceContentDirectory::reply(HttpRequest *request)
                             }
                             else
                             {
-                                streamContent->setParent(socket);
-                                connect(socket, SIGNAL(disconnected()), streamContent, SLOT(deleteLater()));
+                                connect(socket, SIGNAL(disconnected()), streamContent, SLOT(close()));
 
                                 if (dlna->bitrate()>0)
                                     streamContent->setBitrate(dlna->bitrate());
 
                                 request->setMaxBufferSize(streamContent->maxBufferSize());
 
-                                connect(streamContent, SIGNAL(readyToOpen()), this, SLOT(streamReadyToOpen()));
+                                connect(streamContent, SIGNAL(readyToOpen()), this, SLOT(streamReadyToOpen()), Qt::UniqueConnection);
                                 connect(streamContent, SIGNAL(openedSignal()), request, SLOT(streamOpened()));
-                                connect(streamContent, SIGNAL(openedSignal()), streamContent, SLOT(startRequestData()));
+                                connect(streamContent, SIGNAL(openedSignal()), streamContent, SLOT(startRequestData()), Qt::UniqueConnection);
                                 connect(streamContent, SIGNAL(status(QString)), request, SLOT(streamingStatus(QString)));
                                 connect(streamContent, SIGNAL(LogMessage(QString)), request, SLOT(logMessage(QString)));
                                 connect(streamContent, SIGNAL(errorRaised(QString)), request, SLOT(streamError(QString)));
                                 connect(streamContent, SIGNAL(endReached()), request, SLOT(streamingCompleted()));
+                                connect(streamContent, SIGNAL(closed()), request, SLOT(streamClosed()));
 
                                 connect(request, SIGNAL(requestStreamingData(qint64)), streamContent, SLOT(requestData(qint64)));
                                 connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), request, SLOT(sendPartialData(QByteArray)));
@@ -363,9 +363,9 @@ void ServiceContentDirectory::servingMedia(QString filename, int playedDurationI
     emit updateMediaData(filename, data);
 }
 
-DlnaResource *ServiceContentDirectory::getDlnaResource(const QString &deviceUuid, const QString &objId)
+DlnaResource *ServiceContentDirectory::getDlnaResource(const QString &hostaddress, const QString &objId)
 {
-    QString dlnaresourceID = QString("%1_%2").arg(deviceUuid).arg(objId);
+    QString dlnaresourceID = QString("%1_%2").arg(hostaddress).arg(objId);
 
     if (m_dlnaresources.contains(dlnaresourceID))
     {
@@ -373,7 +373,7 @@ DlnaResource *ServiceContentDirectory::getDlnaResource(const QString &deviceUuid
     }
     else
     {
-        qDebug() << "request" << objId << "from" << deviceUuid;
+        qDebug() << "request" << objId << "from" << hostaddress;
 
         QObject context;
         QList<DlnaResource*> l_dlna = rootFolder.getDLNAResources(objId, false, 0, 0, "", &context);
@@ -413,5 +413,20 @@ void ServiceContentDirectory::dlnaContentUpdated()
     else
     {
         qCritical() << "invalid dlna object" << sender();
+    }
+}
+
+void ServiceContentDirectory::mediaRendererDestroyed(const QString &hostaddress)
+{
+    qDebug() << "renderer destroyed" << hostaddress;
+    foreach (const QString &param, m_dlnaresources.keys())
+    {
+        if (param.startsWith(hostaddress))
+        {
+            qDebug() << "remove child" << param << "from cache";
+            DlnaResource *resource = m_dlnaresources[param];
+            m_dlnaresources.remove(param);
+            resource->deleteLater();
+        }
     }
 }

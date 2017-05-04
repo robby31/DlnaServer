@@ -25,7 +25,10 @@ void MediaRendererModel::rendererDestroyed(QObject *object)
     QModelIndex index = indexFromItem(renderer);
 
     if (index.isValid())
+    {
         removeRow(index.row());
+        emit mediaRendererDestroyed(renderer->netWorkAddress());
+    }
 }
 
 void MediaRendererModel::removeRenderer()
@@ -35,7 +38,10 @@ void MediaRendererModel::removeRenderer()
     QModelIndex index = indexFromItem(renderer);
 
     if (index.isValid())
+    {
         removeRow(index.row());
+        emit mediaRendererDestroyed(renderer->netWorkAddress());
+    }
 }
 
 void MediaRendererModel::serving(const QString &ip, const QString &mediaName)
