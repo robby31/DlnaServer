@@ -48,7 +48,6 @@ void TranscodeProcess::close()
     m_pos = 0;
     transcodeClock.invalidate();
     killTranscodeProcess = false;
-    m_paused = false;
     emit closed();
 }
 
@@ -65,7 +64,7 @@ void TranscodeProcess::dataAvailable()
     appendLog(QString("%1: received %2 bytes transcoding data."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
     #endif
 
-    if (!m_opened && bytesAvailable() > maxBufferSize()*0.05)
+    if (!m_opened && bytesAvailable() > maxBufferSize()*0.01)
     {
         m_opened = true;
         emit openedSignal();
@@ -160,7 +159,7 @@ void TranscodeProcess::finishedTranscodeData(const int &exitCode, const QProcess
         appendLog(QString("%1: TRANSCODING CRASHED."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
     appendLog(QString("%2: %3% TRANSCODING DONE in %1 seconds."+CRLF).arg(QTime(0, 0).addMSecs(transcodeClock.elapsed()).toString("hh:mm:ss")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(transcodedProgress()));
 
-    if (!m_opened)
+    if (!m_opened && bytesAvailable() > 0)
     {
         m_opened = true;
         emit openedSignal();
@@ -169,7 +168,7 @@ void TranscodeProcess::finishedTranscodeData(const int &exitCode, const QProcess
 
     m_paused = false;
 
-    if (atEnd())
+    if (exitStatus == QProcess::NormalExit && atEnd())
         emit endReached();
 
     #if !defined(QT_NO_DEBUG_OUTPUT)
