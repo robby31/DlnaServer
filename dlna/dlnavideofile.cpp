@@ -2,8 +2,8 @@
 
 qint64 DlnaVideoFile::objectCounter = 0;
 
-DlnaVideoFile::DlnaVideoFile(Logger *log, QString filename, QString host, int port, QObject *parent):
-    DlnaVideoItem(log, host, port, parent),
+DlnaVideoFile::DlnaVideoFile(QString filename, QString host, int port, QObject *parent):
+    DlnaVideoItem(host, port, parent),
     fileinfo(filename),
     mime_type(),
     ffmpeg(filename, this)
@@ -21,7 +21,7 @@ DlnaVideoFile::~DlnaVideoFile() {
 
 TranscodeProcess *DlnaVideoFile::getTranscodeProcess()
 {
-    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log());
+    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
     transcodeProcess->setUrl(getSystemName());
     transcodeProcess->setLengthInSeconds(getLengthInSeconds());
     transcodeProcess->setFormat(transcodeFormat);

@@ -1,8 +1,8 @@
 #include "servicecontentdirectory.h"
 
-ServiceContentDirectory::ServiceContentDirectory(Logger *log, QString host, int port, QObject *parent):
+ServiceContentDirectory::ServiceContentDirectory(QString host, int port, QObject *parent):
     QObject(parent),
-    rootFolder(log, host, port)
+    rootFolder(host, port)
 {
     connect(this, SIGNAL(folderAdded(QString)), this, SLOT(folderAddedSlot(QString)));
 

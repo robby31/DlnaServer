@@ -1,7 +1,7 @@
 #include "dlnacachednetworkvideo.h"
 
-DlnaCachedNetworkVideo::DlnaCachedNetworkVideo(Logger* log, QNetworkAccessManager *manager, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent):
-    DlnaCachedVideo(log, library, idMedia, host, port, parent),
+DlnaCachedNetworkVideo::DlnaCachedNetworkVideo(QNetworkAccessManager *manager, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent):
+    DlnaCachedVideo(library, idMedia, host, port, parent),
     m_nam(manager),
     m_streamUrl()
 {
@@ -23,10 +23,10 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
         }
         else
         {
-            transcodeProcess = new FfmpegTranscoding(log());
+            transcodeProcess = new FfmpegTranscoding();
 
             // request from Youtube url for streaming
-            DlnaYouTubeVideo *movie = new DlnaYouTubeVideo(log(), host, port, transcodeProcess);
+            DlnaYouTubeVideo *movie = new DlnaYouTubeVideo(host, port, transcodeProcess);
             connect(movie, SIGNAL(streamUrlDefined(QString)), transcodeProcess, SLOT(setUrl(QString)));
             movie->setAnalyzeStream(false);
             movie->setNetworkAccessManager(m_nam);
@@ -36,7 +36,7 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
     else if (!m_streamUrl.isEmpty())
     {
         // local video
-        transcodeProcess = new FfmpegTranscoding(log());
+        transcodeProcess = new FfmpegTranscoding();
         transcodeProcess->setUrl(m_streamUrl);
     }
 
@@ -56,7 +56,7 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
     }
     else
     {
-        logError("No stream to return.");
+        qCritical() << "No stream to return.";
         return 0;
     }
 }

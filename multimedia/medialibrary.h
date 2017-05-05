@@ -4,18 +4,17 @@
 #include <QObject>
 #include <QtSql>
 
-#include "logobject.h"
 #include "mysqldatabase.h"
 //#include "acoustid.h"
 
-class MediaLibrary : public LogObject
+class MediaLibrary : public QObject
 {
     Q_OBJECT
 
     typedef QHash<QString, QHash<QString, QVariant> > StateType;
 
 public:
-    explicit MediaLibrary(Logger *log, QObject *parent = 0);
+    explicit MediaLibrary(QObject *parent = 0);
     virtual ~MediaLibrary();
 
     bool isValid();

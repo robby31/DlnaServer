@@ -8,7 +8,7 @@ class DlnaStorageFolder : public DlnaResource
     Q_OBJECT
 
 public:
-    explicit DlnaStorageFolder(Logger* log, QString host, int port, QObject *parent = 0);
+    explicit DlnaStorageFolder(QString host, int port, QObject *parent = 0);
 
     // Return upnp class
     virtual QString getUpnpClass() const { return QString("object.container.storageFolder"); }

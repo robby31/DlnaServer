@@ -2,8 +2,8 @@
 
 const QString MencoderTranscoding::PROGRAM = QString("/Users/doudou/workspaceQT/DLNA_server/exe/mencoder");
 
-MencoderTranscoding::MencoderTranscoding(Logger *log, QObject *parent) :
-    TranscodeProcess(log, parent)
+MencoderTranscoding::MencoderTranscoding(QObject *parent) :
+    TranscodeProcess(parent)
 {
     setProgram(PROGRAM);
 }
@@ -75,7 +75,7 @@ void MencoderTranscoding::updateArguments()
         }
 
     } else {
-        logError(QString("Invalid format: %1").arg(format()));
+        qCritical() << QString("Invalid format: %1").arg(format());
     }
 
     if (range() != 0 && !range()->isNull()) {

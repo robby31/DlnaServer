@@ -1,7 +1,7 @@
 #include "medialibrary.h"
 
-MediaLibrary::MediaLibrary(Logger* log, QObject *parent) :
-    LogObject(log, parent),
+MediaLibrary::MediaLibrary(QObject *parent) :
+    QObject(parent),
     foreignKeys(),
     libraryState(0)
 //    m_acoustId(this)
@@ -16,7 +16,7 @@ bool MediaLibrary::isValid()
 
 bool MediaLibrary::initialize()
 {
-    logDebug(QString("Initialize MediaLibrary %1").arg(databaseName()));
+    qDebug() << QString("Initialize MediaLibrary %1").arg(databaseName());
 
     QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
 
@@ -26,13 +26,13 @@ bool MediaLibrary::initialize()
 
         if (!query.exec("pragma journal_mode = WAL;"))
         {
-            logError("unable to set JOURNAL MODE = WAL in MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to set JOURNAL MODE = WAL in MediaLibrary " + query.lastError().text();
             return false;
         }
 
         if (!query.exec("pragma foreign_keys = on;"))
         {
-            logError("unable to set FOREIGN KEYS in MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to set FOREIGN KEYS in MediaLibrary " + query.lastError().text();
             return false;
         }
 
@@ -62,19 +62,19 @@ bool MediaLibrary::initialize()
                         "FOREIGN KEY(picture) REFERENCES picture(id), "
                         "FOREIGN KEY(genre) REFERENCES genre(id)"
                         ")")) {
-            logError("unable to create table media in MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to create table media in MediaLibrary " + query.lastError().text();
             return false;
         }
 
         if (!query.exec("create table if not exists type (id INTEGER PRIMARY KEY, "
                         "name VARCHAR UNIQUE NOT NULL)")) {
-            logError("unable to create table type in MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to create table type in MediaLibrary " + query.lastError().text();
             return false;
         }
 
         if (!query.exec("create table if not exists mime_type (id INTEGER PRIMARY KEY, "
                         "name VARCHAR UNIQUE NOT NULL)")) {
-            logError("unable to create table mime_type in MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to create table mime_type in MediaLibrary " + query.lastError().text();
             return false;
         }
 
@@ -82,7 +82,7 @@ bool MediaLibrary::initialize()
                         "name VARCHAR UNIQUE NOT NULL, "
                         "sortname VARCHAR UNIQUE "
                         ")")) {
-            logError("unable to create table artist in MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to create table artist in MediaLibrary " + query.lastError().text();
             return false;
         }
 
@@ -94,19 +94,19 @@ bool MediaLibrary::initialize()
                         "UNIQUE(name, artist)"
                         ")"))
         {
-            logError("unable to create table album in MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to create table album in MediaLibrary " + query.lastError().text();
             return false;
         }
 
         if (!query.exec("create table if not exists genre (id INTEGER PRIMARY KEY, "
                         "name VARCHAR UNIQUE NOT NULL)")) {
-            logError("unable to create table genre in MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to create table genre in MediaLibrary " + query.lastError().text();
             return false;
         }
 
         if (!query.exec("create table if not exists picture (id INTEGER PRIMARY KEY, "
                         "name VARCHAR UNIQUE NOT NULL)")) {
-            logError("unable to create table picture in MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to create table picture in MediaLibrary " + query.lastError().text();
             return false;
         }
 
@@ -116,7 +116,7 @@ bool MediaLibrary::initialize()
         if (!query.exec("create table if not exists param_name (id INTEGER PRIMARY KEY, "
                         "name VARCHAR UNIQUE NOT NULL)"))
         {
-            logError("unable to create table parameter names in MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to create table parameter names in MediaLibrary " + query.lastError().text();
             return false;
         }
 
@@ -129,7 +129,7 @@ bool MediaLibrary::initialize()
                         "UNIQUE(name, media)"
                         ")"))
         {
-            logError("unable to create table parameter values in MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to create table parameter values in MediaLibrary " + query.lastError().text();
             return false;
         }
 
@@ -139,17 +139,17 @@ bool MediaLibrary::initialize()
         //        }
 
         if (!query.exec("CREATE INDEX IF NOT EXISTS idx_artistmedia ON media(artist)")) {
-            logError("unable to create index in MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to create index in MediaLibrary " + query.lastError().text();
             return false;
         }
 
         if (!query.exec("CREATE INDEX IF NOT EXISTS idx_albummedia ON media(album)")) {
-            logError("unable to create index in MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to create index in MediaLibrary " + query.lastError().text();
             return false;
         }
 
         if (!query.exec("CREATE INDEX IF NOT EXISTS idx_genremedia ON media(genre)")) {
-            logError("unable to create index in MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to create index in MediaLibrary " + query.lastError().text();
             return false;
         }
 
@@ -178,7 +178,7 @@ bool MediaLibrary::initialize()
                     QFile fd(url);
                     if (fd.exists())
                     {
-                        logInfo(QString("media %1 id=%2 is now reachable").arg(fd.fileName()).arg(query.value("id").toString()));
+                        qInfo() << QString("media %1 id=%2 is now reachable").arg(fd.fileName()).arg(query.value("id").toString());
                         update("media", query.value("id").toInt(), data);
                     }
                 }
@@ -195,7 +195,7 @@ bool MediaLibrary::initialize()
                 if (!url.startsWith("http")) {
                     QFile fd(url);
                     if (!fd.exists()) {
-                        logInfo(QString("unable to reach media %1 id=%2").arg(fd.fileName()).arg(query.value("id").toString()));
+                        qInfo() << QString("unable to reach media %1 id=%2").arg(fd.fileName()).arg(query.value("id").toString());
                         update("media", query.value("id").toInt(), data);
                     }
                 }
@@ -212,7 +212,7 @@ bool MediaLibrary::initialize()
                        "GROUP BY artist_id, artist_name")) {
             while (query.next())
                 if (query.value(2).toInt()==0)
-                    logWarning(QString("Artist with no media: %1(id=%2)").arg(query.value(1).toString()).arg(query.value(0).toInt()));
+                    qWarning() << QString("Artist with no media: %1(id=%2)").arg(query.value(1).toString()).arg(query.value(0).toInt());
         }
         else
         {
@@ -222,7 +222,7 @@ bool MediaLibrary::initialize()
         // check if duration is valid
         if (query.exec("SELECT filename, title, duration from media WHERE duration<1000")) {
             while (query.next())
-                logWarning(QString("invalid duration: %1 (filename=%2, title=%3)").arg(query.value(2).toString()).arg(query.value(0).toString()).arg(query.value(1).toString()));
+                qWarning() << QString("invalid duration: %1 (filename=%2, title=%3)").arg(query.value(2).toString()).arg(query.value(0).toString()).arg(query.value(1).toString());
         }
 
         // check sortname for artists
@@ -258,7 +258,7 @@ bool MediaLibrary::initialize()
         //            qWarning() << query.lastError();
 
         if (query.exec("SELECT count(id) from media") && query.next())
-            logInfo(QString("%1 medias in database.").arg(query.value(0).toInt()));
+            qInfo() << QString("%1 medias in database.").arg(query.value(0).toInt());
 
 
         /////////////////////////////////////////////////////////
@@ -300,7 +300,7 @@ bool MediaLibrary::initialize()
         //        }
 
 
-        logDebug(QString("MediaLibrary %1 initialized.").arg(db.databaseName()));
+        qDebug() << QString("MediaLibrary %1 initialized.").arg(db.databaseName());
 
         return true;
     }
@@ -575,7 +575,7 @@ bool MediaLibrary::insert(const QString &table, const QHash<QString, QVariant> &
                     int index = insertForeignKey(foreignTable, "name", data[elt]);
                     query.bindValue(QString(":%1").arg(elt), index);
                     if (index == -1) {
-                        logError("unable to bind " + elt);
+                        qCritical() << "unable to bind " + elt;
                         if (!db.rollback())
                             qCritical() << "unable to rollback" << db.lastError().text();
                         return false;
@@ -587,7 +587,7 @@ bool MediaLibrary::insert(const QString &table, const QHash<QString, QVariant> &
 
             ret = query.exec();
             if (!ret)
-                logError("unable to insert data in MediaLibrary " + query.lastError().text());
+                qCritical() << "unable to insert data in MediaLibrary " + query.lastError().text();
         }
 
         if (ret)
@@ -623,7 +623,7 @@ int MediaLibrary::insertForeignKey(const QString &table, const QString &paramete
     {
         if (!query.exec(QString("INSERT INTO %1 (%2) VALUES (%3)").arg(table).arg(parameter).arg(db.driver()->formatValue(field))))
         {
-            logError("unable to update MediaLibrary " + query.lastError().text());
+            qCritical() << "unable to update MediaLibrary " + query.lastError().text();
             return -1;
         }
         else
@@ -680,7 +680,7 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
                     }
                     else if (record.value(elt) != index)
                     {
-                        logDebug(QString("update %1, %2, index %3 --> %4").arg(elt).arg(record.value(elt).toString()).arg(index).arg(data[elt].toString()));
+                        qDebug() << QString("update %1, %2, index %3 --> %4").arg(elt).arg(record.value(elt).toString()).arg(index).arg(data[elt].toString());
                         QSqlQuery queryUpdate(db);
                         if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(elt).arg(index).arg(id).arg(table)))
                         {
@@ -695,7 +695,7 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
                 {
                     if (record.value(elt) != data[elt])
                     {
-                        logDebug(QString("update %1, %2 --> %3").arg(elt).arg(record.value(elt).toString()).arg(data[elt].toString()));
+                        qDebug() << QString("update %1, %2 --> %3").arg(elt).arg(record.value(elt).toString()).arg(data[elt].toString());
                         QSqlQuery queryUpdate(db);
                         QSqlField field = record.field(record.indexOf(elt));
                         field.setValue(data[elt]);
@@ -782,7 +782,7 @@ int MediaLibrary::add_album(QHash<QString, QVariant> data_album)
 
         if (!queryAlbum.exec())
         {
-            logError(QString("unable to update album %1").arg(queryAlbum.lastError().text()));
+            qCritical() << QString("unable to update album %1").arg(queryAlbum.lastError().text());
         }
         else if (queryAlbum.next())
         {
@@ -794,13 +794,13 @@ int MediaLibrary::add_album(QHash<QString, QVariant> data_album)
         {
             if (!insert("album", data_album))
             {
-                logError(QString("unable to add album: %1 with artist %2").arg(data_album["name"].toString()).arg(data_album["artist"].toString()));
+                qCritical() << QString("unable to add album: %1 with artist %2").arg(data_album["name"].toString()).arg(data_album["artist"].toString());
             }
 
             if (queryAlbum.exec() && queryAlbum.next())
                 id_album = queryAlbum.value(0).toInt();
             else
-                logError(QString("unable to add album: %1 with artist %2 (%3)").arg(data_album["name"].toString()).arg(data_album["artist"].toString()).arg(queryAlbum.lastError().text()));
+                qCritical() << QString("unable to add album: %1 with artist %2 (%3)").arg(data_album["name"].toString()).arg(data_album["artist"].toString()).arg(queryAlbum.lastError().text());
         }
     }
 
@@ -818,7 +818,7 @@ int MediaLibrary::add_artist(QHash<QString, QVariant> data_artist)
 
         if (!queryArtist.exec())
         {
-            logError(QString("unable to update artist %1").arg(queryArtist.lastError().text()));
+            qCritical() << QString("unable to update artist %1").arg(queryArtist.lastError().text());
         }
         else if (queryArtist.next())
         {
@@ -830,13 +830,13 @@ int MediaLibrary::add_artist(QHash<QString, QVariant> data_artist)
         {
             if (!insert("artist", data_artist))
             {
-                logError(QString("unable to add artist: %1").arg(data_artist["name"].toString()));
+                qCritical() << QString("unable to add artist: %1").arg(data_artist["name"].toString());
             }
 
             if (queryArtist.exec() && queryArtist.next())
                 id_artist = queryArtist.value(0).toInt();
             else
-                logError(QString("unable to add artist: %1 (%2)").arg(data_artist["name"].toString()).arg(queryArtist.lastError().text()));
+                qCritical() << QString("unable to add artist: %1 (%2)").arg(data_artist["name"].toString()).arg(queryArtist.lastError().text());
         }
     }
 
@@ -883,7 +883,7 @@ bool MediaLibrary::add_media(QHash<QString, QVariant> data, QHash<QString, QVari
             }
         }
 
-        logDebug("add resource " + data["mime_type"].toString() + " " + data["filename"].toString());
+        qDebug() << "add resource " + data["mime_type"].toString() + " " + data["filename"].toString();
         return insert("media", data);
     }
 }
@@ -946,7 +946,7 @@ MediaLibrary::StateType *MediaLibrary::exportMediaState() const
                 res->operator [](query.value("filename").toString()) = d_values;
         }
     } else {
-        logError(QString("Unable to execute request: %1").arg(query.lastError().text()));
+        qCritical() << QString("Unable to execute request: %1").arg(query.lastError().text());
     }
 
     return res;

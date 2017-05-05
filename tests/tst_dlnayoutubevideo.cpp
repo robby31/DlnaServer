@@ -33,11 +33,10 @@ void tst_dlnayoutubevideo::receivedTranscodedData(const QByteArray &data)
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
 {
-    Logger log;
     QElapsedTimer timer;
     timer.start();
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
@@ -80,11 +79,10 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD()
 {
-    Logger log;
     QElapsedTimer timer;
     timer.start();
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
@@ -121,11 +119,10 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD()
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD_NotFound()
 {
-    Logger log;
     QElapsedTimer timer;
     timer.start();
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
@@ -162,11 +159,10 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD_NotFound()
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG2()
 {
-    Logger log;
     QElapsedTimer timer;
     timer.start();
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
@@ -235,11 +231,10 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG2()
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG4()
 {
-    Logger log;
     QElapsedTimer timer;
     timer.start();
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
@@ -316,11 +311,10 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG4()
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
 {
-    Logger log;
     QElapsedTimer timer;
     timer.start();
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
@@ -355,11 +349,10 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo4()
 {
-    Logger log;
     QElapsedTimer timer;
     timer.start();
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
@@ -392,9 +385,9 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo4()
     QVERIFY(res == true);
 }
 
-void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
-    Logger log;
-    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo()
+{
+    DlnaCachedRootFolder rootFolder("host", 600, this);
     rootFolder.setNetworkAccessManager(manager);
 
     DlnaCachedGroupedFolderMetaData *folder = 0;
@@ -520,8 +513,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo() {
 
 void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
 {
-    Logger log;
-    DlnaCachedRootFolder rootFolder(&log, "host", 600, this);
+    DlnaCachedRootFolder rootFolder("host", 600, this);
 
     int min_time = -1;
     int max_time = -1;
@@ -539,7 +531,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
         QElapsedTimer timer;
         timer.start();
 
-        QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo(&log, "host", 600));
+        QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
         video->moveToThread(backend);
         connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
         video->setNetworkAccessManager(manager);

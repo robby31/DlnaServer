@@ -1,10 +1,10 @@
 #include "dlnacachedrootfolder.h"
 
-DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QString host, int port, QObject *parent):
-    DlnaRootFolder(log, host, port, parent),
-    library(log, this),
+DlnaCachedRootFolder::DlnaCachedRootFolder(QString host, int port, QObject *parent):
+    DlnaRootFolder(host, port, parent),
+    library(this),
     mimeDb(),
-    rootFolder(log, host, port, this),
+    rootFolder(host, port, this),
     recentlyPlayedChild(0),
     resumeChild(0),
     favoritesChild(0),
@@ -12,22 +12,22 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QString host, int port, 
     youtube(0),
     m_nam(0)
 {
-    recentlyPlayedChild = new DlnaCachedFolder(log, &library,
+    recentlyPlayedChild = new DlnaCachedFolder(&library,
                                                library.getMedia("last_played is not null", "last_played", "DESC"),
                                                "Recently Played", host, port, true, 200, this);
     addChild(recentlyPlayedChild);
 
-    resumeChild = new DlnaCachedFolder(log, &library,
+    resumeChild = new DlnaCachedFolder(&library,
                                        library.getMedia("progress_played>0", "last_played", "DESC"),
                                        "Resume", host, port, true, 200, this);
     addChild(resumeChild);
 
-    lastAddedChild = new DlnaCachedFolder(log, &library,
+    lastAddedChild = new DlnaCachedFolder(&library,
                                           library.getMedia("addedDate is not null", "addedDate", "DESC"),
                                           "Last Added", host, port, true, 200, this);
     addChild(lastAddedChild);
 
-    favoritesChild = new DlnaCachedFolder(log, &library,
+    favoritesChild = new DlnaCachedFolder(&library,
                                           library.getMedia("counter_played>0", "counter_played", "DESC"),
                                           "Favorites", host, port, true, 200, this);
     addChild(favoritesChild);
@@ -40,7 +40,7 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QString host, int port, 
         if (typeMedia == "video")
         {
             QString where = QString("media.type=%1 and is_reachable=1 and filename like '%youtube%'").arg(id_type);
-            youtube = new DlnaCachedGroupedFolderMetaData(log, &library, host, port,
+            youtube = new DlnaCachedGroupedFolderMetaData(&library, host, port,
                                                           "YOUTUBE", this);
             youtube->addFolder("SELECT DISTINCT artist.id, artist.name FROM media LEFT OUTER JOIN artist ON media.artist=artist.id WHERE " + where + " ORDER BY artist.name",
                                "SELECT media.id, media.filename, type.name AS type_media, media.last_modified, media.counter_played "
@@ -69,7 +69,7 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QString host, int port, 
         if (typeMedia == "audio")
         {
             DlnaCachedGroupedFolderMetaData* child;
-            child = new DlnaCachedGroupedFolderMetaData(log, &library, host, port,
+            child = new DlnaCachedGroupedFolderMetaData(&library, host, port,
                                                         "Music", this);
             QString where = QString("media.type=%1 and is_reachable=1").arg(id_type);
 
@@ -108,7 +108,7 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(Logger* log, QString host, int port, 
                              "Album Artist");
             addChild(child);
         } else {
-            DlnaCachedFolder* child = new DlnaCachedFolder(log, &library,
+            DlnaCachedFolder* child = new DlnaCachedFolder(&library,
                                                            library.getMedia(QString("type='%1'").arg(id_type), "title", "ASC"),
                                                            typeMedia, host, port, false, -1, this);
             addChild(child);
@@ -143,7 +143,7 @@ void DlnaCachedRootFolder::addNetworkLink(const QString &url)
 
 void DlnaCachedRootFolder::addResource(QUrl url)
 {
-    DlnaYouTubeVideo *movie = new DlnaYouTubeVideo(log(), host, port, this);
+    DlnaYouTubeVideo *movie = new DlnaYouTubeVideo(host, port, this);
     connect(movie, SIGNAL(streamUrlDefined(QString)), this, SLOT(networkLinkAnalyzed(QString)));
     movie->setNetworkAccessManager(m_nam);
     movie->setUrl(url.toString());
@@ -178,22 +178,22 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QString &streamingUrl)
 
         if (movie->metaDataTitle().isEmpty())
         {
-            logError(QString("unable to add resource %1, title is empty").arg(movie->url().toString()));
+            qCritical() << QString("unable to add resource %1, title is empty").arg(movie->url().toString());
             emit error_addNetworkLink(movie->url().toString());
         }
         else
         {
             if (movie->metaDataDuration()<=0)
-                logWarning(QString("invalid duration %3 for %1 (%2).").arg(movie->metaDataTitle()).arg(movie->url().toString()).arg(movie->metaDataDuration()));
+                qWarning() << QString("invalid duration %3 for %1 (%2).").arg(movie->metaDataTitle()).arg(movie->url().toString()).arg(movie->metaDataDuration());
             if (movie->resolution().isEmpty())
-                logWarning(QString("invalid resolution %3 for %1 (%2).").arg(movie->metaDataTitle()).arg(movie->url().toString()).arg(movie->resolution()));
+                qWarning() << QString("invalid resolution %3 for %1 (%2).").arg(movie->metaDataTitle()).arg(movie->url().toString()).arg(movie->resolution());
 
             if (!data.isEmpty())
             {
-                logDebug(QString("Resource to add: %1").arg(movie->metaDataTitle()));
+                qDebug() << QString("Resource to add: %1").arg(movie->metaDataTitle());
                 if (!library.add_media(data, data_album, data_artist))
                 {
-                    logError(QString("unable to add or update resource %1 (%2)").arg(movie->url().toString()).arg("video"));
+                    qCritical() << QString("unable to add or update resource %1 (%2)").arg(movie->url().toString()).arg("video");
                     emit error_addNetworkLink(movie->metaDataTitle());
                 }
                 else
@@ -248,7 +248,7 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
 
         if (mime_type.startsWith("audio/"))
         {
-            DlnaMusicTrackFile track(log(), fileinfo.absoluteFilePath(), host, port);
+            DlnaMusicTrackFile track(fileinfo.absoluteFilePath(), host, port);
 
             data.insert("title", track.metaDataTitle());
             data.insert("genre", track.metaDataGenre());
@@ -279,7 +279,7 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
         }
         else if (mime_type.startsWith("video/"))
         {
-            DlnaVideoFile movie(log(), fileinfo.absoluteFilePath(), host, port);
+            DlnaVideoFile movie(fileinfo.absoluteFilePath(), host, port);
 
             data.insert("duration", movie.metaDataDuration());
             data.insert("resolution", movie.resolution());
@@ -309,14 +309,14 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
         }
         else
         {
-            logDebug("resource not added to library: " + mime_type + ", " + fileinfo.absoluteFilePath());
+            qDebug() << "resource not added to library: " << mime_type << ", " << fileinfo.absoluteFilePath();
             data.clear();
         }
 
         if (!data.isEmpty())
         {
             if (!library.add_media(data, data_album, data_artist))
-                logError(QString("unable to add or update resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type));
+                qCritical() << QString("unable to add or update resource %1 (%2)").arg(fileinfo.absoluteFilePath()).arg(mime_type);
         }
     }
 }
@@ -342,8 +342,7 @@ void DlnaCachedRootFolder::updateLibrary(const QString &filename, const QHash<QS
 {
     if (!library.updateFromFilename(filename, data))
     {
-        logError(QString("Unable to update library: %1").arg(filename));
-        qDebug() << "unable to update library" << filename << data;
+        qCritical() << "unable to update library" << filename << data;
     }
     recentlyPlayedChild->needRefresh();
     resumeChild->needRefresh();
@@ -353,7 +352,7 @@ void DlnaCachedRootFolder::updateLibrary(const QString &filename, const QHash<QS
 void DlnaCachedRootFolder::updateLibraryFromId(const int &id, const QHash<QString, QVariant> &data)
 {
     if (!library.updateFromId(id, data))
-        logError(QString("Unable to update library: media id %1").arg(id));
+        qCritical() << QString("Unable to update library: media id %1").arg(id);
 
     recentlyPlayedChild->needRefresh();
     resumeChild->needRefresh();
@@ -372,7 +371,7 @@ void DlnaCachedRootFolder::updateLibraryFromId(const int &id, const QHash<QStrin
 void DlnaCachedRootFolder::incrementCounterPlayed(const QString &filename)
 {
     if (!library.incrementCounterPlayed(filename))
-        logError(QString("Unable to update counter played: %1").arg(filename));
+        qCritical() << QString("Unable to update counter played: %1").arg(filename);
     recentlyPlayedChild->needRefresh();
     resumeChild->needRefresh();
     favoritesChild->needRefresh();
@@ -397,7 +396,7 @@ void DlnaCachedRootFolder::setNetworkAccessManager(QNetworkAccessManager *nam)
     if (youtube)
         youtube->setNetworkAccessManager(nam);
     else
-        logError("Unable to set NetWorkManager for Youtube.");
+        qCritical() << "Unable to set NetWorkManager for Youtube.";
 }
 
 void DlnaCachedRootFolder::reloadLibrary(const QStringList &localFolder)
@@ -409,7 +408,7 @@ void DlnaCachedRootFolder::reloadLibrary(const QStringList &localFolder)
         while (query.next())
             networkMedia.append(query.value("filename").toString());
     } else {
-        logError(QString("Unable to load network media: %1").arg(query.lastError().text()));
+        qCritical() << QString("Unable to load network media: %1").arg(query.lastError().text());
     }
 
     QString newDatabaseName = QString("%1.new").arg(library.databaseName());
@@ -430,12 +429,12 @@ void DlnaCachedRootFolder::reloadLibrary(const QStringList &localFolder)
 //                res = false;
 
         if (!res)
-            logError("Library reloaded with errors.");
+            qCritical() << "Library reloaded with errors.";
         else
-            logInfo("Library reloaded.");
+            qInfo() << "Library reloaded.";
     }
     else
     {
-        logError("Unable to reload library");
+        qCritical() << "Unable to reload library";
     }
 }

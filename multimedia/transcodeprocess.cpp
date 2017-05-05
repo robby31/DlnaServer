@@ -2,8 +2,8 @@
 
 const QString TranscodeProcess::CRLF = "\r\n";
 
-TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
-    Device(log, parent),
+TranscodeProcess::TranscodeProcess(QObject *parent) :
+    Device(parent),
     m_process(0),
     m_opened(false),
     m_url(),
@@ -34,7 +34,7 @@ TranscodeProcess::TranscodeProcess(Logger *log, QObject *parent) :
 TranscodeProcess::~TranscodeProcess()
 {
     QString msg = QString("DESTROY TranscodeProcess, bytes available:%1, state:%2, paused?%3, durationBuffer:%4, maxBufferSize:%5").arg(bytesAvailable()).arg(m_process->state()).arg(m_paused).arg(durationBuffer()).arg(maxBufferSize());
-    logDebug(msg);
+    qDebug() << msg;
 
     close();
     m_process->deleteLater();
@@ -61,8 +61,9 @@ void TranscodeProcess::_open(const QIODevice::OpenMode &open)
 
 void TranscodeProcess::dataAvailable()
 {
-    if (isLogLevel(DEBG))
-        appendLog(QString("%1: received %2 bytes transcoding data."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
+    #if !defined(QT_NO_DEBUG_OUTPUT)
+    appendLog(QString("%1: received %2 bytes transcoding data."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
+    #endif
 
     if (!m_opened && bytesAvailable() > maxBufferSize()*0.05)
     {
@@ -171,8 +172,9 @@ void TranscodeProcess::finishedTranscodeData(const int &exitCode, const QProcess
     if (atEnd())
         emit endReached();
 
-    if (isLogLevel(DEBG))
-        appendLog(QString("%1: finished transcoding, %2 remaining bytes."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
+    #if !defined(QT_NO_DEBUG_OUTPUT)
+    appendLog(QString("%1: finished transcoding, %2 remaining bytes."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
+    #endif
 
     if (isKilled() == false)
     {
@@ -195,7 +197,7 @@ void TranscodeProcess::finishedTranscodeData(const int &exitCode, const QProcess
 
 void TranscodeProcess::processStarted()
 {
-    logDebug(QString("Transcoding process %1 %2").arg(m_process->program()).arg(m_process->arguments().join(' ')));
+    qDebug() << QString("Transcoding process %1 %2").arg(m_process->program()).arg(m_process->arguments().join(' '));
     appendLog(m_process->program()+' ');
     appendLog(m_process->arguments().join(' ')+CRLF);
 
@@ -216,9 +218,10 @@ void TranscodeProcess::pause()
     qint64 pid = m_process->processId();
     if (!m_paused && m_process->state() != QProcess::NotRunning && pid > 0)
     {
-        logDebug(QString("Pause transcoding (pid: %1)").arg(pid));
-        if (isLogLevel(DEBG))
-            appendLog(QString("%1: PAUSE TRANSCODING"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        qDebug() << QString("Pause transcoding (pid: %1)").arg(pid);
+        #if !defined(QT_NO_DEBUG_OUTPUT)
+        appendLog(QString("%1: PAUSE TRANSCODING"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        #endif
 
         if (QProcess::startDetached(QString("kill -STOP %1").arg(pid)))
         {
@@ -227,12 +230,12 @@ void TranscodeProcess::pause()
         }
         else
         {
-            logError("ERROR: unable to pause transcoding process.");
+            qCritical() << "ERROR: unable to pause transcoding process.";
         }
     }
     else
     {
-        logError("ERROR: unable to pause transcoding process.");
+        qCritical() << "ERROR: unable to pause transcoding process.";
     }
 }
 
@@ -241,9 +244,10 @@ void TranscodeProcess::resume()
     qint64 pid = m_process->processId();
     if (m_paused && m_process->state() != QProcess::NotRunning && pid > 0)
     {
-        logDebug(QString("Restart transcoding (pid: %1)").arg(pid));
-        if (isLogLevel(DEBG))
-            appendLog(QString("%1: RESUME TRANSCODING"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        qDebug() << QString("Restart transcoding (pid: %1)").arg(pid);
+        #if !defined(QT_NO_DEBUG_OUTPUT)
+        appendLog(QString("%1: RESUME TRANSCODING"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        #endif
 
         if (QProcess::startDetached(QString("kill -CONT %1").arg(pid)))
         {
@@ -252,12 +256,12 @@ void TranscodeProcess::resume()
         }
         else
         {
-            logError("ERROR: unable to resume transcoding process.");
+            qCritical() << "ERROR: unable to resume transcoding process.";
         }
     }
     else
     {
-        logError("ERROR: unable to resume transcoding process.");
+        qCritical() << "ERROR: unable to resume transcoding process.";
     }
 }
 

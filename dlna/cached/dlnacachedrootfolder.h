@@ -19,7 +19,7 @@ class DlnaCachedRootFolder : public DlnaRootFolder
     Q_OBJECT
 
 public:
-    explicit DlnaCachedRootFolder(Logger* log, QString host, int port, QObject *parent = 0);
+    explicit DlnaCachedRootFolder(QString host, int port, QObject *parent = 0);
 
     QSqlQuery getAllNetworkLinks() { return library.getAllNetworkLinks(); }
 

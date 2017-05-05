@@ -1,7 +1,7 @@
 #include "dlnacachedvideo.h"
 
-DlnaCachedVideo::DlnaCachedVideo(Logger* log, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent):
-    DlnaVideoItem(log, host, port, parent),
+DlnaCachedVideo::DlnaCachedVideo(MediaLibrary* library, int idMedia, QString host, int port, QObject *parent):
+    DlnaVideoItem(host, port, parent),
     library(library),
     idMedia(idMedia)
 {
@@ -9,7 +9,7 @@ DlnaCachedVideo::DlnaCachedVideo(Logger* log, MediaLibrary* library, int idMedia
 
 TranscodeProcess *DlnaCachedVideo::getTranscodeProcess()
 {
-    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log());
+    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
     transcodeProcess->setUrl(getSystemName());
     transcodeProcess->setLengthInSeconds(getLengthInSeconds());
     transcodeProcess->setFormat(transcodeFormat);

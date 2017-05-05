@@ -10,8 +10,8 @@ const QString DlnaMusicTrack::AUDIO_OGG_TYPEMIME = "audio/x-ogg";
 const QString DlnaMusicTrack::AUDIO_LPCM_TYPEMIME = "audio/L16";
 const QString DlnaMusicTrack::AUDIO_TRANSCODE = "audio/transcode";
 
-DlnaMusicTrack::DlnaMusicTrack(Logger* log, QString host, int port, QObject *parent):
-    DlnaItem(log, host, port, parent)
+DlnaMusicTrack::DlnaMusicTrack(QString host, int port, QObject *parent):
+    DlnaItem(host, port, parent)
 {
 }
 
@@ -191,7 +191,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
 FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess()
 {
-    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log());
+    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
     transcodeProcess->setUrl(getSystemName());
     transcodeProcess->setLengthInSeconds(getLengthInSeconds());
     transcodeProcess->setFormat(transcodeFormat);
@@ -213,7 +213,7 @@ QString DlnaMusicTrack::mimeType() const {
         } else if (transcodeFormat == WAV) {
             return AUDIO_WAV_TYPEMIME;
         } else {
-            logError("Unable to define mimeType of DlnaMusicTrack Transcoding: " + getSystemName());
+            qCritical() << "Unable to define mimeType of DlnaMusicTrack Transcoding: " << getSystemName();
         }
     } else {
         QString format = metaDataFormat();
@@ -224,7 +224,7 @@ QString DlnaMusicTrack::mimeType() const {
         } else if (format == "pcm_s16le") {
             return AUDIO_WAV_TYPEMIME;
         } else {
-            logError(QString("Unable to define mimeType of DlnaMusicTrack: %1 from format <%2>").arg(getSystemName()).arg(format));
+            qCritical() << QString("Unable to define mimeType of DlnaMusicTrack: %1 from format <%2>").arg(getSystemName()).arg(format);
         }
     }
 

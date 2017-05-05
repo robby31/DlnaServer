@@ -1,7 +1,7 @@
 #include "dlnacachedfolder.h"
 
-DlnaCachedFolder::DlnaCachedFolder(Logger* log, MediaLibrary* library, QSqlQuery query, QString name, QString host, int port, bool cacheEnabled, int maxSize, QObject *parent):
-    DlnaStorageFolder(log, host, port, parent),
+DlnaCachedFolder::DlnaCachedFolder(MediaLibrary* library, QSqlQuery query, QString name, QString host, int port, bool cacheEnabled, int maxSize, QObject *parent):
+    DlnaStorageFolder(host, port, parent),
     library(library),
     name(name),
     query(query),
@@ -72,20 +72,20 @@ DlnaResource *DlnaCachedFolder::getChild(int index, QObject *parent) {
 
     if (type_media == "audio")
     {
-        child = new DlnaCachedMusicTrack(log(), library, id_media, host, port,
+        child = new DlnaCachedMusicTrack(library, id_media, host, port,
                                          parent != 0 ? parent : this);
 
     } else if (type_media == "video")
     {
         if (filename.startsWith("http"))
-            child = new DlnaCachedNetworkVideo(log(), m_nam, library, id_media, host, port,
+            child = new DlnaCachedNetworkVideo(m_nam, library, id_media, host, port,
                                                parent != 0 ? parent : this);
         else
-            child = new DlnaCachedVideo(log(), library, id_media, host, port,
+            child = new DlnaCachedVideo(library, id_media, host, port,
                                         parent != 0 ? parent : this);
 
     } else {
-        logWarning(QString("Unkwown format %1: %2").arg(type_media).arg(filename));
+        qWarning() << QString("Unkwown format %1: %2").arg(type_media).arg(filename);
     }
 
 

@@ -4,7 +4,6 @@
 #include "Worker/myrunnable.h"
 
 #include "Models/listmodel.h"
-#include "logger.h"
 #include "medialibrary.h"
 #include "dlnayoutubevideo.h"
 
@@ -13,7 +12,7 @@ class CheckNetworkLink : public MyRunnable
     Q_OBJECT
 
 public:
-    explicit CheckNetworkLink(Logger *log, QNetworkAccessManager *nam);
+    explicit CheckNetworkLink(QNetworkAccessManager *nam);
 
     void run() Q_DECL_OVERRIDE;
 
@@ -25,7 +24,6 @@ signals:
 private slots:
 
 private:
-    Logger *m_log;
     QNetworkAccessManager *m_nam;
 };
 

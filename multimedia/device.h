@@ -1,15 +1,17 @@
 #ifndef DEVICE_H
 #define DEVICE_H
 
-#include "logobject.h"
+#include <QObject>
+#include <QDebug>
+#include <QDateTime>
 #include <Http/httprange.h>
 
-class Device : public LogObject
+class Device : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit Device(Logger *log, QObject *parent = 0);
+    explicit Device(QObject *parent = 0);
     virtual ~Device() Q_DECL_OVERRIDE;
 
     void setRange(HttpRange *range);

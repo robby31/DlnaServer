@@ -2,8 +2,8 @@
 
 qint64 DlnaFolder::objectCounter = 0;
 
-DlnaFolder::DlnaFolder(Logger* log, QString filename, QString host, int port, QObject *parent):
-    DlnaStorageFolder(log, host, port, parent),
+DlnaFolder::DlnaFolder(QString filename, QString host, int port, QObject *parent):
+    DlnaStorageFolder(host, port, parent),
     fileinfo(filename),
     children()
 {
@@ -29,7 +29,7 @@ DlnaFolder::DlnaFolder(Logger* log, QString filename, QString host, int port, QO
             children.append(new_file);
         }
         else {
-            logWarning(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath()));
+            qWarning() << QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(new_file).name()).arg(new_file.absoluteFilePath());
         }
     }
 }
@@ -47,19 +47,19 @@ DlnaResource *DlnaFolder::getChild(int index, QObject *parent)  {
         QMimeDatabase mimeDb;
 
         if (fileinfo.isDir()) {
-            child = new DlnaFolder(log(), fileinfo.absoluteFilePath(), host, port,
+            child = new DlnaFolder(fileinfo.absoluteFilePath(), host, port,
                                    parent != 0 ? parent : this);
         }
         else if (mimeDb.mimeTypeForFile(fileinfo).name().startsWith("audio/")) {
-            child = new DlnaMusicTrackFile(log(), fileinfo.absoluteFilePath(), host, port,
+            child = new DlnaMusicTrackFile(fileinfo.absoluteFilePath(), host, port,
                                            parent != 0 ? parent : this);
         }
         else if (mimeDb.mimeTypeForFile(fileinfo).name().startsWith("video/")) {
-            child = new DlnaVideoFile(log(), fileinfo.absoluteFilePath(), host, port,
+            child = new DlnaVideoFile(fileinfo.absoluteFilePath(), host, port,
                                       parent != 0 ? parent : this);
         }
         else {
-            logWarning(QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(fileinfo).name()).arg(fileinfo.absoluteFilePath()));
+            qWarning() << QString("Unkwown format %1: %2").arg(mimeDb.mimeTypeForFile(fileinfo).name()).arg(fileinfo.absoluteFilePath());
         }
     }
 

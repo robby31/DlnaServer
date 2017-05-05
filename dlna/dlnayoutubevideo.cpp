@@ -2,8 +2,8 @@
 
 qint64 DlnaYouTubeVideo::objectCounter = 0;
 
-DlnaYouTubeVideo::DlnaYouTubeVideo(Logger *log, QString host, int port, QObject *parent) :
-    DlnaVideoItem(log, host, port, parent),
+DlnaYouTubeVideo::DlnaYouTubeVideo(QString host, int port, QObject *parent) :
+    DlnaVideoItem(host, port, parent),
     m_url(),
     m_analyzeStream(true),
     m_videoUrlInProgress(false),
@@ -57,7 +57,7 @@ void DlnaYouTubeVideo::setPlaybackQuality(const QString &quality)
     if (m_youtube)
         m_youtube->setPlaybackQuality(quality);
     else
-        logError("Unable to set playback quality because Youtube is not initialized (call setNetworkAccessManager before).");
+        qCritical() << "Unable to set playback quality because Youtube is not initialized (call setNetworkAccessManager before).";
     mutex.unlock();
 }
 
@@ -172,7 +172,7 @@ bool DlnaYouTubeVideo::waitUrl(const int &timeout)
 
 TranscodeProcess *DlnaYouTubeVideo::getTranscodeProcess()
 {
-    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding(log());
+    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
 
     transcodeProcess->setLengthInSeconds(getLengthInSeconds());
     transcodeProcess->setFormat(transcodeFormat);

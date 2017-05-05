@@ -7,7 +7,6 @@ MyApplication::MyApplication(int &argc, char **argv):
     settings("HOME", "QMS", this),
     m_sharedFolderModel(),
     m_controller(this),
-    log(this),
     netManager(this),
     m_timerDiscover(3, 600000, this),
     m_upnp(this, 5050),
@@ -33,7 +32,6 @@ MyApplication::MyApplication(int &argc, char **argv):
     addController("homePageController", &m_controller);
 
     thread()->setObjectName("QML APPLICATION THREAD");
-    log.setLevel(INF);
 
     setRenderersModel(new MediaRendererModel(this));
 
@@ -103,7 +101,7 @@ void MyApplication::serverStarted()
 
     if (!m_contentDirectory)
     {
-        m_contentDirectory = new ServiceContentDirectory(&log, device->host().toString(), device->port(), this);
+        m_contentDirectory = new ServiceContentDirectory(device->host().toString(), device->port(), this);
         connect(m_contentDirectory, SIGNAL(destroyed(QObject*)), this, SLOT(contentDirectoryDestroyed(QObject*)));
 
         connect(m_renderersModel, SIGNAL(mediaRendererDestroyed(QString)), m_contentDirectory, SLOT(mediaRendererDestroyed(QString)));
@@ -196,7 +194,7 @@ void MyApplication::refreshFolder(const int &index)
 }
 
 void MyApplication::quit() {
-    log.Trace("Quit Application.");
+    qDebug() << "Quit Application.";
 
     // save the settings
     saveSettings();
@@ -263,7 +261,7 @@ void MyApplication::startCheckNetworkLink()
     else
     {
         // check all network links
-        CheckNetworkLink *checknetworklinkWorker = new CheckNetworkLink(&log, &netManager);
+        CheckNetworkLink *checknetworklinkWorker = new CheckNetworkLink(&netManager);
         connect(checknetworklinkWorker, SIGNAL(addMessage(QString,QString)), this, SLOT(checkNetworkLinkMessage(QString, QString)));
         connect(checknetworklinkWorker, SIGNAL(progress(int)), this, SLOT(checkNetworkLinkProgress(int)));
         connect(this, SIGNAL(abortCheckNetworkLink()), checknetworklinkWorker, SLOT(abort()));
@@ -288,7 +286,7 @@ void MyApplication::removeMedia(const int &id)
         query.bindValue(":id", id);
         if (!query.exec())
         {
-            log.Error(QString("unable to remove param values for media(%1) : %2.").arg(id).arg(query.lastError().text()));
+            qCritical() << QString("unable to remove param values for media(%1) : %2.").arg(id).arg(query.lastError().text());
             if (!db.rollback())
                 qCritical() << "unable to rollback" << db.lastError().text();
         }
@@ -300,7 +298,7 @@ void MyApplication::removeMedia(const int &id)
                 query.bindValue(":id", id);
                 if (!query.exec())
                 {
-                    log.Error(QString("unable to remove media(%1) : %2.").arg(id).arg(query.lastError().text()));
+                    qCritical() << QString("unable to remove media(%1) : %2.").arg(id).arg(query.lastError().text());
                     if (!db.rollback())
                         qCritical() << "unable to rollback" << db.lastError().text();
                 }

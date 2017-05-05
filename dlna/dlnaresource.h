@@ -5,19 +5,17 @@
 #include <QtXml>
 #include <QImage>
 
-#include "logobject.h"
-
 /*
  * Represents any item which can be browsed via the UPNP ContentDirectory service.
  * It may be a folder, an audio track or a video.
  */
 
-class DlnaResource: public LogObject
+class DlnaResource: public QObject
 {
     Q_OBJECT
 
 public:
-    explicit DlnaResource(Logger* log, QObject *parent = 0);
+    explicit DlnaResource(QObject *parent = 0);
     virtual ~DlnaResource();
 
     QString getId() const { return id; }

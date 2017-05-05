@@ -1,8 +1,7 @@
 #include "checknetworklink.h"
 
-CheckNetworkLink::CheckNetworkLink(Logger *log, QNetworkAccessManager *nam):
+CheckNetworkLink::CheckNetworkLink(QNetworkAccessManager *nam):
     MyRunnable(),
-    m_log(log),
     m_nam(nam)
 {
 
@@ -20,7 +19,7 @@ void CheckNetworkLink::run()
         {
             emit progress(0);
 
-            MediaLibrary library(m_log);
+            MediaLibrary library;
 
             int nb = 0;
 
@@ -42,7 +41,7 @@ void CheckNetworkLink::run()
                 QString url(query.value("filename").toString());
                 bool isReachable = query.value("is_reachable").toBool();
 
-                QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> movie(new DlnaYouTubeVideo(m_log, "HOST", 80));
+                QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> movie(new DlnaYouTubeVideo("HOST", 80));
                 movie->moveToThread(m_nam->thread());
                 QObject::connect(m_nam->thread(), SIGNAL(finished()), movie.data(), SLOT(deleteLater()));
                 movie->setNetworkAccessManager(m_nam);

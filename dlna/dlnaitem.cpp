@@ -1,7 +1,7 @@
 #include "dlnaitem.h"
 
-DlnaItem::DlnaItem(Logger *log, QString host, int port, QObject *parent) :
-    DlnaResource(log, parent),
+DlnaItem::DlnaItem(QString host, int port, QObject *parent) :
+    DlnaResource(parent),
     host(host),
     port(port),
     transcodeFormat(UNKNOWN),  // default transcode format
@@ -88,7 +88,7 @@ Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 time
     }
     else
     {
-        StreamingFile* tmp = new StreamingFile(getSystemName(), log());
+        StreamingFile* tmp = new StreamingFile(getSystemName());
         if (range)
             tmp->setRange(range);
         tmp->setTimeSeek(timeseek_start, timeseek_end);

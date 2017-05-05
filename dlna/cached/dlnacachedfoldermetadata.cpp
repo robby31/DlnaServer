@@ -1,7 +1,7 @@
 #include "dlnacachedfoldermetadata.h"
 
-DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(Logger* log, MediaLibrary *library, QString stringQuery, QString stringQueryForChild, QString name, QString host, int port,  QObject *parent):
-    DlnaStorageFolder(log, host, port, parent),
+DlnaCachedFolderMetaData::DlnaCachedFolderMetaData(MediaLibrary *library, QString stringQuery, QString stringQueryForChild, QString name, QString host, int port,  QObject *parent):
+    DlnaStorageFolder(host, port, parent),
     library(library),
     m_name(name),
     query(stringQuery, GET_DATABASE("MEDIA_DATABASE")),
@@ -41,7 +41,7 @@ DlnaResource *DlnaCachedFolderMetaData::getChild(int index, QObject *parent)
             childQuery = stringQueryForChild.arg(param);
         }
 
-        child = new DlnaCachedFolder(log(), library,
+        child = new DlnaCachedFolder(library,
                                      QSqlQuery(childQuery,  GET_DATABASE("MEDIA_DATABASE")),
                                      childName,
                                      host, port,

@@ -10,7 +10,7 @@ class DlnaVideoFile : public DlnaVideoItem
     Q_OBJECT
 
 public:
-    explicit DlnaVideoFile(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
+    explicit DlnaVideoFile(QString filename, QString host, int port, QObject *parent = 0);
     virtual ~DlnaVideoFile();
 
     QFileInfo getFileInfo() const { return fileinfo; }

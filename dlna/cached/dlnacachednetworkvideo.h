@@ -10,7 +10,7 @@ class DlnaCachedNetworkVideo : public DlnaCachedVideo
     Q_OBJECT
 
 public:
-    explicit DlnaCachedNetworkVideo(Logger* log, QNetworkAccessManager *manager, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent = 0);
+    explicit DlnaCachedNetworkVideo(QNetworkAccessManager *manager, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent = 0);
 
     //returns the size of the source
     virtual qint64 sourceSize() const { return -1; }

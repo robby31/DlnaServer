@@ -16,7 +16,7 @@ class TranscodeProcess : public Device
     Q_OBJECT
 
 public:
-    explicit TranscodeProcess(Logger* log, QObject *parent = 0);
+    explicit TranscodeProcess(QObject *parent = 0);
     virtual ~TranscodeProcess();
 
     bool waitForFinished(int msecs = 30000) { return m_process->waitForFinished(msecs); }

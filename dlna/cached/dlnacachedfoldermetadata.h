@@ -11,7 +11,7 @@ class DlnaCachedFolderMetaData : public DlnaStorageFolder
     Q_OBJECT
 
 public:
-    explicit DlnaCachedFolderMetaData(Logger* log, MediaLibrary* library,
+    explicit DlnaCachedFolderMetaData(MediaLibrary* library,
                                       QString stringQuery,
                                       QString stringQueryForChild,
                                       QString name, QString host, int port,

@@ -15,8 +15,7 @@ class DlnaCachedFolder : public DlnaStorageFolder
     Q_OBJECT
 
 public:
-    explicit DlnaCachedFolder(Logger* log,
-                              MediaLibrary* library,
+    explicit DlnaCachedFolder(MediaLibrary* library,
                               QSqlQuery query,
                               QString name, QString host, int port, bool cacheEnabled = false, int maxSize = -1, QObject *parent = 0);
 

@@ -11,7 +11,7 @@ class DlnaMusicTrackFile : public DlnaMusicTrack
     Q_OBJECT
 
 public:
-    explicit DlnaMusicTrackFile(Logger* log, QString filename, QString host, int port, QObject *parent = 0);
+    explicit DlnaMusicTrackFile(QString filename, QString host, int port, QObject *parent = 0);
     ~DlnaMusicTrackFile();
 
     QFileInfo getFileInfo() const { return fileinfo; }

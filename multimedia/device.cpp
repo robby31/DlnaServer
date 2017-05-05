@@ -4,8 +4,8 @@ qint64 Device::objectCounter = 0;
 
 const QString Device::CRLF = "\r\n";
 
-Device::Device(Logger *log, QObject *parent) :
-    LogObject(log, parent),
+Device::Device(QObject *parent) :
+    QObject(parent),
     m_range(Q_NULLPTR),
     timeseek_start(-1),
     timeseek_end(-1),

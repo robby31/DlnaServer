@@ -10,7 +10,7 @@ class DlnaCachedVideo : public DlnaVideoItem
     Q_OBJECT
 
 public:
-    explicit DlnaCachedVideo(Logger* log, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent = 0);
+    explicit DlnaCachedVideo(MediaLibrary* library, int idMedia, QString host, int port, QObject *parent = 0);
 
     // Any resource needs to represent the container or item with a String.
     // String to be showed in the UPNP client.

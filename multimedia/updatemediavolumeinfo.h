@@ -3,7 +3,6 @@
 
 #include <QRunnable>
 #include "medialibrary.h"
-#include "logger.h"
 #include "dlnamusictrackfile.h"
 #include "dlnavideofile.h"
 #include "dlnayoutubevideo.h"
@@ -18,7 +17,6 @@ public:
     void run();
 
 private:
-    Logger m_log;
     QNetworkAccessManager *m_nam;
 };
 

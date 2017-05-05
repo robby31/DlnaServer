@@ -1,7 +1,7 @@
 #include "streamingfile.h"
 
-StreamingFile::StreamingFile(QString filename, Logger *log, QObject *parent) :
-    Device(log, parent),
+StreamingFile::StreamingFile(QString filename, QObject *parent) :
+    Device(parent),
     m_file(filename, parent)
 {
     emit readyToOpen();
@@ -56,7 +56,7 @@ bool StreamingFile::open()
 
     if (range() && pos() < range()->getStartByte())
         if (!m_file.seek(range()->getStartByte()))
-            logError("Cannot seek file");
+            qCritical() << "Cannot seek file";
 
     if (res)
         emit openedSignal();

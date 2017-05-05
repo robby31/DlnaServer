@@ -13,7 +13,7 @@ class ServiceContentDirectory : public QObject
     Q_OBJECT
 
 public:
-    explicit ServiceContentDirectory(Logger* log, QString host, int port, QObject *parent = 0);
+    explicit ServiceContentDirectory(QString host, int port, QObject *parent = 0);
 
     void setNetworkAccessManager(QNetworkAccessManager *nam);
 

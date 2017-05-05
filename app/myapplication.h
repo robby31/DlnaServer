@@ -8,7 +8,6 @@
 
 #include "application.h"
 #include "applicationcontroller.h"
-#include "logger.h"
 #include "requestlistmodel.h"
 #include "mediarenderermodel.h"
 #include "updatemediavolumeinfo.h"
@@ -119,8 +118,6 @@ private:
     QStringList m_sharedFolderModel;
 
     ApplicationController m_controller;
-
-    Logger log;
 
     QNetworkAccessManager netManager;
 

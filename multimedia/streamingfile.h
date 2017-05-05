@@ -12,7 +12,7 @@ class StreamingFile : public Device
     Q_OBJECT
 
 public:
-    explicit StreamingFile(QString filename, Logger *log, QObject *parent = 0);
+    explicit StreamingFile(QString filename, QObject *parent = 0);
     virtual ~StreamingFile() { }
 
     bool waitForFinished(int msecs = 30000);

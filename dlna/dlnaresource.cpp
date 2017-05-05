@@ -2,8 +2,8 @@
 
 qint64 DlnaResource::objectCounter = 0;
 
-DlnaResource::DlnaResource(Logger *log, QObject *parent):
-    LogObject(log, parent),
+DlnaResource::DlnaResource(QObject *parent):
+    QObject(parent),
     id(),
     dlnaParent(0),
     m_needRefresh(false),

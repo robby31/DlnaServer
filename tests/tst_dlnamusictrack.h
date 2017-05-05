@@ -14,7 +14,6 @@ public:
     explicit tst_dlnamusictrack(QObject *parent = 0);
 
 signals:
-    void bytesSent(const qint64 &size, const qint64 &towrite);
     void startTranscoding();
 
 private slots:

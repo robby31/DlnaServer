@@ -2,8 +2,8 @@
 
 qint64 DlnaRootFolder::objectCounter = 0;
 
-DlnaRootFolder::DlnaRootFolder(Logger* log, QString host, int port, QObject *parent):
-    DlnaStorageFolder(log, host, port, parent),
+DlnaRootFolder::DlnaRootFolder(QString host, int port, QObject *parent):
+    DlnaStorageFolder(host, port, parent),
     children()
 {
     ++objectCounter;
@@ -24,13 +24,13 @@ DlnaRootFolder::~DlnaRootFolder() {
 void DlnaRootFolder::addChildSlot(DlnaResource *child) {
 
     if (child == 0) {
-        logError(QString("Child is null, unable to append child to node %1").arg(getName()));
+        qCritical() << QString("Child is null, unable to append child to node %1").arg(getName());
     } else {
         if (!child->getId().isNull()) {
             if (child->getDlnaParent() != 0) {
-                logError(QString("Node %1 already has an ID %2, which is overridden now. The previous parent node was: %3").arg(child->getName()).arg(child->getResourceId()).arg(child->getDlnaParent()->getName()));
+                qCritical() << QString("Node %1 already has an ID %2, which is overridden now. The previous parent node was: %3").arg(child->getName()).arg(child->getResourceId()).arg(child->getDlnaParent()->getName());
             } else {
-                logError(QString("Node %1 already has an ID %2, which is overridden now.").arg(child->getName()).arg(child->getResourceId()));
+                qCritical() << QString("Node %1 already has an ID %2, which is overridden now.").arg(child->getName()).arg(child->getResourceId());
             }
         }
 
@@ -44,7 +44,7 @@ void DlnaRootFolder::addChildSlot(DlnaResource *child) {
 bool DlnaRootFolder::addFolderSlot(QString folder) {
 
     if (QFileInfo(folder).isDir()) {
-        DlnaFolder* child = new DlnaFolder(log(), folder, host, port, this);
+        DlnaFolder* child = new DlnaFolder(folder, host, port, this);
         addChild(child);
         return true;
     }

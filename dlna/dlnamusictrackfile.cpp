@@ -2,8 +2,8 @@
 
 qint64 DlnaMusicTrackFile::objectCounter = 0;
 
-DlnaMusicTrackFile::DlnaMusicTrackFile(Logger* log, QString filename, QString host, int port, QObject *parent):
-    DlnaMusicTrack(log, host, port, parent),
+DlnaMusicTrackFile::DlnaMusicTrackFile(QString filename, QString host, int port, QObject *parent):
+    DlnaMusicTrack(host, port, parent),
     fileinfo(filename),
     mime_type(),
     ffmpeg(filename, this)

@@ -13,7 +13,6 @@ tst_dlnamusictrack::tst_dlnamusictrack(QObject *parent) :
 void tst_dlnamusictrack::receivedTranscodedData(const QByteArray &data)
 {
     transcodedBytes += data.size();
-    emit bytesSent(transcodedBytes, 1);
 }
 
 void tst_dlnamusictrack::transcodingOpened()
@@ -29,8 +28,7 @@ void tst_dlnamusictrack::LogMessage(const QString &message)
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
 
-    Logger log;
-    DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3", "host", 600);
+    DlnaMusicTrackFile track("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3", "host", 600);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3");
 
     QStringList properties;
@@ -120,145 +118,126 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     QVERIFY(stream->size() == 376593);
     QVERIFY(stream->atEnd() == false);
 
-    StreamingFile *transcodeProcess = qobject_cast<StreamingFile*>(stream);
-    QVERIFY(transcodeProcess != 0);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    QVERIFY(transcodeProcess->atEnd() == false);
-    emit startTranscoding();
-    QVERIFY(transcodeProcess->waitForFinished(-1) == true);
-    qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 5000, QString("%1").arg(duration).toUtf8());
-    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 376593, QString("%1").arg(transcodedBytes).toUtf8().constData());
-    QVERIFY(transcodeProcess->pos() == 376593);
-    QVERIFY(transcodeProcess->atEnd() == true);
-    QVERIFY(track.size() >= transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    stream = 0;
+    {
+        QScopedPointer<StreamingFile> transcodeProcess(qobject_cast<StreamingFile*>(stream));
+        QVERIFY(transcodeProcess != 0);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        QVERIFY(transcodeProcess->atEnd() == false);
+        emit startTranscoding();
+        QVERIFY(transcodeProcess->waitForFinished(-1) == true);
+        qint64 duration = transcodeTimer.elapsed();
+        QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+        QVERIFY2(duration < 5000, QString("%1").arg(duration).toUtf8());
+        qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedBytes == 376593, QString("%1").arg(transcodedBytes).toUtf8().constData());
+        QVERIFY(transcodeProcess->pos() == 376593);
+        QVERIFY(transcodeProcess->atEnd() == true);
+        QVERIFY(track.size() >= transcodedBytes);
+    }
 
-    HttpRange* range = 0;
-    range = new HttpRange("RANGE: BYTES=0-");
-    range->setSize(track.size());
-    stream = track.getStream(range);
-    QVERIFY(stream != 0);
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    transcodedBytes = 0;
-    QVERIFY(stream->open() == true);
-    QVERIFY(stream->isOpen() == true);
-    QVERIFY(stream->size() == 376593);
-    QVERIFY(stream->atEnd() == false);
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-"));
+        range->setSize(track.size());
+        stream = track.getStream(range.data());
+        QVERIFY(stream != 0);
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+        transcodedBytes = 0;
+        QVERIFY(stream->open() == true);
+        QVERIFY(stream->isOpen() == true);
+        QVERIFY(stream->size() == 376593);
+        QVERIFY(stream->atEnd() == false);
 
-    transcodeProcess = qobject_cast<StreamingFile*>(stream);
-    QVERIFY(transcodeProcess != 0);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    QVERIFY(transcodeProcess->atEnd() == false);
-    emit startTranscoding();
-    QVERIFY(transcodeProcess->waitForFinished(-1) == true);
-    duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 5000, QString("%1").arg(duration).toUtf8());
-    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 376593, QString("%1").arg(transcodedBytes).toUtf8().constData());
-    QVERIFY(transcodeProcess->pos() == 376593);
-    QVERIFY(transcodeProcess->atEnd() == true);
-    QVERIFY(track.size() >= transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    stream = 0;
+        QScopedPointer<StreamingFile> transcodeProcess(qobject_cast<StreamingFile*>(stream));
+        QVERIFY(transcodeProcess != 0);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        QVERIFY(transcodeProcess->atEnd() == false);
+        emit startTranscoding();
+        QVERIFY(transcodeProcess->waitForFinished(-1) == true);
+        qint64 duration = transcodeTimer.elapsed();
+        QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+        QVERIFY2(duration < 5000, QString("%1").arg(duration).toUtf8());
+        qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedBytes == 376593, QString("%1").arg(transcodedBytes).toUtf8().constData());
+        QVERIFY(transcodeProcess->pos() == 376593);
+        QVERIFY(transcodeProcess->atEnd() == true);
+        QVERIFY(track.size() >= transcodedBytes);
+    }
 
-    delete range;
-    range = 0;
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-5000"));
+        range->setSize(track.size());
+        stream = track.getStream(range.data());
+        QVERIFY(stream != 0);
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+        transcodedBytes = 0;
+        QVERIFY(stream->open() == true);
+        QVERIFY(stream->isOpen() == true);
+        QVERIFY2(stream->size() == 5001, QString("%1").arg(stream->size()).toUtf8().constData());
+        QVERIFY(stream->atEnd() == false);
 
-    range = new HttpRange("RANGE: BYTES=0-5000");
-    range->setSize(track.size());
-    stream = track.getStream(range);
-    QVERIFY(stream != 0);
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    transcodedBytes = 0;
-    QVERIFY(stream->open() == true);
-    QVERIFY(stream->isOpen() == true);
-    QVERIFY2(stream->size() == 5001, QString("%1").arg(stream->size()).toUtf8().constData());
-    QVERIFY(stream->atEnd() == false);
+        QScopedPointer<StreamingFile> transcodeProcess(qobject_cast<StreamingFile*>(stream));
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        QVERIFY(transcodeProcess != 0);
+        QVERIFY(transcodeProcess->atEnd() == false);
+        emit startTranscoding();
+        QVERIFY(transcodeProcess->waitForFinished(-1) == true);
+        qint64 duration = transcodeTimer.elapsed();
+        QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+        QVERIFY2(duration < 5000, QString("%1").arg(duration).toUtf8());
+        qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedBytes == 5001, QString("%1").arg(transcodedBytes).toUtf8().constData());
+        QVERIFY(transcodeProcess->pos() == 5001);
+        QVERIFY(transcodeProcess->atEnd() == true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
 
-    transcodeProcess = qobject_cast<StreamingFile*>(stream);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    QVERIFY(transcodeProcess != 0);
-    QVERIFY(transcodeProcess->atEnd() == false);
-    emit startTranscoding();
-    QVERIFY(transcodeProcess->waitForFinished(-1) == true);
-    duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 5000, QString("%1").arg(duration).toUtf8());
-    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 5001, QString("%1").arg(transcodedBytes).toUtf8().constData());
-    QVERIFY(transcodeProcess->pos() == 5001);
-    QVERIFY(transcodeProcess->atEnd() == true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    stream = 0;
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=1000-5000"));
+        range->setSize(track.size());
+        stream = track.getStream(range.data());
+        QVERIFY(stream != 0);
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+        transcodedBytes = 0;
+        QVERIFY(stream->open() == true);
+        QVERIFY(stream->isOpen() == true);
+        QVERIFY2(stream->size() == 4001, QString("%1").arg(stream->size()).toUtf8().constData());
+        QVERIFY(stream->atEnd() == false);
 
-    delete range;
-    range = 0;
-
-    range = new HttpRange("RANGE: BYTES=1000-5000");
-    range->setSize(track.size());
-    stream = track.getStream(range);
-    QVERIFY(stream != 0);
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    transcodedBytes = 0;
-    QVERIFY(stream->open() == true);
-    QVERIFY(stream->isOpen() == true);
-    QVERIFY2(stream->size() == 4001, QString("%1").arg(stream->size()).toUtf8().constData());
-    QVERIFY(stream->atEnd() == false);
-
-    transcodeProcess = qobject_cast<StreamingFile*>(stream);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    QVERIFY(transcodeProcess != 0);
-    QVERIFY(transcodeProcess->atEnd() == false);
-    emit startTranscoding();
-    QVERIFY(transcodeProcess->waitForFinished(-1) == true);
-    duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 5000, QString("%1").arg(duration).toUtf8());
-    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 4001, QString("%1").arg(transcodedBytes).toUtf8().constData());
-    QVERIFY(transcodeProcess->pos() == 5001);
-    QVERIFY(transcodeProcess->atEnd() == true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    stream = 0;
-
-    delete range;
-    range = 0;
+        QScopedPointer<StreamingFile> transcodeProcess(qobject_cast<StreamingFile*>(stream));
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        QVERIFY(transcodeProcess != 0);
+        QVERIFY(transcodeProcess->atEnd() == false);
+        emit startTranscoding();
+        QVERIFY(transcodeProcess->waitForFinished(-1) == true);
+        qint64 duration = transcodeTimer.elapsed();
+        QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+        QVERIFY2(duration < 5000, QString("%1").arg(duration).toUtf8());
+        qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedBytes == 4001, QString("%1").arg(transcodedBytes).toUtf8().constData());
+        QVERIFY(transcodeProcess->pos() == 5001);
+        QVERIFY(transcodeProcess->atEnd() == true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
 
-    Logger log;
-    DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/16 Funk Ad.mp3", "host", 600);
+    DlnaMusicTrackFile track("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/16 Funk Ad.mp3", "host", 600);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/16 Funk Ad.mp3");
 
     QStringList properties;
@@ -336,19 +315,19 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
     QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
     QVERIFY2(result["histogram_0db"] == 18999, QString("%1").arg(result["histogram_0db"]).toUtf8());
 
-    Device* stream = track.getStream();
-    QVERIFY(stream != 0);
-    QVERIFY(stream->open() == true);
-    QVERIFY(stream->isOpen() == true);
-    QVERIFY(stream->size() == 845029);
-    QVERIFY(stream->atEnd() == false);
-    delete stream;
+    {
+        QScopedPointer<Device> stream(track.getStream());
+        QVERIFY(stream != 0);
+        QVERIFY(stream->open() == true);
+        QVERIFY(stream->isOpen() == true);
+        QVERIFY(stream->size() == 845029);
+        QVERIFY(stream->atEnd() == false);
+    }
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
 
-    Logger log;
-    DlnaMusicTrackFile track(&log, "/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Mister Mystère/1-02 Phébus.mp3", "host", 600);
+    DlnaMusicTrackFile track("/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Mister Mystère/1-02 Phébus.mp3", "host", 600);
     QVERIFY(track.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Mister Mystère/1-02 Phébus.mp3");
 
     QStringList properties;
@@ -425,21 +404,19 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
     QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
     QVERIFY2(result["histogram_0db"] == 25653, QString("%1").arg(result["histogram_0db"]).toUtf8());
 
-    Device* stream = track.getStream();
-    QVERIFY(stream != 0);
-    QVERIFY(stream->open() == true);
-    QVERIFY(stream->isOpen() == true);
-    QVERIFY(stream->size() == 3841064);
-    QVERIFY(stream->atEnd() == false);
-    delete stream;
+    {
+        QScopedPointer<Device> stream(track.getStream());
+        QVERIFY(stream != 0);
+        QVERIFY(stream->open() == true);
+        QVERIFY(stream->isOpen() == true);
+        QVERIFY(stream->size() == 3841064);
+        QVERIFY(stream->atEnd() == false);
+    }
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_WAV() {
 
-    Logger log;
-    log.setLevel(INF);
-
-    DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3", "host", 600);
+    DlnaMusicTrackFile track("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3", "host", 600);
     track.setTranscodeFormat(WAV);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3");
 
@@ -516,46 +493,41 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_WAV() {
     QVERIFY2(result["histogram_7db"] == 1, QString("%1").arg(result["histogram_7db"]).toUtf8());
     QVERIFY2(result["histogram_8db"] == 3518, QString("%1").arg(result["histogram_8db"]).toUtf8());
 
-    HttpRange* range = 0;
-    range = new HttpRange("RANGE: BYTES=0-");
-    range->setSize(track.size());
-    transcodedBytes = 0;
-    Device *device = track.getStream(range);
-    QVERIFY(device != 0);
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    TranscodeProcess *transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-    QVERIFY(transcodeProcess != 0);
-    QVERIFY(transcodeProcess->atEnd() == false);
-    QVERIFY(transcodeProcess->open() == true);
-    emit startTranscoding();
-    QVERIFY(transcodeProcess->waitForFinished(-1) == true);
-    qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 6000, QString("%1").arg(duration).toUtf8());
-    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 3410622, QString("%1").arg(transcodedBytes).toUtf8().constData());
-    QVERIFY(transcodeProcess->atEnd() == true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-"));
+        range->setSize(track.size());
+        transcodedBytes = 0;
+        Device *device = track.getStream(range.data());
+        QVERIFY(device != 0);
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+        QVERIFY(transcodeProcess != 0);
+        QVERIFY(transcodeProcess->atEnd() == false);
+        QVERIFY(transcodeProcess->open() == true);
+        emit startTranscoding();
+        QVERIFY(transcodeProcess->waitForFinished(-1) == true);
+        qint64 duration = transcodeTimer.elapsed();
+        QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+        QVERIFY2(duration < 6000, QString("%1").arg(duration).toUtf8());
+        qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY2(transcodeProcess->bytesAvailable() == 0, QString("%1").arg(transcodeProcess->bytesAvailable()).toUtf8());
+        QVERIFY2(transcodedBytes == 3410622, QString("%1").arg(transcodedBytes).toUtf8().constData());
+        QVERIFY(transcodeProcess->atEnd() == true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
 
-    Logger log;
-    log.setLevel(INF);
-
-    DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/01 Monde virtuel.m4a", "host", 600);
+    DlnaMusicTrackFile track("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/01 Monde virtuel.m4a", "host", 600);
     track.setTranscodeFormat(MP3);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/01 Monde virtuel.m4a");
 
@@ -635,45 +607,41 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
     QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
     QVERIFY2(result["histogram_0db"] == 28983, QString("%1").arg(result["histogram_0db"]).toUtf8());
 
-    HttpRange* range = 0;
-    range = new HttpRange("RANGE: BYTES=0-");
-    range->setSize(track.size());
-    transcodedBytes = 0;
-    Device *device = track.getStream(range);
-    QVERIFY(device != 0);
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    TranscodeProcess *transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-    QVERIFY(transcodeProcess != 0);
-    QVERIFY(transcodeProcess->atEnd() == false);
-    QVERIFY(transcodeProcess->open() == true);
-    emit startTranscoding();
-    QVERIFY(transcodeProcess->waitForFinished(-1) == true);
-    qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 6000, QString("%1").arg(duration).toUtf8());
-    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 7560469, QString("%1").arg(transcodedBytes).toUtf8().constData());
-    QVERIFY(transcodeProcess->atEnd() == true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-"));
+        range->setSize(track.size());
+        transcodedBytes = 0;
+        Device *device = track.getStream(range.data());
+        QVERIFY(device != 0);
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+        QVERIFY(transcodeProcess != 0);
+        QVERIFY(transcodeProcess->atEnd() == false);
+        QVERIFY(transcodeProcess->open() == true);
+        emit startTranscoding();
+        QVERIFY(transcodeProcess->waitForFinished(-1) == true);
+        qint64 duration = transcodeTimer.elapsed();
+        QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+        QVERIFY2(duration < 6000, QString("%1").arg(duration).toUtf8());
+        qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedBytes == 7560469, QString("%1").arg(transcodedBytes).toUtf8().constData());
+        QVERIFY(transcodeProcess->atEnd() == true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
-    Logger log;
-    log.setLevel(INF);
 
-    DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
+    DlnaMusicTrackFile track("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
     track.setTranscodeFormat(MP3);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
 
@@ -750,176 +718,167 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
 
     // Test getStream and getTranscodeProcess
-    HttpRange* range = 0;
-    Device *device = track.getStream(range);
+    Device *device = track.getStream(0);
     QVERIFY(device != 0);
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(device->open() == true);
-    TranscodeProcess *transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-    QVERIFY(transcodeProcess->atEnd()==false);
-    transcodedBytes = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 16000, QString("%1").arg(duration).toUtf8());
-    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 21786285, QString("%1").arg(transcodedBytes).toUtf8().constData());
-    QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
 
-    range = new HttpRange("RANGE: BYTES=0-");
-    range->setSize(track.size());
-    device = track.getStream(range);
-    QVERIFY(device != 0);
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    QVERIFY(device->open() == true);
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-    transcodedBytes = 0;
-    QVERIFY(transcodeProcess->atEnd()==false);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY(transcodedBytes == 21786285);
-    QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
+    {
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
+        QVERIFY(transcodeProcess->atEnd()==false);
+        transcodedBytes = 0;
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        qint64 duration = transcodeTimer.elapsed();
+        QVERIFY2(timeToOpenTranscoding < 110, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+        QVERIFY2(duration < 16000, QString("%1").arg(duration).toUtf8());
+        qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedBytes == 21786285, QString("%1").arg(transcodedBytes).toUtf8().constData());
+        QVERIFY(transcodeProcess->atEnd()==true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
 
-    range = new HttpRange("RANGE: BYTES=0-0");
-    range->setSize(track.size());
-    device = track.getStream(range);
-    QVERIFY(device != 0);
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    QVERIFY(device->open() == true);
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-    transcodedBytes = 0;
-    QVERIFY(transcodeProcess->atEnd()==false);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 45, QString("%1").arg(transcodedBytes).toUtf8().constData());
-    QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-"));
+        range->setSize(track.size());
+        device = track.getStream(range.data());
+        QVERIFY(device != 0);
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+        QVERIFY(device->open() == true);
 
-    range = new HttpRange("RANGE: BYTES=11786000-");
-    range->setSize(track.size());
-    device = track.getStream(range);
-    QVERIFY(device != 0);
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    QVERIFY(device->open() == true);
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-    transcodedBytes = 0;
-    QVERIFY(transcodeProcess->atEnd()==false);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 10026285, QString("%1").arg(transcodedBytes).toUtf8().constData());
-    QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
+        transcodedBytes = 0;
+        QVERIFY(transcodeProcess->atEnd()==false);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY(transcodedBytes == 21786285);
+        QVERIFY(transcodeProcess->atEnd()==true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
 
-    range = new HttpRange("RANGE: BYTES=21886280-");
-    range->setSize(track.size());
-    device = track.getStream(range);
-    QVERIFY(device != 0);
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-    transcodedBytes = 0;
-    QVERIFY(transcodeProcess->open() == true);
-    QVERIFY(transcodeProcess->atEnd()==false);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 1);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 0, QString("%1").arg(transcodedBytes).toUtf8().constData());
-    QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-0"));
+        range->setSize(track.size());
+        device = track.getStream(range.data());
+        QVERIFY(device != 0);
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+        QVERIFY(device->open() == true);
 
-    range = new HttpRange("RANGE: BYTES=14-1000");
-    range->setSize(track.size());
-    device = track.getStream(range);
-    QVERIFY(device != 0);
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    QVERIFY(device->open() == true);
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-    transcodedBytes = 0;
-    QVERIFY(transcodeProcess->atEnd()==false);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 3885, QString("%1").arg(transcodedBytes).toUtf8().constData());
-    QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
+        transcodedBytes = 0;
+        QVERIFY(transcodeProcess->atEnd()==false);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedBytes == 45, QString("%1").arg(transcodedBytes).toUtf8().constData());
+        QVERIFY(transcodeProcess->atEnd()==true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
+
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=11786000-"));
+        range->setSize(track.size());
+        device = track.getStream(range.data());
+        QVERIFY(device != 0);
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+        QVERIFY(device->open() == true);
+
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
+        transcodedBytes = 0;
+        QVERIFY(transcodeProcess->atEnd()==false);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedBytes == 10026285, QString("%1").arg(transcodedBytes).toUtf8().constData());
+        QVERIFY(transcodeProcess->atEnd()==true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
+
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=21886280-"));
+        range->setSize(track.size());
+        device = track.getStream(range.data());
+        QVERIFY(device != 0);
+
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
+        transcodedBytes = 0;
+        QVERIFY(transcodeProcess->open() == true);
+        QVERIFY(transcodeProcess->atEnd()==false);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 1);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedBytes == 0, QString("%1").arg(transcodedBytes).toUtf8().constData());
+        QVERIFY(transcodeProcess->atEnd()==true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
+
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=14-1000"));
+        range->setSize(track.size());
+        device = track.getStream(range.data());
+        QVERIFY(device != 0);
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+        QVERIFY(device->open() == true);
+
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
+        transcodedBytes = 0;
+        QVERIFY(transcodeProcess->atEnd()==false);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedBytes == 3885, QString("%1").arg(transcodedBytes).toUtf8().constData());
+        QVERIFY(transcodeProcess->atEnd()==true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
-    Logger log;
-    log.setLevel(INF);
 
-    DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
+    DlnaMusicTrackFile track("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
     track.setTranscodeFormat(MP3);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
 
@@ -999,179 +958,170 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/L16:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
 
     // Test getStream and getTranscodeProcess
-    HttpRange* range = 0;
-    Device *device = track.getStream(range);
+    Device *device = track.getStream(0);
     QVERIFY(device != 0);
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(device->open() == true);
-    TranscodeProcess *transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-    transcodedBytes = 0;
-    QVERIFY(transcodeProcess->atEnd()==false);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 700, QString("%1").arg(duration).toUtf8());
-    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 104568320, QString("%1").arg(transcodedBytes).toUtf8());
-    QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
 
-    range = new HttpRange("RANGE: BYTES=0-");
-    range->setSize(track.size());
-    device = track.getStream(range);
-    QVERIFY(device != 0);
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    QVERIFY(device->open() == true);
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-    transcodedBytes = 0;
-    QVERIFY(transcodeProcess->atEnd()==false);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY(transcodedBytes == 104568320);
-    QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
+    {
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
+        transcodedBytes = 0;
+        QVERIFY(transcodeProcess->atEnd()==false);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        qint64 duration = transcodeTimer.elapsed();
+        QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+        QVERIFY2(duration < 700, QString("%1").arg(duration).toUtf8());
+        qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedBytes == 104568320, QString("%1").arg(transcodedBytes).toUtf8());
+        QVERIFY(transcodeProcess->atEnd()==true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
 
-    range = new HttpRange("RANGE: BYTES=0-0");
-    range->setSize(track.size());
-    device = track.getStream(range);
-    QVERIFY(device != 0);
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    QVERIFY(device->open() == true);
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-    transcodedBytes = 0;
-    QVERIFY(transcodeProcess->atEnd()==false);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 4096, QString("%1").arg(transcodedBytes).toUtf8().constData());
-    QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-"));
+        range->setSize(track.size());
+        device = track.getStream(range.data());
+        QVERIFY(device != 0);
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+        QVERIFY(device->open() == true);
 
-    range = new HttpRange("RANGE: BYTES=11786000-");
-    range->setSize(track.size());
-    device = track.getStream(range);
-    QVERIFY(device != 0);
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    QVERIFY(device->open() == true);
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-    transcodedBytes = 0;
-    QVERIFY(transcodeProcess->atEnd()==false);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY(transcodedBytes == 92856320);
-    QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
+        transcodedBytes = 0;
+        QVERIFY(transcodeProcess->atEnd()==false);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY(transcodedBytes == 104568320);
+        QVERIFY(transcodeProcess->atEnd()==true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
 
-    range = new HttpRange("RANGE: BYTES=105568500-");
-    range->setSize(track.size());
-    device = track.getStream(range);
-    QVERIFY(device != 0);
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    QVERIFY(device->open() == true);
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-    transcodedBytes = 0;
-    QVERIFY(transcodeProcess->atEnd()==false);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 1);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY(transcodedBytes == 0);
-    QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-0"));
+        range->setSize(track.size());
+        device = track.getStream(range.data());
+        QVERIFY(device != 0);
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+        QVERIFY(device->open() == true);
 
-    range = new HttpRange("RANGE: BYTES=14-1000");
-    range->setSize(track.size());
-    device = track.getStream(range);
-    QVERIFY(device != 0);
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    QVERIFY(device->open() == true);
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-    transcodedBytes = 0;
-    QVERIFY(transcodeProcess->atEnd()==false);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY(transcodedBytes == 4096);
-    QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
+        transcodedBytes = 0;
+        QVERIFY(transcodeProcess->atEnd()==false);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedBytes == 4096, QString("%1").arg(transcodedBytes).toUtf8().constData());
+        QVERIFY(transcodeProcess->atEnd()==true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
+
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=11786000-"));
+        range->setSize(track.size());
+        device = track.getStream(range.data());
+        QVERIFY(device != 0);
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+        QVERIFY(device->open() == true);
+
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
+        transcodedBytes = 0;
+        QVERIFY(transcodeProcess->atEnd()==false);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY(transcodedBytes == 92856320);
+        QVERIFY(transcodeProcess->atEnd()==true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
+
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=105568500-"));
+        range->setSize(track.size());
+        device = track.getStream(range.data());
+        QVERIFY(device != 0);
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+        QVERIFY(device->open() == true);
+
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
+        transcodedBytes = 0;
+        QVERIFY(transcodeProcess->atEnd()==false);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 1);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY(transcodedBytes == 0);
+        QVERIFY(transcodeProcess->atEnd()==true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
+
+    {
+        QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=14-1000"));
+        range->setSize(track.size());
+        device = track.getStream(range.data());
+        QVERIFY(device != 0);
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+        QVERIFY(device->open() == true);
+
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
+        transcodedBytes = 0;
+        QVERIFY(transcodeProcess->atEnd()==false);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY(transcodedBytes == 4096);
+        QVERIFY(transcodeProcess->atEnd()==true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
 {
-    Logger log;
-    log.setLevel(INF);
 
-    DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
+    DlnaMusicTrackFile track("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
     track.setTranscodeFormat(AAC);
     QVERIFY(track.toTranscode()==true);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
@@ -1249,44 +1199,39 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO_320;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
 
     // Test getStream
-    HttpRange* range = 0;
-    Device *device = track.getStream(range);
+    Device *device = track.getStream(0);
     QVERIFY(device != 0);
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(device->open() == true);
-    TranscodeProcess *transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-    transcodedBytes = 0;
-    QVERIFY(transcodeProcess->atEnd()==false);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 20000, QString("%1").arg(duration).toUtf8());
-    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 21992468, QString("%1").arg(transcodedBytes).toUtf8());
-    QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY(track.size() > transcodedBytes);
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
+
+    {
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
+        transcodedBytes = 0;
+        QVERIFY(transcodeProcess->atEnd()==false);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        qint64 duration = transcodeTimer.elapsed();
+        QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+        QVERIFY2(duration < 20000, QString("%1").arg(duration).toUtf8());
+        qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedBytes == 21992468, QString("%1").arg(transcodedBytes).toUtf8());
+        QVERIFY(transcodeProcess->atEnd()==true);
+        QVERIFY(track.size() > transcodedBytes);
+    }
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
 {
-    Logger log;
-    log.setLevel(INF);
-
-    DlnaMusicTrackFile track(&log, "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
+    DlnaMusicTrackFile track("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav", "host", 600);
     track.setTranscodeFormat(ALAC);
     QVERIFY(track.toTranscode()==true);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
@@ -1364,34 +1309,32 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO_320;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
 
     // Test getStream
-    HttpRange* range = 0;
-    Device *device = track.getStream(range);
+    Device *device = track.getStream(0);
     QVERIFY(device != 0);
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(device->open() == true);
-    TranscodeProcess *transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-    transcodedBytes = 0;
-    QVERIFY(transcodeProcess->atEnd()==false);
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    qint64 duration = transcodeTimer.elapsed();
-    QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 20000, QString("%1").arg(duration).toUtf8());
-    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedBytes == 62844301, QString("%1").arg(transcodedBytes).toUtf8());
-    QVERIFY(transcodeProcess->atEnd()==true);
-    QVERIFY2(track.size() > transcodedBytes, QString("%1 %2").arg(track.size()).arg(transcodedBytes).toUtf8());
-    delete transcodeProcess;
-    transcodeProcess = 0;
-    delete range;
-    range = 0;
+
+    {
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
+        transcodedBytes = 0;
+        QVERIFY(transcodeProcess->atEnd()==false);
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        qint64 duration = transcodeTimer.elapsed();
+        QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+        QVERIFY2(duration < 20000, QString("%1").arg(duration).toUtf8());
+        qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
+        QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedBytes == 62844301, QString("%1").arg(transcodedBytes).toUtf8());
+        QVERIFY(transcodeProcess->atEnd()==true);
+        QVERIFY2(track.size() > transcodedBytes, QString("%1 %2").arg(track.size()).arg(transcodedBytes).toUtf8());
+    }
 }

@@ -4,7 +4,6 @@
 #include <QRunnable>
 
 #include "dlnacachedrootfolder.h"
-#include "logger.h"
 
 class CachedRootFolderReadDirectory : public QRunnable
 {
@@ -16,7 +15,6 @@ public:
     void run();
 
 private:
-    Logger m_log;
     QDir m_folder;
 };
 

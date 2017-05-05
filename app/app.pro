@@ -5,7 +5,6 @@ TEMPLATE = app
 
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
-include (../common/common.pri)
 include (../network/network.pri)
 include (../../QmlApplication/QmlApplication.prf)
 include (../../Upnp/UpnpLibrary/UpnpLibrary.prf)

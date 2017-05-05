@@ -8,7 +8,7 @@ class MencoderTranscoding : public TranscodeProcess
     Q_OBJECT
 
 public:
-    explicit MencoderTranscoding(Logger* log, QObject *parent = 0);
+    explicit MencoderTranscoding(QObject *parent = 0);
 
 private:
     virtual void updateArguments();

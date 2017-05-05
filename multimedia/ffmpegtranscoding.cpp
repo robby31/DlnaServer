@@ -7,8 +7,8 @@ void FfmpegTranscoding::setDirPath(const QString &folder)
     EXE_DIRPATH = folder;
 }
 
-FfmpegTranscoding::FfmpegTranscoding(Logger *log, QObject *parent) :
-    TranscodeProcess(log, parent),
+FfmpegTranscoding::FfmpegTranscoding(QObject *parent) :
+    TranscodeProcess(parent),
     variable_bitrate(false)
 {
     QDir folder(EXE_DIRPATH);
@@ -21,7 +21,7 @@ void FfmpegTranscoding::updateArguments()
     if (timeSeekStart() > 0) {
         ssOption = QString("%1").arg(timeSeekStart());
         if (range())
-            logWarning("timeseek and range are used in the same time, only timeseek is taken into account.");
+            qWarning() << "timeseek and range are used in the same time, only timeseek is taken into account.";
     }
     else if (range() != 0 && !range()->isNull())
     {
@@ -165,7 +165,7 @@ void FfmpegTranscoding::updateArguments()
             // default framerate output
             arguments << "-r" << "25";
             framerate = 25.0;
-            logInfo(QString("Use default framerate (%1)").arg(frameRate()));
+            qInfo() << QString("Use default framerate (%1)").arg(frameRate());
         }
 
         // set audio options
@@ -247,7 +247,7 @@ void FfmpegTranscoding::updateArguments()
     }
     else
     {
-        logError(QString("Invalid format: %1").arg(format()));
+        qCritical() << QString("Invalid format: %1").arg(format());
     }
 
     if (range() != 0 && !range()->isNull())

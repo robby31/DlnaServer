@@ -9,8 +9,8 @@ const QString DlnaVideoItem::ASF_TYPEMIME = "video/x-ms-asf";
 const QString DlnaVideoItem::MATROSKA_TYPEMIME = "video/x-matroska";
 const QString DlnaVideoItem::VIDEO_TRANSCODE = "video/transcode";
 
-DlnaVideoItem::DlnaVideoItem(Logger *log, QString host, int port, QObject *parent):
-    DlnaItem(log, host, port, parent)
+DlnaVideoItem::DlnaVideoItem(QString host, int port, QObject *parent):
+    DlnaItem(host, port, parent)
 {
     setTranscodeFormat(H264_AC3);   // default transcode format
 }
@@ -144,7 +144,7 @@ QString DlnaVideoItem::mimeType() const {
         }
         else
         {
-            logError("Unable to define mimeType of DlnaVideoItem: " + getSystemName());
+            qCritical() << "Unable to define mimeType of DlnaVideoItem: " << getSystemName();
 
             // returns unknown mimeType
             return UNKNOWN_VIDEO_TYPEMIME;
@@ -158,7 +158,7 @@ QString DlnaVideoItem::mimeType() const {
             return MATROSKA_TYPEMIME;
 
         } else {
-            logError("Unable to define mimeType of DlnaVideoItem: " + format + " " + getSystemName());
+            qCritical() << "Unable to define mimeType of DlnaVideoItem: " << format << " " << getSystemName();
 
             // returns unknown mimeType
             return UNKNOWN_VIDEO_TYPEMIME;

@@ -11,7 +11,7 @@ class DlnaCachedGroupedFolderMetaData : public DlnaStorageFolder
     Q_OBJECT
 
 public:
-    DlnaCachedGroupedFolderMetaData(Logger* log, MediaLibrary* library, QString host, int port, QString name, QObject *parent = 0);
+    DlnaCachedGroupedFolderMetaData(MediaLibrary* library, QString host, int port, QString name, QObject *parent = 0);
 
     virtual DlnaResource* getChild(int index, QObject *parent = 0);
     virtual int getChildrenSize() const { return children.size(); }
