@@ -150,6 +150,6 @@ void DlnaItem::setStream(Device *stream)
 
 void DlnaItem::streamDestroyed(QObject *obj)
 {
-    qWarning() << "stream destroyed" << obj;
+    qDebug() << "stream destroyed" << obj;
     m_stream = Q_NULLPTR;
 }
