@@ -10,7 +10,7 @@ DlnaYouTubeVideo::DlnaYouTubeVideo(QString host, int port, QObject *parent) :
     m_unavailableMessage(),
     m_title(),
     m_streamUrl(),
-    ffmpeg(this),
+    ffmpeg(),
     m_youtube(0),
     mutex(),
     replyWaitCondition(),

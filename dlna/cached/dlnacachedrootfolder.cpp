@@ -2,9 +2,9 @@
 
 DlnaCachedRootFolder::DlnaCachedRootFolder(QString host, int port, QObject *parent):
     DlnaRootFolder(host, port, parent),
-    library(this),
+    library(),
     mimeDb(),
-    rootFolder(host, port, this),
+    rootFolder(host, port),
     recentlyPlayedChild(0),
     resumeChild(0),
     favoritesChild(0),

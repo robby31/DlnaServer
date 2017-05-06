@@ -4,7 +4,7 @@ MediaLibrary::MediaLibrary(QObject *parent) :
     QObject(parent),
     foreignKeys(),
     libraryState(0)
-//    m_acoustId(this)
+//    m_acoustId()
 {
     initialize();
 }

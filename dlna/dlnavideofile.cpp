@@ -6,7 +6,7 @@ DlnaVideoFile::DlnaVideoFile(QString filename, QString host, int port, QObject *
     DlnaVideoItem(host, port, parent),
     fileinfo(filename),
     mime_type(),
-    ffmpeg(filename, this)
+    ffmpeg(filename)
 {
     ++objectCounter;
 

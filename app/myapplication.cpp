@@ -4,12 +4,12 @@ const int MyApplication::SERVERPORT = 5002;
 
 MyApplication::MyApplication(int &argc, char **argv):
     Application(argc, argv),
-    settings("HOME", "QMS", this),
+    settings("HOME", "QMS"),
     m_sharedFolderModel(),
-    m_controller(this),
-    netManager(this),
-    m_timerDiscover(3, 600000, this),
-    m_upnp(this, 5050),
+    m_controller(),
+    netManager(),
+    m_timerDiscover(3, 600000),
+    m_upnp(5050),
     m_requestsModel(Q_NULLPTR),
     m_renderersModel(Q_NULLPTR),
     m_debugModel(Q_NULLPTR),
