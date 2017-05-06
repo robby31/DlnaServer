@@ -2,11 +2,13 @@
 
 tst_dlnacachedresources::tst_dlnacachedresources(QObject *parent) :
     QObject(parent),
-    transcodeProcess(0),
     transcodedSize(0),
     db(CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE")),
     folderKO()
 {
+    QFfmpegProcess::setDirPath("/opt/local/bin");
+    FfmpegTranscoding::setDirPath("/opt/local/bin");
+
     db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     db.setConnectOptions("Pooling=True;Max Pool Size=100;");
 }
@@ -14,7 +16,11 @@ tst_dlnacachedresources::tst_dlnacachedresources(QObject *parent) :
 void tst_dlnacachedresources::receivedTranscodedData(const QByteArray &data)
 {
     transcodedSize += data.size();
-    emit bytesSent(transcodedSize, 1);
+}
+
+void tst_dlnacachedresources::LogMessage(const QString &message)
+{
+    qWarning() << message;
 }
 
 void tst_dlnacachedresources::testCase_Library_NbMedias()
@@ -27,7 +33,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 15370, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 15367, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -55,7 +61,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1631, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 1628, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -83,7 +89,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbumPictures()
         if (query.last())
             nbAlbumPictures = query.at() + 1;
     }
-    QVERIFY2(nbAlbumPictures == 798, QString("%1").arg(nbAlbumPictures).toUtf8().constData());
+    QVERIFY2(nbAlbumPictures == 799, QString("%1").arg(nbAlbumPictures).toUtf8().constData());
     db.close();
 }
 
@@ -325,30 +331,28 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY2(result["mean_volume"] == -12.5, QString("%1").arg(result["mean_volume"]).toUtf8());
     QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
 
-    HttpRange *range = 0;
-    range = new HttpRange("RANGE: BYTES=0-");
-    range->setSize(track->size());
-    Device *device = track->getStream(range);
-    QVERIFY(device != 0);
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
+    {
+        QScopedPointer<HttpRange> range(new HttpRange("RANGE: BYTES=0-"));
+        range->setSize(track->size());
+        Device *device = track->getStream(range.data());
+        QVERIFY(device != 0);
 
-    transcodedSize = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    QVERIFY(transcodeProcess->open()==true);
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedSize == 7560469, QString("%1").arg(transcodedSize).toUtf8().constData());
-    QVERIFY(track->size() > transcodedSize);
-    delete transcodeProcess;
-    transcodeProcess = 0;
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
 
-    delete range;
-    range = 0;
+        transcodedSize = 0;
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+        QVERIFY(transcodeProcess->open()==true);
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedSize == 7560469, QString("%1").arg(transcodedSize).toUtf8().constData());
+        QVERIFY(track->size() > transcodedSize);
+    }
 }
 
 void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
@@ -450,22 +454,23 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     Device *device = movie->getStream(0, 0, 10);
     QVERIFY(device != 0);
 
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
+    {
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
 
-    transcodedSize = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    QVERIFY(transcodeProcess->open()==true);
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY2(transcodedSize == 6106804, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
-    QVERIFY(movie->size() > transcodedSize);
-    delete transcodeProcess;
-    transcodeProcess = 0;
+        transcodedSize = 0;
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+        QVERIFY(transcodeProcess->open()==true);
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY2(transcodedSize == 6106804, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+        QVERIFY(movie->size() > transcodedSize);
+    }
 }
 
 int tst_dlnacachedresources::parseFolder(QString resourceId, DlnaResource *resource) {

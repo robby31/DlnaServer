@@ -16,12 +16,12 @@ public:
     explicit tst_dlnacachedresources(QObject *parent = 0);
 
 signals:
-    void bytesSent(const qint64 &size, const qint64 &towrite);
     void startTranscoding();
 
 private slots:
     void receivedTranscodedData(const QByteArray &data);
     void error_addFolder(const QString &folder) { folderKO = folder; }
+    void LogMessage(const QString &message);
 
 private Q_SLOTS:
     void testCase_DlnaCachedRootFolder();
@@ -47,7 +47,6 @@ private Q_SLOTS:
     void testCase_Library_NbPictureWithNoAlbum();
 
 private:
-    TranscodeProcess* transcodeProcess;
     long transcodedSize;
     QSqlDatabase db;
     QString folderKO;
