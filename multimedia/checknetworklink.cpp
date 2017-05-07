@@ -78,10 +78,10 @@ void CheckNetworkLink::run()
                         data["is_reachable"] = QVariant(1);
 
                         library.updateFromFilename(url, data);
-                    }
 
-                    // refresh data
-                    emit refresh(QUrl(url));
+                        // refresh data
+                        emit refresh(QUrl(url).toString());
+                    }
                 }
             }
         }

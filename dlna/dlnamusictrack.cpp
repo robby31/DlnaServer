@@ -201,6 +201,11 @@ FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess()
     return transcodeProcess;
 }
 
+Device *DlnaMusicTrack::getOriginalStreaming()
+{
+    return new StreamingFile(getSystemName());
+}
+
 QString DlnaMusicTrack::mimeType() const {
     if (toTranscode()) {
         // Trancode music track

@@ -151,13 +151,21 @@ QString DlnaVideoItem::mimeType() const {
         }
     } else {
         QString format = metaDataFormat();
-        if (format == "AVI") {
+        if (format == "AVI")
+        {
             return AVI_TYPEMIME;
-
-        } else if (format == "Matroska") {
+        }
+        else if (format == "Matroska")
+        {
             return MATROSKA_TYPEMIME;
 
-        } else {
+        }
+        else if (format == "mov,mp4,m4a,3gp,3g2,mj2")
+        {
+            return MP4_TYPEMIME;
+        }
+        else
+        {
             qCritical() << "Unable to define mimeType of DlnaVideoItem: " << format << " " << getSystemName();
 
             // returns unknown mimeType

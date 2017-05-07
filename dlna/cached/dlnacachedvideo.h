@@ -19,7 +19,7 @@ public:
     virtual QString getSystemName() const { if (library != 0) return library->getmetaData("filename", idMedia).toString(); else return QString(); }
 
     //returns the size of the source
-    virtual qint64 sourceSize() const { return -1; }
+    virtual qint64 sourceSize() const { return (double)metaDataDuration()*(double)metaDataBitrate()/8000.0; }
 
     // return true if the track shall be transcoded
     virtual bool toTranscode() const { return true; }
@@ -57,6 +57,9 @@ public:
 protected:
     // Returns the process for transcoding
     virtual TranscodeProcess* getTranscodeProcess();
+
+    // Returns the process for original streaming
+    virtual Device* getOriginalStreaming();
 
     MediaLibrary* library;
     int idMedia;

@@ -59,6 +59,9 @@ protected:
     // Returns the process for transcoding
     virtual TranscodeProcess* getTranscodeProcess();
 
+    // Returns the process for original streaming
+    virtual Device* getOriginalStreaming();
+
 private:
     QFileInfo fileinfo;
     QMimeType mime_type;

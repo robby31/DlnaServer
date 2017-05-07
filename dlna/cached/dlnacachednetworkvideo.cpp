@@ -60,3 +60,18 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
         return 0;
     }
 }
+
+Device *DlnaCachedNetworkVideo::getOriginalStreaming()
+{
+    QString sysName = getSystemName();
+    if (sysName.startsWith("http") && sysName.contains("youtube"))
+    {
+        TranscodeProcess *process = getTranscodeProcess();
+        process->setFormat(COPY);
+        return process;
+    }
+    else
+    {
+        return new StreamingFile(getSystemName());
+    }
+}

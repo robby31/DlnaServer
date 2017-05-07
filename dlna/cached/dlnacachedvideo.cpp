@@ -75,3 +75,8 @@ QHash<QString, double> DlnaCachedVideo::volumeInfo(const int timeout)
         return result;
     }
 }
+
+Device *DlnaCachedVideo::getOriginalStreaming()
+{
+    return new StreamingFile(getSystemName());
+}

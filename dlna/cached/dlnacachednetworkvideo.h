@@ -13,13 +13,19 @@ public:
     explicit DlnaCachedNetworkVideo(QNetworkAccessManager *manager, MediaLibrary* library, int idMedia, QString host, int port, QObject *parent = 0);
 
     //returns the size of the source
-    virtual qint64 sourceSize() const { return -1; }
+    virtual qint64 sourceSize() const { return (double)metaDataDuration()*(double)metaDataBitrate()/8000.0; }
 
     virtual QString metaDataTitle() const { if (library != 0) return library->getmetaData("title", idMedia).toString(); else return QString(); }
+
+    // return true if the track shall be transcoded
+    virtual bool toTranscode() const { return true; }
 
 protected:
     // Returns the process for transcoding
     virtual TranscodeProcess* getTranscodeProcess();
+
+    // Returns the process for original streaming
+    virtual Device* getOriginalStreaming();
 
 private:
     QNetworkAccessManager *m_nam;

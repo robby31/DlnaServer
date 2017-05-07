@@ -264,6 +264,7 @@ void MyApplication::startCheckNetworkLink()
         CheckNetworkLink *checknetworklinkWorker = new CheckNetworkLink(&netManager);
         connect(checknetworklinkWorker, SIGNAL(addMessage(QString,QString)), this, SLOT(checkNetworkLinkMessage(QString, QString)));
         connect(checknetworklinkWorker, SIGNAL(progress(int)), this, SLOT(checkNetworkLinkProgress(int)));
+        connect(checknetworklinkWorker, SIGNAL(refresh(QString)), m_contentDirectory, SIGNAL(addNetworkLinkSignal(QString)));
         connect(this, SIGNAL(abortCheckNetworkLink()), checknetworklinkWorker, SLOT(abort()));
         connect(this, SIGNAL(aboutToQuit()), checknetworklinkWorker, SLOT(abort()));
 

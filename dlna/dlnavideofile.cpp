@@ -6,7 +6,7 @@ DlnaVideoFile::DlnaVideoFile(QString filename, QString host, int port, QObject *
     DlnaVideoItem(host, port, parent),
     fileinfo(filename),
     mime_type(),
-    ffmpeg(filename)
+    ffmpeg(filename, this)
 {
     ++objectCounter;
 
@@ -31,6 +31,8 @@ TranscodeProcess *DlnaVideoFile::getTranscodeProcess()
     transcodeProcess->setFrameRate(framerate());
     transcodeProcess->setAudioChannelCount(channelCount());
     transcodeProcess->setAudioSampleRate(samplerate());
+    transcodeProcess->setVolumeInfo(volumeInfo());
+
     return transcodeProcess;
 }
 
@@ -120,4 +122,9 @@ QStringList DlnaVideoFile::subtitleLanguages() const {
 
 QString DlnaVideoFile::framerate() const {
     return QString().sprintf("%2.3f", ffmpeg.getVideoFrameRate());
+}
+
+Device *DlnaVideoFile::getOriginalStreaming()
+{
+    return new StreamingFile(getSystemName());
 }

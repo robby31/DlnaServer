@@ -33,7 +33,7 @@ public:
     //returns the size of the source
     virtual qint64 sourceSize() const;
 
-    virtual int metaDataBitrate()              const { return -1; }
+    virtual int metaDataBitrate()              const { return ffmpeg.getBitrate(); }
     virtual int metaDataDuration()             const;
     virtual QString metaDataTitle()            const { return m_title; }
     virtual QString metaDataGenre()            const { return QString(); }
@@ -74,6 +74,9 @@ public:
 protected:
     // Returns the process for transcoding
     virtual TranscodeProcess* getTranscodeProcess();
+
+    // Returns the process for original streaming
+    virtual Device* getOriginalStreaming();
 
 signals:
     void getVideoUrl(const QString &videoId);

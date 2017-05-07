@@ -172,7 +172,7 @@ void DlnaCachedRootFolder::networkLinkAnalyzed(const QString &streamingUrl)
         data.insert("audiolanguages", movie->audioLanguages().join(","));
         data.insert("subtitlelanguages", movie->subtitleLanguages().join(","));
         data.insert("framerate", movie->framerate());
-        data.insert("bitrate", movie->bitrate());
+        data.insert("bitrate", movie->metaDataBitrate());
         data.insert("format", movie->metaDataFormat());
         data.insert("mime_type", movie->mimeType());
 
@@ -259,7 +259,7 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
             data.insert("channelcount", track.channelCount());
             data.insert("picture", track.getByteAlbumArt());
             data.insert("format", track.metaDataFormat());
-            data.insert("bitrate", track.bitrate());
+            data.insert("bitrate", track.metaDataBitrate());
 
             if (!track.metaDataAlbum().isEmpty())
             {
@@ -288,7 +288,7 @@ void DlnaCachedRootFolder::addResource(QFileInfo fileinfo) {
             data.insert("audiolanguages", movie.audioLanguages().join(","));
             data.insert("subtitlelanguages", movie.subtitleLanguages().join(","));
             data.insert("framerate", movie.framerate());
-            data.insert("bitrate", movie.bitrate());
+            data.insert("bitrate", movie.metaDataBitrate());
             data.insert("format", movie.metaDataFormat());
 
             if (!movie.metaDataAlbum().isEmpty())

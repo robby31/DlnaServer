@@ -10,7 +10,7 @@ DlnaYouTubeVideo::DlnaYouTubeVideo(QString host, int port, QObject *parent) :
     m_unavailableMessage(),
     m_title(),
     m_streamUrl(),
-    ffmpeg(),
+    ffmpeg(this),
     m_youtube(0),
     mutex(),
     replyWaitCondition(),
@@ -182,7 +182,15 @@ TranscodeProcess *DlnaYouTubeVideo::getTranscodeProcess()
     transcodeProcess->setFrameRate(framerate());
     transcodeProcess->setAudioChannelCount(channelCount());
     transcodeProcess->setAudioSampleRate(samplerate());
+    transcodeProcess->setUrl(streamUrl());
     return transcodeProcess;
+}
+
+Device *DlnaYouTubeVideo::getOriginalStreaming()
+{
+    TranscodeProcess *process = getTranscodeProcess();
+    process->setFormat(COPY);
+    return process;
 }
 
 QHash<QString, double> DlnaYouTubeVideo::volumeInfo(const int timeout)

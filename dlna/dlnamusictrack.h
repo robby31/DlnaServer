@@ -40,6 +40,9 @@ protected:
     // Returns the process for transcoding
     virtual FfmpegTranscoding* getTranscodeProcess();
 
+    // Returns the process for original streaming
+    virtual Device* getOriginalStreaming();
+
 private:
     virtual void updateDLNAOrgPn();
 };

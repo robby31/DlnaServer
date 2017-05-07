@@ -91,6 +91,9 @@ protected:
     // Returns the process for transcoding
     virtual TranscodeProcess* getTranscodeProcess() = 0;
 
+    // Returns the process for original streaming
+    virtual Device* getOriginalStreaming() = 0;
+
 private:
     virtual void updateDLNAOrgPn() = 0;
 

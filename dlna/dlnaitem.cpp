@@ -88,7 +88,7 @@ Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 time
     }
     else
     {
-        StreamingFile* tmp = new StreamingFile(getSystemName());
+        Device* tmp = getOriginalStreaming();
         if (range)
             tmp->setRange(range);
         tmp->setTimeSeek(timeseek_start, timeseek_end);

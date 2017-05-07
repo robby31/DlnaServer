@@ -19,7 +19,7 @@ public:
 signals:
     void addMessage(QString name, QString message);
     void progress(const int &value);
-    void refresh(const QUrl &url);
+    void refresh(const QString &url);
 
 private slots:
 
