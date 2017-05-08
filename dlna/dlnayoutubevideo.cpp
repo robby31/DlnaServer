@@ -24,8 +24,7 @@ DlnaYouTubeVideo::DlnaYouTubeVideo(QString host, int port, QObject *parent) :
 DlnaYouTubeVideo::~DlnaYouTubeVideo()
 {
     // if mutex is locked, wait until it is unlocked
-    mutex.lock();
-    mutex.unlock();
+    QMutexLocker locker(&mutex);
 
     --objectCounter;
 }
@@ -34,7 +33,8 @@ void DlnaYouTubeVideo::setNetworkAccessManager(QNetworkAccessManager *manager)
 {
     if (manager)
     {
-        mutex.lock();
+        QMutexLocker locker(&mutex);
+
         m_youtube = new YouTube();
         connect(this, SIGNAL(destroyed()), m_youtube, SLOT(deleteLater()));
 
@@ -47,18 +47,16 @@ void DlnaYouTubeVideo::setNetworkAccessManager(QNetworkAccessManager *manager)
         connect(m_youtube, SIGNAL(gotVideoTitle(QString)), this, SLOT(videoTitle(QString)));
         connect(m_youtube, SIGNAL(gotVideoUrl(QString)), this, SLOT(videoUrl(QString)));
         connect(m_youtube, SIGNAL(videoUrlError(QString)), this, SLOT(videoUrlError(QString)));
-        mutex.unlock();
     }
 }
 
 void DlnaYouTubeVideo::setPlaybackQuality(const QString &quality)
 {
-    mutex.lock();
+    QMutexLocker locker(&mutex);
     if (m_youtube)
         m_youtube->setPlaybackQuality(quality);
     else
         qCritical() << "Unable to set playback quality because Youtube is not initialized (call setNetworkAccessManager before).";
-    mutex.unlock();
 }
 
 QUrl DlnaYouTubeVideo::url() const
@@ -68,7 +66,7 @@ QUrl DlnaYouTubeVideo::url() const
 
 void DlnaYouTubeVideo::setUrl(const QUrl &url)
 {
-    mutex.lock();
+    QMutexLocker locker(&mutex);
 
     m_videoUrlInProgress = false;
 
@@ -85,13 +83,11 @@ void DlnaYouTubeVideo::setUrl(const QUrl &url)
     {
         qWarning() << "ERROR, invalid URL" << url;
     }
-
-    mutex.unlock();
 }
 
 void DlnaYouTubeVideo::videoUrlError(const QString &message)
 {
-    mutex.lock();
+    QMutexLocker locker(&mutex);
 
     m_error = message;
 
@@ -101,21 +97,18 @@ void DlnaYouTubeVideo::videoUrlError(const QString &message)
         replyWaitCondition.wakeAll();
     }
 
-    mutex.unlock();
-
     emit videoUrlErrorSignal(message);
 }
 
 void DlnaYouTubeVideo::videoTitle(const QString &title)
 {
-    mutex.lock();
+    QMutexLocker locker(&mutex);
     m_title = title;
-    mutex.unlock();
 }
 
 void DlnaYouTubeVideo::videoUrl(const QString &url)
 {
-    mutex.lock();
+    QMutexLocker locker(&mutex);
 
     m_streamUrl = url;
 
@@ -134,13 +127,11 @@ void DlnaYouTubeVideo::videoUrl(const QString &url)
         
         emit streamUrlDefined(url);        
     }
-
-    mutex.unlock();
 }
 
 void DlnaYouTubeVideo::ffmpegReady()
 {
-    mutex.lock();
+    QMutexLocker locker(&mutex);
 
     // url is found and ffmpeg is ready, process finished
     if (m_videoUrlInProgress)
@@ -150,19 +141,16 @@ void DlnaYouTubeVideo::ffmpegReady()
     }
     
     emit streamUrlDefined(m_streamUrl);
-
-    mutex.unlock();
 }
 
 bool DlnaYouTubeVideo::waitUrl(const int &timeout)
 {    
+    QMutexLocker locker(&mutex);
+
     if (m_videoUrlInProgress)
     {
         // waiting reply with timeout
-        mutex.lock();
-        bool ret = replyWaitCondition.wait(&mutex, timeout);
-        mutex.unlock();
-        return ret;
+        return replyWaitCondition.wait(locker.mutex(), timeout);
     }
     else
     {
