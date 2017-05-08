@@ -16,6 +16,7 @@ Device::Device(QObject *parent) :
 {
     ++objectCounter;
 
+    connect(this, SIGNAL(readyToOpen()), this, SLOT(deviceReadyToOpen()));
     connect(this, SIGNAL(openedSignal()), this, SLOT(deviceOpened()));
 }
 
@@ -119,6 +120,7 @@ void Device::setDurationBuffer(int duration)
 void Device::deviceOpened()
 {
     appendLog(QString("%1: device opened, %3 bytes to send, %2 bytes available."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()).arg(size()));
+    isopenedCondition.wakeAll();
 }
 
 void Device::startRequestData()
@@ -149,5 +151,40 @@ void Device::requestData(qint64 maxlen)
         {
             qDebug() << QString("%1: sendDataToClient no data available").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
         }
+    }
+}
+
+bool Device::waitReadyToOpen(const int &timeout)
+{
+    QMutexLocker locker(&mutex);
+
+    if (!isReadyToOpen())
+    {
+        qDebug() << "wait device is ready to open" << this;
+        return readyToOpenCondition.wait(locker.mutex(), timeout);
+    }
+    else
+    {
+        return true;
+    }
+}
+
+void Device::deviceReadyToOpen()
+{
+    readyToOpenCondition.wakeAll();
+}
+
+bool Device::waitOpen(const int &timeout)
+{
+    QMutexLocker locker(&mutex);
+
+    if (!isOpen())
+    {
+        qDebug() << "wait device until open" << this;
+        return isopenedCondition.wait(locker.mutex(), timeout);
+    }
+    else
+    {
+        return true;
     }
 }

@@ -5,6 +5,7 @@
 #include <QDebug>
 #include <QDateTime>
 #include <Http/httprange.h>
+#include <QWaitCondition>
 
 class Device : public QObject
 {
@@ -42,6 +43,8 @@ public:
     void appendLog(const QString &msg);
 
     virtual bool isReadyToOpen() const = 0;
+    bool waitReadyToOpen(const int &timeout=30000);
+    bool waitOpen(const int &timeout=30000);
 
 protected:
     virtual void updateArguments() = 0;
@@ -66,6 +69,7 @@ public slots:
     virtual void close() = 0;
 
 private slots:
+    void deviceReadyToOpen();
     void deviceOpened();
 
 private:
@@ -81,6 +85,10 @@ private:
     int m_durationBuffer;       // when bitrate is known, m_maxBufferSize is set to m_durationBuffer seconds of streaming
 
     bool requestDataStarted;
+
+    QMutex mutex;
+    QWaitCondition readyToOpenCondition;
+    QWaitCondition isopenedCondition;
 
 public:
     qint64 static objectCounter;
