@@ -13,7 +13,6 @@ public:
     explicit tst_dlnavideoitem(QObject *parent = 0);
 
 signals:
-    void bytesSent(const qint64 &size, const qint64 &towrite);
     void startTranscoding();
 
 public slots:
@@ -28,7 +27,6 @@ private Q_SLOTS:
     void testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3();
 
 private:
-    TranscodeProcess* transcodeProcess;
     long transcodedSize;
     QElapsedTimer transcodeTimer;
     qint64 timeToOpenTranscoding;

@@ -2,7 +2,6 @@
 
 tst_dlnayoutubevideo::tst_dlnayoutubevideo(QObject *parent) :
     QObject(parent),
-    transcodeProcess(0),
     transcodedSize(0),
     backend(0),
     db(CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE")),
@@ -28,7 +27,11 @@ tst_dlnayoutubevideo::tst_dlnayoutubevideo(QObject *parent) :
 void tst_dlnayoutubevideo::receivedTranscodedData(const QByteArray &data)
 {
     transcodedSize += data.size();
-    emit bytesSent(transcodedSize, 1);
+}
+
+void tst_dlnayoutubevideo::LogMessage(const QString &message)
+{
+    qWarning() << message;
 }
 
 void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
@@ -200,23 +203,21 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG2()
     Device *device = video->getStream(0, 0, -1);
     QVERIFY(device != 0);
 
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
+    QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+    connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     QVERIFY(transcodeProcess->open() == true);
     emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
     QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
+    transcodeProcess->requestData(transcodeProcess->bytesAvailable());
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qWarning() << "DELTA" << video->size()-transcodedSize << qAbs(double(video->size()-transcodedSize))/video->size();
     QVERIFY(video->size() > transcodedSize);
     QVERIFY2(transcodedSize == 159786088, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
-    delete transcodeProcess;
-    transcodeProcess = 0;
 
     QVERIFY(video->getdlnaOrgOpFlags() == "10");
     QVERIFY(video->getdlnaOrgPN() == "MPEG_PS_PAL");
@@ -280,23 +281,21 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG4()
     Device *device = video->getStream(0, 0, -1);
     QVERIFY(device != 0);
 
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
+    QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+    connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
     QVERIFY(transcodeProcess->open() == true);
     emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
     QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
+    transcodeProcess->requestData(transcodeProcess->bytesAvailable());
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qWarning() << "DELTA" << video->size()-transcodedSize << qAbs(double(video->size()-transcodedSize))/video->size();
     QVERIFY(video->size() > transcodedSize);
     QVERIFY2(transcodedSize == 87871764, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
-    delete transcodeProcess;
-    transcodeProcess = 0;
 
     QVERIFY(video->getdlnaOrgOpFlags() == "10");
     QVERIFY(video->getdlnaOrgPN() == "MPEG_PS_PAL");
@@ -453,11 +452,11 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo()
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:03:17", xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue().toUtf8());
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue() == "640x360", xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue().toUtf8());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue() == "1280x720", xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue().toUtf8());
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "2", xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue().toUtf8());
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "44100", xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue().toUtf8());
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "569850", xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue().toUtf8().constData());
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "121652086", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8().constData());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "121652704", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8().constData());
     xml_res.clear();
 
     QVERIFY(movie->getdlnaOrgOpFlags() == "10");
@@ -476,96 +475,61 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo()
     QVERIFY(movie->toTranscode() == true);
     QVERIFY2(movie->metaDataFormat() == "mov,mp4,m4a,3gp,3g2,mj2", QString("%1").arg(movie->metaDataFormat()).toUtf8());
     QVERIFY(movie->mimeType() == "video/mpeg");
-    QVERIFY2(movie->size() == 121652086, QString("%1").arg(movie->size()).toUtf8());
+    QVERIFY2(movie->size() == 121652704, QString("%1").arg(movie->size()).toUtf8());
     QVERIFY2(movie->bitrate() == 4558800, QString("%1").arg(movie->bitrate()).toUtf8());
     QVERIFY(movie->getLengthInSeconds() == 197);
-    QVERIFY2(movie->getLengthInMilliSeconds() == 196811, QString("%1").arg(movie->getLengthInMilliSeconds()).toUtf8());
+    QVERIFY2(movie->getLengthInMilliSeconds() == 196812, QString("%1").arg(movie->getLengthInMilliSeconds()).toUtf8());
     QVERIFY(movie->samplerate() == 44100);
     QVERIFY(movie->channelCount() == 2);
-    QVERIFY(movie->resolution() == "640x360");
+    QVERIFY(movie->resolution() == "1280x720");
     QVERIFY2(movie->audioLanguages() == QStringList() << "", movie->audioLanguages().join(',').toUtf8());
     QVERIFY2(movie->subtitleLanguages() == QStringList() << "", movie->subtitleLanguages().join(',').toUtf8());
-    QVERIFY2(movie->framerate() == "25/1", movie->framerate().toUtf8());
-
-    QElapsedTimer timer;
-    timer.start();
-    Device *device = movie->getStream(0);
-    qWarning() << "stream created in" << timer.elapsed() << "ms.";
-    QVERIFY(device != 0);
-
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
-
-    transcodedSize = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));    QVERIFY(transcodeProcess->open() == true);
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    QVERIFY2(transcodeProcess->exitCode() == 0, QString("%1").arg(transcodeProcess->exitCode()).toUtf8());
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    qWarning() << "DELTA" << movie->size()-transcodedSize << qAbs(double(movie->size()-transcodedSize))/movie->size();
-    QVERIFY(movie->size() > transcodedSize);
-    QVERIFY2(transcodedSize == 121638068, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
-    delete transcodeProcess;
-    transcodeProcess = 0;
+    QVERIFY2(movie->framerate() == "25.000", movie->framerate().toUtf8());
 }
 
-void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
+void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink_data()
 {
+    QTest::addColumn<QUrl>("url");
+    QTest::addColumn<bool>("is_reachable");
+
     DlnaCachedRootFolder rootFolder("host", 600, this);
 
-    int min_time = -1;
-    int max_time = -1;
-    int sum_time = 0;
-
-    int nbOk = 0;
-    int nbErrors = 0;
     QSqlQuery query = rootFolder.getAllNetworkLinks();
-
     while (query.next())
     {
         QUrl url = query.value("filename").toString();
         bool is_reachable = query.value("is_reachable").toBool();
+        QString title = query.value("title").toString();
+        QTest::newRow(title.toUtf8()) << url << is_reachable;
+    }
+}
 
-        QElapsedTimer timer;
-        timer.start();
+void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
+{
+    QFETCH(QUrl, url);
 
-        QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
-        video->moveToThread(backend);
-        connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
-        video->setNetworkAccessManager(manager);
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
+    video->moveToThread(backend);
+    connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
+    video->setNetworkAccessManager(manager);
+
+    bool res;
+
+    QBENCHMARK
+    {
         video->setUrl(url);
-        bool res = video->waitUrl(60000);
-
-        int duration = timer.elapsed();
-        sum_time += duration;
-        if (min_time == -1 or min_time > duration)
-            min_time = duration;
-        if (max_time == -1 or max_time < duration)
-            max_time = duration;
-
-        if (!res or !video->isValid())
-        {
-            if (is_reachable)
-                ++nbErrors;
-
-            if (res && !video->unavailableMessage().isEmpty())
-                qWarning() << "VIDEO NOT AVAILABLE" << url << res << video->isValid() << video->metaDataTitle() << video->metaDataDuration() << video->getLengthInMilliSeconds() << video->metaDataBitrate();
-            else
-                qCritical() << "ERROR TIMEOUT" << url;
-        }
-        else
-        {
-            ++nbOk;
-            qDebug() << "OK" << url << res << video->isValid() << video->metaDataTitle() << video->metaDataDuration() << video->getLengthInMilliSeconds() << video->metaDataBitrate();
-        }
-
-        qDebug() << "check done in" << duration << "ms.";
+        res = video->waitUrl(60000);
     }
 
-    if (nbErrors+nbOk!=0)
-        qWarning() << "avg_time:" << sum_time/(nbErrors+nbOk) << "min_time:" << min_time << "max_time:" << max_time;
-    qWarning() << "OK:" << nbOk << "KO:" << nbErrors;
-    QVERIFY2(nbErrors == 0, QString("%1").arg(nbErrors).toUtf8());
+    if (!res or !video->isValid())
+    {
+        if (res && !video->unavailableMessage().isEmpty())
+            qWarning() << "VIDEO NOT AVAILABLE" << url << res << video->isValid() << video->metaDataTitle() << video->metaDataDuration() << video->getLengthInMilliSeconds() << video->metaDataBitrate();
+        else
+            qCritical() << "ERROR TIMEOUT" << url;
+    }
+    else
+    {
+        qDebug() << "OK" << url << res << video->isValid() << video->metaDataTitle() << video->metaDataDuration() << video->getLengthInMilliSeconds() << video->metaDataBitrate();
+    }
 }

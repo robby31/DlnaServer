@@ -17,11 +17,11 @@ public:
     explicit tst_dlnayoutubevideo(QObject *parent = 0);
 
 signals:
-    void bytesSent(const qint64 &size, const qint64 &towrite);
     void startTranscoding();
 
 public slots:
     void receivedTranscodedData(const QByteArray &data);
+    void LogMessage(const QString &message);
 
 private Q_SLOTS:
     void testCase_DlnaYouTubeVideo();
@@ -32,12 +32,11 @@ private Q_SLOTS:
     void testCase_DlnaYouTubeVideo3();
     void testCase_DlnaYouTubeVideo4();
 
-
     void testCase_DlnaCachedNetworkVideo();
+    void testCase_DlnaCachedNetworkVideo_checkLink_data();
     void testCase_DlnaCachedNetworkVideo_checkLink();
 
 private:
-    TranscodeProcess *transcodeProcess;
     long transcodedSize;
     QThread *backend;
     QSqlDatabase db;

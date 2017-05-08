@@ -2,7 +2,6 @@
 
 tst_dlnavideoitem::tst_dlnavideoitem(QObject *parent) :
     QObject(parent),
-    transcodeProcess(0),
     transcodedSize(0),
     transcodeTimer(),
     timeToOpenTranscoding(0)
@@ -14,7 +13,6 @@ tst_dlnavideoitem::tst_dlnavideoitem(QObject *parent) :
 void tst_dlnavideoitem::receivedTranscodedData(const QByteArray &data)
 {
     transcodedSize += data.size();
-    emit bytesSent(transcodedSize, 1);
 }
 
 void tst_dlnavideoitem::transcodingOpened()
@@ -61,20 +59,20 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     QVERIFY2(result["max_volume"] == -0.3, QString("%1").arg(result["max_volume"]).toUtf8());
 
     Device *device = movie.getStream(0, 0, -1);
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
+    QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+    connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+    connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+    connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(transcodeProcess->open() == true);
     emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
+    transcodeProcess->requestData(transcodeProcess->bytesAvailable());
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
     qint64 duration = transcodeTimer.elapsed();
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
@@ -84,8 +82,6 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
     QVERIFY(movie.size() > transcodedSize);
     QVERIFY2(transcodedSize == 2759532432, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
-    delete transcodeProcess;
-    transcodeProcess = 0;
 }
 
 void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
@@ -118,20 +114,20 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     QVERIFY2(result["max_volume"] == -0.3, QString("%1").arg(result["max_volume"]).toUtf8());
 
     Device *device = movie.getStream(0, 0, -1);
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
+    QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+    connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+    connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+    connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(transcodeProcess->open() == true);
     emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
+    transcodeProcess->requestData(transcodeProcess->bytesAvailable());
     qint64 duration = transcodeTimer.elapsed();
 
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
@@ -143,8 +139,6 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
     QVERIFY2(timeToOpenTranscoding < 500, QString("%1").arg(timeToOpenTranscoding).toUtf8());
     QVERIFY2(duration < 450000, QString("%1").arg(duration).toUtf8());
-    delete transcodeProcess;
-    transcodeProcess = 0;
 }
 
 void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
@@ -177,20 +171,20 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
     QVERIFY2(result["max_volume"] == -0.9, QString("%1").arg(result["max_volume"]).toUtf8());
 
     Device *device = movie.getStream(0, 0, -1);
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
+    QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
     QVERIFY(transcodeProcess != 0);
 
     transcodedSize = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+    connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+    connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
 //    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
     QVERIFY(transcodeProcess->open() == true);
     emit startTranscoding();
     transcodeProcess->waitForFinished(-1);
+    transcodeProcess->requestData(transcodeProcess->bytesAvailable());
     qint64 duration = transcodeTimer.elapsed();
 
     QVERIFY(transcodeProcess->bytesAvailable() == 0);
@@ -202,8 +196,6 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
     QVERIFY2(timeToOpenTranscoding < 7000, QString("%1").arg(timeToOpenTranscoding).toUtf8());
     QVERIFY2(duration < 400000, QString("%1").arg(duration).toUtf8());
     qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    delete transcodeProcess;
-    transcodeProcess = 0;
 }
 
 void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
@@ -280,64 +272,64 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
     Device *device = movie.getStream(0, 0, 10);
     QVERIFY(device != 0);
 
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
+    {
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
 
-    transcodedSize = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    QVERIFY(transcodeProcess->open() == true);
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    qint64 duration = transcodeTimer.elapsed();
+        transcodedSize = 0;
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+        QVERIFY(transcodeProcess->open() == true);
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        qint64 duration = transcodeTimer.elapsed();
 
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-    QVERIFY(movie.size() > transcodedSize);
-    QVERIFY2(transcodedSize == 6106804, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
+        QVERIFY(movie.size() > transcodedSize);
+        QVERIFY2(transcodedSize == 6106804, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
 
-    QVERIFY2(timeToOpenTranscoding < 10000, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 10000, QString("%1").arg(duration).toUtf8());
-    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    delete transcodeProcess;
-    transcodeProcess = 0;
+        QVERIFY2(timeToOpenTranscoding < 10000, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+        QVERIFY2(duration < 10000, QString("%1").arg(duration).toUtf8());
+        qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
+    }
 
     // test full transcoding
     device = movie.getStream(0, 0, -1);
     QVERIFY(device != 0);
 
-    transcodeProcess = qobject_cast<TranscodeProcess*>(device);
-    QVERIFY(transcodeProcess != 0);
+    {
+        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
+        QVERIFY(transcodeProcess != 0);
 
-    transcodedSize = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess, SLOT(startRequestData()));
-    connect(this, SIGNAL(bytesSent(qint64,qint64)), transcodeProcess, SLOT(bytesSent(qint64,qint64)));
-    connect(transcodeProcess, SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess, SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    connect(transcodeProcess, SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    QVERIFY(transcodeProcess->open()==true);
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    duration = transcodeTimer.elapsed();
+        transcodedSize = 0;
+        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
+        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+        transcodeTimer.start();
+        timeToOpenTranscoding = 0;
+        QVERIFY(transcodeProcess->open()==true);
+        emit startTranscoding();
+        transcodeProcess->waitForFinished(-1);
+        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
+        qint64 duration = transcodeTimer.elapsed();
 
-    QVERIFY(transcodeProcess->bytesAvailable() == 0);
-    QVERIFY(transcodeProcess->exitCode() == 0);
-    qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-    QVERIFY(movie.size() > transcodedSize);
-    QVERIFY2(transcodedSize == 4157460576, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+        QVERIFY(transcodeProcess->bytesAvailable() == 0);
+        QVERIFY(transcodeProcess->exitCode() == 0);
+        qWarning() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
+        QVERIFY(movie.size() > transcodedSize);
+        QVERIFY2(transcodedSize == 4157460576, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
 
-    QVERIFY2(timeToOpenTranscoding < 2000, QString("%1").arg(timeToOpenTranscoding).toUtf8());
-    QVERIFY2(duration < 700000, QString("%1").arg(duration).toUtf8());
-    qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    delete transcodeProcess;
-    transcodeProcess = 0;
+        QVERIFY2(timeToOpenTranscoding < 2000, QString("%1").arg(timeToOpenTranscoding).toUtf8());
+        QVERIFY2(duration < 700000, QString("%1").arg(duration).toUtf8());
+        qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
+    }
 }
 
