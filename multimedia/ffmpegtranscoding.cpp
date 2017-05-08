@@ -245,6 +245,15 @@ void FfmpegTranscoding::updateArguments()
             }
         }
     }
+    else if (format() == COPY)
+    {
+        // set container format to MPEGTS
+        arguments << "-f" << "mpegts";
+
+        arguments << "-c:a" << "copy";
+        arguments << "-c:v" << "copy";
+
+    }
     else
     {
         qCritical() << QString("Invalid format: %1").arg(format());
