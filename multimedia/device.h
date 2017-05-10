@@ -62,6 +62,7 @@ signals:
     void readyRead();
     void readyToOpen();
     void closed();
+    void abort();
 
 public slots:
     void startRequestData();

@@ -289,6 +289,7 @@ void ServiceContentDirectory::reply(HttpRequest *request)
                                 connect(streamContent, SIGNAL(errorRaised(QString)), request, SLOT(streamError(QString)));
                                 connect(streamContent, SIGNAL(endReached()), request, SLOT(streamingCompleted()));
                                 connect(streamContent, SIGNAL(closed()), request, SLOT(streamClosed()));
+                                connect(streamContent, SIGNAL(abort()), request, SLOT(close()));
 
                                 connect(request, SIGNAL(requestStreamingData(qint64)), streamContent, SLOT(requestData(qint64)));
                                 connect(streamContent, SIGNAL(sendDataToClientSignal(QByteArray)), request, SLOT(sendPartialData(QByteArray)));

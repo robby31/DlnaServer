@@ -9,7 +9,7 @@
 #include "device.h"
 
 // Format available for transcoding
-enum TranscodeFormatAvailable {UNKNOWN, MP3, LPCM, AAC, ALAC, WAV, MPEG2_AC3, H264_AAC, H264_AC3};
+enum TranscodeFormatAvailable {UNKNOWN, COPY, MP3, LPCM, AAC, ALAC, WAV, MPEG2_AC3, H264_AAC, H264_AC3};
 
 class TranscodeProcess : public Device
 {
@@ -19,8 +19,8 @@ public:
     explicit TranscodeProcess(QObject *parent = 0);
     virtual ~TranscodeProcess();
 
-    bool waitForFinished(int msecs = 30000) { return m_process->waitForFinished(msecs); }
-    int exitCode()  const { return m_process->exitCode(); }
+    bool waitForFinished(int msecs = 30000);
+    int exitCode()  const { return m_process.exitCode(); }
     bool isKilled() const { return killTranscodeProcess; }
 
     QString url() const { return m_url; }
@@ -53,7 +53,7 @@ public:
     QHash<QString, double> volumeInfo() const { return m_volumeInfo; }
 
     virtual bool atEnd() const Q_DECL_OVERRIDE;
-    virtual qint64 bytesAvailable() const Q_DECL_OVERRIDE  { return m_process->bytesAvailable(); }
+    virtual qint64 bytesAvailable() const Q_DECL_OVERRIDE  { return m_process.bytesAvailable(); }
     virtual qint64 pos() const  Q_DECL_OVERRIDE            { return m_pos; }    // position in bytes of read data
 
     virtual bool open() Q_DECL_OVERRIDE;
@@ -62,8 +62,8 @@ public:
     virtual bool isReadyToOpen() const Q_DECL_OVERRIDE;
 
 protected:
-    void setProgram(const QString &program)         { m_process->setProgram(program);        }
-    void setArguments(const QStringList &arguments) { m_process->setArguments(arguments);    }
+    void setProgram(const QString &program)         { m_process.setProgram(program);        }
+    void setArguments(const QStringList &arguments) { m_process.setArguments(arguments);    }
 
 private:
     virtual QByteArray read(qint64 maxlen) Q_DECL_OVERRIDE;
@@ -72,14 +72,15 @@ private:
     qint64 transcodedProgress() const;
 
 signals:
-    void openSignal(const QIODevice::OpenMode &open);
+    void openSignal();
 
 public slots:
     void setUrl(const QString &url);
+    void urlError(const QString &message);
     virtual void close() Q_DECL_OVERRIDE;
 
 private slots:
-    void _open(const QIODevice::OpenMode &open);
+    void _open();
     void processStarted();
     void dataAvailable();
     void errorTrancodedData(const QProcess::ProcessError &error);
@@ -95,7 +96,7 @@ private:
     // Carriage return and line feed.
     static const QString CRLF;
 
-    QProcess *m_process;
+    QProcess m_process;
     bool m_opened;
     QString m_url;
 

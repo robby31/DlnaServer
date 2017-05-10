@@ -28,6 +28,7 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
             // request from Youtube url for streaming
             DlnaYouTubeVideo *movie = new DlnaYouTubeVideo(host, port, transcodeProcess);
             connect(movie, SIGNAL(streamUrlDefined(QString)), transcodeProcess, SLOT(setUrl(QString)));
+            connect(movie, SIGNAL(videoUrlErrorSignal(QString)), transcodeProcess, SLOT(urlError(QString)));
             movie->setAnalyzeStream(false);
             movie->setNetworkAccessManager(m_nam);
             movie->setUrl(sysName);
