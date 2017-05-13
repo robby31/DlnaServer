@@ -1,7 +1,5 @@
 #include "transcodeprocess.h"
 
-const QString TranscodeProcess::CRLF = "\r\n";
-
 TranscodeProcess::TranscodeProcess(QObject *parent) :
     Device(parent),
     m_process(this),
@@ -59,7 +57,7 @@ void TranscodeProcess::_open()
 void TranscodeProcess::dataAvailable()
 {
     #if !defined(QT_NO_DEBUG_OUTPUT)
-    appendLog(QString("%1: received %2 bytes transcoding data."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
+    appendLog(QString("received %1 bytes transcoding data.").arg(bytesAvailable()));
     #endif
 
     if (!m_opened && bytesAvailable() > 0)
@@ -144,7 +142,7 @@ void TranscodeProcess::errorTrancodedData(const QProcess::ProcessError &error)
     if (killTranscodeProcess == false)
     {
         // an error occured
-        appendLog(QString("%2: ERROR Transcoding at %4% : error n°%3 - %1."+CRLF).arg(m_process.errorString()).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(error).arg(transcodedProgress()));
+        appendLog(QString("ERROR Transcoding at %3% : error n°%2 - %1.").arg(m_process.errorString()).arg(error).arg(transcodedProgress()));
         emit errorRaised(m_process.errorString());
     }
 }
@@ -152,10 +150,10 @@ void TranscodeProcess::errorTrancodedData(const QProcess::ProcessError &error)
 void TranscodeProcess::finishedTranscodeData(const int &exitCode, const QProcess::ExitStatus &exitStatus)
 {
     if (exitStatus == QProcess::NormalExit)
-        appendLog(QString("%2: TRANSCODING FINISHED with exitCode %1."+CRLF).arg(exitCode).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        appendLog(QString("TRANSCODING FINISHED with exitCode %1.").arg(exitCode));
     else
-        appendLog(QString("%1: TRANSCODING CRASHED."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
-    appendLog(QString("%2: %3% TRANSCODING DONE in %1 seconds."+CRLF).arg(QTime(0, 0).addMSecs(transcodeClock.elapsed()).toString("hh:mm:ss")).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(transcodedProgress()));
+        appendLog(QString("TRANSCODING CRASHED."));
+    appendLog(QString("%2% TRANSCODING DONE in %1 seconds.").arg(QTime(0, 0).addMSecs(transcodeClock.elapsed()).toString("hh:mm:ss")).arg(transcodedProgress()));
 
     if (!m_opened && bytesAvailable() > 0)
     {
@@ -170,7 +168,7 @@ void TranscodeProcess::finishedTranscodeData(const int &exitCode, const QProcess
         emit endReached();
 
     #if !defined(QT_NO_DEBUG_OUTPUT)
-    appendLog(QString("%1: finished transcoding, %2 remaining bytes."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
+    appendLog(QString("finished transcoding, %1 remaining bytes.").arg(bytesAvailable()));
     #endif
 
     if (isKilled() == false)
@@ -196,7 +194,7 @@ void TranscodeProcess::processStarted()
 {
     qDebug() << QString("Transcoding process %1 %2").arg(m_process.program()).arg(m_process.arguments().join(' '));
     appendLog(m_process.program()+' ');
-    appendLog(m_process.arguments().join(' ')+CRLF);
+    appendLog(m_process.arguments().join(' '));
 
     transcodeClock.start();
 }
@@ -204,7 +202,7 @@ void TranscodeProcess::processStarted()
 void TranscodeProcess::killProcess()
 {
     if (m_process.state() != QProcess::NotRunning) {
-        appendLog(QString("%1: KILL transcoding process."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        appendLog(QString("KILL transcoding process."));
         killTranscodeProcess = true;
         m_process.kill();
     }
@@ -217,7 +215,7 @@ void TranscodeProcess::pause()
     {
         qDebug() << QString("Pause transcoding (pid: %1)").arg(pid);
         #if !defined(QT_NO_DEBUG_OUTPUT)
-        appendLog(QString("%1: PAUSE TRANSCODING"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        appendLog(QString("PAUSE TRANSCODING"));
         #endif
 
         if (QProcess::startDetached(QString("kill -STOP %1").arg(pid)))
@@ -243,7 +241,7 @@ void TranscodeProcess::resume()
     {
         qDebug() << QString("Restart transcoding (pid: %1)").arg(pid);
         #if !defined(QT_NO_DEBUG_OUTPUT)
-        appendLog(QString("%1: RESUME TRANSCODING"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")));
+        appendLog(QString("RESUME TRANSCODING"));
         #endif
 
         if (QProcess::startDetached(QString("kill -CONT %1").arg(pid)))

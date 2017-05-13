@@ -93,9 +93,6 @@ private slots:
 
 
 private:
-    // Carriage return and line feed.
-    static const QString CRLF;
-
     QProcess m_process;
     bool m_opened;
     QString m_url;
