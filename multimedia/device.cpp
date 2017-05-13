@@ -119,13 +119,13 @@ void Device::setDurationBuffer(int duration)
 
 void Device::deviceOpened()
 {
-    appendLog(QString("%1: device opened, %3 bytes to send, %2 bytes available."+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()).arg(size()));
+    appendLog(QString("device opened, %2 bytes to send, %1 bytes available.").arg(bytesAvailable()).arg(size()));
     isopenedCondition.wakeAll();
 }
 
 void Device::startRequestData()
 {
-    appendLog(QString("%1: START REQUEST DATA : %2 bytes available"+CRLF).arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz")).arg(bytesAvailable()));
+    appendLog(QString("START REQUEST DATA : %1 bytes available").arg(bytesAvailable()));
 
     requestDataStarted = true;
     emit status("Streaming");
