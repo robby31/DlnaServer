@@ -284,6 +284,7 @@ void ServiceContentDirectory::reply(HttpRequest *request)
                                 connect(streamContent, SIGNAL(readyToOpen()), this, SLOT(streamReadyToOpen()), Qt::UniqueConnection);
                                 connect(streamContent, SIGNAL(openedSignal()), request, SLOT(streamOpened()));
                                 connect(streamContent, SIGNAL(openedSignal()), streamContent, SLOT(startRequestData()), Qt::UniqueConnection);
+                                connect(streamContent, SIGNAL(readyRead()), request, SLOT(streamDataAvailable()));
                                 connect(streamContent, SIGNAL(status(QString)), request, SLOT(streamingStatus(QString)));
                                 connect(streamContent, SIGNAL(LogMessage(QString)), request, SLOT(logMessage(QString)));
                                 connect(streamContent, SIGNAL(errorRaised(QString)), request, SLOT(streamError(QString)));
