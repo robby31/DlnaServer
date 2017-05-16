@@ -7,7 +7,6 @@ int main(int argc, char** argv)
     database.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     database.setConnectOptions("Pooling=True;Max Pool Size=100;");
 
-    qmlRegisterType<RequestListModel>("myTypes", 1, 0, "RequestListModel");
     qmlRegisterType<MediaRendererModel>("myTypes", 1, 0, "MediaRendererModel");
 
     MyApplication app(argc, argv);

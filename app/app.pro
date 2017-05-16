@@ -5,9 +5,8 @@ TEMPLATE = app
 
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
-include (../network/network.pri)
+include (../dlna/dlna.pri)
 include (../../QmlApplication/QmlApplication.prf)
-include (../../Upnp/UpnpLibrary/UpnpLibrary.prf)
 
 HEADERS += \
     myapplication.h \

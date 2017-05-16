@@ -35,7 +35,7 @@ MyApplication::MyApplication(int &argc, char **argv):
 
     setRenderersModel(new MediaRendererModel(this));
 
-    setRequestsModel(new RequestListModel(this));
+    setRequestsModel(new ListModel(new HttpRequest, this));
 
     m_debugModel = new ListModel(new DebugItem, this);
 
@@ -162,7 +162,7 @@ void MyApplication::setRenderersModel(MediaRendererModel *model)
     emit renderersModelChanged();
 }
 
-void MyApplication::setRequestsModel(RequestListModel *model)
+void MyApplication::setRequestsModel(ListModel *model)
 {
     if (m_requestsModel)
         m_requestsModel->deleteLater();
