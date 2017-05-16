@@ -19,8 +19,7 @@ TEMPLATE = app
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 DEFINES += PROFILING
 
-include (../common/common.pri)
-include (../network/network.pri)
+include (../dlna/dlna.pri)
 include (../../QmlApplication/QmlApplication.prf)
 
 SOURCES += \

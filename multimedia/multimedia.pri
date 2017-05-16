@@ -1,6 +1,9 @@
 INCLUDEPATH += $$PWD
 DEPENDPATH += $$PWD
 
+QT += multimedia
+
+include (../../Upnp/UpnpLibrary/UpnpLibrary.prf)
 include (../../qffmpeg/qffmpeg.pri)
 #include (../../chromaprint_v11/acoustid/acoustid.pri)
 
