@@ -63,6 +63,8 @@ Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 time
         qDebug() << "stream in cache" << m_stream << m_stream->isOpen();
         if (!m_stream->isOpen())
         {
+            if (range)
+                m_stream->setRange(range);
             m_stream->setTimeSeek(timeseek_start, timeseek_end);
             return m_stream;
         }
