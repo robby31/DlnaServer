@@ -137,19 +137,26 @@ void Device::requestData(qint64 maxlen)
 {
     if (requestDataStarted)
     {
-        if (!atEnd() && bytesAvailable() > 0)
+        if (maxlen <= 0)
         {
-            // read the stream
-            QByteArray bytesToSend = read(maxlen);
-            if (!bytesToSend.isEmpty())
-                emit sendDataToClientSignal(bytesToSend);
-
-            if (atEnd())
-                emit endReached();
+            qCritical() << "invalid requested data length" << maxlen;
         }
         else
         {
-            qDebug() << QString("%1: sendDataToClient no data available").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
+            if (!atEnd() && bytesAvailable() > 0)
+            {
+                // read the stream
+                QByteArray bytesToSend = read(maxlen);
+                if (!bytesToSend.isEmpty())
+                    emit sendDataToClientSignal(bytesToSend);
+
+                if (atEnd())
+                    emit endReached();
+            }
+            else
+            {
+                qDebug() << QString("%1: sendDataToClient no data available").arg(QDateTime::currentDateTime().toString("dd MMM yyyy hh:mm:ss,zzz"));
+            }
         }
     }
 }
