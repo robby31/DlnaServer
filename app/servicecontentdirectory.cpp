@@ -257,7 +257,7 @@ void ServiceContentDirectory::reply(HttpRequest *request)
                                 request->setClockSending(timeSeekRangeStart*1000);
                             }
 
-                            Device *streamContent = dlna->getStream(range, timeSeekRangeStart, timeSeekRangeEnd);
+                            Device *streamContent = dlna->getStream();
 
                             QTcpSocket *socket = request->tcpSocket();
 
@@ -274,6 +274,11 @@ void ServiceContentDirectory::reply(HttpRequest *request)
                             }
                             else
                             {
+                                if (range && !range->isNull())
+                                    streamContent->setRange(range->getStartByte(), range->getEndByte());
+                                else
+                                    streamContent->setTimeSeek(timeSeekRangeStart, timeSeekRangeEnd);
+
                                 connect(socket, SIGNAL(disconnected()), streamContent, SLOT(close()));
 
                                 if (dlna->bitrate()>0)

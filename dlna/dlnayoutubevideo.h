@@ -7,7 +7,7 @@
 #include "dlnavideoitem.h"
 #include "youtube.h"
 #include "ffmpegtranscoding.h"
-#include "qffmpegprocess.h"
+#include "qffmpeg.h"
 
 class DlnaYouTubeVideo : public DlnaVideoItem
 {
@@ -98,7 +98,7 @@ private:
     QString m_title;
     QString m_streamUrl;
 
-    QFfmpegProcess ffmpeg;
+    QFfmpeg ffmpeg;
 
     YouTube *m_youtube;
     QMutex mutex;

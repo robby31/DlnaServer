@@ -26,7 +26,7 @@ MyApplication::MyApplication(int &argc, char **argv):
 //    connect(backendThread(), SIGNAL(finished()), dbBackend, SLOT(deleteLater()));
 //    dbBackend->run();
 
-    QFfmpegProcess::setDirPath("/opt/local/bin");
+    QFfmpeg::setDirPath("/opt/local/bin");
     FfmpegTranscoding::setDirPath("/opt/local/bin");
 
     addController("homePageController", &m_controller);

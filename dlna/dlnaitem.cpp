@@ -56,16 +56,13 @@ void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
     }
 }
 
-Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 timeseek_end)
+Device *DlnaItem::getStream()
 {
     if (m_stream)
     {
         qDebug() << "stream in cache" << m_stream << m_stream->isOpen();
         if (!m_stream->isOpen())
         {
-            if (range)
-                m_stream->setRange(range);
-            m_stream->setTimeSeek(timeseek_start, timeseek_end);
             return m_stream;
         }
     }
@@ -77,9 +74,6 @@ Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 time
 
         if (process)
         {
-            if (range)
-                process->setRange(range);
-            process->setTimeSeek(timeseek_start, timeseek_end);
             process->setBitrate(bitrate());
             process->setSize(size());
         }
@@ -91,9 +85,6 @@ Device *DlnaItem::getStream(HttpRange *range, qint64 timeseek_start, qint64 time
     else
     {
         Device* tmp = getOriginalStreaming();
-        if (range)
-            tmp->setRange(range);
-        tmp->setTimeSeek(timeseek_start, timeseek_end);
 
         setStream(tmp);
 

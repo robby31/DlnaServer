@@ -4,7 +4,7 @@
 #include <QFileInfo>
 
 #include "dlnamusictrack.h"
-#include "qffmpegprocess.h"
+#include "qffmpeg.h"
 
 class DlnaMusicTrackFile : public DlnaMusicTrack
 {
@@ -57,7 +57,7 @@ public:
 private:
     QFileInfo fileinfo;
     QMimeType mime_type;
-    QFfmpegProcess ffmpeg;
+    QFfmpeg ffmpeg;
 
 public:
     static qint64 objectCounter;
