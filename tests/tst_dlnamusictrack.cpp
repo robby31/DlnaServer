@@ -6,7 +6,7 @@ tst_dlnamusictrack::tst_dlnamusictrack(QObject *parent) :
     transcodeTimer(),
     timeToOpenTranscoding(0)
 {
-    QFfmpegProcess::setDirPath("/opt/local/bin");
+    QFfmpeg::setDirPath("/opt/local/bin");
     FfmpegTranscoding::setDirPath("/opt/local/bin");
 }
 
@@ -141,7 +141,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-"));
         range->setSize(track.size());
-        stream = track.getStream(range.data());
+        stream = track.getStream();
+        stream->setRange(range->getStartByte(), range->getEndByte());
         QVERIFY(stream != 0);
         transcodeTimer.start();
         timeToOpenTranscoding = 0;
@@ -173,7 +174,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-5000"));
         range->setSize(track.size());
-        stream = track.getStream(range.data());
+        stream = track.getStream();
+        stream->setRange(range->getStartByte(), range->getEndByte());
         QVERIFY(stream != 0);
         transcodeTimer.start();
         timeToOpenTranscoding = 0;
@@ -205,7 +207,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
     {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=1000-5000"));
         range->setSize(track.size());
-        stream = track.getStream(range.data());
+        stream = track.getStream();
+        stream->setRange(range->getStartByte(), range->getEndByte());
         QVERIFY(stream != 0);
         transcodeTimer.start();
         timeToOpenTranscoding = 0;
@@ -229,7 +232,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
         qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
         QVERIFY(transcodeProcess->bytesAvailable() == 0);
         QVERIFY2(transcodedBytes == 4001, QString("%1").arg(transcodedBytes).toUtf8().constData());
-        QVERIFY(transcodeProcess->pos() == 5001);
+        QCOMPARE(transcodeProcess->pos(), 4001);
         QVERIFY(transcodeProcess->atEnd() == true);
         QVERIFY(track.size() > transcodedBytes);
     }
@@ -497,8 +500,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_WAV() {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-"));
         range->setSize(track.size());
         transcodedBytes = 0;
-        Device *device = track.getStream(range.data());
+        Device *device = track.getStream();
         QVERIFY(device != 0);
+        device->setRange(range->getStartByte(), range->getEndByte());
         transcodeTimer.start();
         timeToOpenTranscoding = 0;
 
@@ -508,7 +512,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_WAV() {
         connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
         connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
         QVERIFY(transcodeProcess != 0);
-        QVERIFY(transcodeProcess->atEnd() == false);
+        QVERIFY(transcodeProcess->atEnd() == true);
         QVERIFY(transcodeProcess->open() == true);
         emit startTranscoding();
         QVERIFY(transcodeProcess->waitForFinished(-1) == true);
@@ -611,8 +615,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-"));
         range->setSize(track.size());
         transcodedBytes = 0;
-        Device *device = track.getStream(range.data());
+        Device *device = track.getStream();
         QVERIFY(device != 0);
+        device->setRange(range->getStartByte(), range->getEndByte());
         transcodeTimer.start();
         timeToOpenTranscoding = 0;
 
@@ -622,7 +627,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3() {
         connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
         connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
         QVERIFY(transcodeProcess != 0);
-        QVERIFY(transcodeProcess->atEnd() == false);
+        QVERIFY(transcodeProcess->atEnd() == true);
         QVERIFY(transcodeProcess->open() == true);
         emit startTranscoding();
         QVERIFY(transcodeProcess->waitForFinished(-1) == true);
@@ -718,7 +723,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
 
     // Test getStream and getTranscodeProcess
-    Device *device = track.getStream(0);
+    Device *device = track.getStream();
     QVERIFY(device != 0);
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
@@ -727,7 +732,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     {
         QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
         QVERIFY(transcodeProcess != 0);
-        QVERIFY(transcodeProcess->atEnd()==false);
+        QVERIFY(transcodeProcess->atEnd()==true);
         transcodedBytes = 0;
         connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
         connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
@@ -750,8 +755,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-"));
         range->setSize(track.size());
-        device = track.getStream(range.data());
+        Device *stream = track.getStream();
         QVERIFY(device != 0);
+        stream->setRange(range->getStartByte(), range->getEndByte());
         transcodeTimer.start();
         timeToOpenTranscoding = 0;
         QVERIFY(device->open() == true);
@@ -776,8 +782,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-0"));
         range->setSize(track.size());
-        device = track.getStream(range.data());
+        Device *stream = track.getStream();
         QVERIFY(device != 0);
+        stream->setRange(range->getStartByte(), range->getEndByte());
         transcodeTimer.start();
         timeToOpenTranscoding = 0;
         QVERIFY(device->open() == true);
@@ -802,8 +809,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=11786000-"));
         range->setSize(track.size());
-        device = track.getStream(range.data());
+        device = track.getStream();
         QVERIFY(device != 0);
+        device->setRange(range->getStartByte(), range->getEndByte());
         transcodeTimer.start();
         timeToOpenTranscoding = 0;
         QVERIFY(device->open() == true);
@@ -828,8 +836,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=21886280-"));
         range->setSize(track.size());
-        device = track.getStream(range.data());
+        device = track.getStream();
         QVERIFY(device != 0);
+        device->setRange(range->getStartByte(), range->getEndByte());
 
         QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
         QVERIFY(transcodeProcess != 0);
@@ -852,8 +861,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3() {
     {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=14-1000"));
         range->setSize(track.size());
-        device = track.getStream(range.data());
+        device = track.getStream();
         QVERIFY(device != 0);
+        device->setRange(range->getStartByte(), range->getEndByte());
         transcodeTimer.start();
         timeToOpenTranscoding = 0;
         QVERIFY(device->open() == true);
@@ -958,7 +968,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/L16:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
 
     // Test getStream and getTranscodeProcess
-    Device *device = track.getStream(0);
+    Device *device = track.getStream();
     QVERIFY(device != 0);
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
@@ -968,7 +978,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
         QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
         QVERIFY(transcodeProcess != 0);
         transcodedBytes = 0;
-        QVERIFY(transcodeProcess->atEnd()==false);
+        QVERIFY(transcodeProcess->atEnd()==true);
         connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
         connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
         connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
@@ -990,8 +1000,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-"));
         range->setSize(track.size());
-        device = track.getStream(range.data());
+        device = track.getStream();
         QVERIFY(device != 0);
+        device->setRange(range->getStartByte(), range->getEndByte());
         transcodeTimer.start();
         timeToOpenTranscoding = 0;
         QVERIFY(device->open() == true);
@@ -999,7 +1010,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
         QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
         QVERIFY(transcodeProcess != 0);
         transcodedBytes = 0;
-        QVERIFY(transcodeProcess->atEnd()==false);
+        QVERIFY(transcodeProcess->atEnd()==true);
         connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
         connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
         connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
@@ -1016,8 +1027,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=0-0"));
         range->setSize(track.size());
-        device = track.getStream(range.data());
+        device = track.getStream();
         QVERIFY(device != 0);
+        device->setRange(range->getStartByte(), range->getEndByte());
         transcodeTimer.start();
         timeToOpenTranscoding = 0;
         QVERIFY(device->open() == true);
@@ -1025,7 +1037,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
         QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
         QVERIFY(transcodeProcess != 0);
         transcodedBytes = 0;
-        QVERIFY(transcodeProcess->atEnd()==false);
+        QVERIFY(transcodeProcess->atEnd()==true);
         connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
         connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
         connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
@@ -1042,8 +1054,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=11786000-"));
         range->setSize(track.size());
-        device = track.getStream(range.data());
+        device = track.getStream();
         QVERIFY(device != 0);
+        device->setRange(range->getStartByte(), range->getEndByte());
         transcodeTimer.start();
         timeToOpenTranscoding = 0;
         QVERIFY(device->open() == true);
@@ -1068,8 +1081,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=105568500-"));
         range->setSize(track.size());
-        device = track.getStream(range.data());
+        device = track.getStream();
         QVERIFY(device != 0);
+        device->setRange(range->getStartByte(), range->getEndByte());
         transcodeTimer.start();
         timeToOpenTranscoding = 0;
         QVERIFY(device->open() == true);
@@ -1094,8 +1108,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM() {
     {
         QScopedPointer<HttpRange>range(new HttpRange("RANGE: BYTES=14-1000"));
         range->setSize(track.size());
-        device = track.getStream(range.data());
+        device = track.getStream();
         QVERIFY(device != 0);
+        device->setRange(range->getStartByte(), range->getEndByte());
         transcodeTimer.start();
         timeToOpenTranscoding = 0;
         QVERIFY(device->open() == true);
@@ -1199,7 +1214,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO_320;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
 
     // Test getStream
-    Device *device = track.getStream(0);
+    Device *device = track.getStream();
     QVERIFY(device != 0);
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
@@ -1209,7 +1224,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
         QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
         QVERIFY(transcodeProcess != 0);
         transcodedBytes = 0;
-        QVERIFY(transcodeProcess->atEnd()==false);
+        QVERIFY(transcodeProcess->atEnd()==true);
         connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
         connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
         connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
@@ -1220,7 +1235,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
         QVERIFY2(timeToOpenTranscoding < 100, QString("%1").arg(timeToOpenTranscoding).toUtf8());
         QVERIFY2(duration < 20000, QString("%1").arg(duration).toUtf8());
         qWarning() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-        QVERIFY(transcodeProcess->exitCode() == 0);
+        QCOMPARE(transcodeProcess->exitCode(), 0);
         transcodeProcess->requestData(transcodeProcess->bytesAvailable());
         QVERIFY(transcodeProcess->bytesAvailable() == 0);
         QVERIFY2(transcodedBytes == 21992468, QString("%1").arg(transcodedBytes).toUtf8());
@@ -1309,7 +1324,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO_320;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
 
     // Test getStream
-    Device *device = track.getStream(0);
+    Device *device = track.getStream();
     QVERIFY(device != 0);
     transcodeTimer.start();
     timeToOpenTranscoding = 0;
@@ -1319,7 +1334,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
         QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
         QVERIFY(transcodeProcess != 0);
         transcodedBytes = 0;
-        QVERIFY(transcodeProcess->atEnd()==false);
+        QVERIFY(transcodeProcess->atEnd()==true);
         connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
         connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
         connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));

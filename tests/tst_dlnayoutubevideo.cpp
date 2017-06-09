@@ -7,7 +7,7 @@ tst_dlnayoutubevideo::tst_dlnayoutubevideo(QObject *parent) :
     db(CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE")),
     manager(0)
 {
-    QFfmpegProcess::setDirPath("/opt/local/bin");
+    QFfmpeg::setDirPath("/opt/local/bin");
     FfmpegTranscoding::setDirPath("/opt/local/bin");
 
     backend = new QThread();
@@ -200,7 +200,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG2()
     qWarning() << "test done in" << timer.elapsed() << "ms.";
 
     // test transcoding
-    Device *device = video->getStream(0, 0, -1);
+    Device *device = video->getStream();
     QVERIFY(device != 0);
 
     QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
@@ -278,7 +278,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG4()
     qWarning() << "test done in" << timer.elapsed() << "ms.";
 
     // test transcoding
-    Device *device = video->getStream(0, 0, -1);
+    Device *device = video->getStream();
     QVERIFY(device != 0);
 
     QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));

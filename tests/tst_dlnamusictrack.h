@@ -6,6 +6,7 @@
 
 #include "dlnamusictrackfile.h"
 #include <QElapsedTimer>
+#include "Http/httprange.h"
 
 class tst_dlnamusictrack : public QObject
 {

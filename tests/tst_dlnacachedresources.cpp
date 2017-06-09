@@ -6,7 +6,7 @@ tst_dlnacachedresources::tst_dlnacachedresources(QObject *parent) :
     db(CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE")),
     folderKO()
 {
-    QFfmpegProcess::setDirPath("/opt/local/bin");
+    QFfmpeg::setDirPath("/opt/local/bin");
     FfmpegTranscoding::setDirPath("/opt/local/bin");
 
     db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
@@ -33,7 +33,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 15367, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 15378, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -61,7 +61,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1628, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 1639, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -334,8 +334,9 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     {
         QScopedPointer<HttpRange> range(new HttpRange("RANGE: BYTES=0-"));
         range->setSize(track->size());
-        Device *device = track->getStream(range.data());
+        Device *device = track->getStream();
         QVERIFY(device != 0);
+        device->setRange(range->getStartByte(), range->getEndByte());
 
         QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
         QVERIFY(transcodeProcess != 0);
@@ -451,8 +452,9 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     QVERIFY2(movie->framerate() == "23.976", movie->framerate().toUtf8());
 
     // test partial transcoding (10 seconds)
-    Device *device = movie->getStream(0, 0, 10);
+    Device *device = movie->getStream();
     QVERIFY(device != 0);
+    device->setTimeSeek(-1, 10);
 
     {
         QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));

@@ -7,6 +7,7 @@
 #include "mysqldatabase.h"
 #include "cached/dlnacachedrootfolder.h"
 #include "cached/dlnacachedfolder.h"
+#include "Http/httprange.h"
 
 class tst_dlnacachedresources: public QObject
 {

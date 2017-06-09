@@ -6,7 +6,7 @@ tst_dlnavideoitem::tst_dlnavideoitem(QObject *parent) :
     transcodeTimer(),
     timeToOpenTranscoding(0)
 {
-    QFfmpegProcess::setDirPath("/opt/local/bin");
+    QFfmpeg::setDirPath("/opt/local/bin");
     FfmpegTranscoding::setDirPath("/opt/local/bin");
 }
 
@@ -58,7 +58,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     QVERIFY2(result["mean_volume"] == -20.7, QString("%1").arg(result["mean_volume"]).toUtf8());
     QVERIFY2(result["max_volume"] == -0.3, QString("%1").arg(result["max_volume"]).toUtf8());
 
-    Device *device = movie.getStream(0, 0, -1);
+    Device *device = movie.getStream();
     QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
     QVERIFY(transcodeProcess != 0);
 
@@ -113,7 +113,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     QVERIFY2(result["mean_volume"] == -20.7, QString("%1").arg(result["mean_volume"]).toUtf8());
     QVERIFY2(result["max_volume"] == -0.3, QString("%1").arg(result["max_volume"]).toUtf8());
 
-    Device *device = movie.getStream(0, 0, -1);
+    Device *device = movie.getStream();
     QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
     QVERIFY(transcodeProcess != 0);
 
@@ -170,7 +170,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
     QVERIFY2(result["mean_volume"] == -33.9, QString("%1").arg(result["mean_volume"]).toUtf8());
     QVERIFY2(result["max_volume"] == -0.9, QString("%1").arg(result["max_volume"]).toUtf8());
 
-    Device *device = movie.getStream(0, 0, -1);
+    Device *device = movie.getStream();
     QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
     QVERIFY(transcodeProcess != 0);
 
@@ -269,8 +269,9 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
     QVERIFY2(movie.framerate() == "23.976", movie.framerate().toUtf8());
 
     // test partial transcoding (10 seconds)
-    Device *device = movie.getStream(0, 0, 10);
+    Device *device = movie.getStream();
     QVERIFY(device != 0);
+    device->setTimeSeek(-1, 10);
 
     {
         QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
@@ -301,7 +302,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
     }
 
     // test full transcoding
-    device = movie.getStream(0, 0, -1);
+    device = movie.getStream();
     QVERIFY(device != 0);
 
     {
