@@ -296,7 +296,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:03:09", xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "40000");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "7561158");
+    QCOMPARE(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue(), QString("7561480"));
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "44100");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "2");
 
@@ -304,7 +304,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
 
     QVERIFY(track->mimeType() == "audio/mpeg");
     QVERIFY2(track->metaDataFormat() == "aac", track->metaDataFormat().toUtf8());
-    QVERIFY(track->size() == 7561158);
+    QVERIFY(track->size() == 7561480);
     QVERIFY(track->bitrate() == 320000);
     QVERIFY(track->getLengthInSeconds() == 189);
     QVERIFY(track->getLengthInMilliSeconds() == 188987);
@@ -332,11 +332,8 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
 
     {
-        QScopedPointer<HttpRange> range(new HttpRange("RANGE: BYTES=0-"));
-        range->setSize(track->size());
         Device *device = track->getStream();
         QVERIFY(device != 0);
-        device->setRange(range->getStartByte(), range->getEndByte());
 
         QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
         QVERIFY(transcodeProcess != 0);
@@ -351,7 +348,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
         QVERIFY(transcodeProcess->exitCode() == 0);
         transcodeProcess->requestData(transcodeProcess->bytesAvailable());
         QVERIFY(transcodeProcess->bytesAvailable() == 0);
-        QVERIFY2(transcodedSize == 7560469, QString("%1").arg(transcodedSize).toUtf8().constData());
+        QVERIFY2(transcodedSize == 7558836, QString("%1").arg(transcodedSize).toUtf8().constData());
         QVERIFY(track->size() > transcodedSize);
     }
 }
