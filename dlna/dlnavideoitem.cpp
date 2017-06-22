@@ -21,7 +21,7 @@ DlnaVideoItem::DlnaVideoItem(QString host, int port, QObject *parent):
 *
 * Reference: http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v1-Service.pdf
 */
-QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList properties) const {
+QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList properties) {
     if (!xml)
         return QDomElement();
 

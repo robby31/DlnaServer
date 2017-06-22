@@ -14,7 +14,7 @@ public:
     virtual QString getUpnpClass() const { return QString("object.item.videoItem"); }
 
     // Returns the XML (DIDL) representation of the DLNA node.
-    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) const;
+    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
 
     // Returns the mimeType for this DLNA node.
     virtual QString mimeType() const;

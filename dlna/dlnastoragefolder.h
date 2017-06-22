@@ -16,7 +16,7 @@ public:
     virtual bool isFolder() const { return true; }
 
     // Returns the XML (DIDL) representation of the DLNA node.
-    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) const;
+    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties);
 
     // Returns album art in jpeg format
     virtual QImage getAlbumArt() const { return QImage(); }

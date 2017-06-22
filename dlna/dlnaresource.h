@@ -47,9 +47,9 @@ public:
     virtual bool isFolder() const = 0;
 
     // Returns the XML (DIDL) representation of the DLNA node.
-    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) const = 0;
+    virtual QDomElement getXmlContentDirectory(QDomDocument *xml, QStringList properties) = 0;
     virtual void updateXmlContentDirectory(QDomDocument *xml, QDomElement* xml_obj, QStringList properties) const;
-    QString getStringContentDirectory(QStringList properties) const;
+    QString getStringContentDirectory(QStringList properties);
 
     // ressource shall be refreshed
     void needRefresh() { m_needRefresh = true; }

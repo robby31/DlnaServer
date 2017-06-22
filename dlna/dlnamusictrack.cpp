@@ -57,7 +57,7 @@ int DlnaMusicTrack::bitrate() const {
 *
 * Reference: http://www.upnp.org/specs/av/UPnP-av-ContentDirectory-v1-Service.pdf
 */
-QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringList properties) const {
+QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringList properties)  {
     if (!xml)
         return QDomElement();
 
@@ -193,10 +193,10 @@ FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess()
 {
     FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
     transcodeProcess->setUrl(getSystemName());
-    transcodeProcess->setLengthInSeconds(getLengthInSeconds());
+    transcodeProcess->setLengthInMSeconds(metaDataDuration());
     transcodeProcess->setFormat(transcodeFormat);
     transcodeProcess->setBitrate(bitrate());
-    transcodeProcess->setVolumeInfo(volumeInfo());
+//    transcodeProcess->setVolumeInfo(volumeInfo());
 
     return transcodeProcess;
 }

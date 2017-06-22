@@ -162,7 +162,7 @@ TranscodeProcess *DlnaYouTubeVideo::getTranscodeProcess()
 {
     FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
 
-    transcodeProcess->setLengthInSeconds(getLengthInSeconds());
+    transcodeProcess->setLengthInMSeconds(metaDataDuration());
     transcodeProcess->setFormat(transcodeFormat);
     transcodeProcess->setBitrate(bitrate());
     transcodeProcess->setAudioLanguages(audioLanguages());

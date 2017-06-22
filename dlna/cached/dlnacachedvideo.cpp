@@ -11,7 +11,7 @@ TranscodeProcess *DlnaCachedVideo::getTranscodeProcess()
 {
     FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
     transcodeProcess->setUrl(getSystemName());
-    transcodeProcess->setLengthInSeconds(getLengthInSeconds());
+    transcodeProcess->setLengthInMSeconds(metaDataDuration());
     transcodeProcess->setFormat(transcodeFormat);
     transcodeProcess->setBitrate(bitrate());
     transcodeProcess->setAudioLanguages(audioLanguages());
@@ -19,7 +19,7 @@ TranscodeProcess *DlnaCachedVideo::getTranscodeProcess()
     transcodeProcess->setFrameRate(framerate());
     transcodeProcess->setAudioChannelCount(channelCount());
     transcodeProcess->setAudioSampleRate(samplerate());
-    transcodeProcess->setVolumeInfo(volumeInfo());
+//    transcodeProcess->setVolumeInfo(volumeInfo());
 
     return transcodeProcess;
 }
