@@ -1,5 +1,5 @@
-import QtQuick 2.4
-import QtQuick.Controls 1.3
+import QtQuick 2.5
+import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 import QtQuick.Controls.Styles 1.1
 import MyComponents 1.0
@@ -37,24 +37,6 @@ Page {
             name: "Quit"
             description: "exit application"
             icon: "qrc:///images/exit.png"
-        }
-    }
-
-    Component {
-        id: backgroundTextSelected
-        Rectangle {
-            radius: 2
-            implicitWidth: 100
-            implicitHeight: 24
-            border.color: "#333"
-            border.width: 1
-        }
-    }
-
-    Component {
-        id: backgroundText
-        Item  {
-
         }
     }
 
@@ -136,10 +118,15 @@ Page {
                     anchors.verticalCenter: parent.verticalCenter
                     clip: true
                     readOnly: !delegate.ListView.isCurrentItem
-                    style: TextFieldStyle {
-                              textColor: "black"
-                              background: delegate.ListView.isCurrentItem ? backgroundTextSelected : backgroundText
-                          }
+
+                    background: Rectangle {
+                        radius: 2
+                        implicitWidth: 100
+                        implicitHeight: 24
+                        border.color: "#333"
+                        border.width: 1
+                        visible: delegate.ListView.isCurrentItem
+                    }
 
                     onAccepted: _app.updateFilenameMedia(id, text)
                 }
@@ -179,18 +166,16 @@ Page {
         query: "SELECT id, filename, title from media where is_reachable=0"
     }
 
-    ScrollView
-    {
+    ListView {
+        id: listView
         anchors.fill: parent
+        anchors.margins: 5
+        clip: true
 
-        ListView {
-            id: listView
-            anchors.fill: parent
-            anchors.margins: 5
-            clip: true
-            model: mediaModel
-            delegate: mediaDelegate
-            antialiasing: true
-        }
+        ScrollBar.vertical: ScrollBar { }
+
+        model: mediaModel
+        delegate: mediaDelegate
+        antialiasing: true
     }
 }

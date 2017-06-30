@@ -1,5 +1,5 @@
-import QtQuick 2.3
-import QtQuick.Controls 1.2
+import QtQuick 2.5
+import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 import QtQuick.Dialogs 1.2
 import MyComponents 1.0
@@ -131,21 +131,19 @@ Page {
             }
         }
 
-        ScrollView {
+        ListView {
+            id: view
             Layout.fillHeight: true
             Layout.fillWidth: true
-
-            ListView {
-            id: view
-            anchors.fill: parent
             clip: true
+
+            ScrollBar.vertical: ScrollBar { }
+
             model: _app.sharedFolderModel
             delegate: folderDelegate
             preferredHighlightEnd: 150
             preferredHighlightBegin: 50
-            }
         }
-
     }
 
     Component {
@@ -248,19 +246,19 @@ Page {
             }
         }
 
-        ScrollView {
+        ListView {
+            id: checklinklistview
             Layout.fillHeight: true
             Layout.fillWidth: true
+            clip: true
 
-            ListView {
-                id: checklinklistview
-                anchors.fill: parent
-                clip: true
-                model: _app.checkNetworkLinkModel
-                delegate: checklinkDelegate
-                preferredHighlightEnd: 150
-                preferredHighlightBegin: 50
-            }
+            ScrollBar.vertical: ScrollBar { }
+
+            model: _app.checkNetworkLinkModel
+            delegate: checklinkDelegate
+            preferredHighlightEnd: 150
+            preferredHighlightBegin: 50
+
         }
     }
 

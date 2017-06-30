@@ -1,5 +1,5 @@
-import QtQuick 2.3
-import QtQuick.Controls 1.2
+import QtQuick 2.5
+import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 import MyComponents 1.0
 
@@ -28,16 +28,14 @@ Page {
         }
     }
 
-    ScrollView {
+    ListView {
+        id: listview
         anchors.fill: parent
+        clip: true
 
-        ListView {
-            id: listview
+        model: _app.renderersModel
+        delegate: MediaRendererDelegate { }
 
-            clip: true
-
-            model: _app.renderersModel
-            delegate: MediaRendererDelegate { }
-        }
+        ScrollBar.vertical: ScrollBar { }
     }
 }

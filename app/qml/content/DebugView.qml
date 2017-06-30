@@ -1,5 +1,5 @@
 import QtQuick 2.4
-import QtQuick.Controls 1.3
+import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 import MyComponents 1.0
 
@@ -59,16 +59,16 @@ Page {
                 height: contentHeight
             }
         }
-    }
+    }  
 
-    ScrollView {
+    ListView {
+        id: listView
         anchors.fill: parent
+        clip: true
+        model: _app.debugModel
+        delegate: debugDelegate
 
-        ListView {
-            id: listView
-            model: _app.debugModel
-            delegate: debugDelegate
-        }
+        ScrollBar.vertical: ScrollBar { }
     }
 
     Timer {

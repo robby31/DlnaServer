@@ -1,5 +1,5 @@
-import QtQuick 2.4
-import QtQuick.Controls 1.3
+import QtQuick 2.5
+import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 import MyComponents 1.0
 
@@ -33,20 +33,21 @@ Page {
         anchors.fill: parent
         spacing: 4
 
-        ScrollView {
+        ListView {
+            id: listview
+
             Layout.fillHeight: true
             Layout.fillWidth: true
+            clip: true
 
-            ListView {
-                id: listview
+            ScrollBar.vertical: ScrollBar { }
 
-                model: _app.requestsModel
-                delegate: RequestDelegate { }
+            model: _app.requestsModel
+            delegate: RequestDelegate { }
 
-                function selectRequest(index) {
-                    request.requestIndex = index
-                    listview.visible = false
-                }
+            function selectRequest(index) {
+                request.requestIndex = index
+                listview.visible = false
             }
         }
 

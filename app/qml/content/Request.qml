@@ -1,5 +1,5 @@
-import QtQuick 2.4
-import QtQuick.Controls 1.3
+import QtQuick 2.5
+import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 
 Item {
@@ -64,6 +64,9 @@ Item {
             id: listView
             width: 200
             Layout.fillHeight: true
+            clip: true
+
+            ScrollBar.vertical: ScrollBar { }
 
             model: viewModel
             delegate: requestDelegate
@@ -74,10 +77,13 @@ Item {
             onCurrentIndexChanged: setContent()
         }
 
-        TextArea {
-            id: textArea
+        Flickable {
             Layout.fillWidth: true
             Layout.fillHeight: true
+
+            TextArea.flickable: TextArea { id: textArea }
+
+            ScrollBar.vertical: ScrollBar { }
         }
     }
 }
