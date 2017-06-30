@@ -8,7 +8,6 @@ DlnaItem::DlnaItem(QString host, int port, QObject *parent) :
     dlnaOrgOpFlags("01"),      // seek by byte (exclusive)
     dlnaOrgPN(),
     m_userAgent(),
-    overheadFactor(1.0),
     m_stream(Q_NULLPTR)
 {
 }
@@ -27,7 +26,10 @@ int DlnaItem::getLengthInSeconds() const {
 }
 
 int DlnaItem::getLengthInMilliSeconds() const {
-    return metaDataDuration() - getResumeTime();
+    if (metaDataDuration() > getResumeTime())
+        return metaDataDuration() - getResumeTime();
+    else
+        return 0;
 }
 
 void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
@@ -37,21 +39,6 @@ void DlnaItem::setTranscodeFormat(TranscodeFormatAvailable format) {
 
         if (toTranscode()) {
             setdlnaOrgOpFlags("10");         // seek by time (exclusive)
-
-            if (transcodeFormat == MP3)
-                overheadFactor = 1.000222;
-            else if (transcodeFormat == LPCM)
-                overheadFactor = 1.00001;
-            else if (transcodeFormat == AAC)
-                overheadFactor = 1.01;
-            else if (transcodeFormat == ALAC)
-                overheadFactor = 1.08;
-            else if (transcodeFormat == H264_AAC or transcodeFormat == H264_AC3)
-                overheadFactor = 1.105;
-            else if (transcodeFormat == MPEG2_AC3)
-                overheadFactor = 1.0847;
-            else
-                overheadFactor = 1.0;
         }
     }
 }
@@ -75,7 +62,6 @@ Device *DlnaItem::getStream()
         if (process)
         {
             process->setBitrate(bitrate());
-            process->setSize(size());
         }
 
         setStream(process);
@@ -113,16 +99,14 @@ QString DlnaItem::getDlnaContentFeatures() const {
     return result.join(";");
 }
 
-qint64 DlnaItem::size() const {
-    if (toTranscode()) {
-        if (bitrate() != -1 && getLengthInMilliSeconds() != -1)
-        {
-            return overheadFactor*double(bitrate())*double(getLengthInMilliSeconds())/8000.0;
-        } else {
-            // variable bitrate, we don't know exactly the size
-            return -1;
-        }
-    } else {
+qint64 DlnaItem::size() {
+    if (toTranscode())
+    {
+        Device *stream = getStream();
+        return stream->size();
+    }
+    else
+    {
         return sourceSize();
     }
 }

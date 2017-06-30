@@ -37,7 +37,7 @@ public:
     virtual QString mimeType() const = 0;
 
     // returns the size of the dlna item
-    virtual qint64 size() const;
+    virtual qint64 size();
 
     //returns the size of the source
     virtual qint64 sourceSize() const = 0;
@@ -144,8 +144,6 @@ protected:
     QString dlnaOrgPN;
 
     QString m_userAgent;
-
-    double overheadFactor;
 
     Device *m_stream;
 };
