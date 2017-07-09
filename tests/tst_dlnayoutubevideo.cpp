@@ -521,7 +521,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
         res = video->waitUrl(60000);
     }
 
-    if (!res or !video->isValid())
+    if (!res || !video->isValid())
     {
         if (res && !video->unavailableMessage().isEmpty())
             qWarning() << "VIDEO NOT AVAILABLE" << url << res << video->isValid() << video->metaDataTitle() << video->metaDataDuration() << video->getLengthInMilliSeconds() << video->metaDataBitrate();

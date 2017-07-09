@@ -41,7 +41,7 @@ DlnaFolder::~DlnaFolder() {
 DlnaResource *DlnaFolder::getChild(int index, QObject *parent)  {
     DlnaResource* child = 0;
 
-    if (index >= 0 and index < children.size()) {
+    if (index >= 0 && index < children.size()) {
         QFileInfo fileinfo = children.at(index);
 
         QMimeDatabase mimeDb;

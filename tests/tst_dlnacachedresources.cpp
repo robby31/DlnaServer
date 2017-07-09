@@ -239,7 +239,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY(artist_folder->getChildrenSize() > 0);
     int artist_index = 0;
     DlnaResource* artist_M = artist_folder->getChild(artist_index);
-    while (artist_index < artist_folder->getChildrenSize() and artist_M->getSystemName() != "-M-") {
+    while (artist_index < artist_folder->getChildrenSize() && artist_M->getSystemName() != "-M-") {
         artist_M = artist_folder->getChild(artist_index);
         artist_index++;
     }

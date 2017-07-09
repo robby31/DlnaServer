@@ -31,7 +31,7 @@ DlnaResource* DlnaResource::search(QString searchId, QString searchStr, QObject 
     if (getResourceId() == searchId) {
         return this;
     }
-    else if (getResourceId().length() < searchId.length() and searchId.startsWith(getResourceId())) {
+    else if (getResourceId().length() < searchId.length() && searchId.startsWith(getResourceId())) {
 
         int child_index = searchId.split("$").at(getResourceId().split("$").length()).toInt()-1;
 
@@ -120,7 +120,7 @@ QByteArray DlnaResource::getByteAlbumArt() const {
 void DlnaResource::updateXmlContentDirectory(QDomDocument *xml, QDomElement *xml_obj, QStringList properties) const {
     Q_UNUSED(properties);
 
-    if (xml and xml_obj) {
+    if (xml && xml_obj) {
         xml_obj->setAttribute("id", getResourceId());
 
         xml_obj->setAttribute("parentID", getDlnaParentId());

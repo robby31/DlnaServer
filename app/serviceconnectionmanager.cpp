@@ -14,7 +14,7 @@ void ServiceConnectionManager::reply(HttpRequest *request)
 
         QString soapaction = request->header("SOAPACTION");
 
-        if (!action.isValid() or soapaction != action.soapaction())
+        if (!action.isValid() || soapaction != action.soapaction())
         {
             qCritical() << "invalid action" << soapaction << action.soapaction();
             UpnpError error(UpnpError::INVALID_ACTION);

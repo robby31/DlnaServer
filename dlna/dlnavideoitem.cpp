@@ -31,45 +31,45 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
 
     // properties optional of videoItem
 
-    if (properties.contains("*") or properties.contains("upnp:genre")) {
+    if (properties.contains("*") || properties.contains("upnp:genre")) {
         QDomElement upnpGenre = xml->createElement("upnp:genre");
         upnpGenre.appendChild(xml->createTextNode(metaDataGenre()));
         xml_obj.appendChild(upnpGenre);
     }
 
-    if (properties.contains("*") or properties.contains("upnp:longDescription")) {
+    if (properties.contains("*") || properties.contains("upnp:longDescription")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("upnp:producer")) {
+    if (properties.contains("*") || properties.contains("upnp:producer")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("upnp:rating")) {
+    if (properties.contains("*") || properties.contains("upnp:rating")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("upnp:actor")) {
+    if (properties.contains("*") || properties.contains("upnp:actor")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("upnp:director")) {
+    if (properties.contains("*") || properties.contains("upnp:director")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("dc:description")) {
+    if (properties.contains("*") || properties.contains("dc:description")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("dc:publisher")) {
+    if (properties.contains("*") || properties.contains("dc:publisher")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("dc:language")) {
+    if (properties.contains("*") || properties.contains("dc:language")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("dc:relation")) {
+    if (properties.contains("*") || properties.contains("dc:relation")) {
 
     }
 
@@ -83,28 +83,28 @@ QDomElement DlnaVideoItem::getXmlContentDirectory(QDomDocument *xml, QStringList
     res.setAttribute("protocolInfo", getProtocolInfo());
 
     // optional properties
-    if ((properties.contains("*") or properties.contains("res@bitrate")) and bitrate() != -1) {
+    if ((properties.contains("*") || properties.contains("res@bitrate")) && bitrate() != -1) {
         // bitrate in bytes/sec
         res.setAttribute("bitrate", QString("%1").arg(qRound(double(bitrate())/8.0)));
     }
 
-    if (properties.contains("*") or properties.contains("res@resolution")) {
+    if (properties.contains("*") || properties.contains("res@resolution")) {
         res.setAttribute("resolution", resolution());
     }
 
-    if (properties.contains("*") or properties.contains("res@duration")) {
+    if (properties.contains("*") || properties.contains("res@duration")) {
         res.setAttribute("duration", QString("%1").arg(duration.addSecs(getLengthInSeconds()).toString("hh:mm:ss")));
     }
 
-    if (properties.contains("*") or properties.contains("res@sampleFrequency")) {
+    if (properties.contains("*") || properties.contains("res@sampleFrequency")) {
         res.setAttribute("sampleFrequency", QString("%1").arg(samplerate()));
     }
 
-    if (properties.contains("*") or properties.contains("res@nrAudioChannels")) {
+    if (properties.contains("*") || properties.contains("res@nrAudioChannels")) {
         res.setAttribute("nrAudioChannels", QString("%1").arg(channelCount()));
     }
 
-    if ((properties.contains("*") or properties.contains("res@size")) and size() != -1) {
+    if ((properties.contains("*") || properties.contains("res@size")) && size() != -1) {
         // size in bytes
         res.setAttribute("size", QString("%1").arg(size()));
     }
@@ -121,7 +121,7 @@ int DlnaVideoItem::bitrate() const
     // returns bitrate in bits/sec
     if (toTranscode())
     {
-        if (format() == H264_AC3 or format() == H264_AAC)
+        if (format() == H264_AC3 || format() == H264_AAC)
             return 2500000;
         else
             return 4558800;
@@ -138,7 +138,7 @@ QString DlnaVideoItem::mimeType() const {
         {
             return MPEG_TYPEMIME;
 
-        } else if (transcodeFormat == H264_AAC or transcodeFormat == H264_AC3)
+        } else if (transcodeFormat == H264_AAC || transcodeFormat == H264_AC3)
         {
             return MP4_TYPEMIME;
         }

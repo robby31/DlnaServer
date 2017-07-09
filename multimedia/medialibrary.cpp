@@ -556,7 +556,7 @@ bool MediaLibrary::insert(const QString &table, const QHash<QString, QVariant> &
         QStringList l_parameters;
         QStringList l_values;
         foreach(QString elt, data.keys()) {
-            if (!data[elt].isNull() and !data[elt].toString().isEmpty()) {
+            if (!data[elt].isNull() && !data[elt].toString().isEmpty()) {
                 l_parameters << elt;
                 l_values << QString(":%1").arg(elt);
             }
@@ -661,7 +661,7 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
     {
         foreach(QString elt, data.keys())
         {
-            if (!data[elt].isNull() and !data[elt].toString().isEmpty())
+            if (!data[elt].isNull() && !data[elt].toString().isEmpty())
             {
 
                 if (data[elt].type() != QVariant::Int && foreignKeys[table].contains(elt))

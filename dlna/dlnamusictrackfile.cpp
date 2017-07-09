@@ -25,7 +25,7 @@ bool DlnaMusicTrackFile::toTranscode() const
 {
     if (format() == WAV)
         return mime_type.name() != AUDIO_WAV_TYPEMIME;
-    else if (format() == AAC or format() == ALAC)
+    else if (format() == AAC || format() == ALAC)
         return mime_type.name() != AUDIO_MP4_TYPEMIME;
     else
         return mime_type.name() != AUDIO_MP3_TYPEMIME;

@@ -30,11 +30,11 @@ void DlnaMusicTrack::updateDLNAOrgPn() {
 int DlnaMusicTrack::bitrate() const {
     // returns bitrate in bits/sec
     if (toTranscode()) {
-        if (transcodeFormat == MP3 or transcodeFormat == AAC)
+        if (transcodeFormat == MP3 || transcodeFormat == AAC)
         {
             return 320000;
         }
-        else if (transcodeFormat == LPCM or transcodeFormat == WAV or transcodeFormat == ALAC) {
+        else if (transcodeFormat == LPCM || transcodeFormat == WAV || transcodeFormat == ALAC) {
 
             if (samplerate() == 44100) {
                 return 1411000;
@@ -67,71 +67,71 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
     // properties optional of audioItem
 
-    if (properties.contains("*") or properties.contains("upnp:genre")) {
+    if (properties.contains("*") || properties.contains("upnp:genre")) {
         QDomElement upnpGenre = xml->createElement("upnp:genre");
         upnpGenre.appendChild(xml->createTextNode(metaDataGenre()));
         xml_obj.appendChild(upnpGenre);
     }
 
-    if (properties.contains("*") or properties.contains("dc:description")) {
+    if (properties.contains("*") || properties.contains("dc:description")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("upnp:longDescription")) {
+    if (properties.contains("*") || properties.contains("upnp:longDescription")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("dc:publisher")) {
+    if (properties.contains("*") || properties.contains("dc:publisher")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("dc:language")) {
+    if (properties.contains("*") || properties.contains("dc:language")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("dc:relation")) {
+    if (properties.contains("*") || properties.contains("dc:relation")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("dc:rights")) {
+    if (properties.contains("*") || properties.contains("dc:rights")) {
 
     }
 
     // properties optional of musicTrack
 
-    if (properties.contains("*") or properties.contains("upnp:artist")) {
+    if (properties.contains("*") || properties.contains("upnp:artist")) {
         QDomElement upnpArtist = xml->createElement("upnp:artist");
         upnpArtist.appendChild(xml->createTextNode(metaDataPerformer()));
         xml_obj.appendChild(upnpArtist);
     }
 
-    if (properties.contains("*") or properties.contains("upnp:album")) {
+    if (properties.contains("*") || properties.contains("upnp:album")) {
         QDomElement upnpAlbum = xml->createElement("upnp:album");
         upnpAlbum.appendChild(xml->createTextNode(metaDataAlbum()));
         xml_obj.appendChild(upnpAlbum);
     }
 
-    if (properties.contains("*") or properties.contains("upnp:originalTrackNumber")) {
+    if (properties.contains("*") || properties.contains("upnp:originalTrackNumber")) {
         QDomElement upnpTrackNumber = xml->createElement("upnp:originalTrackNumber");
         upnpTrackNumber.appendChild(xml->createTextNode(QString("%1").arg(metaDataTrackPosition())));
         xml_obj.appendChild(upnpTrackNumber);
     }
 
-    if (properties.contains("*") or properties.contains("upnp:playlist")) {
+    if (properties.contains("*") || properties.contains("upnp:playlist")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("upnp:storageMedium")) {
+    if (properties.contains("*") || properties.contains("upnp:storageMedium")) {
 
     }
 
-    if (properties.contains("*") or properties.contains("dc:contributor")) {
+    if (properties.contains("*") || properties.contains("dc:contributor")) {
         QDomElement upnpCreator = xml->createElement("dc:contributor");
         upnpCreator.appendChild(xml->createTextNode(metaDataPerformer()));
         xml_obj.appendChild(upnpCreator);
     }
 
-    if (properties.contains("*") or properties.contains("dc:date")) {
+    if (properties.contains("*") || properties.contains("dc:date")) {
         QDomElement upnpDate = xml->createElement("dc:date");
         upnpDate.appendChild(xml->createTextNode(metaDataLastModifiedDate()));
         xml_obj.appendChild(upnpDate);
@@ -139,7 +139,7 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
 
     // properties optional of musicAlbum
 
-    if (properties.contains("*") or properties.contains("upnp:albumArtURI")) {
+    if (properties.contains("*") || properties.contains("upnp:albumArtURI")) {
         QImage picture = getAlbumArt();
         if (!picture.isNull()) {
             QDomElement upnpAlbumArtURI = xml->createElement("upnp:albumArtURI");
@@ -160,24 +160,24 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
     res.setAttribute("protocolInfo", getProtocolInfo());
 
     // optional properties
-    if (properties.contains("*") or properties.contains("res@bitrate")) {
+    if (properties.contains("*") || properties.contains("res@bitrate")) {
         // bitrate in bytes/sec
         res.setAttribute("bitrate", QString("%1").arg(qRound(double(bitrate())/8.0)));
     }
 
-    if (properties.contains("*") or properties.contains("res@duration")) {
+    if (properties.contains("*") || properties.contains("res@duration")) {
         res.setAttribute("duration", QString("%1").arg(duration.addSecs(getLengthInSeconds()).toString()));
     }
 
-    if (properties.contains("*") or properties.contains("res@sampleFrequency")) {
+    if (properties.contains("*") || properties.contains("res@sampleFrequency")) {
         res.setAttribute("sampleFrequency", QString("%1").arg(samplerate()));
     }
 
-    if (properties.contains("*") or properties.contains("res@nrAudioChannels")) {
+    if (properties.contains("*") || properties.contains("res@nrAudioChannels")) {
         res.setAttribute("nrAudioChannels", QString("%1").arg(channelCount()));
     }
 
-    if (properties.contains("*") or properties.contains("res@size")) {
+    if (properties.contains("*") || properties.contains("res@size")) {
         // size in bytes
         res.setAttribute("size", QString("%1").arg(size()));
     }
@@ -211,7 +211,7 @@ QString DlnaMusicTrack::mimeType() const {
         // Trancode music track
         if (transcodeFormat == MP3) {
             return AUDIO_MP3_TYPEMIME;
-        } else if (transcodeFormat == AAC or transcodeFormat == ALAC) {
+        } else if (transcodeFormat == AAC || transcodeFormat == ALAC) {
             return AUDIO_MP4_TYPEMIME;
         } else if (transcodeFormat == LPCM) {
             return AUDIO_LPCM_TYPEMIME;
@@ -222,9 +222,9 @@ QString DlnaMusicTrack::mimeType() const {
         }
     } else {
         QString format = metaDataFormat();
-        if (format == "mp3" or format == "mp2" or format == "mp1") {
+        if (format == "mp3" || format == "mp2" || format == "mp1") {
             return AUDIO_MP3_TYPEMIME;
-        } else if (format == "aac" or format == "alac") {
+        } else if (format == "aac" || format == "alac") {
             return AUDIO_MP4_TYPEMIME;
         } else if (format == "pcm_s16le") {
             return AUDIO_WAV_TYPEMIME;

@@ -472,7 +472,7 @@ void YouTube::parseVideoPage()
                         }
 
                         // read url_data
-                        if (!url_data.contains("itag") or !url_data.contains("url"))
+                        if (!url_data.contains("itag") || !url_data.contains("url"))
                         {
                             qWarning() << "ERROR, invalid data" << url_data;
                         }

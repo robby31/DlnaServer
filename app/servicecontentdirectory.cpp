@@ -52,7 +52,7 @@ void ServiceContentDirectory::reply(HttpRequest *request)
 
         QString soapaction = request->header("SOAPACTION");
 
-        if (!action.isValid() or soapaction != action.soapaction())
+        if (!action.isValid() || soapaction != action.soapaction())
         {
             qCritical() << "invalid action" << soapaction << action.soapaction() << request->requestData().size();
             UpnpError error(UpnpError::INVALID_ACTION);
@@ -261,7 +261,7 @@ void ServiceContentDirectory::reply(HttpRequest *request)
 
                             QTcpSocket *socket = request->tcpSocket();
 
-                            if (!streamContent or !socket)
+                            if (!streamContent || !socket)
                             {
                                 // No inputStream indicates that transcoding / remuxing probably crashed.
                                 QString message = QString("There is no inputstream to return for %1.").arg(dlna->getDisplayName());
