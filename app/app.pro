@@ -12,26 +12,28 @@ HEADERS += \
     myapplication.h \
     applicationcontroller.h \
     debugitem.h \
-    createdatabasethread.h \
     checknetworklinkitem.h \
     serviceconnectionmanager.h \
-    servicecontentdirectory.h
+    servicecontentdirectory.h \
+    applicationworker.h
 
 SOURCES += \
     main.cpp \
     myapplication.cpp \
     applicationcontroller.cpp \
     debugitem.cpp \
-    createdatabasethread.cpp \
     checknetworklinkitem.cpp \
     serviceconnectionmanager.cpp \
-    servicecontentdirectory.cpp
+    servicecontentdirectory.cpp \
+    applicationworker.cpp
 
 RESOURCES += \
     ressources.qrc
 
 mac {
     ICON = icon.icns
+} else {
+    RC_ICONS = icon.ico
 }
 
 DISTFILES += \
@@ -47,5 +49,5 @@ DISTFILES += \
     app.iconset/icon_256x256@2x.png \
     icon.icns \
     UPnP_AV_ConnectionManager_1.0.xml \
-    UPnP_AV_ContentDirectory_1.0.xml
-
+    UPnP_AV_ContentDirectory_1.0.xml \
+    icon.ico
