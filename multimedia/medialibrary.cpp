@@ -6,7 +6,6 @@ MediaLibrary::MediaLibrary(QObject *parent) :
     libraryState(0)
 //    m_acoustId()
 {
-    initialize();
 }
 
 bool MediaLibrary::isValid()

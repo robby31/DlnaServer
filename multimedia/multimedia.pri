@@ -10,16 +10,12 @@ include (../../multimedia/mediadevice/mediadevice.prf)
 HEADERS += \
     ../multimedia/mediarenderer.h \
     ../multimedia/mediarenderermodel.h \
-    ../multimedia/medialibrary.h \
-    $$PWD/updatemediavolumeinfo.h \
-    $$PWD/checknetworklink.h
+    ../multimedia/medialibrary.h
 
 SOURCES += \
     ../multimedia/mediarenderer.cpp \
     ../multimedia/mediarenderermodel.cpp \
-    ../multimedia/medialibrary.cpp \
-    $$PWD/updatemediavolumeinfo.cpp \
-    $$PWD/checknetworklink.cpp
+    ../multimedia/medialibrary.cpp
 
 
 

@@ -12,7 +12,6 @@
 #include "dlnacachedgroupedfoldermetadata.h"
 #include "dlnarootfolder.h"
 #include "dlnayoutubevideo.h"
-#include "cachedrootfolderreaddirectory.h"
 
 class DlnaCachedRootFolder : public DlnaRootFolder
 {
@@ -33,8 +32,11 @@ private:
     void addResource(QUrl url);
 
 signals:
+    void databaseOpened(const QUrl &path);
+
     void linkAdded(QString url);
     void error_addNetworkLink(QString url);
+    void scanFolder(const QDir &path);
 
 private slots:
     void updateLibrary(const QString &filename, const QHash<QString, QVariant> &data);

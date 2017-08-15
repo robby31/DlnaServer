@@ -12,6 +12,8 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(QString host, int port, QObject *pare
     youtube(0),
     m_nam(0)
 {
+    connect(this, SIGNAL(databaseOpened(QUrl)), &library, SLOT(initialize()));
+
     recentlyPlayedChild = new DlnaCachedFolder(&library,
                                                library.getMedia("last_played is not null", "last_played", "DESC"),
                                                "Recently Played", host, port, true, 200, this);
@@ -123,8 +125,7 @@ bool DlnaCachedRootFolder::addFolderSlot(QString path)
     if (QFileInfo(path).isDir())
     {
         // scan the folder in background
-        CachedRootFolderReadDirectory *readDirectoryWorker = new CachedRootFolderReadDirectory(QDir(path));
-        QThreadPool::globalInstance()->start(readDirectoryWorker);
+        emit scanFolder(path);
 
         rootFolder.addFolder(path);
 

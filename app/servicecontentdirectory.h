@@ -23,9 +23,12 @@ private:
     DlnaResource *getDlnaResource(const QString &hostaddress, const QString &objId);
 
 signals:
+    void databaseOpened(const QUrl &path);
+
     void addFolderSignal(QString folder);
     void folderAdded(QString folder);
     void error_addFolder(QString folder);
+    void scanFolder(const QDir &path);
 
     void addNetworkLinkSignal(const QString url);
     void linkAdded(QString url);
