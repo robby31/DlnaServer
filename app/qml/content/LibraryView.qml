@@ -41,99 +41,43 @@ Page {
 
     }
 
-    Component {
-        id: mediaDelegate
+    ListModel {
+        id: viewModel
+        ListElement { name: "All media"; qml: "AllMediaView.qml" }
+        ListElement { name: "Off-Line"; qml: "OffLineMediaView.qml" }
+    }
 
-        ListViewDelegate {
-            id: delegate
-            width: parent.width
-            height: 40
+    Row {
+        anchors.fill: parent
 
-            swipe.left: Label {
-                id: deleteLabel
-                text: qsTr("Delete")
-                color: "white"
-                verticalAlignment: Label.AlignVCenter
-                padding: 12
-                height: parent.height
-                anchors.left: parent.left
+        Rectangle {
+            width: 100
+            height: parent.height
+            border.color: "black"
 
-                SwipeDelegate.onClicked: {
-                    _app.removeMedia(model["id"])
-                    mediaModel.reload()
-                    swipe.close()
-                }
+            ListView {
+                id: menuView
+                anchors.fill: parent
+                clip: true
+                model: viewModel
+                delegate: LibraryViewDelegate { }
 
-                background: Rectangle {
-                    color: deleteLabel.SwipeDelegate.pressed ? Qt.darker("tomato", 1.1) : "tomato"
-                }
-            }
+                ScrollBar.vertical: ScrollBar { }
 
-            contentItem: Item {
-                id: item
-                width: parent.width
-                height: 40
+                highlight: Rectangle { color: "lightsteelblue"; radius: 5 }
+                highlightFollowsCurrentItem: true
+                focus: true
 
-                Row {
-                    width: parent.width-10
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.verticalCenter: parent.verticalCenter
-                    spacing: 5
-
-                    Text {
-                        id: textId
-                        text: model["id"]
-                        width: 100
-                        height: contentHeight
-                        anchors.verticalCenter: parent.verticalCenter
-                        clip: true
-                    }
-
-                    TextField {
-                        id: textFilename
-                        text: model["filename"]
-                        width: (parent.width-textId.width)/2
-                        anchors.verticalCenter: parent.verticalCenter
-                        selectByMouse: true
-
-                        background: Rectangle {
-                            color: textFilename.focus ? "white" : "transparent"
-                            border.color: textFilename.focus ? "#21be2b" : "transparent"
-                        }
-
-                        onAccepted: _app.updateFilenameMedia(id, text)
-                    }
-
-                    Text {
-                        id: textTitle
-                        text: model["title"]
-                        width: (parent.width-textId.width)/2
-                        anchors.verticalCenter: parent.verticalCenter
-                        elide: Text.ElideRight
-                        clip: true
-                    }
+                onCurrentIndexChanged: {
+                    viewLoader.source = model.get(currentIndex).qml
                 }
             }
         }
-    }
 
-    SqlListModel {
-        id: mediaModel
-        connectionName: "MEDIA_DATABASE"
-        tablename: "media"
-        query: "SELECT id, filename, title from media where is_reachable=0"
-    }
-
-    ListView {
-        id: listView
-        anchors.fill: parent
-        anchors.margins: 5
-        clip: true
-
-        ScrollBar.vertical: ScrollBar { }
-
-        model: mediaModel
-        delegate: mediaDelegate
-        antialiasing: true
+        Loader {
+            id: viewLoader
+            width: parent.width-menuView.width
+            height: parent.height
+        }
     }
 }

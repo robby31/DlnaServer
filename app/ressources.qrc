@@ -2,12 +2,6 @@
     <qresource prefix="/">
         <file>PMS.xml</file>
         <file>images/icon-16.png</file>
-        <file>images/icon-22.png</file>
-        <file>images/icon-32.png</file>
-        <file>images/icon-48.jpg</file>
-        <file>images/icon-48.png</file>
-        <file>images/icon-120.jpg</file>
-        <file>images/icon-120.png</file>
         <file>images/icon-128.jpg</file>
         <file>images/icon-128.png</file>
         <file>images/icon-256.png</file>
@@ -33,5 +27,19 @@
         <file>UPnP_AV_ConnectionManager_1.0.xml</file>
         <file>UPnP_AV_ContentDirectory_1.0.xml</file>
         <file>qml/content/RequestDelegate.qml</file>
+        <file>qml/SelectDatabase.qml</file>
+        <file>qml/content/SettingsView.qml</file>
+        <file>images/settings.png</file>
+        <file>images/icon-32.png</file>
+        <file>qml/content/OffLineMediaDelegate.qml</file>
+        <file>qml/content/OffLineMediaView.qml</file>
+        <file>qml/content/LibraryViewDelegate.qml</file>
+        <file>qml/content/AllMediaView.qml</file>
+        <file>qml/content/AllMediaDelegate.qml</file>
+        <file>images/icon-512.png</file>
+        <file>images/icon-48.jpg</file>
+        <file>images/icon-48.png</file>
+        <file>images/icon-120.jpg</file>
+        <file>images/icon-120.png</file>
     </qresource>
 </RCC>

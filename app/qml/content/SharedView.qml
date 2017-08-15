@@ -261,13 +261,4 @@ Page {
 
         }
     }
-
-    BusyIndicator {
-        id: busyindicator
-        anchors.fill: parent
-        activity: "Check Network links"
-        activityProgress: _app.checkInProgress
-        visible: _app.checkInProgress >= 0
-        onCancel: _app.abortCheckLink()
-    }
 }

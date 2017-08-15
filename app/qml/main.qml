@@ -2,17 +2,23 @@ import QtQuick 2.5
 import myTypes 1.0
 import MyComponents 1.0
 import "Pages"
+import QtQuick.Dialogs 1.2
+
 
 MyApplication {
     id: mainWindow
     title: "QT Media Server"
     logoCompany: "qrc:///images/icon-32.png"
-    minimumWidth: 800
+    minimumWidth: 900
     width: minimumWidth
 
     controller: homePageController
     modelButtons : mybuttons
-    pages: myPages
+    srcPages: _app.databasePathName.toString() === "" ? "SelectDatabase.qml" : "Pages/ApplicationPages.qml"
+
+    function chooseDatabase() {
+        chooseDatabaseDialog.open()
+    }
 
     ListModel {
         id: mybuttons
@@ -46,13 +52,17 @@ MyApplication {
             state: "DEBUG"
             icon: "qrc:/images/debug.png"
         }
+        ListElement {
+            title: "Settings"
+            state: "SETTINGS"
+            icon: "qrc:/images/settings.png"
+        }
     }
 
-    Component {
-        id: myPages
-
-        ApplicationPages {
-
-        }
+    FileDialog {
+        id: chooseDatabaseDialog
+        selectExisting: true
+        nameFilters: [ "Database (*.database)" ]
+        onAccepted:  _app.databasePathName = fileUrl
     }
 }

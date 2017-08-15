@@ -63,7 +63,7 @@ Page {
 
                     sourceComponent: Text {
                         text: "Back"
-                        font.pointSize: 12
+                        font.pointSize: 9
                         clip: true
                     }
 

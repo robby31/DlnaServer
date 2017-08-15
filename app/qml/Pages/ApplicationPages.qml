@@ -5,6 +5,9 @@ import "../content"
 Item {
     id: pages
 
+    width: 600
+    height: 300
+
     function toggleMenu() {
         if (mainWindow.state==="REQUESTS")
             requestsPage.toggleMenu()
@@ -18,6 +21,8 @@ Item {
             debugPage.toggleMenu()
         else if (mainWindow.state==="LIBRARY")
             libraryPage.toggleMenu()
+        else if (mainWindow.state==="SETTINGS")
+            settingsPage.toggleMenu()
     }
 
     RequestsView {
@@ -60,5 +65,11 @@ Item {
         anchors.fill: parent
         visible: mainWindow.state === "LIBRARY"
         onQuit: mainWindow.close()
+    }
+
+    SettingsView {
+        id: settingsPage
+        anchors.fill: parent
+        visible: mainWindow.state === "SETTINGS"
     }
 }
