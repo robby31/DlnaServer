@@ -103,7 +103,10 @@ qint64 DlnaItem::size() {
     if (toTranscode())
     {
         Device *stream = getStream();
-        return stream->size();
+        if (stream)
+            return stream->size();
+        else
+            return -1;
     }
     else
     {
