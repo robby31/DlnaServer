@@ -9,7 +9,12 @@ class ApplicationController : public Controller
 public:
     explicit ApplicationController(QObject *parent = 0);
 
+    void checkNetworkLink();
+    void scanVolumeInfo();
+
 signals:
+    void checkNetworkLinkSignal();
+    void scanVolumeInfoSignal();
 
 public slots:
 };

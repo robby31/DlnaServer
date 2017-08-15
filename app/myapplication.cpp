@@ -7,31 +7,35 @@ MyApplication::MyApplication(int &argc, char **argv):
     settings("HOME", "QMS"),
     m_sharedFolderModel(),
     m_controller(),
+    m_worker(Q_NULLPTR),
     netManager(),
     m_timerDiscover(3, 600000),
     m_upnp(5050),
+    m_localrootdevice(Q_NULLPTR),
     m_requestsModel(Q_NULLPTR),
     m_renderersModel(Q_NULLPTR),
     m_debugModel(Q_NULLPTR),
     m_checkNetworkLinkModel(Q_NULLPTR),
-    m_checkInProgress(-1),
     m_connectionManager(Q_NULLPTR),
     m_contentDirectory(Q_NULLPTR)
 {
     connect(this, SIGNAL(aboutToQuit()), this, SLOT(quit()));
 
-    // create database in backend Thread
-//    CreateDatabaseThread *dbBackend = new CreateDatabaseThread();
-//    dbBackend->moveToThread(backendThread());
-//    connect(backendThread(), SIGNAL(finished()), dbBackend, SLOT(deleteLater()));
-//    dbBackend->run();
-
-    QFfmpeg::setDirPath("/opt/local/bin");
-    FfmpegTranscoding::setDirPath("/opt/local/bin");
+    setFfmpegFolder(QUrl::fromLocalFile(settings.value("ffmpegFolder").toString()));
 
     addController("homePageController", &m_controller);
 
     thread()->setObjectName("QML APPLICATION THREAD");
+
+    m_worker = new ApplicationWorker(&netManager);
+    addWorker(&m_controller, m_worker);
+
+    connect(this, SIGNAL(scanFolder(QDir)), m_worker, SLOT(scanFolder(QDir)));
+
+    connect(&m_controller, SIGNAL(checkNetworkLinkSignal()), m_worker, SLOT(checkNetworkLink()));
+    connect(m_worker, SIGNAL(addMessage(QString,QString)), this, SLOT(checkNetworkLinkMessage(QString, QString)));
+
+    connect(&m_controller, SIGNAL(scanVolumeInfoSignal()), m_worker, SLOT(scanVolumeInfo()));
 
     setRenderersModel(new MediaRendererModel(this));
 
@@ -69,17 +73,41 @@ MyApplication::MyApplication(int &argc, char **argv):
     connect(device, SIGNAL(serverError(QString)), this, SLOT(serverError(QString)));
     connect(device, SIGNAL(newRequest(HttpRequest*)), this, SLOT(newRequest(HttpRequest*)));
     connect(device, SIGNAL(requestCompleted(HttpRequest*)), this, SLOT(requestCompleted(HttpRequest*)));
-    device->startServer();
+    m_localrootdevice = device;
 
     connect(&m_timerDiscover, SIGNAL(timeout()), this, SLOT(advertiseSlot()));
     m_timerDiscover.start(2000);
 
     qRegisterMetaType<qintptr>("qintptr");
+
+    connect(this, SIGNAL(databaseOpened(QUrl)), this, SLOT(initializeDatabase()));
+
+    setdatabaseDiverName("QSQLITE");
+    setdatabaseConnectionName("MEDIA_DATABASE");
+
+    QString path = settings.value("databasePathName").toString();
+    if (!path.isEmpty())
+        setdatabasePathName(QUrl::fromLocalFile(path));
 }
 
 MyApplication::~MyApplication()
 {
-    QThreadPool::globalInstance()->waitForDone();
+}
+
+void MyApplication::initializeDatabase()
+{
+    QSqlDatabase db = database();
+
+    if (db.isOpen())
+    {
+        settings.setValue("databasePathName", db.databaseName());
+        setdatabaseOptions("Pooling=True;Max Pool Size=100;");
+    }
+
+    if (m_localrootdevice)
+        m_localrootdevice->startServer();
+    else
+        qCritical() << "unable to start server" << m_localrootdevice;
 }
 
 void MyApplication::serverStarted()
@@ -104,8 +132,10 @@ void MyApplication::serverStarted()
         m_contentDirectory = new ServiceContentDirectory(device->host().toString(), device->port(), this);
         connect(m_contentDirectory, SIGNAL(destroyed(QObject*)), this, SLOT(contentDirectoryDestroyed(QObject*)));
 
+        connect(this, SIGNAL(databaseOpened(QUrl)), m_contentDirectory, SIGNAL(databaseOpened(QUrl)));
         connect(m_renderersModel, SIGNAL(mediaRendererDestroyed(QString)), m_contentDirectory, SLOT(mediaRendererDestroyed(QString)));
 
+        connect(m_contentDirectory, SIGNAL(scanFolder(QDir)), m_worker, SLOT(scanFolder(QDir)));
         connect(this, SIGNAL(addFolder(QString)), m_contentDirectory, SLOT(_addFolder(QString)));
         connect(m_contentDirectory, SIGNAL(folderAdded(QString)), this, SLOT(folderAdded(QString)));
         connect(m_contentDirectory, SIGNAL(error_addFolder(QString)), this, SLOT(folderNotAdded(QString)));
@@ -120,6 +150,8 @@ void MyApplication::serverStarted()
         connect(m_contentDirectory, SIGNAL(servingRendererSignal(QString,QString)), m_renderersModel, SLOT(serving(QString,QString)));
         connect(m_contentDirectory, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SLOT(servingMediaFinished(QString,QString,int)));
 
+        connect(m_worker, SIGNAL(refresh(QString)), m_contentDirectory, SIGNAL(addNetworkLinkSignal(QString)));
+
         m_contentDirectory->setNetworkAccessManager(&netManager);
     }
     else
@@ -131,8 +163,7 @@ void MyApplication::serverStarted()
     loadSettings();
 
     // update volume informations
-//    UpdateMediaVolumeInfo *volumeInfoWorker = new UpdateMediaVolumeInfo(&netManager);
-//    QThreadPool::globalInstance()->start(volumeInfoWorker);
+//    m_controller.scanVolumeInfo();
 }
 
 void MyApplication::serverError(const QString &message)
@@ -188,8 +219,7 @@ void MyApplication::refreshFolder(const int &index)
         QString path = m_sharedFolderModel.at(index);
 
         // scan the folder in background
-        CachedRootFolderReadDirectory *readDirectoryWorker = new CachedRootFolderReadDirectory(QDir(path));
-        QThreadPool::globalInstance()->start(readDirectoryWorker);
+        emit scanFolder(path);
     }
 }
 
@@ -261,65 +291,64 @@ void MyApplication::startCheckNetworkLink()
     else
     {
         // check all network links
-        CheckNetworkLink *checknetworklinkWorker = new CheckNetworkLink(&netManager);
-        connect(checknetworklinkWorker, SIGNAL(addMessage(QString,QString)), this, SLOT(checkNetworkLinkMessage(QString, QString)));
-        connect(checknetworklinkWorker, SIGNAL(progress(int)), this, SLOT(checkNetworkLinkProgress(int)));
-        connect(checknetworklinkWorker, SIGNAL(refresh(QString)), m_contentDirectory, SIGNAL(addNetworkLinkSignal(QString)));
-        connect(this, SIGNAL(abortCheckNetworkLink()), checknetworklinkWorker, SLOT(abort()));
-        connect(this, SIGNAL(aboutToQuit()), checknetworklinkWorker, SLOT(abort()));
-
         setNetworkLinkModel(new ListModel(new CheckNetworkLinkItem, this));
-
-        QThreadPool::globalInstance()->start(checknetworklinkWorker);
+        m_controller.checkNetworkLink();
     }
 }
 
 void MyApplication::removeMedia(const int &id)
 {
-    QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
+    QSqlDatabase db = database();
 
-    db.transaction();
-
-    QSqlQuery query(db);
-
-    if (query.prepare("DELETE FROM param_value WHERE media=:id"))
+    if (db.isValid())
     {
-        query.bindValue(":id", id);
-        if (!query.exec())
+        db.transaction();
+
+        QSqlQuery query(db);
+
+        if (query.prepare("DELETE FROM param_value WHERE media=:id"))
         {
-            qCritical() << QString("unable to remove param values for media(%1) : %2.").arg(id).arg(query.lastError().text());
-            if (!db.rollback())
-                qCritical() << "unable to rollback" << db.lastError().text();
-        }
-        else
-        {
-            // remove media
-            if (query.prepare("DELETE FROM media WHERE id=:id"))
+            query.bindValue(":id", id);
+            if (!query.exec())
             {
-                query.bindValue(":id", id);
-                if (!query.exec())
-                {
-                    qCritical() << QString("unable to remove media(%1) : %2.").arg(id).arg(query.lastError().text());
-                    if (!db.rollback())
-                        qCritical() << "unable to rollback" << db.lastError().text();
-                }
-                else
-                {
-                    if (!db.commit())
-                        qCritical() << "unable to commit" << db.lastError().text();
-                }
-            }
-            else
-            {
+                qCritical() << QString("unable to remove param values for media(%1) : %2.").arg(id).arg(query.lastError().text());
                 if (!db.rollback())
                     qCritical() << "unable to rollback" << db.lastError().text();
             }
+            else
+            {
+                // remove media
+                if (query.prepare("DELETE FROM media WHERE id=:id"))
+                {
+                    query.bindValue(":id", id);
+                    if (!query.exec())
+                    {
+                        qCritical() << QString("unable to remove media(%1) : %2.").arg(id).arg(query.lastError().text());
+                        if (!db.rollback())
+                            qCritical() << "unable to rollback" << db.lastError().text();
+                    }
+                    else
+                    {
+                        if (!db.commit())
+                            qCritical() << "unable to commit" << db.lastError().text();
+                    }
+                }
+                else
+                {
+                    if (!db.rollback())
+                        qCritical() << "unable to rollback" << db.lastError().text();
+                }
+            }
+        }
+        else
+        {
+            if (!db.rollback())
+                qCritical() << "unable to rollback" << db.lastError().text();
         }
     }
     else
     {
-        if (!db.rollback())
-            qCritical() << "unable to rollback" << db.lastError().text();
+        qWarning() << this << "invalid database.";
     }
 }
 
@@ -336,35 +365,9 @@ void MyApplication::checkNetworkLinkMessage(QString name, QString message)
     }
 }
 
-void MyApplication::checkNetworkLinkProgress(const int &value)
-{
-    setcheckInProgress(value);
-}
-
-void MyApplication::setcheckInProgress(const int &value)
-{
-    if (m_checkInProgress != value)
-    {
-        m_checkInProgress = value;
-        emit checkInProgressChanged();
-    }
-}
-
-void MyApplication::abortCheckLink()
-{
-    emit abortCheckNetworkLink();
-}
-
 void MyApplication::closeCheckLink()
 {
-    if (m_checkInProgress != -1)
-    {
-        qCritical() << "unable to close check links, it is still in progress.";
-    }
-    else
-    {
-        setNetworkLinkModel(0);
-    }
+    setNetworkLinkModel(Q_NULLPTR);
 }
 
 void MyApplication::setNetworkLinkModel(ListModel *model)
@@ -394,7 +397,7 @@ void MyApplication::advertiseSlot()
 
 void MyApplication::newRootDevice(UpnpRootDevice *device)
 {
-    if (device->deviceType() == "urn:schemas-upnp-org:device:MediaRenderer:1")
+    if (device->deviceType().startsWith("urn:schemas-upnp-org:device:MediaRenderer"))
         m_renderersModel->addMediaRenderer(device);
 }
 
@@ -483,4 +486,47 @@ void MyApplication::servingMediaFinished(QString host, QString filename, int sta
     Q_UNUSED(filename)
     Q_UNUSED(status)
     m_renderersModel->serving(host, QString());
+}
+
+QUrl MyApplication::ffmpegFolder() const
+{
+    return m_ffmpegFolder;
+}
+
+void MyApplication::setFfmpegFolder(const QUrl &folder)
+{
+    if (folder.isLocalFile() && folder.isValid())
+    {
+        QFfmpeg::setDirPath(folder.toLocalFile());
+        FfmpegTranscoding::setDirPath(folder.toLocalFile());
+
+        setffmpegVersion(QFfmpeg::getVersion());
+
+        if (!m_ffmpegVersion.isEmpty())
+        {
+            m_ffmpegFolder = folder.toLocalFile();
+            settings.setValue("ffmpegFolder", m_ffmpegFolder);
+        }
+        else
+        {
+            m_ffmpegFolder.clear();
+        }
+
+        emit ffmpegFolderChanged();
+    }
+    else
+    {
+        qCritical() << "unable to set ffmpeg folder, invalid folder" << folder;
+    }
+}
+
+QString MyApplication::ffmpegVersion() const
+{
+    return m_ffmpegVersion;
+}
+
+void MyApplication::setffmpegVersion(const QString &version)
+{
+    m_ffmpegVersion = version;
+    emit ffmpegVersionChanged();
 }
