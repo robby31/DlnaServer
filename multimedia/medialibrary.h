@@ -51,6 +51,8 @@ public:
     bool resetLibrary(const QString &pathname);
 
 private:
+    bool initialize();
+
     int insertForeignKey(const QString &table, const QString &parameter, const QVariant &value);
 
     bool insert(const QString &table, const QHash<QString, QVariant> &data);
@@ -60,9 +62,6 @@ private:
     StateType *exportMediaState() const;
 
 signals:
-
-private slots:
-    bool initialize();
 
 private:
     QHash<QString, QHash<QString, QHash<QString, QString> > > foreignKeys;

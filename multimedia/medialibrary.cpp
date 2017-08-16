@@ -6,6 +6,7 @@ MediaLibrary::MediaLibrary(QObject *parent) :
     libraryState(0)
 //    m_acoustId()
 {
+    initialize();
 }
 
 bool MediaLibrary::isValid()
@@ -15,7 +16,7 @@ bool MediaLibrary::isValid()
 
 bool MediaLibrary::initialize()
 {
-    qDebug() << QString("Initialize MediaLibrary %1").arg(databaseName());
+    qDebug() << QThread::currentThread() << QString("Initialize MediaLibrary %1").arg(databaseName());
 
     QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
 
