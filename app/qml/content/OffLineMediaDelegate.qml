@@ -4,7 +4,7 @@ import MyComponents 1.0
 
 ListViewDelegate {
     id: delegate
-    width: parent.width
+    width: parent ? parent.width : 0
     height: 40
 
     swipe.left: Label {
@@ -19,7 +19,6 @@ ListViewDelegate {
         SwipeDelegate.onClicked: {
             _app.removeMedia(model["id"])
             mediaModel.reload()
-            swipe.close()
         }
 
         background: Rectangle {

@@ -10,9 +10,10 @@ Item {
         anchors.fill: parent
         clip: true
         text: name
-        font.pointSize: 9
+        font.pixelSize: 12
         font.bold: delegate.ListView.isCurrentItem
         horizontalAlignment: Text.AlignHCenter
+        verticalAlignment: Text.AlignVCenter
     }
 
     MouseArea {
