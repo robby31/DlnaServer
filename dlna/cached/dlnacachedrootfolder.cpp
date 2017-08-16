@@ -12,8 +12,6 @@ DlnaCachedRootFolder::DlnaCachedRootFolder(QString host, int port, QObject *pare
     youtube(0),
     m_nam(0)
 {
-    connect(this, SIGNAL(databaseOpened(QUrl)), &library, SLOT(initialize()));
-
     recentlyPlayedChild = new DlnaCachedFolder(&library,
                                                library.getMedia("last_played is not null", "last_played", "DESC"),
                                                "Recently Played", host, port, true, 200, this);

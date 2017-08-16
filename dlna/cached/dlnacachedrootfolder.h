@@ -32,11 +32,9 @@ private:
     void addResource(QUrl url);
 
 signals:
-    void databaseOpened(const QUrl &path);
-
     void linkAdded(QString url);
     void error_addNetworkLink(QString url);
-    void scanFolder(const QDir &path);
+    void scanFolder(QString path);
 
 private slots:
     void updateLibrary(const QString &filename, const QHash<QString, QVariant> &data);

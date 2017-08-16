@@ -5,8 +5,6 @@ int main(int argc, char** argv)
 {
     qmlRegisterType<MediaRendererModel>("myTypes", 1, 0, "MediaRendererModel");
 
-    qRegisterMetaType<qintptr>("QDir");
-
     MyApplication app(argc, argv);
 
     // load the qml file describing the application

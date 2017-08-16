@@ -30,7 +30,7 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_worker = new ApplicationWorker(&netManager);
     addWorker(&m_controller, m_worker);
 
-    connect(this, SIGNAL(scanFolder(QDir)), m_worker, SLOT(scanFolder(QDir)));
+    connect(this, SIGNAL(scanFolder(QString)), m_worker, SLOT(scanFolder(QString)));
 
     connect(&m_controller, SIGNAL(checkNetworkLinkSignal()), m_worker, SLOT(checkNetworkLink()));
     connect(m_worker, SIGNAL(addMessage(QString,QString)), this, SLOT(checkNetworkLinkMessage(QString, QString)));
@@ -132,10 +132,9 @@ void MyApplication::serverStarted()
         m_contentDirectory = new ServiceContentDirectory(device->host().toString(), device->port(), this);
         connect(m_contentDirectory, SIGNAL(destroyed(QObject*)), this, SLOT(contentDirectoryDestroyed(QObject*)));
 
-        connect(this, SIGNAL(databaseOpened(QUrl)), m_contentDirectory, SIGNAL(databaseOpened(QUrl)));
         connect(m_renderersModel, SIGNAL(mediaRendererDestroyed(QString)), m_contentDirectory, SLOT(mediaRendererDestroyed(QString)));
 
-        connect(m_contentDirectory, SIGNAL(scanFolder(QDir)), m_worker, SLOT(scanFolder(QDir)));
+        connect(m_contentDirectory, SIGNAL(scanFolder(QString)), m_worker, SLOT(scanFolder(QString)));
         connect(this, SIGNAL(addFolder(QString)), m_contentDirectory, SLOT(_addFolder(QString)));
         connect(m_contentDirectory, SIGNAL(folderAdded(QString)), this, SLOT(folderAdded(QString)));
         connect(m_contentDirectory, SIGNAL(error_addFolder(QString)), this, SLOT(folderNotAdded(QString)));

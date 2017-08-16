@@ -7,23 +7,23 @@ ApplicationWorker::ApplicationWorker(QNetworkAccessManager *nam, QObject *parent
 
 }
 
-void ApplicationWorker::scanFolder(QDir path)
+void ApplicationWorker::scanFolder(QString path)
 {
 //    emit processStarted();
 
-    qDebug() << this << "scan folder" << path.absolutePath();
+    qDebug() << this << "scan folder" << path;
 
     QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
     if (db.isValid() && db.isOpen())
     {
         DlnaCachedRootFolder root("HOST", 80);
-        root.readDirectory(path);
+        root.readDirectory(QDir(path));
 
 //        emit processOver();
     }
     else
     {
-        qCritical() << "database is not valid, unable to scan folder" << path.absolutePath();
+        qCritical() << "database is not valid, unable to scan folder" << path;
 //        emit errorDuringProcess(QString("database is not valid, unable to scan folder %1").arg(path.absolutePath()));
     }
 }

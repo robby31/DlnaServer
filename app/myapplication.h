@@ -73,7 +73,7 @@ signals:
     void ffmpegFolderChanged();
     void ffmpegVersionChanged();
 
-    void scanFolder(QDir path);
+    void scanFolder(QString path);
     void addFolder(QString folder);
     void addLink(QString url);
     void reloadLibrarySignal();

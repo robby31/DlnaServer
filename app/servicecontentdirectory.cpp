@@ -4,8 +4,7 @@ ServiceContentDirectory::ServiceContentDirectory(QString host, int port, QObject
     QObject(parent),
     rootFolder(host, port)
 {
-    connect(this, SIGNAL(databaseOpened(QUrl)), &rootFolder, SIGNAL(databaseOpened(QUrl)));
-    connect(&rootFolder, SIGNAL(scanFolder(QDir)), this, SIGNAL(scanFolder(QDir)));
+    connect(&rootFolder, SIGNAL(scanFolder(QString)), this, SIGNAL(scanFolder(QString)));
 
     connect(this, SIGNAL(folderAdded(QString)), this, SLOT(folderAddedSlot(QString)));
 
