@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 2.1
+import QtQuick.Layouts 1.3
 import MyComponents 1.0
 
 ListViewDelegate {
@@ -8,47 +9,67 @@ ListViewDelegate {
     height: 40
 
     contentItem: Item {
-        id: item
         width: parent.width
         height: 40
 
-        Row {
+        RowLayout {
             width: parent.width-10
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
             spacing: 5
 
             Text {
-                id: textId
                 text: model["id"]
-                width: 50
+                Layout.preferredWidth: 50
                 anchors.verticalCenter: parent.verticalCenter
                 elide: Text.ElideRight
                 clip: true
             }
 
             Text {
-                id: textFilename
-                text: model["filename"]
-                width: (parent.width-textId.width)/3
-                anchors.verticalCenter: parent.verticalCenter
-                elide: Text.ElideRight
-                clip: true
-            }
-
-            Text {
-                id: textFormat
                 text: model["format"]
-                width: (parent.width-textId.width)/3
+                Layout.preferredWidth: 50
                 anchors.verticalCenter: parent.verticalCenter
                 elide: Text.ElideRight
                 clip: true
             }
 
-            Text {
-                id: textTitle
+            EditableText {
                 text: model["title"]
-                width: (parent.width-textId.width)/3
+                placeholderText: "unknown title"
+                Layout.preferredWidth: 400
+                anchors.verticalCenter: parent.verticalCenter
+                onEditingFinished: model["title"] = text
+                clip: true
+            }
+
+            EditableText {
+                text: model["artistName"]
+                placeholderText: "unknown artist"
+                Layout.preferredWidth: 200
+                anchors.verticalCenter: parent.verticalCenter
+                onEditingFinished: {
+                    var artistId = artistModel.getArtistId(text)
+                    if (artistId !== -1)
+                        model["artist"] = artistId
+                    else
+                        console.log("unable to update artist", text, artistId)
+                }
+                clip: true
+            }
+
+            EditableText {
+                text: model["albumName"]
+                placeholderText: "unknown album"
+                Layout.preferredWidth: 200
+                anchors.verticalCenter: parent.verticalCenter
+//                onEditingFinished: model["albumName"] = text
+                clip: true
+            }
+
+            Text {
+                text: model["filename"]
+                Layout.fillWidth: true
                 anchors.verticalCenter: parent.verticalCenter
                 elide: Text.ElideRight
                 clip: true

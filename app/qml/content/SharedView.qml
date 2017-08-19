@@ -89,19 +89,24 @@ Page {
 
         RowLayout {
             spacing: 4
+            Layout.preferredHeight: 30
+            clip: true
 
             TextField {
                 id: link
+                Layout.preferredHeight: 20
                 Layout.fillWidth: true
                 placeholderText: "Network Link, example: https://www.youtube.com/watch?v=rWy30tJdyAM"
             }
 
             Button {
+                Layout.preferredHeight: 20
                 text: "Add link"
                 onClicked: _app.addNetworkLink(link.text)
             }
 
             Button {
+                Layout.preferredHeight: 20
                 text: "Check"
                 onClicked: _app.startCheckNetworkLink()
             }
@@ -109,23 +114,29 @@ Page {
 
         RowLayout {
             spacing: 4
+            Layout.preferredHeight: 20
+            clip: true
 
             Button {
+                Layout.preferredHeight: 20
                 text: "Add"
                 onClicked: fileDialog.open()
             }
 
             Button {
+                Layout.preferredHeight: 20
                 text: "Remove"
                 onClicked: _app.removeFolder(view.currentIndex)
             }
 
             Button {
+                Layout.preferredHeight: 20
                 text: "Refresh"
                 onClicked: _app.refreshFolder(view.currentIndex)
             }
 
             Button {
+                Layout.preferredHeight: 20
                 text: "Reload library"
                 onClicked: _app.reloadLibrary()
             }

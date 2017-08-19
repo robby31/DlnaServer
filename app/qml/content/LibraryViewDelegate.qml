@@ -10,7 +10,7 @@ Item {
         anchors.fill: parent
         clip: true
         text: name
-        font.pixelSize: 12
+        font.pixelSize: 14
         font.bold: delegate.ListView.isCurrentItem
         horizontalAlignment: Text.AlignHCenter
         verticalAlignment: Text.AlignVCenter

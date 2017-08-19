@@ -47,37 +47,40 @@ Page {
         ListElement { name: "Off-Line"; qml: "OffLineMediaView.qml" }
     }
 
-    Row {
+    RowLayout {
         anchors.fill: parent
+        spacing: 0
+
+        ListView {
+            id: menuView
+            Layout.preferredWidth: 100
+            Layout.fillHeight: true
+            clip: true
+
+            model: viewModel
+            delegate: LibraryViewDelegate { }
+
+            ScrollBar.vertical: ScrollBar { }
+
+            highlight: Rectangle { color: "lightsteelblue"; radius: 5 }
+            highlightFollowsCurrentItem: true
+            focus: true
+
+            onCurrentIndexChanged: {
+                viewLoader.source = model.get(currentIndex).qml
+            }
+        }
 
         Rectangle {
-            width: 100
-            height: parent.height
-            border.color: "black"
-
-            ListView {
-                id: menuView
-                anchors.fill: parent
-                clip: true
-                model: viewModel
-                delegate: LibraryViewDelegate { }
-
-                ScrollBar.vertical: ScrollBar { }
-
-                highlight: Rectangle { color: "lightsteelblue"; radius: 5 }
-                highlightFollowsCurrentItem: true
-                focus: true
-
-                onCurrentIndexChanged: {
-                    viewLoader.source = model.get(currentIndex).qml
-                }
-            }
+            Layout.preferredWidth: 1
+            Layout.fillHeight: true
+            color: theme.separatorColor
         }
 
         Loader {
             id: viewLoader
-            width: parent.width-menuView.width
-            height: parent.height
+            Layout.fillWidth: true
+            Layout.preferredHeight: parent.height
         }
     }
 }

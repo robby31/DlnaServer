@@ -28,16 +28,16 @@ Page {
         }
     }
 
-    ColumnLayout {
-        id: mainLayout
-        anchors.fill: parent
-        spacing: 4
+    StackView {
+        id: stack
+        anchors { fill: parent; margins: 10 }
+        initialItem: listView
+    }
+
+    Component {
+        id: listView
 
         ListView {
-            id: listview
-
-            Layout.fillHeight: true
-            Layout.fillWidth: true
             clip: true
 
             ScrollBar.vertical: ScrollBar { }
@@ -46,29 +46,27 @@ Page {
             delegate: RequestDelegate { }
 
             function selectRequest(index) {
-                request.requestIndex = index
-                listview.visible = false
+                stack.push(requestView, {index: index})
             }
         }
+    }
+
+    Component {
+        id: requestView
 
         ColumnLayout {
-            id: requestColumn
-            anchors.fill: parent
-            visible: !listview.visible
+            property alias index: request.requestIndex
 
-            RowLayout {
-                height: cmd.height
-                MyButton {
-                    id: cmd
+            MyButton {
+                id: cmd
 
-                    sourceComponent: Text {
-                        text: "Back"
-                        font.pixelSize: 12
-                        clip: true
-                    }
-
-                    onButtonClicked: listview.visible = true
+                sourceComponent: Text {
+                    text: "Back"
+                    font.pixelSize: 12
+                    clip: true
                 }
+
+                onButtonClicked: stack.pop()
             }
 
             Request {

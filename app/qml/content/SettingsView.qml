@@ -11,6 +11,7 @@ Page {
     height: 300
 
     Row {
+        anchors { left: parent.left; leftMargin: 10; right: parent.right; rightMargin: 10; top: parent.top; topMargin: 10 }
         height: 40
         spacing: 10
         clip: true
@@ -33,6 +34,7 @@ Page {
         }
 
         Button {
+            height: 20
             anchors.verticalCenter: parent.verticalCenter
             text: "select"
             onClicked: chooseFolderDialog.open()

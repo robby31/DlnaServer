@@ -1,5 +1,6 @@
 import QtQuick 2.0
 import QtQuick.Controls 2.1
+import QtQuick.Layouts 1.1
 import MyComponents 1.0
 
 Rectangle {
@@ -8,18 +9,113 @@ Rectangle {
         id: mediaModel
         connectionName: "MEDIA_DATABASE"
         tablename: "media"
-        query: "SELECT id, filename, format, title from media"
+
+        function filter(cmd) {
+            var strQuery
+            strQuery = "SELECT media.id, filename, format, title, media.artist, artist.name AS artistName, album.name AS albumName from media "
+            strQuery += "LEFT OUTER JOIN artist ON media.artist=artist.id "
+            strQuery += "LEFT OUTER JOIN album ON media.album=album.id "
+            if (cmd)
+                strQuery += "WHERE %1".arg(cmd)
+            query = strQuery
+        }
+
+        Component.onCompleted: filter("")
     }
 
-    ListView {
-        id: listView
+    SqlListModel {
+        id: artistModel
+        connectionName: "MEDIA_DATABASE"
+        tablename: "artist"
+        query: "SELECT * from artist"
+
+        function getArtistId(name) {
+            query = "SELECT id from artist WHERE name='%1'".arg(name)
+            if (rowCount > 0)
+                return get(0, "name")
+            else
+                return -1
+        }
+    }
+
+    Column {
+        id: mainLayout
         anchors.fill: parent
-        clip: true
+        spacing: 0
 
-        ScrollBar.vertical: ScrollBar { }
+        Rectangle {
+            width: parent.width
+            height: 40
 
-        model: mediaModel
-        delegate: AllMediaDelegate { }
-        antialiasing: true
+            gradient: Gradient {
+                GradientStop { position: 0.0; color: theme.gradientStartColor }
+                GradientStop { position: 1.0; color: theme.gradientEndColor }
+            }
+
+            RowLayout {
+                id: rowLayout
+                anchors.left: parent.left
+                anchors.leftMargin: 10
+                anchors.right: parent.right
+                anchors.rightMargin: 10
+                height: parent.height
+                spacing: 10
+
+                TextField {
+                    id: textFilter
+                    Layout.preferredWidth: 400
+                    Layout.preferredHeight: 30
+                    anchors.verticalCenter: parent.verticalCenter
+                    clip: true
+                    placeholderText: "Filtering"
+                    selectByMouse: true
+                    onAccepted: mediaModel.filter(text)
+
+                    background: Rectangle {
+                        color: "white"
+                        border.color: parent.focus ? "#21be2b" : "grey"
+                    }
+                }
+
+                Row {
+                    anchors.verticalCenter: parent.verticalCenter
+                    Layout.fillWidth: true
+                    layoutDirection: Qt.RightToLeft
+                    spacing: 10
+                    clip: true
+
+                    Text {
+                        width: contentWidth
+                        text: mediaModel.rowCount + " media"
+                        color: "blue"
+                        clip: true
+                    }
+                }
+
+            }
+        }
+
+        Rectangle {
+            id: separatorBottom
+            width: parent.width
+            height: 1
+            color: theme.separatorColor
+        }
+
+        ListView {
+            id: listView
+
+            width: parent.width
+            height: parent.height - rowLayout.height
+
+            focus: true
+            clip: true
+
+            ScrollBar.vertical: ScrollBar { }
+
+            model: mediaModel
+            delegate: AllMediaDelegate { }
+            antialiasing: true
+        }
     }
 }

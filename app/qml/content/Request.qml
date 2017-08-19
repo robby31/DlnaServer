@@ -30,21 +30,20 @@ Item {
         id: requestDelegate
         Item {
             id: itemDelegate
-            width: 180
+            width: parent.width
             height: textItem.height
 
             Text {
                 id: textItem
                 text: title
+                width: parent.width
+                horizontalAlignment: Text.AlignHCenter
             }
 
             MouseArea {
                 id: itemMouseArea
                 anchors.fill: parent
-                anchors.rightMargin: 0
-                onClicked: {
-                    listView.currentIndex = index
-                }
+                onClicked: listView.currentIndex = index
             }
         }
     }
@@ -59,10 +58,11 @@ Item {
 
     RowLayout {
         anchors.fill: parent
+        spacing: 5
 
         ListView {
             id: listView
-            width: 200
+            Layout.preferredWidth: 200
             Layout.fillHeight: true
             clip: true
 
@@ -75,6 +75,12 @@ Item {
             focus: true
 
             onCurrentIndexChanged: setContent()
+        }
+
+        Rectangle {
+            Layout.preferredWidth: 1
+            Layout.fillHeight: true
+            color: theme.separatorColor
         }
 
         Flickable {

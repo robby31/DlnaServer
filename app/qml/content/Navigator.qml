@@ -38,36 +38,43 @@ Page {
         spacing: 4
 
         RowLayout {
+            Layout.preferredHeight: 30
             spacing: 4
 
             Button {
+                Layout.preferredHeight: 20
                 text: "Home"
                 onClicked: webview.url = url
             }
 
             Button {
+                Layout.preferredHeight: 20
                 text: "Prev"
                 enabled: webview.canGoBack
                 onClicked: webview.goBack()
             }
 
             Button {
+                Layout.preferredHeight: 20
                 text: "Next"
                 enabled: webview.canGoForward
                 onClicked: webview.goForward()
             }
 
             Button {
+                Layout.preferredHeight: 20
                 text: "Stop"
                 onClicked: webview.stop()
             }
 
             Button {
+                Layout.preferredHeight: 20
                 text: "Refresh"
                 onClicked: webview.reload()
             }
 
             Button {
+                Layout.preferredHeight: 20
                 text: "Add to library"
                 onClicked: _app.addNetworkLink(webview.url)
             }
