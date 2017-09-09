@@ -5,6 +5,8 @@ import MyComponents 1.0
 
 Rectangle {
 
+    property int idAlbum: -1
+
     SqlListModel {
         id: mediaModel
         connectionName: "MEDIA_DATABASE"
@@ -16,7 +18,9 @@ Rectangle {
             strQuery += "LEFT OUTER JOIN artist ON media.artist=artist.id "
             strQuery += "LEFT OUTER JOIN album ON media.album=album.id "
             if (cmd)
-                strQuery += "WHERE %1".arg(cmd)
+                strQuery += "WHERE media.album=%1 and %2".arg(idAlbum).arg(cmd)
+            else
+                strQuery += "WHERE media.album=%1".arg(idAlbum)
             query = strQuery
         }
 
@@ -60,6 +64,12 @@ Rectangle {
                 anchors.rightMargin: 10
                 height: parent.height
                 spacing: 10
+
+                MyButton {
+                    anchors.verticalCenter: parent.verticalCenter
+                    sourceComponent: Text { text: "< Albums" }
+                    onButtonClicked: goBack()
+                }
 
                 TextField {
                     id: textFilter

@@ -15,7 +15,9 @@ HEADERS += \
     checknetworklinkitem.h \
     serviceconnectionmanager.h \
     servicecontentdirectory.h \
-    applicationworker.h
+    applicationworker.h \
+    mediaimageprovider.h \
+    albumimageprovider.h
 
 SOURCES += \
     main.cpp \
@@ -25,7 +27,9 @@ SOURCES += \
     checknetworklinkitem.cpp \
     serviceconnectionmanager.cpp \
     servicecontentdirectory.cpp \
-    applicationworker.cpp
+    applicationworker.cpp \
+    mediaimageprovider.cpp \
+    albumimageprovider.cpp
 
 RESOURCES += \
     ressources.qrc

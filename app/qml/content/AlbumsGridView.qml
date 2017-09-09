@@ -8,33 +8,15 @@ Rectangle {
     SqlListModel {
         id: mediaModel
         connectionName: "MEDIA_DATABASE"
-        tablename: "media"
+        tablename: "album"
 
         function filter(cmd) {
             var strQuery
-            strQuery = "SELECT media.id, media.picture, filename, format, title, media.artist, artist.name AS artistName, album.name AS albumName from media "
-            strQuery += "LEFT OUTER JOIN artist ON media.artist=artist.id "
-            strQuery += "LEFT OUTER JOIN album ON media.album=album.id "
+            strQuery = "SELECT album.id, album.year, album.name AS albumName, artist.name AS artistName, (SELECT count(media.id) from media WHERE media.album=album.id) AS mediaCount from album LEFT OUTER JOIN artist ON album.artist=artist.id "
             if (cmd)
-                strQuery += "WHERE %1".arg(cmd)
+                strQuery += "WHERE %1 ".arg(cmd)
+            strQuery += "ORDER BY artist.name, album.year"
             query = strQuery
-        }
-
-        Component.onCompleted: filter("")
-    }
-
-    SqlListModel {
-        id: artistModel
-        connectionName: "MEDIA_DATABASE"
-        tablename: "artist"
-        query: "SELECT * from artist"
-
-        function getArtistId(name) {
-            query = "SELECT id from artist WHERE name='%1'".arg(name)
-            if (rowCount > 0)
-                return get(0, "name")
-            else
-                return -1
         }
     }
 
@@ -81,12 +63,19 @@ Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
                     Layout.fillWidth: true
                     layoutDirection: Qt.RightToLeft
-                    spacing: 10
+                    spacing: 5
                     clip: true
 
                     Text {
                         width: contentWidth
-                        text: mediaModel.rowCount + " media"
+                        text: "albums"
+                        color: "blue"
+                        clip: true
+                    }
+
+                    Text {
+                        width: contentWidth
+                        text: mediaModel.rowCount
                         color: "blue"
                         clip: true
                     }
@@ -102,11 +91,26 @@ Rectangle {
             color: theme.separatorColor
         }
 
-        ListView {
-            id: listView
+        Component {
+            id: highlight
+            Rectangle {
+                width: grid.cellWidth; height: grid.cellHeight
+                color: "lightsteelblue"; radius: 5
+                x: grid.currentItem.x
+                y: grid.currentItem.y
+                Behavior on x { SpringAnimation { spring: 3; damping: 0.2 } }
+                Behavior on y { SpringAnimation { spring: 3; damping: 0.2 } }
+            }
+        }
+
+        GridView {
+            id: grid
 
             width: parent.width
             height: parent.height - rowLayout.height
+
+            cellWidth: 250
+            cellHeight: 200
 
             focus: true
             clip: true
@@ -114,8 +118,25 @@ Rectangle {
             ScrollBar.vertical: ScrollBar { }
 
             model: mediaModel
-            delegate: AllMediaDelegate { }
+            delegate: AlbumsDelegate { }
             antialiasing: true
+
+            highlight: highlight
+            highlightFollowsCurrentItem: false
+
+            Component.onCompleted: {
+                if (model)
+                {
+                    model.filter("")
+                    if (model.rowCount > 0)
+                        currentIndex = 0
+                }
+            }
+
+            function removeAlbum(index) {
+                model.remove(index)
+            }
         }
     }
 }
+

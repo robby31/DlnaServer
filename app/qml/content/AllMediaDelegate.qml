@@ -6,17 +6,25 @@ import MyComponents 1.0
 ListViewDelegate {
     id: delegate
     width: parent ? parent.width : 0
-    height: 40
+    height: 60
 
     contentItem: Item {
         width: parent.width
-        height: 40
+        height: delegate.height
 
         RowLayout {
             width: parent.width-10
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
             spacing: 5
+
+            Image {
+                fillMode: Image.PreserveAspectFit
+                sourceSize.height: delegate.height-10
+                source: "image://media/" + model["picture"]
+                asynchronous: false
+                clip: true
+            }
 
             Text {
                 text: model["id"]

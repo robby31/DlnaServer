@@ -13,6 +13,8 @@
 #include "upnpcontrolpoint.h"
 #include "servicecontentdirectory.h"
 #include "serviceconnectionmanager.h"
+#include "mediaimageprovider.h"
+#include "albumimageprovider.h"
 
 class MyApplication : public Application
 {

@@ -45,6 +45,8 @@ Page {
         id: viewModel
         ListElement { name: "All media"; qml: "AllMediaView.qml" }
         ListElement { name: "Off-Line"; qml: "OffLineMediaView.qml" }
+        ListElement { name: "Artists"; qml: "ArtistsView.qml" }
+        ListElement { name: "Albums"; qml: "AlbumsView.qml" }
     }
 
     RowLayout {
@@ -81,6 +83,7 @@ Page {
             id: viewLoader
             Layout.fillWidth: true
             Layout.preferredHeight: parent.height
+            focus: true
         }
     }
 }

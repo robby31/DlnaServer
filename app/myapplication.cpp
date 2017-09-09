@@ -19,6 +19,9 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_connectionManager(Q_NULLPTR),
     m_contentDirectory(Q_NULLPTR)
 {
+    addImageProvider("media", new MediaImageProvider);
+    addImageProvider("album", new AlbumImageProvider);
+
     connect(this, SIGNAL(aboutToQuit()), this, SLOT(quit()));
 
     setFfmpegFolder(QUrl::fromLocalFile(settings.value("ffmpegFolder").toString()));

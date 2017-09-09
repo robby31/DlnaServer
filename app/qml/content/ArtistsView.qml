@@ -8,33 +8,15 @@ Rectangle {
     SqlListModel {
         id: mediaModel
         connectionName: "MEDIA_DATABASE"
-        tablename: "media"
+        tablename: "artist"
 
         function filter(cmd) {
             var strQuery
-            strQuery = "SELECT media.id, media.picture, filename, format, title, media.artist, artist.name AS artistName, album.name AS albumName from media "
-            strQuery += "LEFT OUTER JOIN artist ON media.artist=artist.id "
-            strQuery += "LEFT OUTER JOIN album ON media.album=album.id "
+            strQuery = "SELECT *, (SELECT count(media.id) from media WHERE media.artist=artist.id) AS mediaCount, (SELECT count(album.id) from album WHERE album.artist=artist.id) AS albumCount from artist "
             if (cmd)
-                strQuery += "WHERE %1".arg(cmd)
+                strQuery += "WHERE %1 ".arg(cmd)
+            strQuery += "ORDER BY name"
             query = strQuery
-        }
-
-        Component.onCompleted: filter("")
-    }
-
-    SqlListModel {
-        id: artistModel
-        connectionName: "MEDIA_DATABASE"
-        tablename: "artist"
-        query: "SELECT * from artist"
-
-        function getArtistId(name) {
-            query = "SELECT id from artist WHERE name='%1'".arg(name)
-            if (rowCount > 0)
-                return get(0, "name")
-            else
-                return -1
         }
     }
 
@@ -86,7 +68,7 @@ Rectangle {
 
                     Text {
                         width: contentWidth
-                        text: mediaModel.rowCount + " media"
+                        text: mediaModel.rowCount + " artists"
                         color: "blue"
                         clip: true
                     }
@@ -114,8 +96,17 @@ Rectangle {
             ScrollBar.vertical: ScrollBar { }
 
             model: mediaModel
-            delegate: AllMediaDelegate { }
+            delegate: ArtistsDelegate { }
             antialiasing: true
+
+            Component.onCompleted: {
+                if (model)
+                {
+                    model.filter("")
+                    if (model.rowCount > 0)
+                        currentIndex = 0
+                }
+            }
         }
     }
 }

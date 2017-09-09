@@ -15,6 +15,7 @@ Rectangle {
         id: listView
         anchors.fill: parent
         clip: true
+        focus: true
 
         ScrollBar.vertical: ScrollBar { }
 

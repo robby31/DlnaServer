@@ -41,5 +41,13 @@
         <file>images/icon-48.png</file>
         <file>images/icon-120.jpg</file>
         <file>images/icon-120.png</file>
+        <file>qml/content/ArtistsView.qml</file>
+        <file>qml/content/ArtistsDelegate.qml</file>
+        <file>qml/content/AlbumsView.qml</file>
+        <file>qml/content/AlbumsDelegate.qml</file>
+        <file>images/noalbum.png</file>
+        <file>images/noartist.png</file>
+        <file>qml/content/AlbumsGridView.qml</file>
+        <file>qml/content/AlbumListMedia.qml</file>
     </qresource>
 </RCC>
