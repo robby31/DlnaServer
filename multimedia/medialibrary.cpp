@@ -648,13 +648,13 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
 
     if (record.isEmpty())
     {
-        qDebug() << "media" << id << "not found";
+        qCritical() << "media" << id << "not found";
         return false;
     }
 
     if (!db.transaction())
     {
-        qDebug() << "unable to begin transaction" << db.lastError().text();
+        qCritical() << "unable to begin transaction" << db.lastError().text();
         return false;
     }
     else
@@ -684,7 +684,7 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
                         QSqlQuery queryUpdate(db);
                         if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(elt).arg(index).arg(id).arg(table)))
                         {
-                            qCritical() << queryUpdate.lastError().text();
+                            qCritical() << "ERROR" << queryUpdate.lastError().text();
                             if (!db.rollback())
                                 qCritical() << "unable to rollback" << db.lastError().text();
                             return false;
@@ -701,7 +701,7 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
                         field.setValue(data[elt]);
                         if (!queryUpdate.exec(QString("UPDATE %4 SET %1=%2 WHERE id=%3").arg(elt).arg(db.driver()->formatValue(field)).arg(id).arg(table)))
                         {
-                            qDebug() << queryUpdate.lastError().text();
+                            qCritical() << "ERROR" << queryUpdate.lastError().text();
                             if (!db.rollback())
                                 qCritical() << "unable to rollback" << db.lastError().text();
                             return false;
@@ -713,7 +713,7 @@ bool MediaLibrary::update(const QString &table, const int &id, const QHash<QStri
 
         if (!db.commit())
         {
-            qDebug() << "unable to commit" << db.lastError().text();
+            qCritical() << "unable to commit" << db.lastError().text();
             return false;
         }
     }
