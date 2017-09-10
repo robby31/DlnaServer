@@ -66,9 +66,26 @@ QString DlnaMusicTrackFile::metaDataAlbumArtist() const {
 
 int DlnaMusicTrackFile::metaDataYear() const
 {
-    QDateTime date = QDateTime::fromString(ffmpeg.metaData("date"), "yyyy-MM-dd");
+    QString rawData = ffmpeg.metaData("date");
+
+    if (rawData.isEmpty())
+        return -1;
+
+    bool valid = false;
+    int year = rawData.toInt(&valid);
+    if (valid)
+        return year;
+
+    QDateTime date = QDateTime::fromString(rawData, "yyyy-MM-dd");
     if (date.isValid())
         return date.toString("yyyy").toInt();
+
+    date = QDateTime::fromString(rawData, "yyyy-MM");
+    if (date.isValid())
+        return date.toString("yyyy").toInt();
+
+    qCritical() << "invalid date format" << rawData << fileinfo.absoluteFilePath();
+
     return -1;
 }
 
