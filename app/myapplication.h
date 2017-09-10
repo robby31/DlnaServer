@@ -15,6 +15,7 @@
 #include "serviceconnectionmanager.h"
 #include "mediaimageprovider.h"
 #include "albumimageprovider.h"
+#include "formatimageprovider.h"
 
 class MyApplication : public Application
 {

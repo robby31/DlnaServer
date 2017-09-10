@@ -21,6 +21,7 @@ MyApplication::MyApplication(int &argc, char **argv):
 {
     addImageProvider("media", new MediaImageProvider);
     addImageProvider("album", new AlbumImageProvider);
+    addImageProvider("format", new FormatImageProvider);
 
     connect(this, SIGNAL(aboutToQuit()), this, SLOT(quit()));
 

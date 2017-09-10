@@ -14,11 +14,13 @@ ListViewDelegate {
 
         RowLayout {
             width: parent.width-10
+            height: parent.height
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.verticalCenter: parent.verticalCenter
             spacing: 5
 
             Image {
+                anchors.verticalCenter: parent.verticalCenter
                 fillMode: Image.PreserveAspectFit
                 sourceSize.height: delegate.height-10
                 source: "image://media/" + model["picture"]
@@ -31,6 +33,15 @@ ListViewDelegate {
                 Layout.preferredWidth: 50
                 anchors.verticalCenter: parent.verticalCenter
                 elide: Text.ElideRight
+                clip: true
+            }
+
+            Image {
+                anchors.verticalCenter: parent.verticalCenter
+                fillMode: Image.PreserveAspectFit
+                sourceSize.height: parent.height-10
+                source: "image://format/%1/%2".arg(model["mediaType"]).arg(model["format"])
+                asynchronous: false
                 clip: true
             }
 

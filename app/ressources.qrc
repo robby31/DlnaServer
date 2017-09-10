@@ -49,5 +49,11 @@
         <file>images/noartist.png</file>
         <file>qml/content/AlbumsGridView.qml</file>
         <file>qml/content/AlbumListMedia.qml</file>
+        <file>images/media/alac.png</file>
+        <file>images/media/music.png</file>
+        <file>images/media/mpeg4.png</file>
+        <file>images/media/aac.png</file>
+        <file>images/media/mp3.png</file>
+        <file>images/media/movie.png</file>
     </qresource>
 </RCC>

@@ -14,9 +14,10 @@ Rectangle {
 
         function filter(cmd) {
             var strQuery
-            strQuery = "SELECT media.id, media.picture, filename, format, title, media.artist, artist.name AS artistName, album.name AS albumName from media "
+            strQuery = "SELECT media.id, media.picture, filename, format, type.name AS mediaType, title, media.artist, artist.name AS artistName, album.name AS albumName from media "
             strQuery += "LEFT OUTER JOIN artist ON media.artist=artist.id "
             strQuery += "LEFT OUTER JOIN album ON media.album=album.id "
+            strQuery += "LEFT OUTER JOIN type ON media.type=type.id "
             if (cmd)
                 strQuery += "WHERE media.album=%1 and %2".arg(idAlbum).arg(cmd)
             else

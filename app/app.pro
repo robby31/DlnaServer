@@ -17,7 +17,8 @@ HEADERS += \
     servicecontentdirectory.h \
     applicationworker.h \
     mediaimageprovider.h \
-    albumimageprovider.h
+    albumimageprovider.h \
+    formatimageprovider.h
 
 SOURCES += \
     main.cpp \
@@ -29,7 +30,8 @@ SOURCES += \
     servicecontentdirectory.cpp \
     applicationworker.cpp \
     mediaimageprovider.cpp \
-    albumimageprovider.cpp
+    albumimageprovider.cpp \
+    formatimageprovider.cpp
 
 RESOURCES += \
     ressources.qrc
