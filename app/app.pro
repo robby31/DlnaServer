@@ -1,4 +1,4 @@
-QT += qml quick widgets network xml sql webview
+QT += qml quick widgets network xml sql webview multimedia
 
 TARGET = QT_Media_Server
 TEMPLATE = app

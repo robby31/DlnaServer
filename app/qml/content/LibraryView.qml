@@ -2,6 +2,7 @@ import QtQuick 2.5
 import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 import QtQuick.Controls.Styles 1.1
+import QtMultimedia 5.9
 import MyComponents 1.0
 import myTypes 1.0
 
@@ -41,6 +42,27 @@ Page {
 
     }
 
+    SqlListModel {
+        id: artistModel
+        connectionName: "MEDIA_DATABASE"
+        tablename: "artist"
+        query: "SELECT id, name FROM artist ORDER BY name"
+    }
+
+    SqlListModel {
+        id: genreModel
+        connectionName: "MEDIA_DATABASE"
+        tablename: "genre"
+        query: "SELECT id, name from genre ORDER BY name"
+    }
+
+    SqlListModel {
+        id: albumModel
+        connectionName: "MEDIA_DATABASE"
+        tablename: "album"
+        query: "SELECT id, name from album ORDER BY name"
+    }
+
     ListModel {
         id: viewModel
         ListElement { name: "All media"; qml: "AllMediaView.qml" }
@@ -49,8 +71,95 @@ Page {
         ListElement { name: "Albums"; qml: "AlbumsView.qml" }
     }
 
+    function formatTime(time) {
+        var minutes = Math.floor(time/60000)
+        var seconds = Number(time/1000 - minutes*60).toFixed()
+
+        var res = ""
+        if (minutes < 10)
+            res += "0%1".arg(minutes)
+        else
+            res += "%1".arg(minutes)
+
+        res += ":"
+
+        if (seconds < 10)
+            res += "0%1".arg(seconds)
+        else
+            res += "%1".arg(seconds)
+
+        return res
+    }
+
+    Rectangle {
+        id: playerInfo
+        anchors { top: parent.top; left: parent.left; right: parent.right }
+        height: 40
+
+        gradient: Gradient {
+            GradientStop { position: 0.0; color: "#4edab3" }
+            GradientStop { position: 1.0; color: "#184337" }
+
+        }
+
+        Row {
+            id: row
+            anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; bottom: parent.bottom }
+            spacing: 10
+
+            Text {
+                id: title
+                text: player.metaData.title ? player.metaData.title : ""
+                width: contentWidth
+                height: parent.height
+                verticalAlignment: Text.AlignVCenter
+                font.bold: true
+            }
+
+            Text {
+                id: artist
+                text: player.metaData.albumArtist ? player.metaData.albumArtist : ""
+                width: contentWidth
+                height: parent.height
+                verticalAlignment: Text.AlignVCenter
+                color: "blue"
+            }
+
+            Text {
+                id: album
+                text: player.metaData.albumTitle ? player.metaData.albumTitle : ""
+                width: contentWidth
+                height: parent.height
+                verticalAlignment: Text.AlignVCenter
+                color: "blue"
+            }
+
+            Text {
+                id: status
+                text: "status: " + player.status
+                width: contentWidth
+                height: parent.height
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            Text {
+                width: contentWidth
+                text: formatTime(player.position) + " / " + formatTime(player.duration)
+                height: parent.height
+                verticalAlignment: Text.AlignVCenter
+            }
+
+            ProgressBar {
+                anchors.verticalCenter: parent.verticalCenter
+                width: 200
+                to: player.duration
+                value: player.position
+            }
+        }
+    }
+
     RowLayout {
-        anchors.fill: parent
+        anchors { top: playerInfo.bottom; left: parent.left; right: parent.right; bottom: parent.bottom }
         spacing: 0
 
         ListView {
@@ -85,5 +194,15 @@ Page {
             Layout.preferredHeight: parent.height
             focus: true
         }
+    }
+
+    function playMedia(url) {
+        player.source = url
+    }
+
+    MediaPlayer {
+        id: player
+        autoPlay: true
+        onErrorStringChanged: console.log("ERROR", errorString)
     }
 }

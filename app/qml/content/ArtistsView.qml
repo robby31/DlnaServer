@@ -12,7 +12,7 @@ Rectangle {
 
         function filter(cmd) {
             var strQuery
-            strQuery = "SELECT *, (SELECT count(media.id) from media WHERE media.artist=artist.id) AS mediaCount, (SELECT count(album.id) from album WHERE album.artist=artist.id) AS albumCount from artist "
+            strQuery = "SELECT id, id AS artistId, name, sortname, (SELECT count(media.id) from media WHERE media.artist=artist.id) AS mediaCount, (SELECT count(album.id) from album WHERE album.artist=artist.id) AS albumCount from artist "
             if (cmd)
                 strQuery += "WHERE %1 ".arg(cmd)
             strQuery += "ORDER BY name"
@@ -63,7 +63,7 @@ Rectangle {
                     anchors.verticalCenter: parent.verticalCenter
                     Layout.fillWidth: true
                     layoutDirection: Qt.RightToLeft
-                    spacing: 10
+                    spacing: 5
                     clip: true
 
                     Text {

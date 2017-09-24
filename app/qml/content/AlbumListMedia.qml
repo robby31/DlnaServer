@@ -2,6 +2,7 @@ import QtQuick 2.0
 import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 import MyComponents 1.0
+import myTypes 1.0
 
 Rectangle {
 
@@ -14,9 +15,10 @@ Rectangle {
 
         function filter(cmd) {
             var strQuery
-            strQuery = "SELECT media.id, media.picture, filename, format, type.name AS mediaType, title, media.artist, artist.name AS artistName, album.name AS albumName from media "
+            strQuery = "SELECT media.id, media.id AS mediaId, media.picture, filename, format, type.name AS mediaType, title, media.artist, artist.name AS artistName, media.album, album.name AS albumName, media.genre, genre.name AS genreName from media "
             strQuery += "LEFT OUTER JOIN artist ON media.artist=artist.id "
             strQuery += "LEFT OUTER JOIN album ON media.album=album.id "
+            strQuery += "LEFT OUTER JOIN genre ON media.genre=genre.id "
             strQuery += "LEFT OUTER JOIN type ON media.type=type.id "
             if (cmd)
                 strQuery += "WHERE media.album=%1 and %2".arg(idAlbum).arg(cmd)
@@ -26,21 +28,6 @@ Rectangle {
         }
 
         Component.onCompleted: filter("")
-    }
-
-    SqlListModel {
-        id: artistModel
-        connectionName: "MEDIA_DATABASE"
-        tablename: "artist"
-        query: "SELECT * from artist"
-
-        function getArtistId(name) {
-            query = "SELECT id from artist WHERE name='%1'".arg(name)
-            if (rowCount > 0)
-                return get(0, "name")
-            else
-                return -1
-        }
     }
 
     Column {

@@ -42,31 +42,39 @@ ListViewDelegate {
             spacing: 5
 
             Text {
-                text: model["id"]
+                text: artistId
                 Layout.preferredWidth: 50
                 anchors.verticalCenter: parent.verticalCenter
                 elide: Text.ElideRight
                 clip: true
             }
 
-            Text {
-                text: model["name"]
+            EditableText {
+                text: name
+                placeholderText: "unknown name"
                 Layout.preferredWidth: 200
                 anchors.verticalCenter: parent.verticalCenter
-                elide: Text.ElideRight
+                onEditingFinished: {
+                    name = text
+                    focus = false
+                }
+                clip: true
+            }
+
+            EditableText {
+                text: sortname
+                placeholderText: "unknown sortname"
+                Layout.preferredWidth: 200
+                anchors.verticalCenter: parent.verticalCenter
+                onEditingFinished: {
+                    sortname = text
+                    focus = false
+                }
                 clip: true
             }
 
             Text {
-                text: model["sortname"]
-                Layout.preferredWidth: 200
-                anchors.verticalCenter: parent.verticalCenter
-                elide: Text.ElideRight
-                clip: true
-            }
-
-            Text {
-                text: model["mediaCount"] + " medias"
+                text: mediaCount + " medias"
                 color: "blue"
                 Layout.preferredWidth: 200
                 anchors.verticalCenter: parent.verticalCenter
@@ -75,7 +83,7 @@ ListViewDelegate {
             }
 
             Text {
-                text: model["albumCount"] + " albums"
+                text: albumCount + " albums"
                 color: "blue"
                 Layout.preferredWidth: 200
                 anchors.verticalCenter: parent.verticalCenter

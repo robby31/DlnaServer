@@ -25,7 +25,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             fillMode: Image.PreserveAspectFit
             sourceSize.height: parent.height-5*textItem.height-5*column.spacing
-            source: "image://album/" + model["id"]
+            source: "image://album/" + albumId
             asynchronous: false
             clip: true
         }
@@ -34,7 +34,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             horizontalAlignment: Text.AlignHCenter
             width: parent.width
-            text: model["id"]
+            text: albumId
             font.bold: true
             elide: Text.ElideRight
             clip: true
@@ -45,7 +45,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             horizontalAlignment: Text.AlignHCenter
             width: parent.width
-            text: model["albumName"] ? model["albumName"] : "<No Name>"
+            text: albumName ? albumName : "<No Name>"
             font.bold: true
             elide: Text.ElideRight
             clip: true
@@ -54,7 +54,7 @@ Item {
         Text {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
-            text: model["artistName"] ? model["artistName"] : "<No Artist>"
+            text: artistName ? artistName : "<No Artist>"
             anchors.horizontalCenter: parent.horizontalCenter
             elide: Text.ElideRight
             clip: true
@@ -63,7 +63,7 @@ Item {
         Text {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
-            text: model["year"] ? model["year"] : "<No Year>"
+            text: year ? year : "<No Year>"
             anchors.horizontalCenter: parent.horizontalCenter
             elide: Text.ElideRight
             clip: true
@@ -72,7 +72,7 @@ Item {
         Text {
             width: parent.width
             horizontalAlignment: Text.AlignHCenter
-            text: model["mediaCount"]
+            text: mediaCount
             anchors.horizontalCenter: parent.horizontalCenter
             elide: Text.ElideRight
             clip: true
@@ -92,7 +92,7 @@ Item {
         width: 20
         fillMode: Image.PreserveAspectFit
         source: "qrc:///images/clear.png"
-        visible: delegate.GridView.isCurrentItem && mousearea.containsMouse
+        visible: mediaCount==0 && delegate.GridView.isCurrentItem && mousearea.containsMouse
 
         MouseArea {
             anchors.fill: parent

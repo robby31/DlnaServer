@@ -12,10 +12,10 @@ Rectangle {
 
         function filter(cmd) {
             var strQuery
-            strQuery = "SELECT album.id, album.year, album.name AS albumName, artist.name AS artistName, (SELECT count(media.id) from media WHERE media.album=album.id) AS mediaCount from album LEFT OUTER JOIN artist ON album.artist=artist.id "
+            strQuery = "SELECT album.id, album.id AS albumId, album.year, album.name AS albumName, artist.name AS artistName, (SELECT count(media.id) from media WHERE media.album=album.id) AS mediaCount from album LEFT OUTER JOIN artist ON album.artist=artist.id "
             if (cmd)
                 strQuery += "WHERE %1 ".arg(cmd)
-            strQuery += "ORDER BY artist.name, album.year"
+            strQuery += "ORDER BY album.name, artist.name, album.year"
             query = strQuery
         }
     }
@@ -68,14 +68,7 @@ Rectangle {
 
                     Text {
                         width: contentWidth
-                        text: "albums"
-                        color: "blue"
-                        clip: true
-                    }
-
-                    Text {
-                        width: contentWidth
-                        text: mediaModel.rowCount
+                        text: mediaModel.rowCount + " albums"
                         color: "blue"
                         clip: true
                     }
