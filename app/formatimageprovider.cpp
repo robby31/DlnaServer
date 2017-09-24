@@ -8,8 +8,9 @@ FormatImageProvider::FormatImageProvider():
 
 QImage FormatImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
 {
+    qDebug() << "IMAGE" << id << size << requestedSize;
+
     QImage image;
-    qWarning() << "IMAGE" << id << size << requestedSize;
 
     if (id.contains("/"))
     {
