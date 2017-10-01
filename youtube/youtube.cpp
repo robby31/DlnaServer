@@ -454,38 +454,40 @@ void YouTube::parseVideoPage()
                     // parse url for streaming
                     foreach (const QString &url_data_str, encoded_url_map.split(","))
                     {
-                        // convert url_data_str in QHash object url_data
-                        QHash<QString, QString> url_data;
-                        foreach (const QString &data, url_data_str.split("&"))
+                        if (!url_data_str.isEmpty())
                         {
-                            if (data.contains("="))
+                            // convert url_data_str in QHash object url_data
+                            QHash<QString, QString> url_data;
+                            foreach (const QString &data, url_data_str.split("&"))
                             {
-                                int index = data.indexOf("=");
-                                QString param = data.left(index);
-                                QString value = QByteArray::fromPercentEncoding(data.right(data.size()-index-1).toUtf8());
-                                url_data[param] = value;
+                                if (data.contains("="))
+                                {
+                                    int index = data.indexOf("=");
+                                    QString param = data.left(index);
+                                    QString value = QByteArray::fromPercentEncoding(data.right(data.size()-index-1).toUtf8());
+                                    url_data[param] = value;
+                                }
+                                else
+                                {
+                                    qWarning() << "ERROR, invalid data" << url_data_str << data << "from encoded url" << url_data_str;
+                                }
+                            }
+
+                            // read url_data
+                            if (!url_data.contains("itag") || !url_data.contains("url"))
+                            {
+                                qWarning() << "ERROR, invalid data" << url_data;
                             }
                             else
                             {
-                                qWarning() << "ERROR, invalid data" << data;
+                                int indexQuality = playbackQuality.indexOf(url_data["itag"].toInt());
+                                if (indexQuality != -1 && indexQuality <= indexMaxQuality && indexQuality > indexQualityFound)
+                                {
+                                    indexQualityFound = indexQuality;
+                                    url_dataFound = url_data;
+                                }
                             }
                         }
-
-                        // read url_data
-                        if (!url_data.contains("itag") || !url_data.contains("url"))
-                        {
-                            qWarning() << "ERROR, invalid data" << url_data;
-                        }
-                        else
-                        {
-                            int indexQuality = playbackQuality.indexOf(url_data["itag"].toInt());
-                            if (indexQuality != -1 && indexQuality <= indexMaxQuality && indexQuality > indexQualityFound)
-                            {
-                                indexQualityFound = indexQuality;
-                                url_dataFound = url_data;
-                            }
-                        }
-
                     }
 
                     QString url;

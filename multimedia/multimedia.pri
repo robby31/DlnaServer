@@ -3,8 +3,12 @@ DEPENDPATH += $$PWD
 
 QT += multimedia
 
-include (../../Upnp/UpnpLibrary/UpnpLibrary.prf)
-include (../../multimedia/mediadevice/mediadevice.prf)
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/UpnpLibrary
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(UpnpLibrary)
+
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/multimedia
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(mediadevice)
+
 #include (../../chromaprint_v11/acoustid/acoustid.pri)
 
 HEADERS += \

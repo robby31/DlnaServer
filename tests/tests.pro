@@ -20,7 +20,9 @@ DEFINES += SRCDIR=\\\"$$PWD/\\\"
 DEFINES += PROFILING
 
 include (../dlna/dlna.pri)
-include (../../QmlApplication/QmlApplication.prf)
+
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
 
 SOURCES += \
     main.cpp \

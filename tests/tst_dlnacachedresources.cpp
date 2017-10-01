@@ -230,6 +230,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
         if (music_folder->getSystemName() == "Music")
             break;
     }
+    QVERIFY(music_folder != 0);
     QVERIFY2(music_folder->getSystemName() == "Music", music_folder->getSystemName().toUtf8().constData());
 
     QVERIFY(music_folder->getChildrenSize()> 0);

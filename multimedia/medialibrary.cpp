@@ -249,57 +249,6 @@ bool MediaLibrary::initialize()
             }
         }
 
-        // correct duration
-        //        if (!query.exec(QString("UPDATE media SET duration=339776 WHERE filename='http://www.youtube.com/watch?v=a5uQMwRMHcs'")))
-        //            qWarning() << query.lastError();
-
-        // update youtube link
-        //        if (!query.exec(QString("UPDATE media SET filename='https://www.youtube.com/watch?v=THGgyPfiNHs' WHERE id=14960")))
-        //            qWarning() << query.lastError();
-
-        if (query.exec("SELECT count(id) from media") && query.next())
-            qInfo() << QString("%1 medias in database.").arg(query.value(0).toInt());
-
-
-        /////////////////////////////////////////////////////////
-        // update youtube link broken
-
-        //        if (query.exec("SELECT id, filename, title from media WHERE filename like '%youtube%' and title like '%prayer%'"))
-        //            while (query.next())
-        //                qWarning() << query.value("id") << query.value("filename") << query.value("title");
-
-
-        //        if (!query.exec(QString("UPDATE media SET filename='https://www.youtube.com/watch?v=JrlfFTS9kGU' where id=60")))
-        //            qWarning() << query.lastError();
-
-        /////////////////////////////////////////////////////////
-
-
-        //        if (query.exec("SELECT filename, counter_played from media ORDER BY counter_played"))
-        //            while (query.next())
-        //                qWarning() << query.value("counter_played") << query.value("filename");
-
-        //        QString artist("adele");
-        //        int idArtist = -1;
-        //        if (query.exec("SELECT id, name from artist where name like '%"+artist+"%'"))
-        //            while (query.next()) {
-        //                qWarning() << "ARTIST found" << query.value("name");
-        //                idArtist = query.value("id").toInt();
-        //                break;
-        //            }
-
-        //        if (idArtist != -1) {
-        //            qWarning() << "UPDATE" << artist << "=" << idArtist;
-
-        ////            if (!query.exec(QString("UPDATE media SET artist=%1 where type=1 and artist is null and title like '%"+artist+"%'").arg(idArtist)))
-        ////                qWarning() << query.lastError();
-
-        //            if (query.exec("SELECT filename, title, artist from media where type=1 and title like '%"+artist+"%'"))
-        //                while (query.next())
-        //                    qWarning() << query.value("filename") << query.value("title") << query.value("artist");
-        //        }
-
-
         qDebug() << QString("MediaLibrary %1 initialized.").arg(db.databaseName());
 
         return true;
