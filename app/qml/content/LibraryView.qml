@@ -19,20 +19,10 @@ Page {
     onActionClicked: {
         if (name == "Quit")
             quit()
-        else if (name == "Reload")
-        {
-            mediaModel.reload()
-        }
     }
 
     ListModel {
         id: pageActions
-
-        ListElement {
-            name: "Reload"
-            description: "reload library"
-            icon: "qrc:///images/exit.png"
-        }
 
         ListElement {
             name: "Quit"
