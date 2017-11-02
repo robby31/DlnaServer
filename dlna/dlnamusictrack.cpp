@@ -37,7 +37,7 @@ int DlnaMusicTrack::bitrate() const {
         else if (transcodeFormat == LPCM || transcodeFormat == WAV || transcodeFormat == ALAC) {
 
             if (samplerate() == 44100) {
-                return 1411000;
+                return 1411200;
 
             } else {
                 return 1536000;
