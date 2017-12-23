@@ -40,4 +40,3 @@ HEADERS += \
     tst_dlnavideoitem.h \
     tst_dlnacachedresources.h \
     tst_dlnayoutubevideo.h
-
