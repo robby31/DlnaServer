@@ -6,12 +6,32 @@ tst_dlnacachedresources::tst_dlnacachedresources(QObject *parent) :
     db(CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE")),
     folderKO()
 {
-    QFfmpeg::setDirPath("/opt/local/bin");
     FfmpegTranscoding::setDirPath("/opt/local/bin");
 
     db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     db.setConnectOptions("Pooling=True;Max Pool Size=100;");
 }
+
+void tst_dlnacachedresources::cleanup()
+{
+    QVERIFY2(DlnaResource::objectCounter == 0, QString("memory leak detected, %1 DlnaResource objects.").arg(DlnaResource::objectCounter).toUtf8());
+
+     QCOMPARE(QFfmpegMedia::objectCounter, 0);
+     QCOMPARE(QFfmpegStream::objectCounter, 0);
+     QCOMPARE(QFfmpegFrame::objectCounter, 0);
+     QCOMPARE(QFfmpegCodec::objectCounter, 0);
+     QCOMPARE(QFfmpegBuffer::objectCounter, 0);
+}
+
+void tst_dlnacachedresources::dataAvailable()
+{
+    TranscodeDevice *device = qobject_cast<TranscodeDevice*>(sender());
+    if (device)
+        device->requestData(1000000);
+    else
+        qCritical() << "invalid device" << sender();
+}
+
 
 void tst_dlnacachedresources::receivedTranscodedData(const QByteArray &data)
 {
@@ -33,7 +53,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 15378, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 15503, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -47,7 +67,7 @@ void tst_dlnacachedresources::testCase_Library_NbAudios()
         if (query.last())
             nbAudios = query.at() + 1;
     }
-    QVERIFY2(nbAudios == 13739, QString("%1").arg(nbAudios).toUtf8().constData());
+    QVERIFY2(nbAudios == 13804, QString("%1").arg(nbAudios).toUtf8().constData());
     db.close();
 }
 
@@ -61,7 +81,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1639, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 1699, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -75,7 +95,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbums()
         if (query.last())
             nbAlbums = query.at() + 1;
     }
-    QVERIFY2(nbAlbums == 1279, QString("%1").arg(nbAlbums).toUtf8().constData());
+    QVERIFY2(nbAlbums == 1289, QString("%1").arg(nbAlbums).toUtf8().constData());
     db.close();
 }
 
@@ -89,7 +109,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbumPictures()
         if (query.last())
             nbAlbumPictures = query.at() + 1;
     }
-    QVERIFY2(nbAlbumPictures == 799, QString("%1").arg(nbAlbumPictures).toUtf8().constData());
+    QVERIFY2(nbAlbumPictures == 853, QString("%1").arg(nbAlbumPictures).toUtf8().constData());
     db.close();
 }
 
@@ -103,7 +123,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithAlbum()
         if (query.last())
             nbTracksWithAlbum = query.at() + 1;
     }
-    QVERIFY2(nbTracksWithAlbum == 13484, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
+    QVERIFY2(nbTracksWithAlbum == 13597, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
     db.close();
 }
 
@@ -117,7 +137,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithPicture()
         if (query.last())
             nbTracksWithPicture = query.at() + 1;
     }
-    QVERIFY2(nbTracksWithPicture == 9450, QString("%1").arg(nbTracksWithPicture).toUtf8().constData());
+    QVERIFY2(nbTracksWithPicture == 9512, QString("%1").arg(nbTracksWithPicture).toUtf8().constData());
     db.close();
 }
 
@@ -126,7 +146,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbumsWithSeveralPicture()
     QVERIFY(db.open() == true);
     QSqlQuery query(db);
 
-    // search album with several pictures
+    /* search album with several pictures */
     int nb = 0;
     query.exec("SELECT TBL_ALBUM.name, count(DISTINCT picture), TBL_ARTIST.name, media.album from media "
                "LEFT OUTER JOIN album AS TBL_ALBUM ON media.album=TBL_ALBUM.id "
@@ -147,7 +167,7 @@ void tst_dlnacachedresources::testCase_Library_NbPictureNotUsed()
     QVERIFY(db.open() == true);
     QSqlQuery query(db);
 
-    // search picture not used
+    /* search picture not used */
     int nb = 0;
     query.exec("SELECT picture.id, count(media.filename), picture.name from picture LEFT OUTER JOIN media ON picture.id=media.picture GROUP BY picture.id");
     while (query.next())
@@ -164,7 +184,7 @@ void tst_dlnacachedresources::testCase_Library_NbPictureWithNoAlbum()
     QVERIFY(db.open() == true);
     QSqlQuery query(db);
 
-    // search picture with no album
+    /* search picture with no album */
     int nb = 0;
     query.exec("SELECT filename, picture from media where album is null and picture is not null");
     while (query.next())
@@ -332,26 +352,29 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY2(result["mean_volume"] == -12.5, QString("%1").arg(result["mean_volume"]).toUtf8());
     QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
 
-    {
-        Device *device = track->getStream();
-        QVERIFY(device != 0);
+    Device *device = track->getStream();
+    QVERIFY(device != 0);
 
-        QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
-        QVERIFY(transcodeProcess != 0);
+    QScopedPointer<QFfmpegTranscoding> transcodeProcess(qobject_cast<QFfmpegTranscoding*>(device));
+    QVERIFY(transcodeProcess != 0);
 
-        transcodedSize = 0;
-        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
-        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-        QVERIFY(transcodeProcess->open()==true);
-        emit startTranscoding();
-        transcodeProcess->waitForFinished(-1);
-        QVERIFY(transcodeProcess->exitCode() == 0);
-        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
-        QVERIFY(transcodeProcess->bytesAvailable() == 0);
-        QVERIFY2(transcodedSize == 7558836, QString("%1").arg(transcodedSize).toUtf8().constData());
-        QVERIFY(track->size() > transcodedSize);
-    }
+    transcodedSize = 0;
+    connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
+    connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+    connect(transcodeProcess.data(), SIGNAL(readyRead()), this, SLOT(dataAvailable()));
+    connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
+    QVERIFY(transcodeProcess->open()==true);
+    emit startTranscoding();
+    transcodeProcess->waitForFinished(-1);
+    QVERIFY(transcodeProcess->exitCode() == 0);
+    QCOMPARE(transcodeProcess->bytesAvailable(), 0);
+    QCOMPARE(transcodedSize, 7559880);
+    QVERIFY(track->size() > transcodedSize);
+
+    /* delete stream because deleted by deletelater */
+    device = track->getStream();
+    if (device)
+        delete device;
 }
 
 void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
@@ -449,7 +472,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     QVERIFY2(movie->subtitleLanguages() == QStringList() << "eng", movie->subtitleLanguages().join(',').toUtf8());
     QVERIFY2(movie->framerate() == "23.976", movie->framerate().toUtf8());
 
-    // test partial transcoding (10 seconds)
+    /* test partial transcoding (10 seconds) */
     Device *device = movie->getStream();
     QVERIFY(device != 0);
     device->setTimeSeek(-1, 10);
@@ -461,6 +484,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
         transcodedSize = 0;
         connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
         connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
+        connect(transcodeProcess.data(), SIGNAL(readyRead()), this, SLOT(dataAvailable()));
         connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
         QVERIFY(transcodeProcess->open()==true);
         emit startTranscoding();
@@ -478,13 +502,24 @@ int tst_dlnacachedresources::parseFolder(QString resourceId, DlnaResource *resou
     int elapsed = 0;
 
     QList<DlnaResource*> l_child;
-    for (int i = 0; i<3; i++) {
-
+    for (int i = 0; i<3; i++)
+    {
+        QObject scope;
         timer.restart();
-        l_child = resource->getDLNAResources(resourceId, true, 0, 608, "");
-        foreach(DlnaResource* child, l_child) {
-            child->getStringContentDirectory(QStringList("*"));
+        l_child = resource->getDLNAResources(resourceId, true, 0, 608, "", &scope);
+        foreach(DlnaResource* child, l_child)
+        {
+            DlnaItem *item = qobject_cast<DlnaItem*>(child);
+
+            if (item)
+            {
+                child->getStringContentDirectory(QStringList("*"));
+                Device * stream = item->getStream();
+                if (stream)
+                    delete stream;   /* remove stream which is destroyed with deletelater */
+            }
         }
+
         int tmp = timer.elapsed();
         if (tmp > elapsed) {
             elapsed = tmp;

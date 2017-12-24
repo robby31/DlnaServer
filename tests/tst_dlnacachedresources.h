@@ -19,12 +19,18 @@ public:
 signals:
     void startTranscoding();
 
-private slots:
+public slots:
+    void dataAvailable();
     void receivedTranscodedData(const QByteArray &data);
     void error_addFolder(const QString &folder) { folderKO = folder; }
     void LogMessage(const QString &message);
 
+private:
+    int parseFolder(QString resourceId, DlnaResource* resource);
+
 private Q_SLOTS:
+    void cleanup();
+
     void testCase_DlnaCachedRootFolder();
     void testCase_DlnaCachedMusicTrack();
     void testCase_DlnaCachedVideo();
@@ -48,11 +54,9 @@ private Q_SLOTS:
     void testCase_Library_NbPictureWithNoAlbum();
 
 private:
-    long transcodedSize;
+    qint64 transcodedSize;
     QSqlDatabase db;
     QString folderKO;
-
-    int parseFolder(QString resourceId, DlnaResource* resource);
 };
 
 #endif // TST_DLNACACHEDRESOURCES_H
