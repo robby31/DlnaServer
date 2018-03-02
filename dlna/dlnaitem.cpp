@@ -12,6 +12,10 @@ DlnaItem::DlnaItem(QString host, int port, QObject *parent) :
 {
 }
 
+DlnaItem::~DlnaItem()
+{
+}
+
 QString DlnaItem::getDisplayName() const {
     QString title = metaDataTitle();
     if (title.isEmpty())
@@ -57,7 +61,7 @@ Device *DlnaItem::getStream()
     if (toTranscode())
     {
         // DLNA node shall be transcoded
-        TranscodeProcess* process = getTranscodeProcess();
+        TranscodeDevice* process = getTranscodeProcess();
 
         if (process)
         {
@@ -118,6 +122,9 @@ void DlnaItem::setStream(Device *stream)
 {
     if (stream)
     {
+        if (m_stream)
+            m_stream->deleteLater();
+
         connect(stream, SIGNAL(destroyed(QObject*)), this, SLOT(streamDestroyed(QObject*)));
         connect(this, SIGNAL(destroyed(QObject*)), stream, SLOT(deleteLater()));
         m_stream = stream;

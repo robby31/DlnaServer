@@ -4,11 +4,11 @@ qint64 DlnaVideoFile::objectCounter = 0;
 
 DlnaVideoFile::DlnaVideoFile(QString filename, QString host, int port, QObject *parent):
     DlnaVideoItem(host, port, parent),
-    fileinfo(filename),
-    mime_type(),
-    ffmpeg(filename, this)
+    fileinfo(filename)
 {
     ++objectCounter;
+
+    ffmpeg.open(filename, false);
 
     QMimeDatabase db;
     mime_type = db.mimeTypeForFile(fileinfo);
@@ -23,7 +23,7 @@ TranscodeProcess *DlnaVideoFile::getTranscodeProcess()
 {
     FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
     transcodeProcess->setUrl(getSystemName());
-    transcodeProcess->setLengthInMSeconds(metaDataDuration());
+    transcodeProcess->setOriginalLengthInMSeconds(metaDataDuration());
     transcodeProcess->setFormat(transcodeFormat);
     transcodeProcess->setBitrate(bitrate());
     transcodeProcess->setAudioLanguages(audioLanguages());

@@ -10,15 +10,12 @@ DlnaYouTubeVideo::DlnaYouTubeVideo(QString host, int port, QObject *parent) :
     m_unavailableMessage(),
     m_title(),
     m_streamUrl(),
-    ffmpeg(this),
     m_youtube(0),
     mutex(),
     replyWaitCondition(),
     m_error()
 {
     ++objectCounter;
-
-    connect(&ffmpeg, SIGNAL(mediaReady()), this, SLOT(ffmpegReady()));
 }
 
 DlnaYouTubeVideo::~DlnaYouTubeVideo()
@@ -113,34 +110,15 @@ void DlnaYouTubeVideo::videoUrl(const QString &url)
     m_streamUrl = url;
 
     if (m_analyzeStream)
-    {
-        ffmpeg.setFilename(url);
-    }
-    else
-    {
-        // url is found, ffmpeg is not run to probe the media so process finished
-        if (m_videoUrlInProgress)
-        {
-            m_videoUrlInProgress = false;
-            replyWaitCondition.wakeAll();
-        }
-        
-        emit streamUrlDefined(url);        
-    }
-}
+        ffmpeg.open(url);
 
-void DlnaYouTubeVideo::ffmpegReady()
-{
-    QMutexLocker locker(&mutex);
-
-    // url is found and ffmpeg is ready, process finished
     if (m_videoUrlInProgress)
     {
         m_videoUrlInProgress = false;
         replyWaitCondition.wakeAll();
     }
-    
-    emit streamUrlDefined(m_streamUrl);
+
+    emit streamUrlDefined(url);
 }
 
 bool DlnaYouTubeVideo::waitUrl(const int &timeout)
@@ -162,7 +140,7 @@ TranscodeProcess *DlnaYouTubeVideo::getTranscodeProcess()
 {
     FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
 
-    transcodeProcess->setLengthInMSeconds(metaDataDuration());
+    transcodeProcess->setOriginalLengthInMSeconds(metaDataDuration());
     transcodeProcess->setFormat(transcodeFormat);
     transcodeProcess->setBitrate(bitrate());
     transcodeProcess->setAudioLanguages(audioLanguages());

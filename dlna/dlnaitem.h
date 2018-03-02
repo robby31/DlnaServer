@@ -13,6 +13,7 @@ class DlnaItem : public DlnaResource
 
 public:
     explicit DlnaItem(QString host, int port, QObject *parent = 0);
+    virtual ~DlnaItem();
 
     // Returns the DisplayName that is shown to the Renderer.
     virtual QString getDisplayName() const;
@@ -89,7 +90,7 @@ public:
 
 protected:
     // Returns the process for transcoding
-    virtual TranscodeProcess* getTranscodeProcess() = 0;
+    virtual TranscodeDevice* getTranscodeProcess() = 0;
 
     // Returns the process for original streaming
     virtual Device* getOriginalStreaming() = 0;

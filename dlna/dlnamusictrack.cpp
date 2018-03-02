@@ -189,14 +189,15 @@ QDomElement DlnaMusicTrack::getXmlContentDirectory(QDomDocument *xml, QStringLis
     return xml_obj;
 }
 
-FfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess()
+QFfmpegTranscoding *DlnaMusicTrack::getTranscodeProcess()
 {
-    FfmpegTranscoding* transcodeProcess = new FfmpegTranscoding();
-    transcodeProcess->setUrl(getSystemName());
-    transcodeProcess->setLengthInMSeconds(metaDataDuration());
+    QFfmpegTranscoding* transcodeProcess = new QFfmpegTranscoding();
     transcodeProcess->setFormat(transcodeFormat);
     transcodeProcess->setBitrate(bitrate());
 //    transcodeProcess->setVolumeInfo(volumeInfo());
+    transcodeProcess->setUrl(getSystemName());
+
+    connect(transcodeProcess, SIGNAL(openedSignal()), transcodeProcess, SLOT(startDemux()));
 
     return transcodeProcess;
 }

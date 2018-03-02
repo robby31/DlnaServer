@@ -4,11 +4,11 @@ qint64 DlnaMusicTrackFile::objectCounter = 0;
 
 DlnaMusicTrackFile::DlnaMusicTrackFile(QString filename, QString host, int port, QObject *parent):
     DlnaMusicTrack(host, port, parent),
-    fileinfo(filename),
-    mime_type(),
-    ffmpeg(filename, this)
-{    
+    fileinfo(filename)
+{
     ++objectCounter;
+
+    ffmpeg.open(filename, true);
 
     QMimeDatabase db;
     mime_type = db.mimeTypeForFile(fileinfo);
@@ -127,3 +127,15 @@ QHash<QString, double> DlnaMusicTrackFile::volumeInfo(const int timeout)
     return ffmpeg.getVolumeInfo(timeout);
 }
 
+QFfmpegTranscoding *DlnaMusicTrackFile::getTranscodeProcess()
+{
+    QFfmpegTranscoding* transcodeProcess = new QFfmpegTranscoding();
+    transcodeProcess->setFormat(transcodeFormat);
+    transcodeProcess->setBitrate(bitrate());
+//    transcodeProcess->setVolumeInfo(volumeInfo());
+    transcodeProcess->setInput(&ffmpeg);
+
+    connect(transcodeProcess, SIGNAL(openedSignal()), transcodeProcess, SLOT(startDemux()));
+
+    return transcodeProcess;
+}

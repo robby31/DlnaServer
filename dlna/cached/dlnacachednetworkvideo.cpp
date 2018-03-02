@@ -43,7 +43,7 @@ TranscodeProcess *DlnaCachedNetworkVideo::getTranscodeProcess()
 
     if (transcodeProcess)
     {
-        transcodeProcess->setLengthInMSeconds(metaDataDuration());
+        transcodeProcess->setOriginalLengthInMSeconds(metaDataDuration());
         transcodeProcess->setFormat(transcodeFormat);
         transcodeProcess->setBitrate(bitrate());
         transcodeProcess->setAudioLanguages(audioLanguages());

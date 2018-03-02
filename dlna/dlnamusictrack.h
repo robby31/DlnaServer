@@ -2,7 +2,7 @@
 #define DLNAMUSICTRACK_H
 
 #include "dlnaitem.h"
-#include "ffmpegtranscoding.h"
+#include "qffmpegtranscoding.h"
 
 class DlnaMusicTrack : public DlnaItem
 {
@@ -38,7 +38,7 @@ public:
 
 protected:
     // Returns the process for transcoding
-    virtual FfmpegTranscoding* getTranscodeProcess();
+    virtual QFfmpegTranscoding* getTranscodeProcess();
 
     // Returns the process for original streaming
     virtual Device* getOriginalStreaming();
