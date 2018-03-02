@@ -14,7 +14,7 @@ MyApplication {
 
     controller: homePageController
     modelButtons : mybuttons
-    srcPages: _app.databasePathName.toString() === "" ? "SelectDatabase.qml" : "Pages/ApplicationPages.qml"
+    srcPages: _app.databaseName.toString() === "" ? "SelectDatabase.qml" : "Pages/ApplicationPages.qml"
 
     function chooseDatabase() {
         chooseDatabaseDialog.open()
@@ -63,6 +63,6 @@ MyApplication {
         id: chooseDatabaseDialog
         selectExisting: true
         nameFilters: [ "Database (*.database)" ]
-        onAccepted:  _app.databasePathName = fileUrl
+        onAccepted:  _app.databaseName = fileUrl
     }
 }

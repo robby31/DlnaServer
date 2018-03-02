@@ -84,14 +84,14 @@ MyApplication::MyApplication(int &argc, char **argv):
 
     qRegisterMetaType<qintptr>("qintptr");
 
-    connect(this, SIGNAL(databaseOpened(QUrl)), this, SLOT(initializeDatabase()));
+    connect(this, SIGNAL(databaseOpened(QString)), this, SLOT(initializeDatabase()));
 
     setdatabaseDiverName("QSQLITE");
     setdatabaseConnectionName("MEDIA_DATABASE");
 
     QString path = settings.value("databasePathName").toString();
     if (!path.isEmpty())
-        setdatabasePathName(QUrl::fromLocalFile(path));
+        setdatabaseName(QUrl::fromLocalFile(path).toLocalFile());
 }
 
 MyApplication::~MyApplication()
@@ -500,10 +500,9 @@ void MyApplication::setFfmpegFolder(const QUrl &folder)
 {
     if (folder.isLocalFile() && folder.isValid())
     {
-        QFfmpeg::setDirPath(folder.toLocalFile());
         FfmpegTranscoding::setDirPath(folder.toLocalFile());
 
-        setffmpegVersion(QFfmpeg::getVersion());
+        setffmpegVersion(QFfmpegMedia::getVersion());
 
         if (!m_ffmpegVersion.isEmpty())
         {
