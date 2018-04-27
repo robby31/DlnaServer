@@ -9,16 +9,16 @@ HEADERS += \
     $$PWD/dlnavideoitem.h \
     $$PWD/dlnaitem.h \
     $$PWD/cached/dlnacachedrootfolder.h \
-    ../dlna/cached/dlnacachedfolder.h \
-    ../dlna/cached/dlnacachedvideo.h \
-    ../dlna/dlnavideofile.h \
-    ../dlna/dlnamusictrackfile.h \
-    ../dlna/cached/dlnacachedmusictrack.h \
-    ../dlna/cached/dlnacachedfoldermetadata.h \
-    ../dlna/dlnastoragefolder.h \
-    ../dlna/dlnayoutubevideo.h \
-    ../dlna/cached/dlnacachednetworkvideo.h \
-    ../dlna/cached/dlnacachedgroupedfoldermetadata.h
+    $$PWD/cached/dlnacachedfolder.h \
+    $$PWD/cached/dlnacachedvideo.h \
+    $$PWD/dlnavideofile.h \
+    $$PWD/dlnamusictrackfile.h \
+    $$PWD/cached/dlnacachedmusictrack.h \
+    $$PWD/cached/dlnacachedfoldermetadata.h \
+    $$PWD/dlnastoragefolder.h \
+    $$PWD/dlnayoutubevideo.h \
+    $$PWD/cached/dlnacachednetworkvideo.h \
+    $$PWD/cached/dlnacachedgroupedfoldermetadata.h
 
 SOURCES += \
     $$PWD/dlnaresource.cpp \
@@ -28,16 +28,16 @@ SOURCES += \
     $$PWD/dlnavideoitem.cpp \
     $$PWD/dlnaitem.cpp \
     $$PWD/cached/dlnacachedrootfolder.cpp \
-    ../dlna/cached/dlnacachedfolder.cpp \
-    ../dlna/cached/dlnacachedvideo.cpp \
-    ../dlna/dlnavideofile.cpp \
-    ../dlna/dlnamusictrackfile.cpp \
-    ../dlna/cached/dlnacachedmusictrack.cpp \
-    ../dlna/cached/dlnacachedfoldermetadata.cpp \
-    ../dlna/dlnastoragefolder.cpp \
-    ../dlna/dlnayoutubevideo.cpp \
-    ../dlna/cached/dlnacachednetworkvideo.cpp \
-    ../dlna/cached/dlnacachedgroupedfoldermetadata.cpp
+    $$PWD/cached/dlnacachedfolder.cpp \
+    $$PWD/cached/dlnacachedvideo.cpp \
+    $$PWD/dlnavideofile.cpp \
+    $$PWD/dlnamusictrackfile.cpp \
+    $$PWD/cached/dlnacachedmusictrack.cpp \
+    $$PWD/cached/dlnacachedfoldermetadata.cpp \
+    $$PWD/dlnastoragefolder.cpp \
+    $$PWD/dlnayoutubevideo.cpp \
+    $$PWD/cached/dlnacachednetworkvideo.cpp \
+    $$PWD/cached/dlnacachedgroupedfoldermetadata.cpp
 
 include (../multimedia/multimedia.pri)
 include (../youtube/youtube.pri)
