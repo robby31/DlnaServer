@@ -10,6 +10,7 @@ tst_dlnacachedresources::tst_dlnacachedresources(QObject *parent) :
 
     db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     db.setConnectOptions("Pooling=True;Max Pool Size=100;");
+    db.open();
 }
 
 void tst_dlnacachedresources::cleanup()
@@ -32,7 +33,6 @@ void tst_dlnacachedresources::dataAvailable()
         qCritical() << "invalid device" << sender();
 }
 
-
 void tst_dlnacachedresources::receivedTranscodedData(const QByteArray &data)
 {
     transcodedSize += data.size();
@@ -53,7 +53,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 15503, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 15518, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -81,7 +81,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1699, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 1714, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -95,7 +95,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbums()
         if (query.last())
             nbAlbums = query.at() + 1;
     }
-    QVERIFY2(nbAlbums == 1289, QString("%1").arg(nbAlbums).toUtf8().constData());
+    QVERIFY2(nbAlbums == 1291, QString("%1").arg(nbAlbums).toUtf8().constData());
     db.close();
 }
 
@@ -123,7 +123,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithAlbum()
         if (query.last())
             nbTracksWithAlbum = query.at() + 1;
     }
-    QVERIFY2(nbTracksWithAlbum == 13597, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
+    QVERIFY2(nbTracksWithAlbum == 13599, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
     db.close();
 }
 
@@ -345,7 +345,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY(track->getByteAlbumArt().isNull() == false);
     QVERIFY(track->getAlbumArt().size().width() == 300);
     QVERIFY(track->getAlbumArt().size().height() == 300);
-    QVERIFY2(track->getByteAlbumArt().size() == 22471, QString("size=%1").arg(track->getByteAlbumArt().size()).toUtf8());
+    QVERIFY2(track->getByteAlbumArt().size() == 22458, QString("size=%1").arg(track->getByteAlbumArt().size()).toUtf8());
 
     QHash<QString, double> result = track->volumeInfo();
     QVERIFY2(result.keys().size() == 2, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());

@@ -16,13 +16,17 @@ public:
 
 signals:
     void startTranscoding();
+    void requestData(const qint64 &maxlen);
 
-private slots:
+public slots:
     void receivedTranscodedData(const QByteArray &data);
+    void dataAvailable();
     void transcodingOpened();
     void LogMessage(const QString &message);
 
 private Q_SLOTS:
+    void cleanup();
+
     void testCase_DlnaMusicTrack_MP3();
     void testCase_DlnaMusicTrack_MP3_with_image();
     void testCase_DlnaMusicTrack_MP3_unicode();
@@ -36,6 +40,7 @@ private Q_SLOTS:
     void testCase_DlnaMusicTrack_WAV_Transcoding_ALAC();
 
 private:
+    QThread *m_streamingThread = Q_NULLPTR;
     qint64 transcodedBytes;
     QElapsedTimer transcodeTimer;
     qint64 timeToOpenTranscoding;

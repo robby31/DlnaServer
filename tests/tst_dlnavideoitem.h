@@ -16,6 +16,7 @@ signals:
     void startTranscoding();
 
 public slots:
+    void dataAvailable();
     void receivedTranscodedData(const QByteArray &data);
     void transcodingOpened();
     void LogMessage(const QString &message);
