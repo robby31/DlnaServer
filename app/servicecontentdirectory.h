@@ -2,6 +2,7 @@
 #define SERVICECONTENTDIRECTORY_H
 
 #include <QObject>
+#include <QThread>
 #include "cached/dlnacachedrootfolder.h"
 #include "Http/httprequest.h"
 #include "soapaction.h"
@@ -14,6 +15,7 @@ class ServiceContentDirectory : public QObject
 
 public:
     explicit ServiceContentDirectory(QString host, int port, QObject *parent = 0);
+    virtual ~ServiceContentDirectory();
 
     void setNetworkAccessManager(QNetworkAccessManager *nam);
 
@@ -74,6 +76,8 @@ private:
     QStringList listFolderAdded;
 
     QHash<QString, DlnaResource*> m_dlnaresources;
+
+    QThread *m_streamingThread = Q_NULLPTR;
 };
 
 #endif // SERVICECONTENTDIRECTORY_H

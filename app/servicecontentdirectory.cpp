@@ -21,6 +21,22 @@ ServiceContentDirectory::ServiceContentDirectory(QString host, int port, QObject
     connect(this, SIGNAL(incrementCounterPlayedSignal(QString)), &rootFolder, SLOT(incrementCounterPlayed(QString)));
     connect(this, SIGNAL(updateMediaData(QString,QHash<QString,QVariant>)), &rootFolder, SLOT(updateLibrary(QString,QHash<QString,QVariant>)));
     connect(this, SIGNAL(updateMediaFromId(int,QHash<QString,QVariant>)), &rootFolder, SLOT(updateLibraryFromId(int,QHash<QString,QVariant>)));
+
+    m_streamingThread = new QThread();
+    m_streamingThread->setObjectName("Streaming thread");
+    connect(this, SIGNAL(destroyed(QObject*)), m_streamingThread, SLOT(quit()));
+    connect(m_streamingThread, SIGNAL(finished()), m_streamingThread, SLOT(deleteLater()));
+    m_streamingThread->start();
+}
+
+ServiceContentDirectory::~ServiceContentDirectory()
+{
+    if (m_streamingThread)
+    {
+        m_streamingThread->quit();
+        if (!m_streamingThread->wait())
+            qWarning() << "streaming Thread not finished.";
+    }
 }
 
 void ServiceContentDirectory::setNetworkAccessManager(QNetworkAccessManager *nam)
@@ -278,15 +294,14 @@ void ServiceContentDirectory::reply(HttpRequest *request)
                             {
                                 if (range && !range->isNull())
                                     streamContent->setRange(range->getStartByte(), range->getEndByte());
-                                else
+                                else if (timeSeekRangeStart != -1 or timeSeekRangeEnd != -1)
                                     streamContent->setTimeSeek(timeSeekRangeStart, timeSeekRangeEnd);
 
                                 connect(socket, SIGNAL(disconnected()), streamContent, SLOT(close()));
 
-                                if (dlna->bitrate()>0)
-                                    streamContent->setBitrate(dlna->bitrate());
-
                                 request->setMaxBufferSize(streamContent->maxBufferSize());
+
+                                streamContent->moveToThread(m_streamingThread);
 
                                 connect(streamContent, SIGNAL(readyToOpen()), this, SLOT(streamReadyToOpen()), Qt::UniqueConnection);
                                 connect(streamContent, SIGNAL(openedSignal()), request, SLOT(streamOpened()));
