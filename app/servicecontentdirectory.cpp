@@ -261,6 +261,9 @@ void ServiceContentDirectory::reply(HttpRequest *request)
                     {
                         if (request->operation() == QNetworkAccessManager::GetOperation)
                         {
+                            if (dlna->toTranscode())
+                                request->logMessage(QString("Transcode media from %1 to %2").arg(dlna->metaDataFormat()).arg(dlna->mimeType()));
+
                             request->logMessage(QString("%1 bytes to send in %2.").arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")));
 
                             QString mediaFilename = dlna->getSystemName();
