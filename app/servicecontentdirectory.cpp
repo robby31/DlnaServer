@@ -375,7 +375,22 @@ void ServiceContentDirectory::servingFinished(QString host, QString filename, in
     Q_UNUSED(host)
 
     if (status == 0)
+    {
         emit incrementCounterPlayedSignal(filename);
+
+        // remove resource from cache
+        qDebug() << "SERVING FINISHED" << host << filename << m_dlnaresources.keys();
+        foreach (QString dlnaresourceID, m_dlnaresources.keys())
+        {
+            if (dlnaresourceID.startsWith(host) && m_dlnaresources[dlnaresourceID]->getSystemName() == filename)
+            {
+                qDebug() << "remove from cache" << dlnaresourceID << m_dlnaresources[dlnaresourceID]->getSystemName();
+                DlnaResource *resource = m_dlnaresources[dlnaresourceID];
+                m_dlnaresources.remove(dlnaresourceID);
+                resource->deleteLater();
+            }
+        }
+    }
 }
 
 void ServiceContentDirectory::servingMedia(QString filename, int playedDurationInMs)
