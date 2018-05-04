@@ -24,12 +24,6 @@ bool MediaLibrary::initialize()
     {
         QSqlQuery query(db);
 
-        if (!query.exec("pragma journal_mode = WAL;"))
-        {
-            qCritical() << "unable to set JOURNAL MODE = WAL in MediaLibrary " + query.lastError().text();
-            return false;
-        }
-
         if (!query.exec("pragma foreign_keys = on;"))
         {
             qCritical() << "unable to set FOREIGN KEYS in MediaLibrary " + query.lastError().text();
