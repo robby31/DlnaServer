@@ -105,7 +105,6 @@ void MyApplication::initializeDatabase()
     if (db.isOpen())
     {
         settings.setValue("databasePathName", db.databaseName());
-        setdatabaseOptions("Pooling=True;Max Pool Size=100;");
     }
 
     if (m_localrootdevice)
@@ -455,15 +454,18 @@ void MyApplication::requestCompleted(HttpRequest *request)
         }
         else if (request->url().toString().startsWith("/get/"))
         {
-            m_contentDirectory->reply(request);
+            MediaRenderer * renderer = m_renderersModel->rendererFromIp(request->peerAddress().toString());
+            m_contentDirectory->reply(request, renderer);
         }
         else if (request->url().toString() == "/upnp/control/content_directory")
         {
-            m_contentDirectory->reply(request);
+            MediaRenderer * renderer = m_renderersModel->rendererFromIp(request->peerAddress().toString());
+            m_contentDirectory->reply(request, renderer);
         }
         else if (request->url().toString() == "/upnp/event/content_directory")
         {
-            m_contentDirectory->reply(request);
+            MediaRenderer * renderer = m_renderersModel->rendererFromIp(request->peerAddress().toString());
+            m_contentDirectory->reply(request, renderer);
         }
         else if (request->url().toString() == "/upnp/control/connection_manager")
         {
