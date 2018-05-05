@@ -8,6 +8,7 @@
 #include "soapaction.h"
 #include "soapactionresponse.h"
 #include "didllite.h"
+#include "mediarenderer.h"
 
 class ServiceContentDirectory : public QObject
 {
@@ -19,7 +20,7 @@ public:
 
     void setNetworkAccessManager(QNetworkAccessManager *nam);
 
-    void reply(HttpRequest *request);
+    void reply(HttpRequest *request, MediaRenderer *renderer);
 
 private:
     DlnaResource *getDlnaResource(const QString &hostaddress, const QString &objId);

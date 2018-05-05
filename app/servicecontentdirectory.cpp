@@ -62,7 +62,7 @@ void ServiceContentDirectory::reloadLibrary()
     emit reloadLibrarySignal(listFolderAdded);
 }
 
-void ServiceContentDirectory::reply(HttpRequest *request)
+void ServiceContentDirectory::reply(HttpRequest *request, MediaRenderer *renderer)
 {
     if (request->operation() == QNetworkAccessManager::PostOperation && request->url().toString() == "/upnp/control/content_directory")
     {
@@ -125,6 +125,10 @@ void ServiceContentDirectory::reply(HttpRequest *request)
 
                         foreach (DlnaResource* resource, l_dlna)
                         {
+                            DlnaItem *dlnaItem = qobject_cast<DlnaItem*>(resource);
+                            if (dlnaItem && renderer)
+                                dlnaItem->setSinkProtocol(renderer->sinkProtocols());
+
                             didlDoc.addElement(resource->getXmlContentDirectory(&didlDoc, filter.split(",")));
                         }
 
@@ -196,6 +200,9 @@ void ServiceContentDirectory::reply(HttpRequest *request)
 
             if (dlna)
             {
+                if (renderer)
+                    dlna->setSinkProtocol(renderer->sinkProtocols());
+
                 if (request->url().fileName(QUrl::FullyEncoded).startsWith("thumbnail0000"))
                 {
                     request->replyData(dlna->getByteAlbumArt(), "image/jpeg");
@@ -263,6 +270,8 @@ void ServiceContentDirectory::reply(HttpRequest *request)
                         {
                             if (dlna->toTranscode())
                                 request->logMessage(QString("Transcode media from %1 to %2").arg(dlna->metaDataFormat()).arg(dlna->mimeType()));
+                            else
+                                request->logMessage(QString("Stream media %1 %2").arg(dlna->metaDataFormat()).arg(dlna->mimeType()));
 
                             request->logMessage(QString("%1 bytes to send in %2.").arg(dlna->size()).arg(QTime(0, 0).addMSecs(dlna->getLengthInMilliSeconds()).toString("hh:mm:ss.zzz")));
 
