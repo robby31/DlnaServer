@@ -150,27 +150,36 @@ QString DlnaVideoItem::mimeType() const {
             return UNKNOWN_VIDEO_TYPEMIME;
         }
     } else {
-        QString format = metaDataFormat();
-        if (format == "AVI")
-        {
-            return AVI_TYPEMIME;
-        }
-        else if (format == "Matroska")
-        {
-            return MATROSKA_TYPEMIME;
+        return sourceMimeType();
+    }
+}
 
-        }
-        else if (format == "mov,mp4,m4a,3gp,3g2,mj2")
-        {
-            return MP4_TYPEMIME;
-        }
-        else
-        {
-            qCritical() << "Unable to define mimeType of DlnaVideoItem: " << format << " " << getSystemName();
+QString DlnaVideoItem::sourceMimeType() const
+{
+    QString format = metaDataFormat();
+    if (format == "avi")
+    {
+        return AVI_TYPEMIME;
+    }
+    else if (format == "matroska,webm")
+    {
+        return MATROSKA_TYPEMIME;
 
-            // returns unknown mimeType
-            return UNKNOWN_VIDEO_TYPEMIME;
-        }
+    }
+    else if (format == "mov,mp4,m4a,3gp,3g2,mj2")
+    {
+        return MP4_TYPEMIME;
+    }
+    else if (format == "asf")
+    {
+        return ASF_TYPEMIME;
+    }
+    else
+    {
+        qCritical() << "Unable to define mimeType of DlnaVideoItem: " << format << " " << getSystemName();
+
+        // returns unknown mimeType
+        return UNKNOWN_VIDEO_TYPEMIME;
     }
 }
 

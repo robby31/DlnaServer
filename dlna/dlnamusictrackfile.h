@@ -28,9 +28,6 @@ public:
     //returns the size of the source
     virtual qint64 sourceSize() const Q_DECL_OVERRIDE { return fileinfo.size(); }
 
-    // return true if the track shall be transcoded
-    virtual bool toTranscode() const Q_DECL_OVERRIDE;
-
     virtual int metaDataBitrate() const Q_DECL_OVERRIDE;
     virtual int metaDataDuration() const Q_DECL_OVERRIDE;
     virtual QString metaDataTitle() const Q_DECL_OVERRIDE;
@@ -60,7 +57,6 @@ protected:
 
 private:
     QFileInfo fileinfo;
-    QMimeType mime_type;
     QFfmpegInputMedia ffmpeg;
 
 public:

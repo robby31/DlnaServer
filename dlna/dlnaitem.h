@@ -29,13 +29,16 @@ public:
     Device *getStream();
 
     // return true if the track shall be transcoded
-    virtual bool toTranscode() const = 0;
+    virtual bool toTranscode() const;
 
     TranscodeFormatAvailable format() const { return transcodeFormat; }
     void setTranscodeFormat(TranscodeFormatAvailable format);
 
     // Returns the mimeType for this DLNA node.
     virtual QString mimeType() const = 0;
+
+    // Returns the mimeType of the source.
+    virtual QString sourceMimeType() const = 0;
 
     // returns the size of the dlna item
     virtual qint64 size();
@@ -87,6 +90,11 @@ public:
     void setUserAgent(QString userAgent) { m_userAgent = userAgent; emit userAgentChanged(); }
 
     void setStream(Device *stream);
+
+    void setSinkProtocol(const QStringList &protocol);
+    QStringList sinkProtocol() const;
+    QString getSink(const QString &mime_type);
+    bool isSourceSinkCompatible() const;
 
 protected:
     // Returns the process for transcoding
@@ -147,6 +155,10 @@ protected:
     QString m_userAgent;
 
     Device *m_stream;
+
+    QStringList m_sinkProtocol;
+    QString m_compatibleSink;
+    QString m_protocolInfo;
 };
 
 #endif // DLNAITEM_H

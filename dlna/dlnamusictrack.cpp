@@ -20,7 +20,7 @@ void DlnaMusicTrack::updateDLNAOrgPn() {
         setdlnaOrgPN("MP3");
     } else if (mimeType() == AUDIO_MP4_TYPEMIME) {
         setdlnaOrgPN("AAC_ISO_320");
-    } else if (mimeType() == AUDIO_LPCM_TYPEMIME) {
+    } else if (mimeType().startsWith(AUDIO_LPCM_TYPEMIME)) {
         setdlnaOrgPN("LPCM");
     } else if (mimeType() == AUDIO_WAV_TYPEMIME) {
         setdlnaOrgPN("WAV");
@@ -34,7 +34,7 @@ int DlnaMusicTrack::bitrate() const {
         {
             return 320000;
         }
-        else if (transcodeFormat == LPCM || transcodeFormat == WAV || transcodeFormat == ALAC) {
+        else if (transcodeFormat == LPCM_S16BE || transcodeFormat == WAV || transcodeFormat == ALAC) {
 
             if (samplerate() == 44100) {
                 return 1411200;
@@ -207,32 +207,44 @@ Device *DlnaMusicTrack::getOriginalStreaming()
     return new StreamingFile(getSystemName());
 }
 
-QString DlnaMusicTrack::mimeType() const {
-    if (toTranscode()) {
+QString DlnaMusicTrack::mimeType() const
+{
+    if (toTranscode())
+    {
         // Trancode music track
-        if (transcodeFormat == MP3) {
+        if (transcodeFormat == MP3)
             return AUDIO_MP3_TYPEMIME;
-        } else if (transcodeFormat == AAC || transcodeFormat == ALAC) {
+        else if (transcodeFormat == AAC || transcodeFormat == ALAC)
             return AUDIO_MP4_TYPEMIME;
-        } else if (transcodeFormat == LPCM) {
-            return AUDIO_LPCM_TYPEMIME;
-        } else if (transcodeFormat == WAV) {
+        else if (transcodeFormat == LPCM_S16BE)
+            return QString("%1;rate=%2;channels=%3").arg(AUDIO_LPCM_TYPEMIME).arg(samplerate()).arg(channelCount());
+        else if (transcodeFormat == WAV)
             return AUDIO_WAV_TYPEMIME;
-        } else {
+        else
             qCritical() << "Unable to define mimeType of DlnaMusicTrack Transcoding: " << getSystemName();
-        }
-    } else {
-        QString format = metaDataFormat();
-        if (format == "mp3" || format == "mp2" || format == "mp1") {
-            return AUDIO_MP3_TYPEMIME;
-        } else if (format == "aac" || format == "alac") {
-            return AUDIO_MP4_TYPEMIME;
-        } else if (format == "pcm_s16le") {
-            return AUDIO_WAV_TYPEMIME;
-        } else {
-            qCritical() << QString("Unable to define mimeType of DlnaMusicTrack: %1 from format <%2>").arg(getSystemName()).arg(format);
-        }
     }
+    else
+    {
+        return sourceMimeType();
+    }
+
+    // returns unknown mimeType
+    return UNKNOWN_AUDIO_TYPEMIME;
+}
+
+QString DlnaMusicTrack::sourceMimeType() const
+{
+    QString format = metaDataFormat();
+    if (format == "mp3" || format == "mp2" || format == "mp1")
+        return AUDIO_MP3_TYPEMIME;
+    else if (format == "aac" || format == "alac")
+        return AUDIO_MP4_TYPEMIME;
+    else if (format == "pcm_s16be")
+        return QString("%1;rate=%2;channels=%3").arg(AUDIO_LPCM_TYPEMIME).arg(samplerate()).arg(channelCount());
+    else if (format == "pcm_s16le")
+        return AUDIO_WAV_TYPEMIME;
+    else
+        qCritical() << QString("Unable to define mimeType of DlnaMusicTrack: %1 from format <%2>").arg(getSystemName()).arg(format);
 
     // returns unknown mimeType
     return UNKNOWN_AUDIO_TYPEMIME;
