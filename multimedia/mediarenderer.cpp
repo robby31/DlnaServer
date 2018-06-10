@@ -19,6 +19,14 @@ MediaRenderer::MediaRenderer(UpnpRootDevice *device, QObject *parent) :
     m_device(device),
     status("standby")
 {
+    UpnpService *service = qobject_cast<UpnpService*>(device->getService("urn:upnp-org:serviceId:ConnectionManager"));
+    if (service)
+    {
+        ListModel * varModel = service->stateVariablesModel();
+        if (varModel)
+            connect(varModel, SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)), this, SLOT(stateVarChanged(QModelIndex,QModelIndex,QVector<int>)));
+    }
+
     m_roles[statusRole] = "status";
     m_roles[nameRole] = "name";
     m_roles[networkAddressRole] = "networkAddress";
@@ -126,6 +134,35 @@ QString MediaRenderer::netWorkAddress() const
 
 void MediaRenderer::deviceDestroyed(QObject *obj)
 {
-    Q_UNUSED(obj)
-    m_device = Q_NULLPTR;
+    if (obj == m_device)
+        m_device = Q_NULLPTR;
+}
+
+void MediaRenderer::stateVarChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles)
+{
+    Q_UNUSED(bottomRight)
+    Q_UNUSED(roles)
+
+    ListModel* model = qobject_cast<ListModel*>(sender());
+
+    StateVariableItem *item = qobject_cast<StateVariableItem*>(model->at(topLeft.row()));
+    if (item)
+    {
+        QString name = item->data(StateVariableItem::NameRole).toString();
+        QString value = item->data(StateVariableItem::ValueRole).toString();
+
+        if (name == "SinkProtocolInfo")
+        {
+            m_sinkProtocol.clear();
+
+            QStringList l_protocol = value.split(",");
+            foreach (QString protocol, l_protocol)
+                m_sinkProtocol << protocol;
+        }
+    }
+}
+
+QStringList MediaRenderer::sinkProtocols() const
+{
+    return m_sinkProtocol;
 }

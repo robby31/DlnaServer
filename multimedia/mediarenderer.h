@@ -29,6 +29,8 @@ public:
 
     QString netWorkAddress() const;
 
+    QStringList sinkProtocols() const;
+
 signals:
     void removeRenderer();
 
@@ -36,11 +38,15 @@ private slots:
     void deviceItemChanged(QVector<int> roles);
     void deviceDestroyed(QObject *obj);
 
+    void stateVarChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles = QVector<int>());
+
 private:
     QHash<int, QByteArray> m_roles;
 
     UpnpRootDevice *m_device;
     QString status;
+
+    QStringList m_sinkProtocol;
 };
 
 #endif // MEDIARENDERER_H
