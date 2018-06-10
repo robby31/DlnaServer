@@ -122,7 +122,7 @@ void MyApplication::serverStarted()
 
     if (!m_connectionManager)
     {
-        m_connectionManager = new ServiceConnectionManager(this);
+        m_connectionManager = new ServiceConnectionManager(&m_upnp, &netManager, this);
         connect(m_connectionManager, SIGNAL(destroyed(QObject*)), this, SLOT(connectionManagerDestroyed(QObject*)));
     }
     else
@@ -132,7 +132,7 @@ void MyApplication::serverStarted()
 
     if (!m_contentDirectory)
     {
-        m_contentDirectory = new ServiceContentDirectory(device->host().toString(), device->port(), this);
+        m_contentDirectory = new ServiceContentDirectory(&m_upnp, &netManager, device->host().toString(), device->port(), this);
         connect(m_contentDirectory, SIGNAL(destroyed(QObject*)), this, SLOT(contentDirectoryDestroyed(QObject*)));
 
         connect(m_renderersModel, SIGNAL(mediaRendererDestroyed(QString)), m_contentDirectory, SLOT(mediaRendererDestroyed(QString)));

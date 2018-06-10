@@ -9,18 +9,21 @@
 #include "soapactionresponse.h"
 #include "didllite.h"
 #include "mediarenderer.h"
+#include "upnpcontrolpoint.h"
 
 class ServiceContentDirectory : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit ServiceContentDirectory(QString host, int port, QObject *parent = 0);
+    explicit ServiceContentDirectory(UpnpControlPoint *upnp,  QNetworkAccessManager *nam, QString host, int port, QObject *parent = 0);
     virtual ~ServiceContentDirectory();
 
     void setNetworkAccessManager(QNetworkAccessManager *nam);
 
     void reply(HttpRequest *request, MediaRenderer *renderer);
+
+    void sendEvent(const QString &uuid);
 
 private:
     DlnaResource *getDlnaResource(const QString &hostaddress, const QString &objId);
@@ -69,8 +72,14 @@ private slots:
 
     void mediaRendererDestroyed(const QString &hostaddress);
 
+    void sendEventReply();
 
 private:
+    QNetworkAccessManager *netManager;
+
+    UpnpControlPoint *m_upnp = Q_NULLPTR;
+    QHash<QString, QStringList> m_subscription;
+
     DlnaCachedRootFolder rootFolder;
 
     // root folder containing DLNA nodes
