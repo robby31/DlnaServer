@@ -803,7 +803,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM()
     track.setTranscodeFormat(MP3);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
 
-    track.setTranscodeFormat(LPCM);
+    track.setTranscodeFormat(LPCM_S16BE);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
 
     QStringList properties;
@@ -858,7 +858,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM()
     xml_res.clear();
 
     QVERIFY(track.mimeType() == "audio/L16");
-    QVERIFY(track.format() == LPCM);
+    QVERIFY(track.format() == LPCM_S16BE);
     QVERIFY(track.size() == 104569237);
     QVERIFY(track.bitrate() == 1536000);
     QVERIFY(track.getLengthInSeconds() == 545);

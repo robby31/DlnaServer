@@ -29,7 +29,7 @@ void tst_dlnafolder::testCase_DlnaFolder()
     QVERIFY(music.isFolder() == true);
     QVERIFY(music.getUpdateId() == 1);
     QVERIFY(music.getChild(0) != 0);
-    QVERIFY(music.getChildrenSize() == 608);
+    QVERIFY(music.getChildrenSize() == 609);
 
     music.setId("0$1");
     QVERIFY(music.getId() == "0$1");
@@ -114,7 +114,7 @@ void tst_dlnafolder::testCase_PerformanceAllArtists()
     int duration = parseFolder("0$1", &music);
     qInfo() << "PERFO" << duration << music.getSystemName() << music.getChildrenSize() << "children";
     QVERIFY2(duration < 2500, QString("Parse all artists in %1 ms").arg(duration).toUtf8());
-    QVERIFY(music.getChildrenSize() == 608);
+    QVERIFY(music.getChildrenSize() == 609);
 }
 
 void tst_dlnafolder::testCase_PerformanceAllAlbums()
