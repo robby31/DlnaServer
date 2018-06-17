@@ -15,12 +15,11 @@ HEADERS += \
     applicationcontroller.h \
     debugitem.h \
     checknetworklinkitem.h \
-    serviceconnectionmanager.h \
-    servicecontentdirectory.h \
     applicationworker.h \
     mediaimageprovider.h \
     albumimageprovider.h \
-    formatimageprovider.h
+    formatimageprovider.h \
+    mediaservercontent.h
 
 SOURCES += \
     main.cpp \
@@ -28,12 +27,11 @@ SOURCES += \
     applicationcontroller.cpp \
     debugitem.cpp \
     checknetworklinkitem.cpp \
-    serviceconnectionmanager.cpp \
-    servicecontentdirectory.cpp \
     applicationworker.cpp \
     mediaimageprovider.cpp \
     albumimageprovider.cpp \
-    formatimageprovider.cpp
+    formatimageprovider.cpp \
+    mediaservercontent.cpp
 
 RESOURCES += \
     ressources.qrc
