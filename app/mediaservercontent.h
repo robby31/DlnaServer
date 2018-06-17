@@ -1,7 +1,6 @@
-#ifndef SERVICECONTENTDIRECTORY_H
-#define SERVICECONTENTDIRECTORY_H
+#ifndef MEDIASERVERCONTENT_H
+#define MEDIASERVERCONTENT_H
 
-#include <QObject>
 #include <QThread>
 #include "cached/dlnacachedrootfolder.h"
 #include "Http/httprequest.h"
@@ -10,23 +9,24 @@
 #include "didllite.h"
 #include "mediarenderer.h"
 #include "upnpcontrolpoint.h"
+#include "Services/servicecontentdirectory.h"
+#include "mediarenderermodel.h"
 
-class ServiceContentDirectory : public QObject
+class MediaServerContent : public ServiceContentDirectory
 {
     Q_OBJECT
 
 public:
-    explicit ServiceContentDirectory(UpnpControlPoint *upnp,  QNetworkAccessManager *nam, QString host, int port, QObject *parent = 0);
-    virtual ~ServiceContentDirectory();
+    explicit MediaServerContent(MediaRendererModel *model, UpnpObject *upnpParent, QString host, int port, QObject *parent = nullptr);
+    virtual ~MediaServerContent();
 
-    void setNetworkAccessManager(QNetworkAccessManager *nam);
-
-    void reply(HttpRequest *request, MediaRenderer *renderer);
-
-    void sendEvent(const QString &uuid);
+    virtual bool replyRequest(HttpRequest *request) Q_DECL_OVERRIDE;
 
 private:
     DlnaResource *getDlnaResource(const QString &hostaddress, const QString &objId);
+
+protected:
+    virtual bool replyAction(HttpRequest *request, const SoapAction &action) Q_DECL_OVERRIDE;
 
 signals:
     void addFolderSignal(QString folder);
@@ -52,7 +52,6 @@ signals:
     //   status = 1 if error occurs
     void servingFinishedSignal(QString host, QString filename, int status);
 
-
 private slots:
     void _addFolder(const QString &folder);
 
@@ -72,14 +71,7 @@ private slots:
 
     void mediaRendererDestroyed(const QString &hostaddress);
 
-    void sendEventReply();
-
 private:
-    QNetworkAccessManager *netManager;
-
-    UpnpControlPoint *m_upnp = Q_NULLPTR;
-    QHash<QString, QStringList> m_subscription;
-
     DlnaCachedRootFolder rootFolder;
 
     // root folder containing DLNA nodes
@@ -88,6 +80,8 @@ private:
     QHash<QString, DlnaResource*> m_dlnaresources;
 
     QThread *m_streamingThread = Q_NULLPTR;
+
+    MediaRendererModel *m_renderersModel = Q_NULLPTR;
 };
 
-#endif // SERVICECONTENTDIRECTORY_H
+#endif // MEDIASERVERCONTENT_H
