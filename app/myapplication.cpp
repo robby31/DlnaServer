@@ -15,9 +15,7 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_requestsModel(Q_NULLPTR),
     m_renderersModel(Q_NULLPTR),
     m_debugModel(Q_NULLPTR),
-    m_checkNetworkLinkModel(Q_NULLPTR),
-    m_connectionManager(Q_NULLPTR),
-    m_contentDirectory(Q_NULLPTR)
+    m_checkNetworkLinkModel(Q_NULLPTR)
 {
     addImageProvider("media", new MediaImageProvider);
     addImageProvider("album", new AlbumImageProvider);
@@ -72,13 +70,6 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_upnp.setNetworkManager(&netManager);
     connect(&m_upnp, SIGNAL(newRootDevice(UpnpRootDevice*)), this, SLOT(newRootDevice(UpnpRootDevice*)));
 
-    UpnpRootDevice *device = m_upnp.addLocalRootDevice(SERVERPORT, m_upnp.generateUuid(), "/description/fetch");
-    connect(device, SIGNAL(serverStarted()), this, SLOT(serverStarted()));
-    connect(device, SIGNAL(serverError(QString)), this, SLOT(serverError(QString)));
-    connect(device, SIGNAL(newRequest(HttpRequest*)), this, SLOT(newRequest(HttpRequest*)));
-    connect(device, SIGNAL(requestCompleted(HttpRequest*)), this, SLOT(requestCompleted(HttpRequest*)));
-    m_localrootdevice = device;
-
     connect(&m_timerDiscover, SIGNAL(timeout()), this, SLOT(advertiseSlot()));
     m_timerDiscover.start(2000);
 
@@ -107,10 +98,29 @@ void MyApplication::initializeDatabase()
         settings.setValue("databasePathName", db.databaseName());
     }
 
-    if (m_localrootdevice)
-        m_localrootdevice->startServer();
-    else
-        qCritical() << "unable to start server" << m_localrootdevice;
+    MediaServer *device = new MediaServer(&netManager, m_upnp.macAddress(), m_upnp.host().toString(), SERVERPORT, m_renderersModel);
+    connect(device, SIGNAL(serverStarted()), this, SLOT(serverStarted()));
+    connect(device, SIGNAL(serverError(QString)), this, SLOT(serverError(QString)));
+    connect(device, SIGNAL(newRequest(HttpRequest*)), this, SLOT(newRequest(HttpRequest*)));
+    connect(m_worker, SIGNAL(refresh(QString)), device, SIGNAL(refresh(QString)));
+
+    connect(device, SIGNAL(scanFolder(QString)), m_worker, SLOT(scanFolder(QString)));
+    connect(this, SIGNAL(addFolder(QString)), device, SIGNAL(addFolder(QString)));
+    connect(device, SIGNAL(folderAdded(QString)), this, SLOT(folderAdded(QString)));
+    connect(device, SIGNAL(folderNotAdded(QString)), this, SLOT(folderNotAdded(QString)));
+
+    connect(this, SIGNAL(addLink(QString)), device, SIGNAL(addLink(QString)));
+    connect(device, SIGNAL(linkAdded(QString)), this, SLOT(linkAdded(QString)));
+    connect(device, SIGNAL(linkNotAdded(QString)), this, SLOT(linkNotAdded(QString)));
+
+    connect(this, SIGNAL(reloadLibrarySignal()), device, SIGNAL(reloadLibrarySignal()));
+    connect(this, SIGNAL(updateMediaFromId(int,QHash<QString,QVariant>)), device, SIGNAL(updateMediaFromId(int,QHash<QString,QVariant>)));
+
+    connect(device, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SLOT(servingMediaFinished(QString,QString,int)));
+
+    m_upnp.addLocalRootDevice(device);
+    m_localrootdevice = device;
+    m_localrootdevice->startServer();
 }
 
 void MyApplication::serverStarted()
@@ -119,47 +129,6 @@ void MyApplication::serverStarted()
     qDebug() << "SERVER STARTED" << device->url() << device->host() << device->port();
 
     m_controller.popMessage("Server started");
-
-    if (!m_connectionManager)
-    {
-        m_connectionManager = new ServiceConnectionManager(&m_upnp, &netManager, this);
-        connect(m_connectionManager, SIGNAL(destroyed(QObject*)), this, SLOT(connectionManagerDestroyed(QObject*)));
-    }
-    else
-    {
-        qCritical() << "service connection manager already initialised.";
-    }
-
-    if (!m_contentDirectory)
-    {
-        m_contentDirectory = new ServiceContentDirectory(&m_upnp, &netManager, device->host().toString(), device->port(), this);
-        connect(m_contentDirectory, SIGNAL(destroyed(QObject*)), this, SLOT(contentDirectoryDestroyed(QObject*)));
-
-        connect(m_renderersModel, SIGNAL(mediaRendererDestroyed(QString)), m_contentDirectory, SLOT(mediaRendererDestroyed(QString)));
-
-        connect(m_contentDirectory, SIGNAL(scanFolder(QString)), m_worker, SLOT(scanFolder(QString)));
-        connect(this, SIGNAL(addFolder(QString)), m_contentDirectory, SLOT(_addFolder(QString)));
-        connect(m_contentDirectory, SIGNAL(folderAdded(QString)), this, SLOT(folderAdded(QString)));
-        connect(m_contentDirectory, SIGNAL(error_addFolder(QString)), this, SLOT(folderNotAdded(QString)));
-
-        connect(this, SIGNAL(addLink(QString)), m_contentDirectory, SIGNAL(addNetworkLinkSignal(QString)));
-        connect(m_contentDirectory, SIGNAL(linkAdded(QString)), this, SLOT(linkAdded(QString)));
-        connect(m_contentDirectory, SIGNAL(error_addNetworkLink(QString)), this, SLOT(linkNotAdded(QString)));
-
-        connect(this, SIGNAL(reloadLibrarySignal()), m_contentDirectory, SLOT(reloadLibrary()));
-        connect(this, SIGNAL(updateMediaFromId(int,QHash<QString,QVariant>)), m_contentDirectory, SIGNAL(updateMediaFromId(int,QHash<QString,QVariant>)));
-
-        connect(m_contentDirectory, SIGNAL(servingRendererSignal(QString,QString)), m_renderersModel, SLOT(serving(QString,QString)));
-        connect(m_contentDirectory, SIGNAL(servingFinishedSignal(QString,QString,int)), this, SLOT(servingMediaFinished(QString,QString,int)));
-
-        connect(m_worker, SIGNAL(refresh(QString)), m_contentDirectory, SIGNAL(addNetworkLinkSignal(QString)));
-
-        m_contentDirectory->setNetworkAccessManager(&netManager);
-    }
-    else
-    {
-        qCritical() << "service content directory already initialised.";
-    }
 
     // load the settings
     loadSettings();
@@ -171,18 +140,6 @@ void MyApplication::serverStarted()
 void MyApplication::serverError(const QString &message)
 {
     m_controller.popMessage(message, UiServices::POP_ERROR);
-}
-
-void MyApplication::contentDirectoryDestroyed(QObject *obj)
-{
-    Q_UNUSED(obj)
-    m_contentDirectory = 0;
-}
-
-void MyApplication::connectionManagerDestroyed(QObject *obj)
-{
-    Q_UNUSED(obj)
-    m_connectionManager = 0;
 }
 
 void MyApplication::setRenderersModel(MediaRendererModel *model)
@@ -409,81 +366,6 @@ void MyApplication::newRequest(HttpRequest *request)
 
     request->setParent(m_requestsModel);
     m_requestsModel->insertRow(0, request);
-}
-
-void MyApplication::requestCompleted(HttpRequest *request)
-{
-    qDebug() << "request completed, ready for reply" << request;
-
-    UpnpRootDevice *device = qobject_cast<UpnpRootDevice *>(sender());
-
-    if (device)
-    {
-        request->setServerName(m_upnp.serverName());
-
-        if (request->operation() == QNetworkAccessManager::GetOperation && request->url().toString() == "/description/fetch")
-        {
-            QFile inputStream(":/PMS.xml");
-            if (inputStream.open(QFile::ReadOnly | QFile::Text)) {
-                // read file PMS.xml
-                QString data = inputStream.readAll();
-                inputStream.close();
-
-                // replace parameter by its value
-                data.replace(QString("[uuid]"), QString("uuid:%1").arg(device->uuid()));
-                data.replace(QString("[host]"), m_upnp.host().toString());
-                data.replace(QString("[port]"), QString("%1").arg(SERVERPORT));
-
-                request->replyData(data.toUtf8());
-            }
-            else {
-                qCritical() << "Unable to read PMS.xml for description/fetch answer.";
-            }
-        }
-        else if (request->operation() == QNetworkAccessManager::GetOperation && request->url().toString() == "/UPnP_AV_ConnectionManager_1.0.xml")
-        {
-            request->replyFile(":/UPnP_AV_ConnectionManager_1.0.xml");
-        }
-        else if (request->operation() == QNetworkAccessManager::GetOperation && request->url().toString() == "/UPnP_AV_ContentDirectory_1.0.xml")
-        {
-            request->replyFile(":/UPnP_AV_ContentDirectory_1.0.xml");
-        }
-        else if (request->operation() == QNetworkAccessManager::GetOperation && request->url().toString().startsWith("/images/"))
-        {
-            request->replyFile(":" + request->url().toString());
-        }
-        else if (request->url().toString().startsWith("/get/"))
-        {
-            MediaRenderer * renderer = m_renderersModel->rendererFromIp(request->peerAddress().toString());
-            m_contentDirectory->reply(request, renderer);
-        }
-        else if (request->url().toString() == "/upnp/control/content_directory")
-        {
-            MediaRenderer * renderer = m_renderersModel->rendererFromIp(request->peerAddress().toString());
-            m_contentDirectory->reply(request, renderer);
-        }
-        else if (request->url().toString() == "/upnp/event/content_directory")
-        {
-            MediaRenderer * renderer = m_renderersModel->rendererFromIp(request->peerAddress().toString());
-            m_contentDirectory->reply(request, renderer);
-        }
-        else if (request->url().toString() == "/upnp/control/connection_manager")
-        {
-            m_connectionManager->reply(request);
-        }
-        else if (request->url().toString() == "/upnp/event/connection_manager")
-        {
-            m_connectionManager->reply(request);
-        }
-        else
-        {
-            qCritical() << "unknwon request to reply" << request->operationString() << request->url().toString();
-        }
-    }
-    else
-    {
-        qCritical() << "invalid device" << device << sender();
-    }
 }
 
 void MyApplication::servingMediaFinished(QString host, QString filename, int status)

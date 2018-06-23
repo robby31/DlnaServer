@@ -11,8 +11,7 @@
 #include "debugitem.h"
 #include "checknetworklinkitem.h"
 #include "upnpcontrolpoint.h"
-#include "servicecontentdirectory.h"
-#include "serviceconnectionmanager.h"
+#include "mediaserver.h"
 #include "mediaimageprovider.h"
 #include "albumimageprovider.h"
 #include "formatimageprovider.h"
@@ -109,10 +108,6 @@ private slots:
 
     void newRootDevice(UpnpRootDevice *device);
     void newRequest(HttpRequest *request);
-    void requestCompleted(HttpRequest *request);
-
-    void contentDirectoryDestroyed(QObject *obj);
-    void connectionManagerDestroyed(QObject *obj);
 
     void servingMediaFinished(QString host, QString filename, int status);
 
@@ -137,9 +132,6 @@ private:
 
     ListModel *m_debugModel;
     ListModel *m_checkNetworkLinkModel;
-
-    ServiceConnectionManager *m_connectionManager;
-    ServiceContentDirectory *m_contentDirectory;
 
     QUrl m_ffmpegFolder;
     QString m_ffmpegVersion;
