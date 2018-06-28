@@ -215,6 +215,17 @@ bool MediaServerContent::replyAction(HttpRequest *request, const SoapAction &act
 
                 qDebug() << "returned DLNA resources" << l_dlna.size();
 
+                DlnaResource *object_requested = Q_NULLPTR;
+                if (browseFlag == "BrowseDirectChildren")
+                {
+                    if (l_dlna.size() > 0)
+                        object_requested = l_dlna.at(0)->getDlnaParent();
+                }
+                else if (l_dlna.size() == 1)
+                {
+                    object_requested = l_dlna.at(0);
+                }
+
                 DidlLite didlDoc;
 
                 foreach (DlnaResource* resource, l_dlna)
@@ -251,6 +262,11 @@ bool MediaServerContent::replyAction(HttpRequest *request, const SoapAction &act
                         response.addArgument("TotalMatches", QString("%1").arg(l_dlna.size()));
                     }
                 }
+
+                if (object_requested)
+                    response.addArgument("UpdateID", QVariant::fromValue(object_requested->getUpdateId()).toString());
+                else
+                    qCritical() << "invalid object request in Browse action" << objectID;
 
                 request->replyAction(response);
                 return true;
