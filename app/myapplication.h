@@ -66,6 +66,8 @@ private:
     bool loadSettings();
     bool saveSettings();
 
+    virtual void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
+
 signals:
     void sharedFolderModelChanged();
     void requestsModelChanged();
@@ -104,8 +106,6 @@ private slots:
 
     void checkNetworkLinkMessage(QString name, QString message);
 
-    void advertiseSlot();
-
     void newRootDevice(UpnpRootDevice *device);
     void newRequest(HttpRequest *request);
 
@@ -120,7 +120,6 @@ private:
 
     QNetworkAccessManager netManager;
 
-    UpnpTimer m_timerDiscover;
     UpnpControlPoint m_upnp;
     UpnpRootDevice *m_localrootdevice;
 

@@ -9,7 +9,6 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_controller(),
     m_worker(Q_NULLPTR),
     netManager(),
-    m_timerDiscover(3, 600000),
     m_upnp(5050),
     m_localrootdevice(Q_NULLPTR),
     m_requestsModel(Q_NULLPTR),
@@ -70,8 +69,17 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_upnp.setNetworkManager(&netManager);
     connect(&m_upnp, SIGNAL(newRootDevice(UpnpRootDevice*)), this, SLOT(newRootDevice(UpnpRootDevice*)));
 
-    connect(&m_timerDiscover, SIGNAL(timeout()), this, SLOT(advertiseSlot()));
-    m_timerDiscover.start(2000);
+    // start event for discovering, emit 3 times
+    int eventDiscover = startTimer(2000);
+    if (eventDiscover > 0)
+    {
+        setProperty("discover_event", eventDiscover);
+        setProperty("discover_counter", 3);
+    }
+    else
+    {
+        qCritical() << "unable to start discover event";
+    }
 
     qRegisterMetaType<qintptr>("qintptr");
 
@@ -348,10 +356,28 @@ void MyApplication::updateFilenameMedia(const int &id, const QString &pathname)
     emit updateMediaFromId(id, data);
 }
 
-void MyApplication::advertiseSlot()
+void MyApplication::timerEvent(QTimerEvent *event)
 {
-    qDebug() << "advertise UPNP root device";
-    m_upnp.sendDiscover(UpnpRootDevice::UPNP_ROOTDEVICE);
+    if (event->type() == QTimerEvent::Timer && event->timerId() == property("discover_event"))
+    {
+        int counter = property("discover_counter").toInt();
+        if (counter < 1)
+        {
+            setProperty("discover_event", QVariant::Invalid);
+            setProperty("discover_counter", QVariant::Invalid);
+            killTimer(event->timerId());
+        }
+        else
+        {
+            qWarning() << "advertise UPNP root device";
+            setProperty("discover_counter", --counter);
+            m_upnp.sendDiscover(UpnpRootDevice::UPNP_ROOTDEVICE);
+        }
+    }
+    else
+    {
+        qCritical() << "invalid event" << event->timerId();
+    }
 }
 
 void MyApplication::newRootDevice(UpnpRootDevice *device)
