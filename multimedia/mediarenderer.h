@@ -38,6 +38,7 @@ private slots:
     void deviceItemChanged(QVector<int> roles);
     void deviceDestroyed(QObject *obj);
 
+    void serviceStatusChanged();
     void stateVarChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles = QVector<int>());
 
 private:

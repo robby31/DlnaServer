@@ -22,6 +22,8 @@ MediaRenderer::MediaRenderer(UpnpRootDevice *device, QObject *parent) :
     UpnpService *service = qobject_cast<UpnpService*>(device->getService("urn:upnp-org:serviceId:ConnectionManager"));
     if (service)
     {
+        connect(service, SIGNAL(statusChanged()), this, SLOT(serviceStatusChanged()));
+
         ListModel * varModel = service->stateVariablesModel();
         if (varModel)
             connect(varModel, SIGNAL(dataChanged(QModelIndex,QModelIndex,QVector<int>)), this, SLOT(stateVarChanged(QModelIndex,QModelIndex,QVector<int>)));
@@ -136,6 +138,13 @@ void MediaRenderer::deviceDestroyed(QObject *obj)
 {
     if (obj == m_device)
         m_device = Q_NULLPTR;
+}
+
+void MediaRenderer::serviceStatusChanged()
+{
+    UpnpService *service = qobject_cast<UpnpService*>(sender());
+    if (service->status() == UpnpService::Ready)
+        service->subscribeEventing();
 }
 
 void MediaRenderer::stateVarChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight, const QVector<int> &roles)
