@@ -37,6 +37,8 @@ void MediaServer::initDescription()
 
     deviceDescription->setDeviceAttribute("UDN", QString("uuid:%1").arg(id()));
     setDescription(deviceDescription);
+
+    setServerName(QString("%1/%2 UPnP/%3 QMS/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion()).arg(version()));
 }
 
 void MediaServer::initConnectionManager()
