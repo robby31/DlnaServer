@@ -369,7 +369,6 @@ void MyApplication::timerEvent(QTimerEvent *event)
         }
         else
         {
-            qWarning() << "advertise UPNP root device";
             setProperty("discover_counter", --counter);
             m_upnp.sendDiscover(UpnpRootDevice::UPNP_ROOTDEVICE);
         }
