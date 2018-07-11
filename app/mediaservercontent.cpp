@@ -346,9 +346,6 @@ bool MediaServerContent::replyRequest(HttpRequest *request)
                     if (dlna->getdlnaOrgOpFlags().at(1) == '1')
                         m_header << QString("Accept-Ranges: bytes");
 
-                    if (request->version() != "HTTP/1.0")
-                        m_header << QString("Connection: keep-alive");
-
                     m_header << QString("SERVER: %1").arg(request->serverName());
 
                     m_header << QString("Content-Length: %1").arg(dlna->size());
