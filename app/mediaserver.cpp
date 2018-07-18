@@ -81,6 +81,8 @@ void MediaServer::initConnectionManager()
     format << "http-get:*:image/*:*";
     connection_manager->updateStateVariable("SourceProtocolInfo", format.join(","));
 
+    connection_manager->setDirection(ServiceConnectionManager::Output);
+
     addService(connection_manager);
 }
 

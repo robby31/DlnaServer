@@ -1,6 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>PMS.xml</file>
         <file>images/icon-16.png</file>
         <file>images/icon-128.jpg</file>
         <file>images/icon-128.png</file>
@@ -24,8 +23,6 @@
         <file>images/debug.png</file>
         <file>icon.icns</file>
         <file>qml/content/MediaRendererDelegate.qml</file>
-        <file>UPnP_AV_ConnectionManager_1.0.xml</file>
-        <file>UPnP_AV_ContentDirectory_1.0.xml</file>
         <file>qml/content/RequestDelegate.qml</file>
         <file>qml/SelectDatabase.qml</file>
         <file>qml/content/SettingsView.qml</file>
