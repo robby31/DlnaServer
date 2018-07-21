@@ -19,10 +19,26 @@ TEMPLATE = app
 DEFINES += SRCDIR=\\\"$$PWD/\\\"
 DEFINES += PROFILING
 
-include (../dlna/dlna.pri)
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/analyzer
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(analyzer)
 
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
 LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
+
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/Youtube
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(youtube)
+
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/UpnpLibrary
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(UpnpLibrary)
+
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/multimedia
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(mediadevice)
+
+INCLUDEPATH += /opt/local/include
+LIBS += -L/opt/local/lib -lavcodec -lavformat -lavutil -lswscale -lswresample
+
+DEFINES += USE_AVRESAMPLE
+LIBS += -L/opt/local/lib -lavresample
 
 SOURCES += \
     main.cpp \

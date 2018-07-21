@@ -197,7 +197,7 @@ void tst_dlnacachedresources::testCase_Library_NbPictureWithNoAlbum()
 
 void tst_dlnacachedresources::testCase_DlnaCachedRootFolder()
 {
-    DlnaCachedRootFolder rootFolder("host", 100, this);
+    DlnaCachedRootFolder rootFolder(this);
     connect(&rootFolder, SIGNAL(error_addFolder(QString)), this, SLOT(error_addFolder(QString)));
 
     QVERIFY(rootFolder.getId() == "0");
@@ -229,7 +229,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedRootFolder()
 }
 
 void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
-    DlnaCachedRootFolder rootFolder("host", 600, this);
+    DlnaCachedRootFolder rootFolder(this);
 
     folderKO.clear();
     rootFolder.addFolder("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO");
@@ -378,7 +378,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
 }
 
 void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
-    DlnaCachedRootFolder rootFolder("host", 600, this);
+    DlnaCachedRootFolder rootFolder(this);
 
     folderKO.clear();
     rootFolder.addFolder("/Users/doudou/Movies");
@@ -529,7 +529,7 @@ int tst_dlnacachedresources::parseFolder(QString resourceId, DlnaResource *resou
 }
 
 void tst_dlnacachedresources::testCase_PerformanceAllArtists() {
-    DlnaCachedRootFolder rootFolder("host", 600, this);
+    DlnaCachedRootFolder rootFolder(this);
 
     folderKO.clear();
     rootFolder.addFolder("/Users/doudou/Music/iTunes/iTunes Media/Music");
@@ -558,7 +558,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllArtists() {
 }
 
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByArtist() {
-    DlnaCachedRootFolder rootFolder("host", 600, this);
+    DlnaCachedRootFolder rootFolder(this);
 
     DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
@@ -589,7 +589,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllTracksByArtist() {
 }
 
 void tst_dlnacachedresources::testCase_PerformanceAllAlbums() {
-    DlnaCachedRootFolder rootFolder("host", 600, this);
+    DlnaCachedRootFolder rootFolder(this);
 
     DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
@@ -612,7 +612,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllAlbums() {
 }
 
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByAlbum() {
-    DlnaCachedRootFolder rootFolder("host", 600, this);
+    DlnaCachedRootFolder rootFolder(this);
 
     DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
@@ -643,7 +643,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllTracksByAlbum() {
 }
 
 void tst_dlnacachedresources::testCase_PerformanceAllGenres() {
-    DlnaCachedRootFolder rootFolder("host", 600, this);
+    DlnaCachedRootFolder rootFolder(this);
 
     DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
@@ -666,7 +666,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllGenres() {
 }
 
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByGenre() {
-    DlnaCachedRootFolder rootFolder("host", 600, this);
+    DlnaCachedRootFolder rootFolder(this);
 
     DlnaCachedGroupedFolderMetaData* folder = 0;
     for (int index=0;index<rootFolder.getChildrenSize();++index)

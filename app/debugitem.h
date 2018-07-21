@@ -5,13 +5,13 @@
 #include <QVariant>
 #include <QDebug>
 #include "Models/listitem.h"
-#include "dlnaresource.h"
+#include "dlna/dlnaresource.h"
 #include "device.h"
-#include "dlnafolder.h"
-#include "dlnamusictrackfile.h"
-#include "dlnarootfolder.h"
-#include "dlnavideofile.h"
-#include "dlnayoutubevideo.h"
+#include "dlna/dlnafolder.h"
+#include "dlna/dlnamusictrackfile.h"
+#include "dlna/dlnarootfolder.h"
+#include "dlna/dlnavideofile.h"
+#include "dlna/dlnayoutubevideo.h"
 
 class DebugItem : public ListItem
 {

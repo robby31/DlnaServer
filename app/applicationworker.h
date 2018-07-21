@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QDir>
 #include "Worker/worker.h"
-#include "cached/dlnacachedrootfolder.h"
+#include "dlna/cached/dlnacachedrootfolder.h"
 #include "mysqldatabase.h"
 
 class ApplicationWorker : public Worker

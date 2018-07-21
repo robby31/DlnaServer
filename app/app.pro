@@ -5,10 +5,23 @@ TEMPLATE = app
 
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
-include (../dlna/dlna.pri)
-
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
 LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
+
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/Youtube
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(youtube)
+
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/UpnpLibrary
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(UpnpLibrary)
+
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/multimedia
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(mediadevice)
+
+INCLUDEPATH += /opt/local/include
+LIBS += -L/opt/local/lib -lavcodec -lavformat -lavutil -lswscale -lswresample
+
+DEFINES += USE_AVRESAMPLE
+LIBS += -L/opt/local/lib -lavresample
 
 HEADERS += \
     myapplication.h \
@@ -19,7 +32,6 @@ HEADERS += \
     mediaimageprovider.h \
     albumimageprovider.h \
     formatimageprovider.h \
-    mediaservercontent.h \
     mediaserver.h
 
 SOURCES += \
@@ -32,7 +44,6 @@ SOURCES += \
     mediaimageprovider.cpp \
     albumimageprovider.cpp \
     formatimageprovider.cpp \
-    mediaservercontent.cpp \
     mediaserver.cpp
 
 RESOURCES += \

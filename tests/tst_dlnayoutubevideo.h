@@ -5,9 +5,9 @@
 #include <QtTest>
 
 #include "mysqldatabase.h"
-#include "dlnayoutubevideo.h"
-#include "cached/dlnacachednetworkvideo.h"
-#include "cached/dlnacachedrootfolder.h"
+#include "dlna/dlnayoutubevideo.h"
+#include "dlna/cached/dlnacachednetworkvideo.h"
+#include "dlna/cached/dlnacachedrootfolder.h"
 
 class tst_dlnayoutubevideo : public QObject
 {

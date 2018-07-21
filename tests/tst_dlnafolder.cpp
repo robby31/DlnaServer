@@ -18,7 +18,7 @@ void tst_dlnafolder::cleanup()
 
 void tst_dlnafolder::testCase_DlnaFolder()
 {
-    DlnaFolder music("/Users/doudou/Music/iTunes/iTunes Media/Music", "host", 300);
+    DlnaFolder music("/Users/doudou/Music/iTunes/iTunes Media/Music");
     QVERIFY(music.getId() == "");
     QVERIFY(music.getName() == "Music");
     QVERIFY(music.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music");
@@ -97,7 +97,7 @@ int tst_dlnafolder::parseFolder(QString resourceId, DlnaResource *resource)
 
 void tst_dlnafolder::testCase_PerformanceAllArtists()
 {
-    DlnaFolder music("/Users/doudou/Music/iTunes/iTunes Media/Music", "host", 300);
+    DlnaFolder music("/Users/doudou/Music/iTunes/iTunes Media/Music");
     QVERIFY(music.getId() == "");
     QVERIFY(music.getName() == "Music");
     QVERIFY(music.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music");
@@ -119,7 +119,7 @@ void tst_dlnafolder::testCase_PerformanceAllArtists()
 
 void tst_dlnafolder::testCase_PerformanceAllAlbums()
 {
-    DlnaFolder music("/Users/doudou/Music/iTunes/iTunes Media/Music", "host", 300);
+    DlnaFolder music("/Users/doudou/Music/iTunes/iTunes Media/Music");
     QVERIFY(music.getId() == "");
     QVERIFY(music.getName() == "Music");
     QVERIFY(music.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music");
@@ -154,7 +154,7 @@ void tst_dlnafolder::testCase_PerformanceAllTracks()
     QElapsedTimer timer;
     timer.start();
 
-    DlnaFolder music("/Users/doudou/Music/iTunes/iTunes Media/Music", "host", 300);
+    DlnaFolder music("/Users/doudou/Music/iTunes/iTunes Media/Music");
     QVERIFY(music.getId() == "");
     QVERIFY(music.getName() == "Music");
     QVERIFY(music.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music");

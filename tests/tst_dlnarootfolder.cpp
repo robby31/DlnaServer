@@ -7,7 +7,7 @@ tst_dlnarootfolder::tst_dlnarootfolder(QObject *parent) :
 
 void tst_dlnarootfolder::testCase_DlnaRootFolder()
 {
-    DlnaRootFolder rootFolder("host", 100, this);
+    DlnaRootFolder rootFolder(this);
     QVERIFY(rootFolder.getId() == "0");
     QVERIFY(rootFolder.getName() == "root");
     QVERIFY(rootFolder.getSystemName() == "root");
@@ -39,7 +39,7 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QVERIFY(xml_res.elementsByTagName("upnp:class").at(0).firstChild().nodeValue() == "object.container.storageFolder");
     xml_res.clear();
 
-    DlnaFolder music("/Users/doudou/Music/iTunes/iTunes Media/Music", "host", 500);
+    DlnaFolder music("/Users/doudou/Music/iTunes/iTunes Media/Music");
     QVERIFY(music.getName() == "Music");
 
     xml_res.appendChild(music.getXmlContentDirectory(&xml_res, properties));

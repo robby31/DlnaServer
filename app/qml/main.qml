@@ -1,5 +1,4 @@
 import QtQuick 2.5
-import myTypes 1.0
 import MyComponents 1.0
 import "Pages"
 import QtQuick.Dialogs 1.2
@@ -63,6 +62,6 @@ MyApplication {
         id: chooseDatabaseDialog
         selectExisting: true
         nameFilters: [ "Database (*.database)" ]
-        onAccepted:  _app.databaseName = fileUrl
+        onAccepted:  _app.databaseName = fileUrl.toString().replace(/^(file:\/{2})/,"")
     }
 }

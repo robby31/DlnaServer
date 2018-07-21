@@ -3,8 +3,6 @@
 
 int main(int argc, char** argv)
 {
-    qmlRegisterType<MediaRendererModel>("myTypes", 1, 0, "MediaRendererModel");
-
     MyApplication app(argc, argv);
 
     // load the qml file describing the application

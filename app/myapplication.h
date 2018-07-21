@@ -7,7 +7,7 @@
 #include "application.h"
 #include "applicationcontroller.h"
 #include "applicationworker.h"
-#include "mediarenderermodel.h"
+#include "Devices/mediarenderermodel.h"
 #include "debugitem.h"
 #include "checknetworklinkitem.h"
 #include "upnpcontrolpoint.h"

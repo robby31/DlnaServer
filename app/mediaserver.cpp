@@ -88,7 +88,7 @@ void MediaServer::initConnectionManager()
 
 void MediaServer::initContentDirectory()
 {
-    MediaServerContent *content_directory = new MediaServerContent(m_renderersModel, this, url().host(), url().port());
+    ServiceContentDirectory *content_directory = new ServiceContentDirectory(m_renderersModel, this);
 
     connect(m_renderersModel, SIGNAL(mediaRendererDestroyed(QString)), content_directory, SLOT(mediaRendererDestroyed(QString)));
 

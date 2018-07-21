@@ -5,7 +5,7 @@
 #include <QtTest>
 
 #include "analyzer.h"
-#include "dlnafolder.h"
+#include "dlna/dlnafolder.h"
 
 class tst_dlnafolder : public QObject
 {

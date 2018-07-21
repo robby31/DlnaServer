@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QtTest>
 
-#include "dlnarootfolder.h"
+#include "dlna/dlnarootfolder.h"
 
 class tst_dlnarootfolder : public QObject
 {

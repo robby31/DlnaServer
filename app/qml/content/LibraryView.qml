@@ -4,7 +4,6 @@ import QtQuick.Layouts 1.1
 import QtQuick.Controls.Styles 1.1
 import QtMultimedia 5.9
 import MyComponents 1.0
-import myTypes 1.0
 
 Page {
     id: libraryView

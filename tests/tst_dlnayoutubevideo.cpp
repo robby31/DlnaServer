@@ -39,7 +39,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
     QElapsedTimer timer;
     timer.start();
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo());
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
@@ -85,7 +85,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD()
     QElapsedTimer timer;
     timer.start();
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo());
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
@@ -125,7 +125,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD_NotFound()
     QElapsedTimer timer;
     timer.start();
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo());
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
@@ -165,7 +165,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG2()
     QElapsedTimer timer;
     timer.start();
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo());
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
@@ -235,7 +235,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG4()
     QElapsedTimer timer;
     timer.start();
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo());
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
@@ -313,7 +313,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
     QElapsedTimer timer;
     timer.start();
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo());
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
@@ -351,7 +351,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo4()
     QElapsedTimer timer;
     timer.start();
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo());
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
@@ -386,7 +386,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo4()
 
 void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo()
 {
-    DlnaCachedRootFolder rootFolder("host", 600, this);
+    DlnaCachedRootFolder rootFolder(this);
     rootFolder.setNetworkAccessManager(manager);
 
     DlnaCachedGroupedFolderMetaData *folder = 0;
@@ -492,7 +492,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink_data()
     QTest::addColumn<QUrl>("url");
     QTest::addColumn<bool>("is_reachable");
 
-    DlnaCachedRootFolder rootFolder("host", 600, this);
+    DlnaCachedRootFolder rootFolder(this);
 
     QSqlQuery query = rootFolder.getAllNetworkLinks();
     while (query.next())
@@ -508,7 +508,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
 {
     QFETCH(QUrl, url);
 
-    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("host", 600));
+    QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo());
     video->moveToThread(backend);
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);

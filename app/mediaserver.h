@@ -3,7 +3,7 @@
 
 #include "upnprootdevice.h"
 #include "Services/serviceconnectionmanager.h"
-#include "mediaservercontent.h"
+#include "Services/servicecontentdirectory.h"
 
 class MediaServer : public UpnpRootDevice
 {

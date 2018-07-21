@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QtTest>
 
-#include "dlnamusictrackfile.h"
+#include "dlna/dlnamusictrackfile.h"
 #include <QElapsedTimer>
 #include "Http/httprange.h"
 

@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QtTest>
 
-#include "dlnavideofile.h"
+#include "dlna/dlnavideofile.h"
 
 class tst_dlnavideoitem : public QObject
 {

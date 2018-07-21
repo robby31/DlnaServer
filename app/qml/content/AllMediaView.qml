@@ -2,7 +2,6 @@ import QtQuick 2.0
 import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 import MyComponents 1.0
-import myTypes 1.0
 
 Rectangle {
     id: item
