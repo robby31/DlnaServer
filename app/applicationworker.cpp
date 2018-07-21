@@ -16,7 +16,7 @@ void ApplicationWorker::scanFolder(QString path)
     QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
     if (db.isValid() && db.isOpen())
     {
-        DlnaCachedRootFolder root("HOST", 80);
+        DlnaCachedRootFolder root;
         root.readDirectory(QDir(path));
 
 //        emit processOver();
@@ -26,6 +26,8 @@ void ApplicationWorker::scanFolder(QString path)
         qCritical() << "database is not valid, unable to scan folder" << path;
 //        emit errorDuringProcess(QString("database is not valid, unable to scan folder %1").arg(path.absolutePath()));
     }
+
+    qDebug() << "scan folder finished" << path;
 }
 
 void ApplicationWorker::checkNetworkLink()
@@ -64,7 +66,7 @@ void ApplicationWorker::checkNetworkLink()
                 QString url(query.value("filename").toString());
                 bool isReachable = query.value("is_reachable").toBool();
 
-                QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> movie(new DlnaYouTubeVideo("HOST", 80));
+                QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> movie(new DlnaYouTubeVideo());
                 movie->moveToThread(m_nam->thread());
                 QObject::connect(m_nam->thread(), SIGNAL(finished()), movie.data(), SLOT(deleteLater()));
                 movie->setNetworkAccessManager(m_nam);
@@ -162,7 +164,7 @@ void ApplicationWorker::scanVolumeInfo()
                             {
                                 qDebug() << "Analyze audio" << filename;
 
-                                DlnaMusicTrackFile track(filename, "HOST", 80);
+                                DlnaMusicTrackFile track(filename);
                                 if (!library.setVolumeInfo(idMedia, track.volumeInfo()))
                                     qCritical() << "Unable to set volume information for" << filename;
                             }
@@ -170,7 +172,7 @@ void ApplicationWorker::scanVolumeInfo()
                             {
                                 qDebug() << "Analyze local video" << filename;
 
-                                DlnaVideoFile movie(filename, "HOST", 80);
+                                DlnaVideoFile movie(filename);
                                 if (!library.setVolumeInfo(idMedia, movie.volumeInfo(-1)))
                                     qCritical() << "Unable to set volume information for" << filename;
                             }
@@ -178,7 +180,7 @@ void ApplicationWorker::scanVolumeInfo()
                             {
                                 qDebug() << "Analyze internet video" << filename;
 
-                                QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo("HOST", 80));
+                                QScopedPointer<DlnaYouTubeVideo, QScopedPointerDeleteLater> video(new DlnaYouTubeVideo());
                                 video->moveToThread(m_nam->thread());
                                 QObject::connect(m_nam->thread(), SIGNAL(finished()), video.data(), SLOT(deleteLater()));
                                 video->setNetworkAccessManager(m_nam);
