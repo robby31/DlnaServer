@@ -37,7 +37,9 @@ SOURCES += \
         main.cpp \
     myapplication.cpp \
     applicationworker.cpp \
-    applicationcontroller.cpp
+    applicationcontroller.cpp \
+    servermodel.cpp \
+    serveritem.cpp
 
 RESOURCES += qml.qrc
 
@@ -55,4 +57,6 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 HEADERS += \
     myapplication.h \
     applicationworker.h \
-    applicationcontroller.h
+    applicationcontroller.h \
+    servermodel.h \
+    serveritem.h
