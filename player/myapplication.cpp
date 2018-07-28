@@ -4,7 +4,7 @@ MyApplication::MyApplication(int &argc, char **argv):
     Application(argc, argv),
     m_upnp(5080)
 {
-    setServersModel(new MediaRendererModel(this));
+    setServersModel(new ServerModel(this));
 
     addController("homePageController", &m_controller);
 
@@ -12,23 +12,17 @@ MyApplication::MyApplication(int &argc, char **argv):
     addWorker(&m_controller, m_worker);
 
     m_upnp.setNetworkManager(&netManager);
-    connect(&m_upnp, SIGNAL(newRootDevice(UpnpRootDevice*)), this, SLOT(newRootDevice(UpnpRootDevice*)));
+    connect(&m_upnp, &UpnpControlPoint::newRootDevice, m_serversModel, &ServerModel::addServer);
 
     m_upnp.startDiscover(UpnpRootDevice::UPNP_ROOTDEVICE);
 }
 
-void MyApplication::newRootDevice(UpnpRootDevice *device)
-{
-    if (device->deviceType().startsWith("urn:schemas-upnp-org:device:MediaServer"))
-        m_serversModel->addMediaRenderer(device);
-}
-
-MediaRendererModel *MyApplication::serversModel() const
+ServerModel *MyApplication::serversModel() const
 {
     return m_serversModel;
 }
 
-void MyApplication::setServersModel(MediaRendererModel *model)
+void MyApplication::setServersModel(ServerModel *model)
 {
     if (m_serversModel)
         m_serversModel->deleteLater();

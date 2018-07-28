@@ -5,25 +5,24 @@
 #include "applicationcontroller.h"
 #include "applicationworker.h"
 #include "upnpcontrolpoint.h"
-#include "Devices/mediarenderermodel.h"
+#include "servermodel.h"
 
 class MyApplication : public Application
 {
     Q_OBJECT
 
-    Q_PROPERTY(MediaRendererModel *serversModel READ serversModel WRITE setServersModel NOTIFY serversModelChanged)
+    Q_PROPERTY(ServerModel *serversModel READ serversModel WRITE setServersModel NOTIFY serversModelChanged)
 
 public:
     explicit MyApplication(int &argc, char **argv);
 
-    MediaRendererModel *serversModel() const;
-    void setServersModel(MediaRendererModel *model);
+    ServerModel *serversModel() const;
+    void setServersModel(ServerModel *model);
 
 signals:
     void serversModelChanged();
 
 private slots:
-    void newRootDevice(UpnpRootDevice *device);
 
 private:
     ApplicationController m_controller;
@@ -32,8 +31,8 @@ private:
     QNetworkAccessManager netManager;
     UpnpControlPoint m_upnp;
 
-    // list of servers
-    MediaRendererModel *m_serversModel = Q_NULLPTR;
+    // Upnp MediaServer listmodel
+    ServerModel *m_serversModel = Q_NULLPTR;
 };
 
 #endif // MYAPPLICATION_H
