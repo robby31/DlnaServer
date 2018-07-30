@@ -11,7 +11,7 @@ ListViewDelegate {
 
     contentItem: Item {
         RowLayout {
-            anchors { left: parent.left; right: parent.right; margins: 10; verticalCenter: parent.verticalCenter }
+            anchors { left: parent.left; right: arrow.left; margins: 10; verticalCenter: parent.verticalCenter }
             spacing: 10
 
             Image {
@@ -24,15 +24,6 @@ ListViewDelegate {
 
             Label {
                 anchors { verticalCenter: parent.verticalCenter }
-                text: networkAddress
-                width: 150
-                Layout.preferredWidth: width
-                elide: Text.ElideRight
-                color: delegate.color
-            }
-
-            Label {
-                anchors { verticalCenter: parent.verticalCenter }
                 text: name
                 Layout.fillWidth: true
                 elide: Text.ElideRight
@@ -41,12 +32,20 @@ ListViewDelegate {
 
             Label {
                 anchors { verticalCenter: parent.verticalCenter }
-                text: status
-                width: (parent.width-320)/2
+                text: networkAddress
+                width: 100
                 Layout.preferredWidth: width
                 elide: Text.ElideRight
                 color: delegate.color
             }
+        }
+
+        Image {
+            id: arrow
+            anchors { right: parent.right; verticalCenter: parent.verticalCenter }
+            height: parent.height
+            fillMode: Image.PreserveAspectFit
+            source: "qrc:/images/arrow.png"
         }
     }
 

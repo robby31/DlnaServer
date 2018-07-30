@@ -4,6 +4,8 @@ MyApplication::MyApplication(int &argc, char **argv):
     Application(argc, argv),
     m_upnp(5080)
 {
+    addImageProvider("upnpclass", new UpnpClassImageProvider);
+
     setServersModel(new ServerModel(this));
 
     addController("homePageController", &m_controller);
@@ -14,7 +16,7 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_upnp.setNetworkManager(&netManager);
     connect(&m_upnp, &UpnpControlPoint::newRootDevice, m_serversModel, &ServerModel::addServer);
 
-    m_upnp.startDiscover(UpnpRootDevice::UPNP_ROOTDEVICE);
+    m_upnp.startDiscover();
 }
 
 ServerModel *MyApplication::serversModel() const

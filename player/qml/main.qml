@@ -24,7 +24,7 @@ MyApplication {
         ListElement {
             title: "Servers"
             state: "SERVERS"
-            icon: "qrc:/images/renderer.png"
+            icon: "qrc:/images/server.png"
         }
     }
 }

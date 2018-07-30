@@ -22,8 +22,10 @@ ServerItem::ServerItem(UpnpRootDevice *device, QObject *parent) :
     m_roles[iconUrlRole] = "iconurl";
     m_roles[availableRole] = "available";
 
-    connect(m_device, SIGNAL(itemChanged(QVector<int>)), this, SLOT(deviceItemChanged(QVector<int>)));
-    connect(m_device, SIGNAL(destroyed(QObject*)), this, SLOT(deviceDestroyed(QObject*)));
+    connect(m_device, &UpnpRootDevice::itemChanged, this, &ServerItem::deviceItemChanged);
+    connect(m_device, &UpnpRootDevice::destroyed, this, &ServerItem::deviceDestroyed);
+
+    initializeContentDirectory();
 }
 
 QHash<int, QByteArray> ServerItem::roleNames() const
@@ -113,7 +115,7 @@ void ServerItem::deviceItemChanged(QVector<int> roles)
     emit itemChanged();
 
     if (roles.contains(UpnpRootDevice::AvailableRole) && m_device->available() == false)
-        deleteLater();
+        emit removeItem();
 }
 
 void ServerItem::deviceDestroyed(QObject *obj)
@@ -121,7 +123,43 @@ void ServerItem::deviceDestroyed(QObject *obj)
     if (obj == m_device)
     {
         m_device = Q_NULLPTR;
-        deleteLater();
+        emit removeItem();
+        emit nameChanged();
+        emit iconurlChanged();
     }
 }
 
+UpnpRootDevice *ServerItem::device() const
+{
+    return m_device;
+}
+
+void ServerItem::initializeContentDirectory()
+{
+    m_contentDirectory = qobject_cast<UpnpService*>(m_device->getService("urn:upnp-org:serviceId:ContentDirectory"));
+    if (m_contentDirectory)
+    {
+        setContentModel(new ContentModel(m_contentDirectory, "0", this));
+    }
+}
+
+ContentModel *ServerItem::contentModel() const
+{
+    return m_contentModel;
+}
+
+void ServerItem::setContentModel(ContentModel *model)
+{
+    m_contentModel = model;
+    emit contentModelChanged();
+}
+
+QString ServerItem::name() const
+{
+    return data(nameRole).toString();
+}
+
+QUrl ServerItem::iconurl() const
+{
+    return data(iconUrlRole).toUrl();
+}

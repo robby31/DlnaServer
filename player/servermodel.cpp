@@ -14,18 +14,29 @@ void ServerModel::addServer(UpnpRootDevice *device)
         if (!server)
         {
             server = new ServerItem(device, this);
-            connect(server, &ServerItem::destroyed, this, &ServerModel::serverDestroyed);
+            connect(server, &ServerItem::removeItem, this, &ServerModel::removeServer);
             appendRow(server);
         }
     }
 }
 
-void ServerModel::serverDestroyed(QObject *object)
+void ServerModel::removeServer()
 {
-    ServerItem *server = qobject_cast<ServerItem*>(object);
+    ServerItem *server = qobject_cast<ServerItem*>(sender());
 
-    QModelIndex index = indexFromItem(server);
+    if (server)
+    {
+        QModelIndex index = indexFromItem(server);
 
-    if (index.isValid())
-        removeRow(index.row());
+        if (index.isValid())
+            removeRow(index.row());
+    }
+}
+
+ServerItem *ServerModel::getServer(const int &index)
+{
+    if (index>=0 && index<rowCount())
+        return (ServerItem *)at(index);
+    else
+        return Q_NULLPTR;
 }

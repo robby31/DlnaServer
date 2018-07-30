@@ -39,7 +39,9 @@ SOURCES += \
     applicationworker.cpp \
     applicationcontroller.cpp \
     servermodel.cpp \
-    serveritem.cpp
+    serveritem.cpp \
+    contentmodel.cpp \
+    upnpclassimageprovider.cpp
 
 RESOURCES += qml.qrc
 
@@ -59,4 +61,6 @@ HEADERS += \
     applicationworker.h \
     applicationcontroller.h \
     servermodel.h \
-    serveritem.h
+    serveritem.h \
+    contentmodel.h \
+    upnpclassimageprovider.h

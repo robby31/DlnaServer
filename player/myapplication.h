@@ -6,6 +6,7 @@
 #include "applicationworker.h"
 #include "upnpcontrolpoint.h"
 #include "servermodel.h"
+#include "upnpclassimageprovider.h"
 
 class MyApplication : public Application
 {

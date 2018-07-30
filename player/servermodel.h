@@ -11,11 +11,15 @@ class ServerModel : public ListModel
 public:
     explicit ServerModel(QObject *parent = nullptr);
 
+    Q_INVOKABLE ServerItem *getServer(const int &index);
+
 signals:
 
 public slots:
     void addServer(UpnpRootDevice *device);
-    void serverDestroyed(QObject *object);
+
+private slots:
+    void removeServer();
 };
 
 #endif // SERVERMODEL_H

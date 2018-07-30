@@ -3,10 +3,15 @@
 
 #include "Models/listitem.h"
 #include "upnprootdevice.h"
+#include "contentmodel.h"
 
 class ServerItem : public ListItem
 {
     Q_OBJECT
+
+    Q_PROPERTY(ContentModel *contentModel READ contentModel WRITE setContentModel NOTIFY contentModelChanged)
+    Q_PROPERTY(QString name READ name NOTIFY nameChanged)
+    Q_PROPERTY(QUrl iconurl READ iconurl NOTIFY iconurlChanged)
 
 public:
     explicit ServerItem(QObject *parent = 0);
@@ -26,7 +31,22 @@ public:
     virtual QVariant data(int role) const Q_DECL_OVERRIDE;
     virtual bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
 
+    UpnpRootDevice *device() const;
+
+    ContentModel *contentModel() const;
+    void setContentModel(ContentModel *model);
+
+    QString name() const;
+    QUrl iconurl() const;
+
+private:
+    void initializeContentDirectory();
+
 signals:
+    void removeItem();
+    void contentModelChanged();
+    void nameChanged();
+    void iconurlChanged();
 
 private slots:
     void deviceItemChanged(QVector<int> roles);
@@ -37,6 +57,8 @@ private:
 
     UpnpRootDevice *m_device = Q_NULLPTR;
     QString status;
+    UpnpService *m_contentDirectory = Q_NULLPTR;
+    ContentModel *m_contentModel = Q_NULLPTR;
 };
 
 #endif // SERVERITEM_H

@@ -2,6 +2,7 @@ import QtQuick 2.5
 import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 import MyComponents 1.0
+import Type 1.0
 
 Page {
     width: 600
@@ -26,20 +27,37 @@ Page {
         }
     }
 
-    ListView {
-        id: listview
+    StackView
+    {
+        id: view
         anchors.fill: parent
-        clip: true
+        initialItem: serverList
+    }
 
-        model: _app.serversModel
-        delegate: ServerDelegate { }
+    function goBack() {
+        view.pop()
+    }
 
-        ScrollBar.vertical: ScrollBar { }
+    Component
+    {
+        id: serverList
 
-        function selectServer(index)
-        {
-            var server = model.get(index)
-            console.log("select SERVER", server.name, server.networkAddress)
+        ListView {
+            id: listview
+            clip: true
+            focus: true
+
+            model: _app.serversModel
+            delegate: ServerDelegate { }
+
+            ScrollBar.vertical: ScrollBar { }
+
+            function selectServer(index)
+            {
+                var server = model.getServer(index)
+                view.push("ServerContent.qml", { server: server, contentModel: server.contentModel })
+            }
         }
     }
+
 }

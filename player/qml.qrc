@@ -6,5 +6,12 @@
         <file>qml/Pages/ServerDelegate.qml</file>
         <file>images/renderer.png</file>
         <file>images/exit.png</file>
+        <file>qml/Pages/ServerContent.qml</file>
+        <file>qml/Pages/ContentItemDelegate.qml</file>
+        <file>images/arrow.png</file>
+        <file>images/class/folder.png</file>
+        <file>images/class/music.png</file>
+        <file>images/class/video.png</file>
+        <file>images/server.png</file>
     </qresource>
 </RCC>
