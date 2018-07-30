@@ -66,8 +66,6 @@ private:
     bool loadSettings();
     bool saveSettings();
 
-    virtual void timerEvent(QTimerEvent *event) Q_DECL_OVERRIDE;
-
 signals:
     void sharedFolderModelChanged();
     void requestsModelChanged();

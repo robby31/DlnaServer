@@ -69,17 +69,7 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_upnp.setNetworkManager(&netManager);
     connect(&m_upnp, SIGNAL(newRootDevice(UpnpRootDevice*)), this, SLOT(newRootDevice(UpnpRootDevice*)));
 
-    // start event for discovering, emit 3 times
-    int eventDiscover = startTimer(2000);
-    if (eventDiscover > 0)
-    {
-        setProperty("discover_event", eventDiscover);
-        setProperty("discover_counter", 3);
-    }
-    else
-    {
-        qCritical() << "unable to start discover event";
-    }
+    m_upnp.startDiscover();
 
     qRegisterMetaType<qintptr>("qintptr");
 
@@ -354,29 +344,6 @@ void MyApplication::updateFilenameMedia(const int &id, const QString &pathname)
     QHash<QString,QVariant> data;
     data["filename"] = pathname;
     emit updateMediaFromId(id, data);
-}
-
-void MyApplication::timerEvent(QTimerEvent *event)
-{
-    if (event->type() == QTimerEvent::Timer && event->timerId() == property("discover_event"))
-    {
-        int counter = property("discover_counter").toInt();
-        if (counter < 1)
-        {
-            setProperty("discover_event", QVariant::Invalid);
-            setProperty("discover_counter", QVariant::Invalid);
-            killTimer(event->timerId());
-        }
-        else
-        {
-            setProperty("discover_counter", --counter);
-            m_upnp.sendDiscover(UpnpRootDevice::UPNP_ROOTDEVICE);
-        }
-    }
-    else
-    {
-        qCritical() << "invalid event" << event->timerId();
-    }
 }
 
 void MyApplication::newRootDevice(UpnpRootDevice *device)
