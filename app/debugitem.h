@@ -23,8 +23,8 @@ public:
         CounterRole
     };
 
-    explicit DebugItem(QObject *parent = 0);
-    explicit DebugItem(const QString &name, QObject *parent = 0);
+    explicit DebugItem(QObject *parent = Q_NULLPTR);
+    explicit DebugItem(const QString &name, QObject *parent = Q_NULLPTR);
 
     virtual QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE { return m_roles; }
     virtual QVariant data(int role) const Q_DECL_OVERRIDE;

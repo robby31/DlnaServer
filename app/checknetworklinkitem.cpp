@@ -30,8 +30,6 @@ QVariant CheckNetworkLinkItem::data(int role) const
     default:
         return QVariant::Invalid;
     }
-
-    return QVariant::Invalid;
 }
 
 bool CheckNetworkLinkItem::setData(const QVariant &value, const int &role)

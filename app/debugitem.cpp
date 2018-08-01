@@ -48,8 +48,6 @@ QVariant DebugItem::data(int role) const
     default:
         return QVariant::Invalid;
     }
-
-    return QVariant::Invalid;
 }
 
 bool DebugItem::setData(const QVariant &value, const int &role)

@@ -12,7 +12,7 @@ class ApplicationWorker : public Worker
     Q_OBJECT
 
 public:
-    explicit ApplicationWorker(QNetworkAccessManager *nam, QObject *parent = 0);
+    explicit ApplicationWorker(QNetworkAccessManager *nam, QObject *parent = Q_NULLPTR);
 
 signals:
     // signals used by checkNetworkLink

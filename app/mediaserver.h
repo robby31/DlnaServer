@@ -10,7 +10,7 @@ class MediaServer : public UpnpRootDevice
     Q_OBJECT
 
 public:
-    explicit MediaServer(QNetworkAccessManager *nam, QString macAddress, QString host, int port, MediaRendererModel *renderersModel, QObject *parent = 0);
+    explicit MediaServer(QNetworkAccessManager *nam, QString macAddress, QString host, int port, MediaRendererModel *renderersModel, QObject *parent = Q_NULLPTR);
 
     virtual void replyGetIcon(HttpRequest *request);
 
