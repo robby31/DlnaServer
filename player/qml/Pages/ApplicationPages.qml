@@ -10,6 +10,8 @@ Item {
     function toggleMenu() {
         if (mainWindow.state==="SERVERS")
             serversPage.toggleMenu()
+        else if (mainWindow.state==="PLAYER")
+            playerPage.toggleMenu()
     }
 
     ServersPage {
@@ -17,5 +19,16 @@ Item {
         anchors.fill: parent
         visible: mainWindow.state === "SERVERS"
         onQuit: mainWindow.close()
+    }
+
+    PlayerPage {
+        id: playerPage
+        anchors.fill: parent
+        visible: mainWindow.state === "PLAYER"
+        onQuit: mainWindow.close()
+    }
+
+    function playMedia(objectData) {
+        playerPage.objectData = objectData
     }
 }

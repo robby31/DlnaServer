@@ -2,6 +2,7 @@
 #define CONTENTMODEL_H
 
 #include <QAbstractListModel>
+#include <QTime>
 #include "upnpservice.h"
 #include "didllite.h"
 
@@ -10,11 +11,24 @@ class ContentModel : public QAbstractListModel
     Q_OBJECT
 
     enum Roles {
-        titleRole = Qt::UserRole+1,
-        objectIdRole,
+        objectIdRole = Qt::UserRole+1,
         childCountRole,
         parentIdRole,
-        classRole
+        classRole,
+        titleRole,
+        creatorRole,
+        resRole,
+        restrictedRole,
+        writeStatusRole,
+        albumArtRole,
+        artistRole,
+        albumRole,
+        genreRole,
+        dateRole,
+        resProtocolInfoRole,
+        resDurationRole,
+        itemDurationRoles,
+        resSizeRole,
     };
 
 public:
@@ -26,6 +40,10 @@ public:
     virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
 
     Q_INVOKABLE ContentModel *getChildrenModel(const QString &objectId);
+
+private:
+    QString getParam(const QDomElement &item, const QString &name) const;
+    QString resParam(const QDomElement &item, const QString &name) const;
 
 signals:
     void childrenModelChanged();

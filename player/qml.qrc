@@ -13,5 +13,7 @@
         <file>images/class/music.png</file>
         <file>images/class/video.png</file>
         <file>images/server.png</file>
+        <file>qml/Pages/ItemContent.qml</file>
+        <file>qml/Pages/PlayerPage.qml</file>
     </qresource>
 </RCC>

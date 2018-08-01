@@ -14,6 +14,7 @@ Item {
         spacing: 0
 
         Image {
+            id: image
             anchors { horizontalCenter: parent.horizontalCenter }
 
             fillMode: Image.PreserveAspectFit
@@ -45,6 +46,13 @@ Item {
         onDoubleClicked: {
             if (upnpClass.startsWith("object.container"))
                 delegate.GridView.view.setContentPath(objectId)
+            else
+                delegate.GridView.view.setContentItem(objectId, model)
         }
+    }
+
+    Component.onCompleted: {
+        if (albumArtURI)
+            image.source = albumArtURI
     }
 }

@@ -26,5 +26,11 @@ MyApplication {
             state: "SERVERS"
             icon: "qrc:/images/server.png"
         }
+
+        ListElement {
+            title: "Player"
+            state: "PLAYER"
+            icon: "qrc:/images/server.png"
+        }
     }
 }

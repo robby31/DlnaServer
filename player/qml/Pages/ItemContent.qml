@@ -5,8 +5,8 @@ import MyComponents 1.0
 Item {
     id: item
 
-    property var server: null
-    property alias contentModel: grid.model
+    property string objectId: ""
+    property var objectData: null
 
     Column {
         anchors.fill: parent
@@ -38,13 +38,13 @@ Item {
                     height: row.height*0.6
                     sourceSize.height: height
                     fillMode: Image.PreserveAspectFit
-                    source: server.iconurl
+                    source: objectData["albumArtURI"] ? objectData["albumArtURI"] : "image://upnpclass/" + objectData["upnpClass"]
                 }
 
 
                 Label {
                     anchors { verticalCenter: parent.verticalCenter }
-                    text: server.name
+                    text: objectData["title"]
                     color: "blue"
                 }
             }
@@ -62,31 +62,53 @@ Item {
             }
         }
 
-        GridView {
-            id: grid
-            width: parent.width
-            height: parent.height - row.height - parent.spacing
-            cellWidth: 200
-            cellHeight: 200
-
-            clip: true
-            focus: true
-            antialiasing: true
-
-            delegate: ContentItemDelegate { }
-
-            highlight: highlight
-            highlightFollowsCurrentItem: false
-
-            ScrollBar.vertical: ScrollBar { }
-
-            function setContentPath(objectId) {
-                view.push("ServerContent.qml", { server: server, contentModel: server.contentModel.getChildrenModel(objectId) })
-            }
-
-            function setContentItem(objectId, data) {
-                view.push("ItemContent.qml", { objectId: objectId, objectData: data })
-            }
+        Label {
+            text: "id: " + objectData["objectId"] + ", parentID: " + objectData["parentID"]
         }
+
+        Label {
+            text: "class: " + objectData["upnpClass"]
+        }
+
+        Label {
+            text: "title: " + objectData["title"]
+        }
+
+        Label {
+            text: "artist: " + objectData["artist"]
+        }
+
+        Label {
+            text: "album: " + objectData["album"]
+        }
+
+        Label {
+            text: "genre: " + objectData["genre"]
+        }
+
+        Label {
+            text: "date: " + objectData["date"]
+        }
+
+        Label {
+            text: "url :" + objectData["res"]
+        }
+
+        Label {
+            text: "protocolInfo :" + objectData["res@protocolInfo"]
+        }
+
+        Label {
+            text: "duration :" + objectData["res@duration"]
+        }
+
+        Label {
+            text: "size :" + objectData["res@size"]
+        }
+    }
+
+    Component.onCompleted: {
+        if (objectData["res"])
+            playMedia(objectData)
     }
 }

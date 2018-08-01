@@ -16,6 +16,19 @@ ContentModel::ContentModel(UpnpService *service, const QString &objectId, QObjec
     m_roles[classRole] = "upnpClass";
     m_roles[childCountRole] = "childCount";
     m_roles[parentIdRole] = "parentID";
+    m_roles[creatorRole] = "creator";
+    m_roles[resRole] = "res";
+    m_roles[restrictedRole] = "restricted";
+    m_roles[writeStatusRole] = "writeStatus";
+    m_roles[albumArtRole] = "albumArtURI";
+    m_roles[artistRole] = "artist";
+    m_roles[albumRole] = "album";
+    m_roles[genreRole] = "genre";
+    m_roles[dateRole] = "date";
+    m_roles[resProtocolInfoRole] = "res@protocolInfo";
+    m_roles[resDurationRole] = "res@duration";
+    m_roles[itemDurationRoles] = "duration";
+    m_roles[resSizeRole] = "res@size";
 
     if (service && !m_objectId.isEmpty())
     {
@@ -62,23 +75,80 @@ QVariant ContentModel::data(const QModelIndex &index, int role) const
                 return item.attribute("parentID");
             }
 
-            case classRole: {
-                QDomNodeList l_class = item.elementsByTagName("class");
-                if (l_class.size() == 1)
-                {
-                    QDomElement upnpClass = l_class.at(0).toElement();
-                    return upnpClass.firstChild().toText().data();
-                }
+            case classRole:
+            {
+                return getParam(item, "class");
             }
 
             case titleRole:
             {
-                QDomNodeList l_title = item.elementsByTagName("title");
-                if (l_title.size() == 1)
-                {
-                    QDomElement title = l_title.at(0).toElement();
-                    return title.firstChild().toText().data();
-                }
+                return getParam(item, "title");
+            }
+
+            case creatorRole:
+            {
+                return getParam(item, "creator");
+            }
+
+            case resRole:
+            {
+                return getParam(item, "res");
+            }
+
+            case restrictedRole:
+            {
+                return item.attribute("restricted");
+            }
+
+            case writeStatusRole:
+            {
+                return getParam(item, "writeStatus");
+            }
+
+            case albumArtRole:
+            {
+                return getParam(item, "albumArtURI");
+            }
+
+            case artistRole:
+            {
+                return getParam(item, "artist");
+            }
+
+            case albumRole:
+            {
+                return getParam(item, "album");
+            }
+
+            case genreRole:
+            {
+                return getParam(item, "genre");
+            }
+
+            case dateRole:
+            {
+                return getParam(item, "date");
+            }
+
+            case resProtocolInfoRole:
+            {
+                return resParam(item, "protocolInfo");
+            }
+
+            case resDurationRole:
+            {
+                return resParam(item, "duration");
+            }
+
+            case itemDurationRoles:
+            {
+                QTime duration = QTime::fromString(resParam(item, "duration"), "H:mm:ss");
+                return QTime(0, 0, 0).msecsTo(duration);
+            }
+
+            case resSizeRole:
+            {
+                return resParam(item, "size");
             }
 
             default:
@@ -94,7 +164,7 @@ QVariant ContentModel::data(const QModelIndex &index, int role) const
 
 void ContentModel::actionFinished()
 {
-    UpnpActionReply *reply = (UpnpActionReply *)(sender());
+    UpnpActionReply *reply = qobject_cast<UpnpActionReply *>(sender());
 
     if (reply)
     {
@@ -107,6 +177,7 @@ void ContentModel::actionFinished()
 
             QDomDocument xmlDoc;
             xmlDoc.setContent(answer->value("Result"), true);
+//            qWarning() << answer->value("Result");
 
             QDomNode root = xmlDoc.firstChild();
             if (!root.isNull())
@@ -131,4 +202,32 @@ QHash<int, QByteArray> ContentModel::roleNames() const
 ContentModel *ContentModel::getChildrenModel(const QString &objectId)
 {
     return new ContentModel(m_service, objectId, this);
+}
+
+QString ContentModel::getParam(const QDomElement &item, const QString &name) const
+{
+    QDomNodeList l_elt = item.elementsByTagName(name);
+    if (l_elt.size() == 1)
+    {
+        QDomElement elt = l_elt.at(0).toElement();
+        return elt.firstChild().toText().data();
+    }
+    else
+    {
+        return QString();
+    }
+}
+
+QString ContentModel::resParam(const QDomElement &item, const QString &name) const
+{
+    QDomNodeList l_res = item.elementsByTagName("res");
+    if (l_res.size() == 1)
+    {
+        QDomElement res = l_res.at(0).toElement();
+        return res.attribute(name);
+    }
+    else
+    {
+        return QString();
+    }
 }
