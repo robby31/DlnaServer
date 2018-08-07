@@ -15,5 +15,14 @@
         <file>images/server.png</file>
         <file>qml/Pages/ItemContent.qml</file>
         <file>qml/Pages/PlayerPage.qml</file>
+        <file>images/player/backward.png</file>
+        <file>images/player/forward.png</file>
+        <file>images/player/muted.png</file>
+        <file>images/player/pause.png</file>
+        <file>images/player/play.png</file>
+        <file>images/player/record.png</file>
+        <file>images/player/stop.png</file>
+        <file>images/player/unmuted.png</file>
+        <file>qml/Pages/ImageButton.qml</file>
     </qresource>
 </RCC>
