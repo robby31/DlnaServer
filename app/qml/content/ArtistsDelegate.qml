@@ -49,7 +49,7 @@ ListViewDelegate {
                 clip: true
             }
 
-            EditableText {
+            ModelEditableText {
                 text: name
                 placeholderText: "unknown name"
                 Layout.preferredWidth: 200
@@ -61,7 +61,7 @@ ListViewDelegate {
                 clip: true
             }
 
-            EditableText {
+            ModelEditableText {
                 text: sortname
                 placeholderText: "unknown sortname"
                 Layout.preferredWidth: 200

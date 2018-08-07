@@ -8,14 +8,11 @@ ListViewDelegate {
     width: parent ? parent.width : 0
     height: 60
 
+    onDoubleClicked: playMedia("file:///%1".arg(filename))
+
     contentItem: Item {
         width: parent.width
         height: delegate.height
-
-        MouseArea {
-            anchors.fill: parent
-            onDoubleClicked: playMedia("file:///%1".arg(filename))
-        }
 
         RowLayout {
             width: parent.width-10
@@ -58,7 +55,7 @@ ListViewDelegate {
                 clip: true
             }
 
-            EditableText {
+            ModelEditableText {
                 text: title
                 placeholderText: "unknown title"
                 Layout.preferredWidth: 400
@@ -70,168 +67,120 @@ ListViewDelegate {
                 clip: true
             }
 
-            EditableComboBox {
+            ModelEditableComboBox {
                 Layout.preferredWidth: 200
                 anchors.verticalCenter: parent.verticalCenter
+                editable: true
+                clip: true
 
                 placeholderText: "unknown artist"
 
+                isCurrentItem: delegate.ListView.isCurrentItem
+                modelText: artistName
                 model: artistModel
                 textRole: "name"
-                editable: true
-                clip: true
 
-                onTextUpdated: {
-                    var obj = model.get(currentIndex)
+                onUpdateModelText: {
+                    var newIndex = model.findRow(text, "name")
+                    var obj = model.get(newIndex)
                     if (obj.id !== undefined)
                     {
+                        // add entry existing in combo model
                         artist = obj.id
-                        focus = false
                     }
                     else
                     {
-                        console.log("unable to update artist", currentText, obj.id)
-                    }
-                }
-
-                onAccepted: {
-                    var newIndex = artistModel.findRow(editText, "name")
-                    var obj = artistModel.get(newIndex)
-                    if (obj.id !== undefined)
-                    {
-                        artist = obj.id
-                        currentIndex = newIndex
-                        focus = false
-                    }
-                    else
-                    {
-                        var artist_id = artistModel.append({name: editText})
+                        // add entry in combo model
+                        var artist_id = model.append({name: text})
                         if (artist_id === -1)
                         {
-                            console.log("unable to update artist", editText, artist_id)
-                            canceled()
+                            console.log("unable to add new artist", text, artist_id)
                         }
                         else
                         {
-                            artistModel.reload()
+                            model.reload()
                             artist = artist_id
-                            currentIndex = model.findRow(editText, "name")
-                            focus = false
                         }
                     }
                 }
-
-                Component.onCompleted: currentIndex = model.findRow(artistName, "name")
             }
 
-            EditableComboBox {
+            ModelEditableComboBox {
                 Layout.preferredWidth: 200
                 anchors.verticalCenter: parent.verticalCenter
+                editable: true
+                clip: true
 
                 placeholderText: "unknown album"
 
+                isCurrentItem: delegate.ListView.isCurrentItem
+                modelText: albumName
                 model: albumModel
                 textRole: "name"
-                editable: true
-                clip: true
 
-
-                onTextUpdated: {
-                    var obj = albumModel.get(currentIndex)
+                onUpdateModelText: {
+                    // text written by keyboard
+                    var newIndex = model.findRow(text, "name")
+                    var obj = model.get(newIndex)
                     if (obj.id !== undefined)
                     {
+                        // add entry existing in combo model
                         album = obj.id
-                        focus = false
                     }
                     else
                     {
-                        console.log("unable to update album", currentText, obj.id)
-                    }
-                }
-
-                onAccepted: {
-                    var newIndex = albumModel.findRow(editText, "name")
-                    var obj = albumModel.get(newIndex)
-                    if (obj.id !== undefined)
-                    {
-                        album = obj.id
-                        currentIndex = newIndex
-                        focus = false
-                    }
-                    else
-                    {
-                        var album_id = albumModel.append({name: editText})
+                        // add entry in combo model
+                        var album_id = model.append({name: text})
                         if (album_id === -1)
                         {
-                            console.log("unable to update album", editText, album_id)
-                            canceled()
+                            console.log("unable to add new album", text, album_id)
                         }
                         else
                         {
-                            albumModel.reload()
+                            model.reload()
                             album = album_id
-                            currentIndex = model.findRow(editText, "name")
-                            focus = false
                         }
                     }
                 }
-
-                Component.onCompleted: currentIndex = model.findRow(albumName, "name")
             }
 
-            EditableComboBox {
+            ModelEditableComboBox {
                 Layout.preferredWidth: 150
                 anchors.verticalCenter: parent.verticalCenter
+                editable: true
+                clip: true
 
                 placeholderText: "unknown genre"
 
+                isCurrentItem: delegate.ListView.isCurrentItem
+                modelText: genreName
                 model: genreModel
                 textRole: "name"
-                editable: true
-                clip: true
 
-
-                onTextUpdated: {
-                    var obj = genreModel.get(currentIndex)
+                onUpdateModelText: {
+                    // text written by keyboard
+                    var newIndex = model.findRow(text, "name")
+                    var obj = model.get(newIndex)
                     if (obj.id !== undefined)
                     {
+                        // add entry existing in combo model
                         genre = obj.id
-                        focus = false
                     }
                     else
                     {
-                        console.log("unable to update genre", currentText, obj.id)
-                    }
-                }
-
-                onAccepted: {
-                    var newIndex = genreModel.findRow(editText, "name")
-                    var obj = genreModel.get(newIndex)
-                    if (obj.id !== undefined)
-                    {
-                        genre = obj.id
-                        currentIndex = newIndex
-                        focus = false
-                    }
-                    else
-                    {
-                        var genre_id = genreModel.append({name: editText})
+                        // add entry in combo model
+                        var genre_id = model.append({name: text})
                         if (genre_id === -1)
                         {
-                            console.log("unable to update genre", editText, genre_id)
-                            canceled()
+                            console.log("unable to add new genre", text, genre_id)
                         }
                         else
                         {
-                            genreModel.reload()
+                            model.reload()
                             genre = genre_id
-                            currentIndex = model.findRow(editText, "name")
-                            focus = false
                         }
                     }
                 }
-
-                Component.onCompleted: currentIndex = model.findRow(genreName, "name")
             }
 
             Text {
