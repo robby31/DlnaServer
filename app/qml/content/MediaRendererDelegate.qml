@@ -7,7 +7,7 @@ Item {
     width: parent.width
     height: row.height
 
-    property color color: available ? "black" : "red"
+    property color color: available ? (sinkProtocol != "" ? "blue" : "black") : "red"
 
     Rectangle {
         id: hover
