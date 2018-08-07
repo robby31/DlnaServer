@@ -23,7 +23,7 @@ void tst_dlnafolder::testCase_DlnaFolder()
     QVERIFY(music.getName() == "Music");
     QVERIFY(music.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music");
     QVERIFY(music.getDisplayName() == "Music");
-    QVERIFY(music.getDlnaParent() == 0);
+    QVERIFY(music.getDlnaParent() == Q_NULLPTR);
     QVERIFY(music.getDlnaParentId() == "-1");
     QVERIFY(music.getResourceId() == "");
     QVERIFY(music.isFolder() == true);
@@ -62,7 +62,7 @@ void tst_dlnafolder::testCase_DlnaFolder()
     QVERIFY(list_found.isEmpty() == true);
 }
 
-int tst_dlnafolder::parseFolder(QString resourceId, DlnaResource *resource)
+int tst_dlnafolder::parseFolder(const QString& resourceId, DlnaResource *resource)
 {
     QElapsedTimer timer;
     int elapsed = 0;
@@ -75,13 +75,12 @@ int tst_dlnafolder::parseFolder(QString resourceId, DlnaResource *resource)
         l_child = resource->getDLNAResources(resourceId, true, 0, 608, "", &scope);
         foreach(DlnaResource* child, l_child)
         {
-            DlnaItem* item = qobject_cast<DlnaItem*>(child);
+            auto item = qobject_cast<DlnaItem*>(child);
             if (item)
             {
                 item->getStringContentDirectory(QStringList("*"));
                 Device * stream = item->getStream();
-                if (stream)
-                    delete stream;   /* remove stream which is destroyed with deletelater */
+                delete stream;   /* remove stream which is destroyed with deletelater */
             }
 
         }
@@ -102,7 +101,7 @@ void tst_dlnafolder::testCase_PerformanceAllArtists()
     QVERIFY(music.getName() == "Music");
     QVERIFY(music.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music");
     QVERIFY(music.getDisplayName() == "Music");
-    QVERIFY(music.getDlnaParent() == 0);
+    QVERIFY(music.getDlnaParent() == Q_NULLPTR);
     QVERIFY(music.getDlnaParentId() == "-1");
     QVERIFY(music.getResourceId() == "");
     QVERIFY(music.isFolder() == true);
@@ -124,7 +123,7 @@ void tst_dlnafolder::testCase_PerformanceAllAlbums()
     QVERIFY(music.getName() == "Music");
     QVERIFY(music.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music");
     QVERIFY(music.getDisplayName() == "Music");
-    QVERIFY(music.getDlnaParent() == 0);
+    QVERIFY(music.getDlnaParent() == Q_NULLPTR);
     QVERIFY(music.getDlnaParentId() == "-1");
     QVERIFY(music.getResourceId() == "");
     QVERIFY(music.isFolder() == true);
@@ -159,7 +158,7 @@ void tst_dlnafolder::testCase_PerformanceAllTracks()
     QVERIFY(music.getName() == "Music");
     QVERIFY(music.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music");
     QVERIFY(music.getDisplayName() == "Music");
-    QVERIFY(music.getDlnaParent() == 0);
+    QVERIFY(music.getDlnaParent() == Q_NULLPTR);
     QVERIFY(music.getDlnaParentId() == "-1");
     QVERIFY(music.getResourceId() == "");
     QVERIFY(music.isFolder() == true);

@@ -26,7 +26,7 @@ void tst_dlnacachedresources::cleanup()
 
 void tst_dlnacachedresources::dataAvailable()
 {
-    TranscodeDevice *device = qobject_cast<TranscodeDevice*>(sender());
+    auto device = qobject_cast<TranscodeDevice*>(sender());
     if (device)
         device->requestData(1000000);
     else
@@ -204,7 +204,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedRootFolder()
     QVERIFY(rootFolder.getName() == "root");
     QVERIFY(rootFolder.getSystemName() == "root");
     QVERIFY(rootFolder.getDisplayName() == "root");
-    QVERIFY(rootFolder.getDlnaParent() == 0);
+    QVERIFY(rootFolder.getDlnaParent() == Q_NULLPTR);
     QVERIFY(rootFolder.getDlnaParentId() == "-1");
     QVERIFY(rootFolder.getResourceId() == "0");
     QVERIFY(rootFolder.isFolder() == true);
@@ -237,20 +237,20 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY(folderKO.isEmpty());
     QVERIFY(rootFolder.getChildrenSize() == 8);
 
-    DlnaRootFolder* root = qobject_cast<DlnaRootFolder*>(rootFolder.getChild(7));
-    QVERIFY(root != 0);
+    auto root = qobject_cast<DlnaRootFolder*>(rootFolder.getChild(7));
+    QVERIFY(root != Q_NULLPTR);
     QVERIFY(root->getSystemName() == "root");
     QVERIFY(root->getChildrenSize() == 1);
 
     QVERIFY(rootFolder.getChildrenSize() > 0);
-    DlnaResource* music_folder = 0;
+    DlnaResource* music_folder = Q_NULLPTR;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
         music_folder = rootFolder.getChild(index);
         if (music_folder->getSystemName() == "Music")
             break;
     }
-    QVERIFY(music_folder != 0);
+    QVERIFY(music_folder != Q_NULLPTR);
     QVERIFY2(music_folder->getSystemName() == "Music", music_folder->getSystemName().toUtf8().constData());
 
     QVERIFY(music_folder->getChildrenSize()> 0);
@@ -267,7 +267,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY2(artist_M->getSystemName() == "-M-", artist_M->getSystemName().toUtf8());
 
     QVERIFY(artist_M->getChildrenSize()> 0);
-    DlnaCachedMusicTrack *track = qobject_cast<DlnaCachedMusicTrack*>(artist_M->getChild(0));
+    auto track = qobject_cast<DlnaCachedMusicTrack*>(artist_M->getChild(0));
     track->setTranscodeFormat(MP3);
     QVERIFY2(track->getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Je dis aime/01 Monde virtuel.m4a", track->getSystemName().toUtf8().constData());
 
@@ -353,10 +353,10 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
 
     Device *device = track->getStream();
-    QVERIFY(device != 0);
+    QVERIFY(device != Q_NULLPTR);
 
     QScopedPointer<QFfmpegTranscoding> transcodeProcess(qobject_cast<QFfmpegTranscoding*>(device));
-    QVERIFY(transcodeProcess != 0);
+    QVERIFY(transcodeProcess != Q_NULLPTR);
 
     transcodedSize = 0;
     connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
@@ -373,8 +373,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
 
     /* delete stream because deleted by deletelater */
     device = track->getStream();
-    if (device)
-        delete device;
+    delete device;
 }
 
 void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
@@ -385,7 +384,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     QThreadPool::globalInstance()->waitForDone();
     QVERIFY(folderKO.isEmpty());
 
-    DlnaCachedFolder* folder = 0;
+    DlnaCachedFolder* folder = Q_NULLPTR;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
         folder = qobject_cast<DlnaCachedFolder*>(rootFolder.getChild(index));
@@ -393,11 +392,11 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
             break;
     }
 
-    QVERIFY(folder != 0);
+    QVERIFY(folder != Q_NULLPTR);
     QVERIFY2(folder->getDisplayName() == "video", folder->getDisplayName().toUtf8().constData());
     QVERIFY2(folder->getChildrenSize() >= 881, QString("%1").arg(folder->getChildrenSize()).toUtf8().constData());
 
-    DlnaCachedVideo* movie = 0;
+    DlnaCachedVideo* movie = Q_NULLPTR;
     for (int index=0;index<folder->getChildrenSize();++index)
     {
         movie = qobject_cast<DlnaCachedVideo*>(folder->getChild(index));
@@ -405,7 +404,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
             break;
     }
 
-    QVERIFY(movie != 0);
+    QVERIFY(movie != Q_NULLPTR);
     QVERIFY(movie->getSystemName() == "/Users/doudou/Movies/Films/District.9.2009.720p.BrRip.YIFY.mkv");
     movie->setTranscodeFormat(MPEG2_AC3);
 
@@ -474,12 +473,12 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
 
     /* test partial transcoding (10 seconds) */
     Device *device = movie->getStream();
-    QVERIFY(device != 0);
+    QVERIFY(device != Q_NULLPTR);
     device->setTimeSeek(-1, 10);
 
     {
         QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
-        QVERIFY(transcodeProcess != 0);
+        QVERIFY(transcodeProcess != Q_NULLPTR);
 
         transcodedSize = 0;
         connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
@@ -497,7 +496,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     }
 }
 
-int tst_dlnacachedresources::parseFolder(QString resourceId, DlnaResource *resource) {
+int tst_dlnacachedresources::parseFolder(const QString& resourceId, DlnaResource *resource) {
     QElapsedTimer timer;
     int elapsed = 0;
 
@@ -509,14 +508,13 @@ int tst_dlnacachedresources::parseFolder(QString resourceId, DlnaResource *resou
         l_child = resource->getDLNAResources(resourceId, true, 0, 608, "", &scope);
         foreach(DlnaResource* child, l_child)
         {
-            DlnaItem *item = qobject_cast<DlnaItem*>(child);
+            auto item = qobject_cast<DlnaItem*>(child);
 
             if (item)
             {
                 child->getStringContentDirectory(QStringList("*"));
                 Device * stream = item->getStream();
-                if (stream)
-                    delete stream;   /* remove stream which is destroyed with deletelater */
+                delete stream;   /* remove stream which is destroyed with deletelater */
             }
         }
 
@@ -536,7 +534,7 @@ void tst_dlnacachedresources::testCase_PerformanceAllArtists() {
     QThreadPool::globalInstance()->waitForDone();
     QVERIFY(folderKO.isEmpty());
 
-    DlnaCachedGroupedFolderMetaData* folder = 0;
+    DlnaCachedGroupedFolderMetaData* folder = Q_NULLPTR;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
         folder = qobject_cast<DlnaCachedGroupedFolderMetaData*>(rootFolder.getChild(index));
@@ -544,11 +542,11 @@ void tst_dlnacachedresources::testCase_PerformanceAllArtists() {
             break;
     }
 
-    QVERIFY(folder != 0);
+    QVERIFY(folder != Q_NULLPTR);
     QVERIFY2(folder->getSystemName() == "Music", folder->getSystemName().toUtf8().constData());
 
-    DlnaCachedFolderMetaData* allArtists = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(0));
-    QVERIFY(allArtists != 0);
+    auto allArtists = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(0));
+    QVERIFY(allArtists != Q_NULLPTR);
 
     int duration = parseFolder(allArtists->getResourceId(), allArtists);
     QVERIFY(allArtists->getSystemName() == "Artist");
@@ -560,18 +558,18 @@ void tst_dlnacachedresources::testCase_PerformanceAllArtists() {
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByArtist() {
     DlnaCachedRootFolder rootFolder(this);
 
-    DlnaCachedGroupedFolderMetaData* folder = 0;
+    DlnaCachedGroupedFolderMetaData* folder = Q_NULLPTR;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
         folder = qobject_cast<DlnaCachedGroupedFolderMetaData*>(rootFolder.getChild(index));
         if (folder && folder->getSystemName() == "Music")
             break;
     }
-    QVERIFY(folder != 0);
+    QVERIFY(folder != Q_NULLPTR);
     QVERIFY(folder->getSystemName() == "Music");
 
-    DlnaCachedFolderMetaData* allArtists = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(0));
-    QVERIFY(allArtists != 0);
+    auto allArtists = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(0));
+    QVERIFY(allArtists != Q_NULLPTR);
     QVERIFY(allArtists->getSystemName() == "Artist");
     QVERIFY(allArtists->getChildrenSize() >= 1000);
 
@@ -591,18 +589,18 @@ void tst_dlnacachedresources::testCase_PerformanceAllTracksByArtist() {
 void tst_dlnacachedresources::testCase_PerformanceAllAlbums() {
     DlnaCachedRootFolder rootFolder(this);
 
-    DlnaCachedGroupedFolderMetaData* folder = 0;
+    DlnaCachedGroupedFolderMetaData* folder = Q_NULLPTR;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
         folder = qobject_cast<DlnaCachedGroupedFolderMetaData*>(rootFolder.getChild(index));
         if (folder && folder->getSystemName() == "Music")
             break;
     }
-    QVERIFY(folder != 0);
+    QVERIFY(folder != Q_NULLPTR);
     QVERIFY(folder->getSystemName() == "Music");
 
-    DlnaCachedFolderMetaData* allAlbums = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(1));
-    QVERIFY(allAlbums != 0);
+    auto allAlbums = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(1));
+    QVERIFY(allAlbums != Q_NULLPTR);
 
     int duration = parseFolder(allAlbums->getResourceId(), allAlbums);
     QVERIFY(allAlbums->getSystemName() == "Album");
@@ -614,18 +612,18 @@ void tst_dlnacachedresources::testCase_PerformanceAllAlbums() {
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByAlbum() {
     DlnaCachedRootFolder rootFolder(this);
 
-    DlnaCachedGroupedFolderMetaData* folder = 0;
+    DlnaCachedGroupedFolderMetaData* folder = Q_NULLPTR;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
         folder = qobject_cast<DlnaCachedGroupedFolderMetaData*>(rootFolder.getChild(index));
         if (folder && folder->getSystemName() == "Music")
             break;
     }
-    QVERIFY(folder != 0);
+    QVERIFY(folder != Q_NULLPTR);
     QVERIFY(folder->getSystemName() == "Music");
 
-    DlnaCachedFolderMetaData* allAlbums = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(1));
-    QVERIFY(allAlbums != 0);
+    auto allAlbums = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(1));
+    QVERIFY(allAlbums != Q_NULLPTR);
     QVERIFY(allAlbums->getSystemName() == "Album");
     QVERIFY(allAlbums->getChildrenSize() >= 1000);
 
@@ -645,18 +643,18 @@ void tst_dlnacachedresources::testCase_PerformanceAllTracksByAlbum() {
 void tst_dlnacachedresources::testCase_PerformanceAllGenres() {
     DlnaCachedRootFolder rootFolder(this);
 
-    DlnaCachedGroupedFolderMetaData* folder = 0;
+    DlnaCachedGroupedFolderMetaData* folder = Q_NULLPTR;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
         folder = qobject_cast<DlnaCachedGroupedFolderMetaData*>(rootFolder.getChild(index));
         if (folder && folder->getSystemName() == "Music")
             break;
     }
-    QVERIFY(folder != 0);
+    QVERIFY(folder != Q_NULLPTR);
     QVERIFY(folder->getSystemName() == "Music");
 
-    DlnaCachedFolderMetaData* allGenres = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(2));
-    QVERIFY(allGenres != 0);
+    auto allGenres = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(2));
+    QVERIFY(allGenres != Q_NULLPTR);
 
     int duration = parseFolder(allGenres->getResourceId(), allGenres);
     QVERIFY(allGenres->getSystemName() == "Genre");
@@ -668,18 +666,18 @@ void tst_dlnacachedresources::testCase_PerformanceAllGenres() {
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByGenre() {
     DlnaCachedRootFolder rootFolder(this);
 
-    DlnaCachedGroupedFolderMetaData* folder = 0;
+    DlnaCachedGroupedFolderMetaData* folder = Q_NULLPTR;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
         folder = qobject_cast<DlnaCachedGroupedFolderMetaData*>(rootFolder.getChild(index));
         if (folder && folder->getSystemName() == "Music")
             break;
     }
-    QVERIFY(folder != 0);
+    QVERIFY(folder != Q_NULLPTR);
     QVERIFY(folder->getSystemName() == "Music");
 
-    DlnaCachedFolderMetaData* allGenres = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(2));
-    QVERIFY(allGenres != 0);
+    auto allGenres = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(2));
+    QVERIFY(allGenres != Q_NULLPTR);
     QVERIFY(allGenres->getSystemName() == "Genre");
     QVERIFY(allGenres->getChildrenSize() >= 100);
 

@@ -3,9 +3,9 @@
 tst_dlnayoutubevideo::tst_dlnayoutubevideo(QObject *parent) :
     QObject(parent),
     transcodedSize(0),
-    backend(0),
+    backend(Q_NULLPTR),
     db(CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE")),
-    manager(0)
+    manager(Q_NULLPTR)
 {
     FfmpegTranscoding::setDirPath("/opt/local/bin");
 
@@ -67,7 +67,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
     QVERIFY2(video->mimeType() == "video/mpeg", QString("%1").arg(video->mimeType()).toUtf8());
     QVERIFY2(video->sourceSize() == 15960867, QString("%1").arg(video->sourceSize()).toUtf8());
 
-    QHash<QString, double> result = video->volumeInfo(-1);
+//    QHash<QString, double> result = video->volumeInfo(-1);
 //    QVERIFY2(result.keys().size() == 4, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
 //    QVERIFY2(result["n_samples"] == 17082368, QString("%1").arg(result["n_samples"]).toUtf8());
 //    QVERIFY2(result["mean_volume"] == -9.8, QString("%1").arg(result["mean_volume"]).toUtf8());
@@ -201,10 +201,10 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG2()
 
     // test transcoding
     Device *device = video->getStream();
-    QVERIFY(device != 0);
+    QVERIFY(device != Q_NULLPTR);
 
     QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
-    QVERIFY(transcodeProcess != 0);
+    QVERIFY(transcodeProcess != Q_NULLPTR);
 
     transcodedSize = 0;
     connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
@@ -267,7 +267,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG4()
     QVERIFY2(video->getLengthInMilliSeconds()==259738, QString("%1").arg(video->getLengthInMilliSeconds()).toUtf8());
     QVERIFY2(video->size()==89690778, QString("%1").arg(video->size()).toUtf8());
 
-    QHash<QString, double> result = video->volumeInfo(-1);
+//    QHash<QString, double> result = video->volumeInfo(-1);
 //    QVERIFY2(result.keys().size() == 5, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
 //    QVERIFY2(result["n_samples"] == 22908928, QString("%1").arg(result["n_samples"]).toUtf8());
 //    QVERIFY2(result["mean_volume"] == -12.9, QString("%1").arg(result["mean_volume"]).toUtf8());
@@ -279,10 +279,10 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG4()
 
     // test transcoding
     Device *device = video->getStream();
-    QVERIFY(device != 0);
+    QVERIFY(device != Q_NULLPTR);
 
     QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
-    QVERIFY(transcodeProcess != 0);
+    QVERIFY(transcodeProcess != Q_NULLPTR);
 
     transcodedSize = 0;
     connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
@@ -389,7 +389,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo()
     DlnaCachedRootFolder rootFolder(this);
     rootFolder.setNetworkAccessManager(manager);
 
-    DlnaCachedGroupedFolderMetaData *folder = 0;
+    DlnaCachedGroupedFolderMetaData *folder = Q_NULLPTR;
     for (int index=0;index<rootFolder.getChildrenSize();++index)
     {
         folder = qobject_cast<DlnaCachedGroupedFolderMetaData*>(rootFolder.getChild(index));
@@ -397,19 +397,19 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo()
             break;
     }
 
-    QVERIFY(folder != 0);
+    QVERIFY(folder != Q_NULLPTR);
     QVERIFY2(folder->getDisplayName() == "YOUTUBE", folder->getDisplayName().toUtf8().constData());
     QVERIFY2(folder->getChildrenSize() == 3, QString("%1").arg(folder->getChildrenSize()).toUtf8().constData());
 
-    DlnaCachedFolderMetaData *artists = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(0));
+    auto artists = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(0));
     QVERIFY2(artists->getDisplayName() == "Artist", artists->getDisplayName().toUtf8().constData());
     QVERIFY2(artists->getChildrenSize() == 98, QString("%1").arg(artists->getChildrenSize()).toUtf8().constData());
 
-    DlnaCachedFolder *no_artist = qobject_cast<DlnaCachedFolder*>(artists->getChild(0));
+    auto no_artist = qobject_cast<DlnaCachedFolder*>(artists->getChild(0));
     QVERIFY2(no_artist->getDisplayName() == "No Artist", no_artist->getDisplayName().toUtf8().constData());
     QVERIFY2(no_artist->getChildrenSize() > 50, QString("%1").arg(no_artist->getChildrenSize()).toUtf8().constData());
 
-    DlnaCachedNetworkVideo* movie = 0;
+    DlnaCachedNetworkVideo* movie = Q_NULLPTR;
     for (int index=0;index<no_artist->getChildrenSize();++index)
     {
         movie = qobject_cast<DlnaCachedNetworkVideo*>(no_artist->getChild(index));
@@ -418,7 +418,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo()
             break;
     }
 
-    QVERIFY(movie != 0);
+    QVERIFY(movie != Q_NULLPTR);
     QCOMPARE(movie->getSystemName(), QString("http://www.youtube.com/watch?v=X3hJYDGSXt4"));
     movie->setTranscodeFormat(MPEG2_AC3);
 

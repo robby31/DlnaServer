@@ -26,7 +26,7 @@ public slots:
     void LogMessage(const QString &message);
 
 private:
-    int parseFolder(QString resourceId, DlnaResource* resource);
+    int parseFolder(const QString& resourceId, DlnaResource* resource);
 
 private Q_SLOTS:
     void cleanup();

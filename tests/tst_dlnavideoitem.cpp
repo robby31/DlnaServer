@@ -3,7 +3,6 @@
 tst_dlnavideoitem::tst_dlnavideoitem(QObject *parent) :
     QObject(parent),
     transcodedSize(0),
-    transcodeTimer(),
     timeToOpenTranscoding(0)
 {
     FfmpegTranscoding::setDirPath("/opt/local/bin");
@@ -11,7 +10,7 @@ tst_dlnavideoitem::tst_dlnavideoitem(QObject *parent) :
 
 void tst_dlnavideoitem::dataAvailable()
 {
-    TranscodeDevice *device = qobject_cast<TranscodeDevice*>(sender());
+    auto device = qobject_cast<TranscodeDevice*>(sender());
     if (device)
         device->requestData(1000000);
     else
@@ -51,7 +50,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     QVERIFY2(movie.framerate() == "23.976", movie.framerate().toUtf8());
 
     QVERIFY2(movie.audioLanguages() == QStringList() << "", movie.audioLanguages().join(',').toUtf8());
-    QVERIFY2(movie.subtitleLanguages() == QStringList(), movie.audioLanguages().join(',').toUtf8());
+    QVERIFY2(movie.subtitleLanguages().isEmpty() == true, movie.audioLanguages().join(',').toUtf8());
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
     QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
@@ -61,14 +60,14 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     QVERIFY(movie.getAlbumArt().isNull() == true);
     QVERIFY(movie.getByteAlbumArt().isNull() == true);
 
-    QHash<QString, double> result = movie.volumeInfo(-1);
+//    QHash<QString, double> result = movie.volumeInfo(-1);
 //    QVERIFY2(result.keys().size() == 10, QString("%1").arg(result.keys().size()).toUtf8());
 //    QVERIFY2(result["mean_volume"] == -20.7, QString("%1").arg(result["mean_volume"]).toUtf8());
 //    QVERIFY2(result["max_volume"] == -0.3, QString("%1").arg(result["max_volume"]).toUtf8());
 
     Device *device = movie.getStream();
     QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
-    QVERIFY(transcodeProcess != 0);
+    QVERIFY(transcodeProcess != Q_NULLPTR);
 
     transcodedSize = 0;
     connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
@@ -107,7 +106,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     QVERIFY2(movie.framerate() == "23.976", movie.framerate().toUtf8());
 
     QVERIFY2(movie.audioLanguages() == QStringList() << "", movie.audioLanguages().join(',').toUtf8());
-    QVERIFY2(movie.subtitleLanguages() == QStringList(), movie.audioLanguages().join(',').toUtf8());
+    QVERIFY2(movie.subtitleLanguages().isEmpty() == true, movie.audioLanguages().join(',').toUtf8());
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
     QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
@@ -117,14 +116,14 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     QVERIFY(movie.getAlbumArt().isNull() == true);
     QVERIFY(movie.getByteAlbumArt().isNull() == true);
 
-    QHash<QString, double> result = movie.volumeInfo(-1);
+//    QHash<QString, double> result = movie.volumeInfo(-1);
 //    QVERIFY2(result.keys().size() == 10, QString("%1").arg(result.keys().size()).toUtf8());
 //    QVERIFY2(result["mean_volume"] == -20.7, QString("%1").arg(result["mean_volume"]).toUtf8());
 //    QVERIFY2(result["max_volume"] == -0.3, QString("%1").arg(result["max_volume"]).toUtf8());
 
     Device *device = movie.getStream();
     QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
-    QVERIFY(transcodeProcess != 0);
+    QVERIFY(transcodeProcess != Q_NULLPTR);
 
     transcodedSize = 0;
     connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
@@ -175,14 +174,14 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
     QVERIFY(movie.getAlbumArt().isNull() == true);
     QVERIFY(movie.getByteAlbumArt().isNull() == true);
 
-    QHash<QString, double> result = movie.volumeInfo(-1);
+//    QHash<QString, double> result = movie.volumeInfo(-1);
 //    QVERIFY2(result.keys().size() == 19, QString("%1").arg(result.keys().size()).toUtf8());
 //    QVERIFY2(result["mean_volume"] == -33.9, QString("%1").arg(result["mean_volume"]).toUtf8());
 //    QVERIFY2(result["max_volume"] == -0.9, QString("%1").arg(result["max_volume"]).toUtf8());
 
     Device *device = movie.getStream();
     QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
-    QVERIFY(transcodeProcess != 0);
+    QVERIFY(transcodeProcess != Q_NULLPTR);
 
     transcodedSize = 0;
     connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
@@ -260,7 +259,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
     QVERIFY(movie.getAlbumArt().isNull() == true);
     QVERIFY(movie.getByteAlbumArt().isNull() == true);
 
-    QHash<QString, double> result = movie.volumeInfo(-1);
+//    QHash<QString, double> result = movie.volumeInfo(-1);
 //    QVERIFY2(result.keys().size() == 15, QString("%1").arg(result.keys().size()).toUtf8());
 //    QVERIFY2(result["mean_volume"] == -28.2, QString("%1").arg(result["mean_volume"]).toUtf8());
 //    QVERIFY2(result["max_volume"] == -0.1, QString("%1").arg(result["max_volume"]).toUtf8());
@@ -281,12 +280,12 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
 
     // test partial transcoding (10 seconds)
     Device *device = movie.getStream();
-    QVERIFY(device != 0);
+    QVERIFY(device != Q_NULLPTR);
     device->setTimeSeek(-1, 10);
 
     {
         QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
-        QVERIFY(transcodeProcess != 0);
+        QVERIFY(transcodeProcess != Q_NULLPTR);
 
         transcodedSize = 0;
         connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
@@ -315,11 +314,11 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
 
     // test full transcoding
     device = movie.getStream();
-    QVERIFY(device != 0);
+    QVERIFY(device != Q_NULLPTR);
 
     {
         QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
-        QVERIFY(transcodeProcess != 0);
+        QVERIFY(transcodeProcess != Q_NULLPTR);
 
         transcodedSize = 0;
         connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));

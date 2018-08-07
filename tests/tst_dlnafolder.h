@@ -27,7 +27,7 @@ private Q_SLOTS:
     void testCase_PerformanceAllTracks();
 
 private:
-    int parseFolder(QString resourceId, DlnaResource* resource);
+    int parseFolder(const QString& resourceId, DlnaResource* resource);
 
 };
 
