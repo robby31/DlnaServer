@@ -1,6 +1,5 @@
 QT += quick widgets sql webview multimedia xml
-CONFIG += c++11
-
+CONFIG += c++14
 
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
@@ -41,7 +40,8 @@ SOURCES += \
     servermodel.cpp \
     serveritem.cpp \
     contentmodel.cpp \
-    upnpclassimageprovider.cpp
+    upnpclassimageprovider.cpp \
+    mediarenderer.cpp
 
 RESOURCES += qml.qrc
 
@@ -63,4 +63,5 @@ HEADERS += \
     servermodel.h \
     serveritem.h \
     contentmodel.h \
-    upnpclassimageprovider.h
+    upnpclassimageprovider.h \
+    mediarenderer.h

@@ -16,6 +16,10 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_upnp.setNetworkManager(&netManager);
     connect(&m_upnp, &UpnpControlPoint::newRootDevice, m_serversModel, &ServerModel::addServer);
 
+    m_renderer = new MediaRenderer(&netManager, m_upnp.macAddress(), m_upnp.host().toString(), 7000, this);
+    m_upnp.addLocalRootDevice(m_renderer);
+    m_renderer->startServer();
+
     m_upnp.startDiscover();
 }
 

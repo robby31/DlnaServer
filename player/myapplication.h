@@ -7,6 +7,7 @@
 #include "upnpcontrolpoint.h"
 #include "servermodel.h"
 #include "upnpclassimageprovider.h"
+#include "mediarenderer.h"
 
 class MyApplication : public Application
 {
@@ -34,6 +35,9 @@ private:
 
     // Upnp MediaServer listmodel
     ServerModel *m_serversModel = Q_NULLPTR;
+
+    // local MediaRenderer
+    MediaRenderer *m_renderer = Q_NULLPTR;
 };
 
 #endif // MYAPPLICATION_H
