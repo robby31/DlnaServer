@@ -2,6 +2,7 @@ import QtQuick 2.5
 import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 import QtMultimedia 5.9
+import QtGraphicalEffects 1.0
 import MyComponents 1.0
 
 Page {
@@ -11,6 +12,62 @@ Page {
 
     property var objectData
     property int duration
+
+    states: [
+        State {
+            name: "LOADED w/o playlist"
+            when: player.status === MediaPlayer.Loaded && player.playlist == null
+            PropertyChanges { target: playButton; source: "qrc:/images/player/play.png"; enabled: true }
+            PropertyChanges { target: stopButton; enabled: true }
+            PropertyChanges { target: textStatus; text: "LOADED w/o playlist" }
+        },
+
+        State {
+            name: "LOADED with playlist"
+            when: player.status === MediaPlayer.Loaded && player.playlist != null
+            PropertyChanges { target: backButton; enabled: true }
+            PropertyChanges { target: playButton; source: "qrc:/images/player/play.png"; enabled: true }
+            PropertyChanges { target: stopButton; enabled: true }
+            PropertyChanges { target: nextButton; enabled: true }
+            PropertyChanges { target: textStatus; text: "LOADED with playlist" }
+        },
+
+        State {
+            name: "PLAY w/o playlist"
+            when: player.playbackState == MediaPlayer.PlayingState && player.playlist == null
+            PropertyChanges { target: playButton; source: "qrc:/images/player/pause.png"; enabled: true }
+            PropertyChanges { target: stopButton; enabled: true }
+            PropertyChanges { target: textStatus; text: "PLAY w/o playlist" }
+        },
+
+        State {
+            name: "PLAY with playlist"
+            when: player.playbackState == MediaPlayer.PlayingState && player.playlist != null
+            PropertyChanges { target: backButton; enabled: true }
+            PropertyChanges { target: playButton; source: "qrc:/images/player/pause.png"; enabled: true }
+            PropertyChanges { target: stopButton; enabled: true }
+            PropertyChanges { target: nextButton; enabled: true }
+            PropertyChanges { target: textStatus; text: "PLAY with playlist" }
+        },
+
+        State {
+            name: "PAUSE w/o playlist"
+            when: player.playbackState == MediaPlayer.PausedState && player.playlist == null
+            PropertyChanges { target: playButton; source: "qrc:/images/player/play.png"; enabled: true }
+            PropertyChanges { target: stopButton; enabled: true }
+            PropertyChanges { target: textStatus; text: "PAUSE w/o playlist" }
+        },
+
+        State {
+            name: "PAUSE with playlist"
+            when: player.playbackState == MediaPlayer.PausedState && player.playlist != null
+            PropertyChanges { target: backButton; enabled: true }
+            PropertyChanges { target: playButton; source: "qrc:/images/player/play.png"; enabled: true }
+            PropertyChanges { target: stopButton; enabled: true }
+            PropertyChanges { target: nextButton; enabled: true }
+            PropertyChanges { target: textStatus; text: "PAUSE with playlist" }
+        }
+    ]
 
     signal quit()
 
@@ -52,76 +109,8 @@ Page {
     }
 
     ColumnLayout {
-        anchors.fill: parent
-
-        Rectangle {
-            id: playerInfo
-            Layout.fillWidth: true
-            height: 40
-
-            gradient: Gradient {
-                GradientStop { position: 0.0; color: "#4edab3" }
-                GradientStop { position: 1.0; color: "#184337" }
-
-            }
-
-            Row {
-                id: row
-                anchors { horizontalCenter: parent.horizontalCenter; top: parent.top; bottom: parent.bottom }
-                spacing: 10
-
-                Text {
-                    id: title
-                    text: objectData && objectData["title"] ? (player.metaData.title ? player.metaData.title : objectData["title"]) : "<no title>"
-                    width: contentWidth
-                    height: parent.height
-                    verticalAlignment: Text.AlignVCenter
-                    font.bold: true
-                }
-
-                Text {
-                    id: artist
-                    text: objectData &&  objectData["artist"] ? (player.metaData.albumArtist ? player.metaData.albumArtist : objectData["artist"]) : "<no artist>"
-                    width: contentWidth
-                    height: parent.height
-                    verticalAlignment: Text.AlignVCenter
-                    color: "blue"
-                }
-
-                Text {
-                    id: album
-                    text: objectData &&  objectData["album"] ? (player.metaData.albumTitle ? player.metaData.albumTitle : objectData["album"]) : "<no album>"
-                    width: contentWidth
-                    height: parent.height
-                    verticalAlignment: Text.AlignVCenter
-                    color: "blue"
-                }
-
-                Text {
-                    id: status
-                    text: "status: " + player.status
-                    width: contentWidth
-                    height: parent.height
-                    verticalAlignment: Text.AlignVCenter
-                }
-
-                Text {
-                    width: contentWidth
-                    text: formatTime(player.position) + " / " + (page.duration !== 0 ? formatTime(page.duration) : "-")
-                    height: parent.height
-                    verticalAlignment: Text.AlignVCenter
-                    visible: page.duration > 0
-                }
-
-                ProgressBar {
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: 200
-                    to: page.duration
-                    value: player.position
-                    visible: to > 0
-                }
-            }
-        }
+        anchors { fill: parent; margins: 10 }
+        spacing: 0
 
         Item {
             Layout.fillWidth: true
@@ -134,13 +123,119 @@ Page {
 
             Image {
                 id: albumArt
-                Layout.fillWidth: true
                 anchors { horizontalCenter: parent.horizontalCenter; verticalCenter: parent.verticalCenter }
-                height: parent.height*0.8
+                height: parent.height
                 sourceSize.height: height
                 fillMode: Image.PreserveAspectFit
                 visible: albumArt.status === Image.Ready
             }
+        }
+
+        Text {
+            anchors.horizontalCenter: parent.horizontalCenter
+            text:  player.metaData.title ? player.metaData.title : (objectData && objectData["title"] ? objectData["title"] : "<no title>")
+            width: contentWidth
+            height: parent.height
+            verticalAlignment: Text.AlignVCenter
+            font.bold: true
+            clip: true
+        }
+
+        Row {
+            anchors.horizontalCenter: parent.horizontalCenter
+            height: 40
+            spacing: 10
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text:  player.metaData.albumArtist ? player.metaData.albumArtist : (objectData && objectData["artist"] ? objectData["artist"] : "<no artist>")
+                width: contentWidth
+                height: parent.height
+                verticalAlignment: Text.AlignVCenter
+                font.bold: true
+                clip: true
+            }
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text:  player.metaData.albumTitle ? player.metaData.albumTitle : (objectData && objectData["album"] ? objectData["album"] : "<no album>")
+                width: contentWidth
+                height: parent.height
+                verticalAlignment: Text.AlignVCenter
+                font.bold: true
+                clip: true
+            }
+        }
+
+        Row {
+            anchors.horizontalCenter: parent.horizontalCenter
+            height: 40
+            spacing: 10
+
+            Text {
+                anchors.verticalCenter: parent.verticalCenter
+                width: contentWidth
+                text: formatTime(player.position) + " / " + (page.duration !== 0 ? formatTime(page.duration) : "-")
+                height: parent.height
+                verticalAlignment: Text.AlignVCenter
+                visible: page.duration > 0
+            }
+
+            ProgressBar {
+                anchors.verticalCenter: parent.verticalCenter
+                width: 200
+                to: page.duration
+                value: player.position
+                visible: to > 0
+            }
+        }
+
+        Row {
+            anchors.horizontalCenter: parent.horizontalCenter
+            height: 50
+            spacing: 10
+
+            ImageButton {
+                id: backButton
+                height: parent.height
+                source: "qrc:/images/player/backward.png"
+                enabled: false
+            }
+
+            ImageButton {
+                id: playButton
+                height: parent.height
+                source: "qrc:/images/player/play.png"
+                enabled: false
+
+                onClicked: {
+                    if (player.playbackState === MediaPlayer.PlayingState)
+                        player.pause()
+                    else
+                        player.play()
+                }
+            }
+
+            ImageButton {
+                id: stopButton
+                height: parent.height
+                source: "qrc:/images/player/stop.png"
+                enabled: false
+
+                onClicked: player.stop()
+            }
+
+            ImageButton {
+                id: nextButton
+                height: parent.height
+                source: "qrc:/images/player/forward.png"
+                enabled: false
+            }
+        }
+
+        Text {
+            id: textStatus
+            text: "unknown"
         }
     }
 
@@ -148,7 +243,10 @@ Page {
         if (objectData["res"]) {
             player.source = objectData["res"]
             page.duration = objectData["duration"]
-            albumArt.source = objectData["albumArtURI"]
+            if (objectData["albumArtURI"])
+                albumArt.source = objectData["albumArtURI"]
+            else
+                albumArt.source = "image://upnpclass/" + objectData["upnpClass"]
         } else {
             console.log("invalid url", objectData["res"])
         }
@@ -156,8 +254,9 @@ Page {
 
     MediaPlayer {
         id: player
-        autoPlay: true
+        autoPlay: false
         onErrorStringChanged: console.log("ERROR", errorString)
+
         onDurationChanged: {
             if (duration != 0)
                 page.duration = duration
