@@ -164,7 +164,7 @@ QVariant ContentModel::data(const QModelIndex &index, int role) const
 
 void ContentModel::actionFinished()
 {
-    UpnpActionReply *reply = qobject_cast<UpnpActionReply *>(sender());
+    auto reply = qobject_cast<UpnpActionReply *>(sender());
 
     if (reply)
     {
@@ -212,10 +212,8 @@ QString ContentModel::getParam(const QDomElement &item, const QString &name) con
         QDomElement elt = l_elt.at(0).toElement();
         return elt.firstChild().toText().data();
     }
-    else
-    {
-        return QString();
-    }
+
+    return QString();
 }
 
 QString ContentModel::resParam(const QDomElement &item, const QString &name) const
@@ -226,8 +224,6 @@ QString ContentModel::resParam(const QDomElement &item, const QString &name) con
         QDomElement res = l_res.at(0).toElement();
         return res.attribute(name);
     }
-    else
-    {
-        return QString();
-    }
+
+    return QString();
 }
