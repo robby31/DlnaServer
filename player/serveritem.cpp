@@ -37,8 +37,8 @@ QString ServerItem::id() const
 {
     if (m_device)
         return m_device->uuid();
-    else
-        return ListItem::id();
+
+    return ListItem::id();
 }
 
 QVariant ServerItem::data(int role) const
@@ -52,29 +52,29 @@ QVariant ServerItem::data(int role) const
     {
         if (m_device)
             return m_device->friendlyName();
-        else
-            return QString();
+
+        return QString();
     }
     case networkAddressRole:
     {
         if (m_device)
             return m_device->host().toString();
-        else
-            return QString();
+
+        return QString();
     }
     case iconUrlRole:
     {
         if (m_device)
             return m_device->iconUrl();
-        else
-            return QString();
+
+        return QString();
     }
     case availableRole:
     {
         if (m_device)
             return m_device->available();
-        else
-            return false;
+
+        return false;
     }
     default:
     {
@@ -110,11 +110,11 @@ bool ServerItem::setData(const QVariant &value, const int &role)
     }
 }
 
-void ServerItem::deviceItemChanged(QVector<int> roles)
+void ServerItem::deviceItemChanged(const QVector<int>& roles)
 {
     emit itemChanged();
 
-    if (roles.contains(UpnpRootDevice::AvailableRole) && m_device->available() == false)
+    if (roles.contains(UpnpRootDevice::AvailableRole) && !m_device->available())
         emit removeItem();
 }
 

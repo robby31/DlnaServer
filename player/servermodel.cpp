@@ -10,7 +10,7 @@ void ServerModel::addServer(UpnpRootDevice *device)
 {
     if (device && device->deviceType().startsWith("urn:schemas-upnp-org:device:MediaServer"))
     {
-        ServerItem *server = qobject_cast<ServerItem*>(find(device->uuid()));
+        auto server = qobject_cast<ServerItem*>(find(device->uuid()));
         if (!server)
         {
             server = new ServerItem(device, this);
@@ -22,7 +22,7 @@ void ServerModel::addServer(UpnpRootDevice *device)
 
 void ServerModel::removeServer()
 {
-    ServerItem *server = qobject_cast<ServerItem*>(sender());
+    auto server = qobject_cast<ServerItem*>(sender());
 
     if (server)
     {
@@ -36,7 +36,7 @@ void ServerModel::removeServer()
 ServerItem *ServerModel::getServer(const int &index)
 {
     if (index>=0 && index<rowCount())
-        return (ServerItem *)at(index);
-    else
-        return Q_NULLPTR;
+        return qobject_cast<ServerItem *>(at(index));
+
+    return Q_NULLPTR;
 }

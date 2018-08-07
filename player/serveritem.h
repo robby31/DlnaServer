@@ -49,7 +49,7 @@ signals:
     void iconurlChanged();
 
 private slots:
-    void deviceItemChanged(QVector<int> roles);
+    void deviceItemChanged(const QVector<int>& roles);
     void deviceDestroyed(QObject *obj);
 
 private:
