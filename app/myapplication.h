@@ -32,7 +32,7 @@ class MyApplication : public Application
 
 public:
     explicit MyApplication(int &argc, char **argv);
-    virtual ~MyApplication() Q_DECL_OVERRIDE;
+    ~MyApplication() Q_DECL_OVERRIDE = default;
 
     Q_INVOKABLE void addSharedFolder(const QUrl &folder) { if (folder.isLocalFile()) emit addFolder(folder.toLocalFile()); }
     Q_INVOKABLE void removeFolder(const int &index);
@@ -102,12 +102,12 @@ private slots:
     void serverStarted();
     void serverError(const QString &message);
 
-    void checkNetworkLinkMessage(QString name, QString message);
+    void checkNetworkLinkMessage(const QString &name, const QString &message);
 
     void newRootDevice(UpnpRootDevice *device);
     void newRequest(HttpRequest *request);
 
-    void servingMediaFinished(QString host, QString filename, int status);
+    void servingMediaFinished(const QString &host, const QString &filename, const int &status);
 
 private:
     QSettings settings;

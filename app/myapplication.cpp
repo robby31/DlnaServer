@@ -5,10 +5,7 @@ const int MyApplication::SERVERPORT = 5002;
 MyApplication::MyApplication(int &argc, char **argv):
     Application(argc, argv),
     settings("HOME", "QMS"),
-    m_sharedFolderModel(),
-    m_controller(),
     m_worker(Q_NULLPTR),
-    netManager(),
     m_upnp(5050),
     m_localrootdevice(Q_NULLPTR),
     m_requestsModel(Q_NULLPTR),
@@ -34,7 +31,7 @@ MyApplication::MyApplication(int &argc, char **argv):
     connect(this, SIGNAL(scanFolder(QString)), m_worker, SLOT(scanFolder(QString)));
 
     connect(&m_controller, SIGNAL(checkNetworkLinkSignal()), m_worker, SLOT(checkNetworkLink()));
-    connect(m_worker, SIGNAL(addMessage(QString,QString)), this, SLOT(checkNetworkLinkMessage(QString, QString)));
+    connect(m_worker, SIGNAL(addMessage(QString,QString)), this, SLOT(checkNetworkLinkMessage(QString,QString)));
 
     connect(&m_controller, SIGNAL(scanVolumeInfoSignal()), m_worker, SLOT(scanVolumeInfo()));
 
@@ -83,10 +80,6 @@ MyApplication::MyApplication(int &argc, char **argv):
         setdatabaseName(QUrl::fromLocalFile(path).toLocalFile());
 }
 
-MyApplication::~MyApplication()
-{
-}
-
 void MyApplication::initializeDatabase()
 {
     QSqlDatabase db = database();
@@ -96,7 +89,7 @@ void MyApplication::initializeDatabase()
         settings.setValue("databasePathName", db.databaseName());
     }
 
-    MediaServer *device = new MediaServer(&netManager, m_upnp.macAddress(), m_upnp.host().toString(), SERVERPORT, m_renderersModel);
+    MediaServer *device = new MediaServer(&netManager, m_upnp.macAddress(), m_upnp.host().toString(), SERVERPORT, m_renderersModel, this);
     connect(device, SIGNAL(serverStarted()), this, SLOT(serverStarted()));
     connect(device, SIGNAL(serverError(QString)), this, SLOT(serverError(QString)));
     connect(device, SIGNAL(newRequest(HttpRequest*)), this, SLOT(newRequest(HttpRequest*)));
@@ -123,7 +116,7 @@ void MyApplication::initializeDatabase()
 
 void MyApplication::serverStarted()
 {
-    UpnpRootDevice *device = qobject_cast<UpnpRootDevice*>(sender());
+    auto device = qobject_cast<UpnpRootDevice*>(sender());
     qDebug() << "SERVER STARTED" << device->url() << device->host() << device->port();
 
     m_controller.popMessage("Server started");
@@ -309,11 +302,11 @@ void MyApplication::removeMedia(const int &id)
     }
 }
 
-void MyApplication::checkNetworkLinkMessage(QString name, QString message)
+void MyApplication::checkNetworkLinkMessage(const QString &name, const QString &message)
 {
     if (m_checkNetworkLinkModel)
     {
-        CheckNetworkLinkItem *item = new CheckNetworkLinkItem(name, message, m_checkNetworkLinkModel);
+        auto item = new CheckNetworkLinkItem(name, message, m_checkNetworkLinkModel);
         m_checkNetworkLinkModel->appendRow(item);
     }
     else
@@ -360,7 +353,7 @@ void MyApplication::newRequest(HttpRequest *request)
     m_requestsModel->insertRow(0, request);
 }
 
-void MyApplication::servingMediaFinished(QString host, QString filename, int status)
+void MyApplication::servingMediaFinished(const QString &host, const QString &filename, const int &status)
 {
     Q_UNUSED(filename)
     Q_UNUSED(status)

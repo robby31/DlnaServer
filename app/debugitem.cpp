@@ -2,7 +2,6 @@
 
 DebugItem::DebugItem(QObject *parent):
     ListItem(parent),
-    m_roles(),
     m_name()
 {
     m_roles[NameRole] = "name";
@@ -11,7 +10,6 @@ DebugItem::DebugItem(QObject *parent):
 
 DebugItem::DebugItem(const QString &name, QObject *parent):
     ListItem(parent),
-    m_roles(),
     m_name(name)
 {
     m_roles[NameRole] = "name";
@@ -22,17 +20,17 @@ QVariant DebugItem::counterValue() const
 {
     if (m_name == "DlnaResource")
         return QVariant(DlnaResource::objectCounter);
-    else if (m_name == "Device")
+    if (m_name == "Device")
         return QVariant(Device::objectCounter);
-    else if (m_name == "DlnaFolder")
+    if (m_name == "DlnaFolder")
         return QVariant(DlnaFolder::objectCounter);
-    else if (m_name == "DlnaMusicTrackFile")
+    if (m_name == "DlnaMusicTrackFile")
         return QVariant(DlnaMusicTrackFile::objectCounter);
-    else if (m_name == "DlnaRootFolder")
+    if (m_name == "DlnaRootFolder")
         return QVariant(DlnaRootFolder::objectCounter);
-    else if (m_name == "DlnaVideoFile")
+    if (m_name == "DlnaVideoFile")
         return QVariant(DlnaVideoFile::objectCounter);
-    else if (m_name == "DlnaYoutubeVideo")
+    if (m_name == "DlnaYoutubeVideo")
         return QVariant(DlnaYouTubeVideo::objectCounter);
 
     return QVariant("");

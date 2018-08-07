@@ -1,4 +1,5 @@
 QT += qml quick widgets network xml sql webview multimedia
+CONFIG += c++14
 
 TARGET = QT_Media_Server
 TEMPLATE = app

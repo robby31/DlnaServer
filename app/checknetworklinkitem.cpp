@@ -2,7 +2,6 @@
 
 CheckNetworkLinkItem::CheckNetworkLinkItem(QObject *parent):
     ListItem(parent),
-    m_roles(),
     m_name(),
     m_message()
 {
@@ -12,7 +11,6 @@ CheckNetworkLinkItem::CheckNetworkLinkItem(QObject *parent):
 
 CheckNetworkLinkItem::CheckNetworkLinkItem(const QString &name, const QString &message, QObject *parent):
     ListItem(parent),
-    m_roles(),
     m_name(name),
     m_message(message)
 {

@@ -20,7 +20,7 @@ signals:
     void refresh(const QString &url);
 
 private slots:
-    void scanFolder(QString path);
+    void scanFolder(const QString &path);
     void checkNetworkLink();
     void scanVolumeInfo();
 

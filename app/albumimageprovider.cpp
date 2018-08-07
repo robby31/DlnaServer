@@ -52,8 +52,7 @@ QImage AlbumImageProvider::requestImage(const QString &id, QSize *size, const QS
 
     if (requestedSize.width() > 0)
         return image.scaledToWidth(requestedSize.width(), Qt::SmoothTransformation);
-    else if (requestedSize.height() > 0)
+    if (requestedSize.height() > 0)
         return image.scaledToHeight(requestedSize.height(), Qt::SmoothTransformation);
-    else
-        return image;
+    return image;
 }

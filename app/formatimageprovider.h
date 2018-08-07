@@ -13,7 +13,7 @@ class FormatImageProvider : public QQuickImageProvider
 public:
     FormatImageProvider();
 
-    virtual QImage requestImage(const QString &id, QSize *size, const QSize& requestedSize) Q_DECL_OVERRIDE;
+    QImage requestImage(const QString &id, QSize *size, const QSize& requestedSize) Q_DECL_OVERRIDE;
 };
 
 #endif // FORMATIMAGEPROVIDER_H

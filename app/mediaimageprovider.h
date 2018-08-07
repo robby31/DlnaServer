@@ -13,7 +13,7 @@ class MediaImageProvider : public QQuickImageProvider
 public:
     MediaImageProvider();
 
-    virtual QImage requestImage(const QString &id, QSize *size, const QSize& requestedSize) Q_DECL_OVERRIDE;
+    QImage requestImage(const QString &id, QSize *size, const QSize& requestedSize) Q_DECL_OVERRIDE;
 };
 
 #endif // MEDIAIMAGEPROVIDER_H

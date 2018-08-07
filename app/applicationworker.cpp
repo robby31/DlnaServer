@@ -7,7 +7,7 @@ ApplicationWorker::ApplicationWorker(QNetworkAccessManager *nam, QObject *parent
 
 }
 
-void ApplicationWorker::scanFolder(QString path)
+void ApplicationWorker::scanFolder(const QString &path)
 {
 //    emit processStarted();
 

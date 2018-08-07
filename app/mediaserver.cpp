@@ -1,6 +1,6 @@
 #include "mediaserver.h"
 
-MediaServer::MediaServer(QNetworkAccessManager *nam, QString macAddress, QString host, int port, MediaRendererModel *renderersModel, QObject *parent):
+MediaServer::MediaServer(QNetworkAccessManager *nam, QString macAddress, const QString& host, int port, MediaRendererModel *renderersModel, QObject *parent):
     UpnpRootDevice(nam, macAddress, QString(), parent),
     m_renderersModel(renderersModel)
 {
@@ -16,7 +16,7 @@ MediaServer::MediaServer(QNetworkAccessManager *nam, QString macAddress, QString
 
 void MediaServer::initDescription()
 {
-    UpnpRootDeviceDescription *deviceDescription = new UpnpRootDeviceDescription();
+    auto deviceDescription = new UpnpRootDeviceDescription();
     deviceDescription->setDeviceAttribute("deviceType", "urn:schemas-upnp-org:device:MediaServer:1");
     deviceDescription->setDeviceAttribute("friendlyName", "QT Media Server");
     deviceDescription->setDeviceAttribute("manufacturer", "G HIMBERT");
@@ -43,7 +43,7 @@ void MediaServer::initDescription()
 
 void MediaServer::initConnectionManager()
 {
-    ServiceConnectionManager *connection_manager = new ServiceConnectionManager(this);
+    auto connection_manager = new ServiceConnectionManager(this);
 
     QStringList format;
     format << "http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_SM";
@@ -88,7 +88,7 @@ void MediaServer::initConnectionManager()
 
 void MediaServer::initContentDirectory()
 {
-    ServiceContentDirectory *content_directory = new ServiceContentDirectory(m_renderersModel, this);
+    auto content_directory = new ServiceContentDirectory(m_renderersModel, this);
 
     connect(m_renderersModel, SIGNAL(mediaRendererDestroyed(QString)), content_directory, SLOT(mediaRendererDestroyed(QString)));
 
