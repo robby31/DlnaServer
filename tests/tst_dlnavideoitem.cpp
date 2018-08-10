@@ -211,6 +211,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
 void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
 
     DlnaVideoFile movie("/Users/doudou/Movies/Films/District.9.2009.720p.BrRip.YIFY.mkv");
+    movie.setHostUrl(QUrl("http://host:600"));
     movie.setTranscodeFormat(MPEG2_AC3);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/District.9.2009.720p.BrRip.YIFY.mkv");
 

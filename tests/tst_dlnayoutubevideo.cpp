@@ -56,7 +56,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
     QVERIFY(video->getDisplayName() == "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]");
 
     QVERIFY(video->metaDataTitle() == "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]");
-    QVERIFY2(video->metaDataDuration() == 193676, QString("%1").arg(video->metaDataDuration()).toUtf8());
+    QVERIFY2(video->metaDataDuration() == 193678, QString("%1").arg(video->metaDataDuration()).toUtf8());
     QVERIFY2(video->resolution() == "640x360", QString("%1").arg(video->resolution()).toUtf8());
     QVERIFY2(video->framerate() == "25.000", QString("%1").arg(video->framerate()).toUtf8());
     QVERIFY2(video->bitrate() == 4558800, QString("%1").arg(video->bitrate()).toUtf8());

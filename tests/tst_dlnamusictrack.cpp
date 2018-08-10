@@ -48,6 +48,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
 
     {
         DlnaMusicTrackFile track("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3");
+        track.setHostUrl(QUrl("http://host:600"));
         QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3");
 
         QStringList properties;
