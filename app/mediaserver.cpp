@@ -1,6 +1,6 @@
 #include "mediaserver.h"
 
-MediaServer::MediaServer(QNetworkAccessManager *nam, QString macAddress, const QString& host, int port, MediaRendererModel *renderersModel, QObject *parent):
+MediaServer::MediaServer(QNetworkAccessManager *nam, const QString &macAddress, const QString& host, int port, MediaRendererModel *renderersModel, QObject *parent):
     UpnpRootDevice(nam, macAddress, QString(), parent),
     m_renderersModel(renderersModel)
 {
@@ -38,7 +38,7 @@ void MediaServer::initDescription()
     deviceDescription->setDeviceAttribute("UDN", QString("uuid:%1").arg(id()));
     setDescription(deviceDescription);
 
-    setServerName(QString("%1/%2 UPnP/%3 QMS/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion()).arg(version()));
+    setServerName(QString("%1/%2 UPnP/%3 QMS/1.0").arg(QSysInfo::productType(), QSysInfo::productVersion(), version()));
 }
 
 void MediaServer::initConnectionManager()

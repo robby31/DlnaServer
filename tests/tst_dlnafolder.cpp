@@ -28,7 +28,7 @@ void tst_dlnafolder::testCase_DlnaFolder()
     QVERIFY(music.getResourceId() == "");
     QVERIFY(music.isFolder() == true);
     QVERIFY(music.getUpdateId() == 1);
-    QVERIFY(music.getChild(0) != 0);
+    QVERIFY(music.getChild(0) != Q_NULLPTR);
     QVERIFY(music.getChildrenSize() == 609);
 
     music.setId("0$1");

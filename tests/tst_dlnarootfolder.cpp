@@ -18,7 +18,7 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QVERIFY(rootFolder.isFolder() == true);
     QVERIFY(rootFolder.getUpdateId() == 1);
     QVERIFY(rootFolder.getChildrenSize() == 0);
-    QVERIFY(rootFolder.getChild(0) == 0);
+    QVERIFY(rootFolder.getChild(0) == Q_NULLPTR);
 
     QStringList properties;
     properties << "dc:title";
@@ -64,7 +64,7 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QVERIFY(music.getDlnaParent()->getResourceId() == "0");
     QVERIFY(music.getResourceId() == "0$1");
     QVERIFY(music.isFolder() == true);
-    QVERIFY(rootFolder.getChild(0) != 0);
+    QVERIFY(rootFolder.getChild(0) != Q_NULLPTR);
     QVERIFY(rootFolder.getChildrenSize() == 1);
 
     xml_res.appendChild(music.getXmlContentDirectory(&xml_res, properties));
@@ -138,7 +138,7 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
 
     rootFolder.addFolder("/Users/doudou/Movies");
     QThreadPool::globalInstance()->waitForDone();
-    QVERIFY(rootFolder.getChild(0) != 0);
+    QVERIFY(rootFolder.getChild(0) != Q_NULLPTR);
     QVERIFY(rootFolder.getChildrenSize() == 3);
 
     found = rootFolder.search("0$3", "");

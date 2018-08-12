@@ -61,7 +61,7 @@ void ApplicationWorker::checkNetworkLink()
                 if (processWasAborted())
                     break;  // Abort process
 
-                QString name = QString("%1 %2").arg(query.value("artist").toString()).arg(query.value("title").toString());
+                QString name = QString("%1 %2").arg(query.value("artist").toString(), query.value("title").toString());
 
                 QString url(query.value("filename").toString());
                 bool isReachable = query.value("is_reachable").toBool();

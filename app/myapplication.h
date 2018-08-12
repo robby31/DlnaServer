@@ -32,7 +32,6 @@ class MyApplication : public Application
 
 public:
     explicit MyApplication(int &argc, char **argv);
-    ~MyApplication() Q_DECL_OVERRIDE = default;
 
     Q_INVOKABLE void addSharedFolder(const QUrl &folder) { if (folder.isLocalFile()) emit addFolder(folder.toLocalFile()); }
     Q_INVOKABLE void removeFolder(const int &index);

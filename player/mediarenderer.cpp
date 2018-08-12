@@ -1,6 +1,6 @@
 #include "mediarenderer.h"
 
-MediaRenderer::MediaRenderer(QNetworkAccessManager *nam, QString macAddress, const QString& host, int port, QObject *parent):
+MediaRenderer::MediaRenderer(QNetworkAccessManager *nam, const QString& macAddress, const QString& host, int port, QObject *parent):
     UpnpRootDevice (nam, macAddress, QString(), parent)
 {
     QUrl tmp(QString("http://%1:%2").arg(host).arg(port));
@@ -25,7 +25,7 @@ void MediaRenderer::initDescription()
     deviceDescription->setDeviceAttribute("UDN", QString("uuid:%1").arg(id()));
     setDescription(deviceDescription);
 
-    setServerName(QString("%1/%2 UPnP/%3 QM/1.0").arg(QSysInfo::productType()).arg(QSysInfo::productVersion()).arg(version()));
+    setServerName(QString("%1/%2 UPnP/%3 QM/1.0").arg(QSysInfo::productType(), QSysInfo::productVersion(), version()));
 
 }
 

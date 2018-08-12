@@ -468,7 +468,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo()
     QVERIFY(movie->getByteAlbumArt().isNull() == true);
 
     QHash<QString, double> result = movie->volumeInfo(-1);
-    QVERIFY2(result.keys().size() == 2, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
+    QVERIFY2(result.size() == 2, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
     QVERIFY2(result["mean_volume"] == -14.1, QString("%1").arg(result["mean_volume"]).toUtf8());
     QVERIFY2(result["max_volume"] == -0.6, QString("%1").arg(result["max_volume"]).toUtf8());
 
@@ -513,7 +513,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
     connect(backend, SIGNAL(finished()), video.data(), SLOT(deleteLater()));
     video->setNetworkAccessManager(manager);
 
-    bool res;
+    bool res = false;
 
     QBENCHMARK
     {

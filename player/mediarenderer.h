@@ -9,8 +9,7 @@ class MediaRenderer : public UpnpRootDevice
     Q_OBJECT
 
 public:
-    explicit MediaRenderer(QNetworkAccessManager *nam, QString macAddress, const QString& host, int port, QObject *parent = Q_NULLPTR);
-    ~MediaRenderer() Q_DECL_OVERRIDE = default;
+    explicit MediaRenderer(QNetworkAccessManager *nam, const QString &macAddress, const QString& host, int port, QObject *parent = Q_NULLPTR);
 
 private:
     void initDescription();

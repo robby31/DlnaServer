@@ -225,7 +225,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedRootFolder()
     QThreadPool::globalInstance()->waitForDone();
     QVERIFY(folderKO.isEmpty());
     QVERIFY(rootFolder.getChildrenSize() == 8);
-    QVERIFY(rootFolder.getChild(0) != 0);
+    QVERIFY(rootFolder.getChild(0) != Q_NULLPTR);
 }
 
 void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
@@ -348,7 +348,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY2(track->getByteAlbumArt().size() == 22458, QString("size=%1").arg(track->getByteAlbumArt().size()).toUtf8());
 
     QHash<QString, double> result = track->volumeInfo();
-    QVERIFY2(result.keys().size() == 2, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
+    QVERIFY2(result.size() == 2, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
     QVERIFY2(result["mean_volume"] == -12.5, QString("%1").arg(result["mean_volume"]).toUtf8());
     QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
 
@@ -454,7 +454,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
     QVERIFY(movie->getByteAlbumArt().isNull() == true);
 
     QHash<QString, double> result = movie->volumeInfo();
-    QVERIFY2(result.keys().size() == 2, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
+    QVERIFY2(result.size() == 2, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
     QVERIFY2(result["mean_volume"] == -26.1, QString("%1").arg(result["mean_volume"]).toUtf8());
     QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
 
@@ -586,7 +586,8 @@ void tst_dlnacachedresources::testCase_PerformanceAllTracksByArtist() {
     QVERIFY2(max < 700, QString("Parse all tracks by artist in %1 ms").arg(max).toUtf8());
 }
 
-void tst_dlnacachedresources::testCase_PerformanceAllAlbums() {
+void tst_dlnacachedresources::testCase_PerformanceAllAlbums()
+{
     DlnaCachedRootFolder rootFolder(this);
 
     DlnaCachedGroupedFolderMetaData* folder = Q_NULLPTR;
@@ -597,19 +598,24 @@ void tst_dlnacachedresources::testCase_PerformanceAllAlbums() {
             break;
     }
     QVERIFY(folder != Q_NULLPTR);
-    QVERIFY(folder->getSystemName() == "Music");
 
-    auto allAlbums = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(1));
-    QVERIFY(allAlbums != Q_NULLPTR);
+    if (folder)
+    {
+        QVERIFY(folder->getSystemName() == "Music");
 
-    int duration = parseFolder(allAlbums->getResourceId(), allAlbums);
-    QVERIFY(allAlbums->getSystemName() == "Album");
-    QVERIFY(allAlbums->getChildrenSize()>= 1000);
-    qWarning() << "PERFO" << duration << allAlbums->getSystemName() << allAlbums->getChildrenSize() << "children";
-    QVERIFY2(duration < 300, QString("Parse all albums in %1 ms").arg(duration).toUtf8());
+        auto allAlbums = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(1));
+        QVERIFY(allAlbums != Q_NULLPTR);
+
+        int duration = parseFolder(allAlbums->getResourceId(), allAlbums);
+        QVERIFY(allAlbums->getSystemName() == "Album");
+        QVERIFY(allAlbums->getChildrenSize()>= 1000);
+        qWarning() << "PERFO" << duration << allAlbums->getSystemName() << allAlbums->getChildrenSize() << "children";
+        QVERIFY2(duration < 300, QString("Parse all albums in %1 ms").arg(duration).toUtf8());
+    }
 }
 
-void tst_dlnacachedresources::testCase_PerformanceAllTracksByAlbum() {
+void tst_dlnacachedresources::testCase_PerformanceAllTracksByAlbum()
+{
     DlnaCachedRootFolder rootFolder(this);
 
     DlnaCachedGroupedFolderMetaData* folder = Q_NULLPTR;
@@ -619,28 +625,36 @@ void tst_dlnacachedresources::testCase_PerformanceAllTracksByAlbum() {
         if (folder && folder->getSystemName() == "Music")
             break;
     }
+
     QVERIFY(folder != Q_NULLPTR);
-    QVERIFY(folder->getSystemName() == "Music");
+    if (folder)
+    {
+        QVERIFY(folder->getSystemName() == "Music");
 
-    auto allAlbums = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(1));
-    QVERIFY(allAlbums != Q_NULLPTR);
-    QVERIFY(allAlbums->getSystemName() == "Album");
-    QVERIFY(allAlbums->getChildrenSize() >= 1000);
+        auto allAlbums = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(1));
+        QVERIFY(allAlbums != Q_NULLPTR);
+        if (allAlbums)
+        {
+            QVERIFY(allAlbums->getSystemName() == "Album");
+            QVERIFY(allAlbums->getChildrenSize() >= 1000);
 
-    int max = 0;
-    for(int idxAlbum=0;idxAlbum<allAlbums->getChildrenSize();idxAlbum++) {
-        DlnaResource *album = allAlbums->getChild(idxAlbum);
-        int elapsed;
-        elapsed = parseFolder(album->getResourceId(), allAlbums);
-        if (elapsed > max) {
-            max = elapsed;
-            qWarning() << "PERFO" << elapsed << album->getResourceId() << album->getSystemName() << album->getChildrenSize() << "children";
+            int max = 0;
+            for(int idxAlbum=0;idxAlbum<allAlbums->getChildrenSize();idxAlbum++) {
+                DlnaResource *album = allAlbums->getChild(idxAlbum);
+                int elapsed;
+                elapsed = parseFolder(album->getResourceId(), allAlbums);
+                if (elapsed > max) {
+                    max = elapsed;
+                    qWarning() << "PERFO" << elapsed << album->getResourceId() << album->getSystemName() << album->getChildrenSize() << "children";
+                }
+            }
+            QVERIFY2(max < 500, QString("Parse all tracks by album in %1 ms").arg(max).toUtf8());
         }
     }
-    QVERIFY2(max < 500, QString("Parse all tracks by album in %1 ms").arg(max).toUtf8());
 }
 
-void tst_dlnacachedresources::testCase_PerformanceAllGenres() {
+void tst_dlnacachedresources::testCase_PerformanceAllGenres()
+{
     DlnaCachedRootFolder rootFolder(this);
 
     DlnaCachedGroupedFolderMetaData* folder = Q_NULLPTR;
@@ -650,17 +664,21 @@ void tst_dlnacachedresources::testCase_PerformanceAllGenres() {
         if (folder && folder->getSystemName() == "Music")
             break;
     }
+
     QVERIFY(folder != Q_NULLPTR);
-    QVERIFY(folder->getSystemName() == "Music");
+    if (folder)
+    {
+        QVERIFY(folder->getSystemName() == "Music");
 
-    auto allGenres = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(2));
-    QVERIFY(allGenres != Q_NULLPTR);
+        auto allGenres = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(2));
+        QVERIFY(allGenres != Q_NULLPTR);
 
-    int duration = parseFolder(allGenres->getResourceId(), allGenres);
-    QVERIFY(allGenres->getSystemName() == "Genre");
-    QVERIFY(allGenres->getChildrenSize() >= 100);
-    qWarning() << "PERFO" << duration << allGenres->getSystemName() << allGenres->getChildrenSize() << "children";
-    QVERIFY2(duration < 200, QString("Parse all genres in %1 ms").arg(duration).toUtf8());
+        int duration = parseFolder(allGenres->getResourceId(), allGenres);
+        QVERIFY(allGenres->getSystemName() == "Genre");
+        QVERIFY(allGenres->getChildrenSize() >= 100);
+        qWarning() << "PERFO" << duration << allGenres->getSystemName() << allGenres->getChildrenSize() << "children";
+        QVERIFY2(duration < 200, QString("Parse all genres in %1 ms").arg(duration).toUtf8());
+    }
 }
 
 void tst_dlnacachedresources::testCase_PerformanceAllTracksByGenre() {
