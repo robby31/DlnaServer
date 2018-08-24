@@ -37,9 +37,6 @@ LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(mediadevice)
 INCLUDEPATH += /opt/local/include
 LIBS += -L/opt/local/lib -lavcodec -lavformat -lavutil -lswscale -lswresample
 
-DEFINES += USE_AVRESAMPLE
-LIBS += -L/opt/local/lib -lavresample
-
 SOURCES += \
     main.cpp \
     tst_dlnarootfolder.cpp \
