@@ -168,14 +168,14 @@ void tst_dlnafolder::testCase_PerformanceAllTracks()
     QVERIFY(music.getId() == "0$1");
 
     {
-        ANALYZER_RESET
+        ANALYZER_RESET;
         QScopedPointer<DlnaResource> album(music.search("0$1$27$2", ""));
         int elapsed = parseFolder(album->getResourceId(), &music);
         qInfo() << "PERFO" << album->getSystemName() << album->getChildrenSize() << QTime(0, 0).addMSecs(elapsed).toString("hh:mm:ss.zzz");
-        ANALYZER_DISPLAY_RESULTS
+        ANALYZER_DISPLAY_RESULTS;
     }
 
-    ANALYZER_RESET
+    ANALYZER_RESET;
     int max = 0;
     for(int idxArtist=0;idxArtist<music.getChildrenSize();idxArtist++)
     {
@@ -192,7 +192,7 @@ void tst_dlnafolder::testCase_PerformanceAllTracks()
             }
         }
     }
-    ANALYZER_DISPLAY_RESULTS
+    ANALYZER_DISPLAY_RESULTS;
 
     qInfo() << "DURATION" << QTime(0, 0).addMSecs(timer.elapsed()).toString("hh:mm:ss.zzz");
 
