@@ -65,7 +65,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
 
     QVERIFY2(video->metaDataFormat() == "mov,mp4,m4a,3gp,3g2,mj2", QString("%1").arg(video->metaDataFormat()).toUtf8());
     QVERIFY2(video->mimeType() == "video/mpeg", QString("%1").arg(video->mimeType()).toUtf8());
-    QVERIFY2(video->sourceSize() == 15960867, QString("%1").arg(video->sourceSize()).toUtf8());
+    QVERIFY2(video->sourceSize() == 15439169, QString("%1").arg(video->sourceSize()).toUtf8());
 
 //    QHash<QString, double> result = video->volumeInfo(-1);
 //    QVERIFY2(result.keys().size() == 4, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
@@ -111,7 +111,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD()
 
     QVERIFY2(video->metaDataFormat() == "mov,mp4,m4a,3gp,3g2,mj2", QString("%1").arg(video->metaDataFormat()).toUtf8());
     QVERIFY2(video->mimeType() == "video/mpeg", QString("%1").arg(video->mimeType()).toUtf8());
-    QVERIFY2(video->sourceSize() == 38553535, QString("%1").arg(video->sourceSize()).toUtf8());
+    QVERIFY2(video->sourceSize() == 30978994, QString("%1").arg(video->sourceSize()).toUtf8());
 
 
     qWarning() << "test done in" << timer.elapsed() << "ms.";

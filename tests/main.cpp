@@ -11,7 +11,7 @@
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
-    app.setAttribute(Qt::AA_Use96Dpi, true);
+    QApplication::setAttribute(Qt::AA_Use96Dpi, true);
 
     {
         tst_dlnarootfolder test;
@@ -41,5 +41,5 @@ int main(int argc, char *argv[])
     {
         tst_dlnavideoitem test;
         QTest::qExec(&test, argc, argv);
-    }    
+    }
 }
