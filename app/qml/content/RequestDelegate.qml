@@ -34,7 +34,7 @@ Item {
 
         Label {
             id: dateLabel
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: date
             width: contentWidth
             Layout.minimumWidth: contentWidth
@@ -44,7 +44,7 @@ Item {
         }
 
         Label {
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: streaming_status ? streaming_status : status
             width: 150
             Layout.preferredWidth: width
@@ -53,7 +53,7 @@ Item {
         }
 
         Label {
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: network_status
             width: 500
             Layout.preferredWidth: width
@@ -62,7 +62,7 @@ Item {
         }
 
         Label {
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: duration
             width: contentWidth
             Layout.preferredWidth: width
@@ -72,7 +72,7 @@ Item {
         }
 
         Label {
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: peerAddress
             width: contentWidth
             Layout.preferredWidth: width
@@ -81,7 +81,7 @@ Item {
         }
 
         Label {
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: host
             width: 100
             Layout.preferredWidth: width
@@ -90,7 +90,7 @@ Item {
         }
 
         Label {
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: operation
             width: 80
             Layout.preferredWidth: width
@@ -99,7 +99,7 @@ Item {
         }
 
         Label {
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: url
             width: 250
             Layout.preferredWidth: width

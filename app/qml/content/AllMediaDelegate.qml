@@ -22,7 +22,7 @@ ListViewDelegate {
             spacing: 5
 
             Image {
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 fillMode: Image.PreserveAspectFit
                 sourceSize.height: delegate.height-10
                 source: "image://media/" + picture
@@ -33,13 +33,13 @@ ListViewDelegate {
             Text {
                 text: mediaId
                 Layout.preferredWidth: 50
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 elide: Text.ElideRight
                 clip: true
             }
 
             Image {
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 fillMode: Image.PreserveAspectFit
                 sourceSize.height: parent.height-10
                 source: "image://format/%1/%2".arg(mediaType).arg(format)
@@ -50,7 +50,7 @@ ListViewDelegate {
             Text {
                 text: format
                 Layout.preferredWidth: 50
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 elide: Text.ElideRight
                 clip: true
             }
@@ -59,7 +59,7 @@ ListViewDelegate {
                 text: title
                 placeholderText: "unknown title"
                 Layout.preferredWidth: 400
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 onEditingFinished: {
                     title = text
                     focus = false
@@ -69,7 +69,7 @@ ListViewDelegate {
 
             ModelEditableComboBox {
                 Layout.preferredWidth: 200
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 editable: true
                 clip: true
 
@@ -107,7 +107,7 @@ ListViewDelegate {
 
             ModelEditableComboBox {
                 Layout.preferredWidth: 200
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 editable: true
                 clip: true
 
@@ -146,7 +146,7 @@ ListViewDelegate {
 
             ModelEditableComboBox {
                 Layout.preferredWidth: 150
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 editable: true
                 clip: true
 
@@ -186,7 +186,7 @@ ListViewDelegate {
             Text {
                 text: filename
                 Layout.preferredWidth: 200
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 elide: Text.ElideRight
                 clip: true
             }

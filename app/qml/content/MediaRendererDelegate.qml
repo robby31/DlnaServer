@@ -43,7 +43,7 @@ Item {
 
         Label {
             id: hostLabel
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: networkAddress
             width: 150
             Layout.preferredWidth: width
@@ -52,7 +52,7 @@ Item {
         }
 
         Label {
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: name
             Layout.fillWidth: true
             elide: Text.ElideRight
@@ -60,7 +60,7 @@ Item {
         }
 
         Label {
-            anchors { verticalCenter: parent.verticalCenter }
+            Layout.alignment: Qt.AlignVCenter
             text: status
             width: (parent.width-320)/2
             Layout.preferredWidth: width

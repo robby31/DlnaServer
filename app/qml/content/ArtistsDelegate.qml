@@ -44,7 +44,7 @@ ListViewDelegate {
             Text {
                 text: artistId
                 Layout.preferredWidth: 50
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 elide: Text.ElideRight
                 clip: true
             }
@@ -53,7 +53,7 @@ ListViewDelegate {
                 text: name
                 placeholderText: "unknown name"
                 Layout.preferredWidth: 200
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 onEditingFinished: {
                     name = text
                     focus = false
@@ -65,7 +65,7 @@ ListViewDelegate {
                 text: sortname
                 placeholderText: "unknown sortname"
                 Layout.preferredWidth: 200
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 onEditingFinished: {
                     sortname = text
                     focus = false
@@ -77,7 +77,7 @@ ListViewDelegate {
                 text: mediaCount + " medias"
                 color: "blue"
                 Layout.preferredWidth: 200
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 elide: Text.ElideRight
                 clip: true
             }
@@ -86,7 +86,7 @@ ListViewDelegate {
                 text: albumCount + " albums"
                 color: "blue"
                 Layout.preferredWidth: 200
-                anchors.verticalCenter: parent.verticalCenter
+                Layout.alignment: Qt.AlignVCenter
                 elide: Text.ElideRight
                 clip: true
             }
