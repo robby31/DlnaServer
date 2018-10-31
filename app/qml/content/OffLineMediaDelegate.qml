@@ -46,19 +46,17 @@ ListViewDelegate {
                 clip: true
             }
 
-            TextField {
+            ModelEditableText {
                 id: textFilename
-                text: model["filename"]
                 width: (parent.width-textId.width)/2
                 anchors.verticalCenter: parent.verticalCenter
-                selectByMouse: true
 
-                background: Rectangle {
-                    color: textFilename.focus ? "white" : "transparent"
-                    border.color: textFilename.focus ? "#21be2b" : "transparent"
-                }
+                textRole: "filename"
+                placeholderText: "unknown filename"
 
-                onAccepted: _app.updateFilenameMedia(id, text)
+                onEditingFinished: _app.updateFilenameMedia(id, text)
+
+                clip: true
             }
 
             Text {

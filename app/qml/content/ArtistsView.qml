@@ -47,7 +47,7 @@ Rectangle {
                     id: textFilter
                     Layout.preferredWidth: 400
                     Layout.preferredHeight: 30
-                    anchors.verticalCenter: parent.verticalCenter
+                    Layout.alignment: Qt.AlignVCenter
                     clip: true
                     placeholderText: "Filtering"
                     selectByMouse: true
@@ -60,7 +60,7 @@ Rectangle {
                 }
 
                 Row {
-                    anchors.verticalCenter: parent.verticalCenter
+                    Layout.alignment: Qt.AlignVCenter
                     Layout.fillWidth: true
                     layoutDirection: Qt.RightToLeft
                     spacing: 5
