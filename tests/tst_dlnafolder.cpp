@@ -169,7 +169,7 @@ void tst_dlnafolder::testCase_PerformanceAllTracks()
 
     {
         ANALYZER_RESET;
-        QScopedPointer<DlnaResource> album(music.search("0$1$27$2", ""));
+        QScopedPointer<DlnaResource> album(music.search("0$1$27$2", "", true));
         int elapsed = parseFolder(album->getResourceId(), &music);
         qInfo() << "PERFO" << album->getSystemName() << album->getChildrenSize() << QTime(0, 0).addMSecs(elapsed).toString("hh:mm:ss.zzz");
         ANALYZER_DISPLAY_RESULTS;

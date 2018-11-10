@@ -90,19 +90,19 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QVERIFY(music.isFolder() == true);
 
     DlnaResource* found;
-    found = rootFolder.search("0", "");
+    found = rootFolder.search("0", "", true);
     QVERIFY(found == &rootFolder);
 
-    found = rootFolder.search("2", "");
+    found = rootFolder.search("2", "", true);
     QVERIFY(found == Q_NULLPTR);
 
-    found = rootFolder.search("0$2", "");
+    found = rootFolder.search("0$2", "", true);
     QVERIFY(found == &music);
 
-    found = rootFolder.search("0$0", "");
+    found = rootFolder.search("0$0", "", true);
     QVERIFY(found == Q_NULLPTR);
 
-    found = rootFolder.search("0$2$1$1", "");
+    found = rootFolder.search("0$2$1$1", "", true);
     QVERIFY(found != Q_NULLPTR);
 
     QList<DlnaResource*> list_found;
@@ -141,7 +141,7 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QVERIFY(rootFolder.getChild(0) != Q_NULLPTR);
     QVERIFY(rootFolder.getChildrenSize() == 3);
 
-    found = rootFolder.search("0$3", "");
+    found = rootFolder.search("0$3", "", true);
     QVERIFY(found != Q_NULLPTR);
     if (found)
         QVERIFY2(found->getSystemName() == "/Users/doudou/Movies", found->getSystemName().toUtf8());
