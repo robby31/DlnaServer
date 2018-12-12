@@ -78,6 +78,12 @@ int tst_dlnafolder::parseFolder(const QString& resourceId, DlnaResource *resourc
             auto item = qobject_cast<DlnaItem*>(child);
             if (item)
             {
+                item->setHostUrl(QUrl("http://host:600"));
+
+                QStringList sinkProtocol;
+                sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
+                item->setSinkProtocol(sinkProtocol);
+
                 item->getStringContentDirectory(QStringList("*"));
                 Device * stream = item->getStream();
                 delete stream;   /* remove stream which is destroyed with deletelater */
@@ -85,7 +91,7 @@ int tst_dlnafolder::parseFolder(const QString& resourceId, DlnaResource *resourc
 
         }
 
-        int tmp = timer.elapsed();
+        qint64 tmp = timer.elapsed();
         if (tmp > elapsed) {
             elapsed = tmp;
         }
