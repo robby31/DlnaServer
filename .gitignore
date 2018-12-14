@@ -12,3 +12,4 @@ DLNA_server.pro.user
 .DS_Store
 *.database-shm
 *.database-wal
+*.8-pre1
