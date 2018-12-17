@@ -503,8 +503,8 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo()
 
                 QHash<QString, double> result = movie->volumeInfo(-1);
                 QVERIFY2(result.size() == 2, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
-                QVERIFY2(result["mean_volume"] == -14.1, QString("%1").arg(result["mean_volume"]).toUtf8());
-                QVERIFY2(result["max_volume"] == -0.6, QString("%1").arg(result["max_volume"]).toUtf8());
+                QVERIFY2(QVariant::fromValue(result["mean_volume"]).toString() == "-14.1", QString("%1").arg(result["mean_volume"]).toUtf8());
+                QVERIFY2(QVariant::fromValue(result["max_volume"]).toString() == "-0.6", QString("%1").arg(result["max_volume"]).toUtf8());
 
                 QVERIFY(movie->toTranscode() == true);
                 QVERIFY2(movie->metaDataFormat() == "mov,mp4,m4a,3gp,3g2,mj2", QString("%1").arg(movie->metaDataFormat()).toUtf8());

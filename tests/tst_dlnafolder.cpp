@@ -62,10 +62,10 @@ void tst_dlnafolder::testCase_DlnaFolder()
     QVERIFY(list_found.isEmpty() == true);
 }
 
-int tst_dlnafolder::parseFolder(const QString& resourceId, DlnaResource *resource)
+qint64 tst_dlnafolder::parseFolder(const QString& resourceId, DlnaResource *resource)
 {
     QElapsedTimer timer;
-    int elapsed = 0;
+    qint64 elapsed = 0;
 
     QList<DlnaResource*> l_child;
     for (int i = 0; i<3; i++)
@@ -116,7 +116,7 @@ void tst_dlnafolder::testCase_PerformanceAllArtists()
     music.setId("0$1");
     QVERIFY(music.getId() == "0$1");
 
-    int duration = parseFolder("0$1", &music);
+    qint64 duration = parseFolder("0$1", &music);
     qInfo() << "PERFO" << duration << music.getSystemName() << music.getChildrenSize() << "children";
     QVERIFY2(duration < 2500, QString("Parse all artists in %1 ms").arg(duration).toUtf8());
     QVERIFY(music.getChildrenSize() == 610);
@@ -138,11 +138,11 @@ void tst_dlnafolder::testCase_PerformanceAllAlbums()
     music.setId("0$1");
     QVERIFY(music.getId() == "0$1");
 
-    int max = 0;
+    qint64 max = 0;
     for(int index=0;index<music.getChildrenSize();index++)
     {
         QScopedPointer<DlnaResource> artist(music.getChild(index));
-        int elapsed;
+        qint64 elapsed;
         elapsed = parseFolder(artist->getResourceId(), &music);
         if (elapsed > max)
         {
@@ -176,20 +176,20 @@ void tst_dlnafolder::testCase_PerformanceAllTracks()
     {
         ANALYZER_RESET;
         QScopedPointer<DlnaResource> album(music.search("0$1$27$2", "", true));
-        int elapsed = parseFolder(album->getResourceId(), &music);
+        qint64 elapsed = parseFolder(album->getResourceId(), &music);
         qInfo() << "PERFO" << album->getSystemName() << album->getChildrenSize() << QTime(0, 0).addMSecs(elapsed).toString("hh:mm:ss.zzz");
         ANALYZER_DISPLAY_RESULTS;
     }
 
     ANALYZER_RESET;
-    int max = 0;
+    qint64 max = 0;
     for(int idxArtist=0;idxArtist<music.getChildrenSize();idxArtist++)
     {
         QScopedPointer<DlnaResource> artist(music.getChild(idxArtist));
         for(int idxAlbum=0;idxAlbum<artist->getChildrenSize();idxAlbum++)
         {
             QScopedPointer<DlnaResource> album(artist->getChild(idxAlbum));
-            int elapsed;
+            qint64 elapsed;
             elapsed = parseFolder(album->getResourceId(), &music);
             if (elapsed > max)
             {
