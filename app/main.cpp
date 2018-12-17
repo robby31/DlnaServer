@@ -8,7 +8,7 @@ int main(int argc, char** argv)
     // load the qml file describing the application
     app.loadMainQml(QUrl("qrc:/qml/main.qml"));
 
-    int ret = app.exec();
+    int ret = MyApplication::exec();
 
     qDebug() << QSqlDatabase::connectionNames();
 

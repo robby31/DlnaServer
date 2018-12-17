@@ -81,8 +81,6 @@ QVariant ServerItem::data(int role) const
         return QVariant::Invalid;
     }
     }
-
-    return QVariant::Invalid;
 }
 
 bool ServerItem::setData(const QVariant &value, const int &role)
