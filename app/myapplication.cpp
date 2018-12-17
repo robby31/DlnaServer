@@ -150,8 +150,6 @@ void MyApplication::setRequestsModel(ListModel *model)
 
     m_requestsModel = model;
 
-//    connect(&server, SIGNAL(deleteRequest(Request*)), m_requestsModel, SLOT(requestDestroyed(Request*)));
-
     emit requestsModelChanged();
 }
 
@@ -349,6 +347,7 @@ void MyApplication::newRequest(HttpRequest *request)
 {
     qDebug() << "new request" << request;
 
+    connect(request, &HttpRequest::itemChanged, this, &MyApplication::requestDataChanged);
     request->setParent(m_requestsModel);
     m_requestsModel->insertRow(0, request);
 }
@@ -400,4 +399,22 @@ void MyApplication::setffmpegVersion(const QString &version)
 {
     m_ffmpegVersion = version;
     emit ffmpegVersionChanged();
+}
+
+void MyApplication::requestDataChanged(const QVector<int> &roles)
+{
+    auto request = qobject_cast<HttpRequest*>(sender());
+
+    if (request && roles.contains(HttpRequest::statusRole))
+    {
+        QString status = request->data(HttpRequest::statusRole).toString();
+        if (status == "OK")
+        {
+            QModelIndex index = m_requestsModel->indexFromItem(request);
+            if (index.isValid())
+            {
+                m_requestsModel->removeRow(index.row());
+            }
+        }
+    }
 }

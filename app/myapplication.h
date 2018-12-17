@@ -105,6 +105,7 @@ private slots:
 
     void newRootDevice(UpnpRootDevice *device);
     void newRequest(HttpRequest *request);
+    void requestDataChanged(const QVector<int> &roles);
 
     void servingMediaFinished(const QString &host, const QString &filename, const int &status);
 
