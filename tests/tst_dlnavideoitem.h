@@ -10,7 +10,7 @@ class tst_dlnavideoitem : public QObject
 {
     Q_OBJECT
 public:
-    explicit tst_dlnavideoitem(QObject *parent = 0);
+    explicit tst_dlnavideoitem(QObject *parent = Q_NULLPTR);
 
 signals:
     void startTranscoding();

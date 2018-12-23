@@ -38,18 +38,18 @@ void tst_dlnavideoitem::LogMessage(const QString &message)
 
 void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
 
-    DlnaVideoFile movie("/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi");
+    DlnaVideoFile movie("/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.Episode.III.FRENCH.Bdrip.Xvid.AC3-FQT.mp4");
     movie.setTranscodeFormat(H264_AAC);
 
     QVERIFY(movie.toTranscode()==true);
     QVERIFY(movie.format() == H264_AAC);
-    QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.EpisodeIII.La.Revanche.Des.S.avi");
+    QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.Episode.III.FRENCH.Bdrip.Xvid.AC3-FQT.mp4");
     QVERIFY2(movie.bitrate()==2500000, QString("%1").arg(movie.bitrate()).toUtf8().constData());
-    QVERIFY2(movie.getLengthInMilliSeconds()==8090173, QString("%1").arg(movie.getLengthInMilliSeconds()).toUtf8().constData());
-    QVERIFY2(movie.size()==2793637864, QString("%1").arg(movie.size()).toUtf8().constData());
-    QVERIFY2(movie.framerate() == "23.976", movie.framerate().toUtf8());
+    QVERIFY2(movie.getLengthInMilliSeconds()==8405880, QString("%1").arg(movie.getLengthInMilliSeconds()).toUtf8().constData());
+    QVERIFY2(movie.size()==2902655437, QString("%1").arg(movie.size()).toUtf8().constData());
+    QVERIFY2(movie.framerate() == "25.000", movie.framerate().toUtf8());
 
-    QVERIFY2(movie.audioLanguages() == QStringList() << "", movie.audioLanguages().join(',').toUtf8());
+    QVERIFY2(movie.audioLanguages() == QStringList() << "und", movie.audioLanguages().join(',').toUtf8());
     QVERIFY2(movie.subtitleLanguages().isEmpty() == true, movie.audioLanguages().join(',').toUtf8());
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
@@ -89,7 +89,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     QVERIFY(transcodeProcess->exitCode() == 0);
     qInfo() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
     QVERIFY(movie.size() > transcodedSize);
-    QVERIFY2(transcodedSize == 2759532432, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
+    QVERIFY2(transcodedSize == 2878358584, QString("transcoded size = %1").arg(transcodedSize).toUtf8());
 }
 
 void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {

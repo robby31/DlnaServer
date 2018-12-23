@@ -53,7 +53,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 17023, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 17031, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -81,7 +81,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1782, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 1790, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -95,7 +95,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbums()
         if (query.last())
             nbAlbums = query.at() + 1;
     }
-    QVERIFY2(nbAlbums == 1361, QString("%1").arg(nbAlbums).toUtf8().constData());
+    QVERIFY2(nbAlbums == 1365, QString("%1").arg(nbAlbums).toUtf8().constData());
     db.close();
 }
 
@@ -123,7 +123,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithAlbum()
         if (query.last())
             nbTracksWithAlbum = query.at() + 1;
     }
-    QVERIFY2(nbTracksWithAlbum == 14604, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
+    QVERIFY2(nbTracksWithAlbum == 14622, QString("%1").arg(nbTracksWithAlbum).toUtf8().constData());
     db.close();
 }
 

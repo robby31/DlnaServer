@@ -415,7 +415,7 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo()
 
         auto artists = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(0));
         QVERIFY2(artists->getDisplayName() == "Artist", artists->getDisplayName().toUtf8().constData());
-        QVERIFY2(artists->getChildrenSize() == 100, QString("%1").arg(artists->getChildrenSize()).toUtf8().constData());
+        QVERIFY2(artists->getChildrenSize() == 103, QString("%1").arg(artists->getChildrenSize()).toUtf8().constData());
 
         DlnaCachedFolder *artist = Q_NULLPTR;
         for (int index=0;index<artists->getChildrenSize();++index)
