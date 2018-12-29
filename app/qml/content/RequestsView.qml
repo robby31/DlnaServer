@@ -16,10 +16,18 @@ Page {
     onActionClicked: {
         if (name == "Quit")
             quit()
+        else if (name == "Clear")
+            _app.clearRequests()
     }
 
     ListModel {
         id: pageActions
+
+        ListElement {
+            name: "Clear"
+            description: "clear requests"
+            icon: "qrc:///images/clear.png"
+        }
 
         ListElement {
             name: "Quit"

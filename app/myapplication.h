@@ -81,6 +81,8 @@ signals:
 
     void updateMediaFromId(const int &id, const QHash<QString, QVariant> &data);
 
+public slots:
+    void clearRequests();
 
 private slots:
     void initializeDatabase();

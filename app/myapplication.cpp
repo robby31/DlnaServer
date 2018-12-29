@@ -418,3 +418,26 @@ void MyApplication::requestDataChanged(const QVector<int> &roles)
         }
     }
 }
+
+void MyApplication::clearRequests()
+{
+    int index = 0;
+    while (index<m_requestsModel->rowCount())
+    {
+        auto request = qobject_cast<HttpRequest*>(m_requestsModel->at(index));
+        if (request)
+        {
+            if (request->isClosed())
+            {
+                QModelIndex index = m_requestsModel->indexFromItem(request);
+                if (index.isValid())
+                {
+                    m_requestsModel->removeRow(index.row());
+                    continue;
+                }
+            }
+        }
+
+        ++index;
+    }
+}
