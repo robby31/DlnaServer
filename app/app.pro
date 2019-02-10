@@ -9,8 +9,8 @@ CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
 LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
 
-INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/Youtube
-LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(youtube)
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/Streaming
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(streaming)
 
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/UpnpLibrary
 LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(UpnpLibrary)

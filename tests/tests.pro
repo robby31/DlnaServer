@@ -25,8 +25,8 @@ LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(analyzer)
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/QmlApplication
 LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(QmlApplication)
 
-INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/Youtube
-LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(youtube)
+INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/Streaming
+LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(streaming)
 
 INCLUDEPATH += $$(MYLIBRARY)/$$QT_VERSION/include/UpnpLibrary
 LIBS += -L$$(MYLIBRARY)/$$QT_VERSION -l$$qtLibraryTarget(UpnpLibrary)
@@ -44,7 +44,8 @@ SOURCES += \
     tst_dlnamusictrack.cpp \
     tst_dlnavideoitem.cpp \
     tst_dlnacachedresources.cpp \
-    tst_dlnayoutubevideo.cpp
+    tst_dlnayoutubevideo.cpp \
+    tst_dlnanetworkvideo.cpp
 
 HEADERS += \
     tst_dlnarootfolder.h \
@@ -52,4 +53,5 @@ HEADERS += \
     tst_dlnamusictrack.h \
     tst_dlnavideoitem.h \
     tst_dlnacachedresources.h \
-    tst_dlnayoutubevideo.h
+    tst_dlnayoutubevideo.h \
+    tst_dlnanetworkvideo.h

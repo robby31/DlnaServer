@@ -1,5 +1,6 @@
 #include "myapplication.h"
 #include "mysqldatabase.h"
+#include "decryptyoutubesignature.h"
 
 int main(int argc, char** argv)
 {
@@ -11,6 +12,8 @@ int main(int argc, char** argv)
     int ret = MyApplication::exec();
 
     qDebug() << QSqlDatabase::connectionNames();
+
+    DecryptYoutubeSignature::print_cache();
 
     return ret;
 }

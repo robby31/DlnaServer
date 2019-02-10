@@ -32,6 +32,8 @@ QVariant DebugItem::counterValue() const
         return QVariant(DlnaVideoFile::objectCounter);
     if (m_name == "DlnaYoutubeVideo")
         return QVariant(DlnaYouTubeVideo::objectCounter);
+    if (m_name == "DlnaNetworkVideo")
+        return QVariant(DlnaNetworkVideo::objectCounter);
 
     return QVariant("");
 }

@@ -12,6 +12,7 @@
 #include "dlna/dlnarootfolder.h"
 #include "dlna/dlnavideofile.h"
 #include "dlna/dlnayoutubevideo.h"
+#include "dlna/dlnanetworkvideo.h"
 
 class DebugItem : public ListItem
 {

@@ -89,24 +89,25 @@ Page {
 
         RowLayout {
             spacing: 4
-            Layout.preferredHeight: 30
+            Layout.preferredHeight: 40
             clip: true
 
             TextField {
                 id: link
-                Layout.preferredHeight: 20
+                Layout.preferredHeight: 30
                 Layout.fillWidth: true
                 placeholderText: "Network Link, example: https://www.youtube.com/watch?v=rWy30tJdyAM"
+                selectByMouse: true
             }
 
             Button {
-                Layout.preferredHeight: 20
+                Layout.preferredHeight: 30
                 text: "Add link"
                 onClicked: _app.addNetworkLink(link.text)
             }
 
             Button {
-                Layout.preferredHeight: 20
+                Layout.preferredHeight: 30
                 text: "Check"
                 onClicked: _app.startCheckNetworkLink()
             }
