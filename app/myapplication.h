@@ -30,6 +30,8 @@ class MyApplication : public Application
     Q_PROPERTY(QUrl ffmpegFolder READ ffmpegFolder WRITE setFfmpegFolder NOTIFY ffmpegFolderChanged)
     Q_PROPERTY(QString ffmpegVersion READ ffmpegVersion WRITE setffmpegVersion NOTIFY ffmpegVersionChanged)
 
+    Q_PROPERTY(bool auto_remove_request READ autoRemoveRequest WRITE setAutoRemoveRequest NOTIFY autoRemoveRequestChanged)
+
 public:
     explicit MyApplication(int &argc, char **argv);
 
@@ -54,6 +56,9 @@ public:
     // Server port
     static const int SERVERPORT;
 
+    bool autoRemoveRequest() const;
+    void setAutoRemoveRequest(const bool &flag);
+
 private:
     QStringList sharedFolderModel()      const { return m_sharedFolderModel; }
     ListModel *requestsModel()           const { return m_requestsModel;     }
@@ -73,6 +78,7 @@ signals:
     void checkNetworkLinkModelChanged();
     void ffmpegFolderChanged();
     void ffmpegVersionChanged();
+    void autoRemoveRequestChanged();
 
     void scanFolder(QString path);
     void addFolder(QString folder);
@@ -134,6 +140,8 @@ private:
 
     QUrl m_ffmpegFolder;
     QString m_ffmpegVersion;
+
+    bool m_auto_remove_request = true;
 };
 
 #endif // MYAPPLICATION_H

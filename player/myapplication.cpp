@@ -10,7 +10,7 @@ MyApplication::MyApplication(int &argc, char **argv):
 
     addController("homePageController", &m_controller);
 
-    m_worker = new ApplicationWorker(&netManager);
+    m_worker = new ApplicationWorker();
     addWorker(&m_controller, m_worker);
 
     m_upnp.setNetworkManager(&netManager);

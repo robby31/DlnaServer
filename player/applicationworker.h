@@ -9,10 +9,8 @@ class ApplicationWorker : public Worker
     Q_OBJECT
 
 public:
-    explicit ApplicationWorker(QNetworkAccessManager *nam, QObject *parent = 0);
+    explicit ApplicationWorker(QObject *parent = 0);
 
-private:
-    QNetworkAccessManager *m_nam;
 };
 
 #endif // APPLICATIONWORKER_H

@@ -12,7 +12,7 @@ class ApplicationWorker : public Worker
     Q_OBJECT
 
 public:
-    explicit ApplicationWorker(QNetworkAccessManager *nam, QObject *parent = Q_NULLPTR);
+    explicit ApplicationWorker(QObject *parent = Q_NULLPTR);
 
 signals:
     // signals used by checkNetworkLink
@@ -23,9 +23,6 @@ private slots:
     void scanFolder(const QString &path);
     void checkNetworkLink();
     void scanVolumeInfo();
-
-private:
-    QNetworkAccessManager *m_nam;
 };
 
 #endif // APPLICATIONWORKER_H

@@ -25,7 +25,7 @@ MyApplication::MyApplication(int &argc, char **argv):
 
     thread()->setObjectName("QML APPLICATION THREAD");
 
-    m_worker = new ApplicationWorker(&netManager);
+    m_worker = new ApplicationWorker();
     addWorker(&m_controller, m_worker);
 
     connect(this, SIGNAL(scanFolder(QString)), m_worker, SLOT(scanFolder(QString)));
@@ -58,6 +58,9 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_debugModel->appendRow(item);
 
     item = new DebugItem("DlnaYoutubeVideo", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("DlnaNetworkVideo", m_debugModel);
     m_debugModel->appendRow(item);
 
     item = new DebugItem("Device", m_debugModel);
@@ -405,7 +408,7 @@ void MyApplication::requestDataChanged(const QVector<int> &roles)
 {
     auto request = qobject_cast<HttpRequest*>(sender());
 
-    if (request && roles.contains(HttpRequest::statusRole))
+    if (autoRemoveRequest() && request && roles.contains(HttpRequest::statusRole))
     {
         QString status = request->data(HttpRequest::statusRole).toString();
         if (status == "OK")
@@ -440,4 +443,15 @@ void MyApplication::clearRequests()
 
         ++index;
     }
+}
+
+bool MyApplication::autoRemoveRequest() const
+{
+    return m_auto_remove_request;
+}
+
+void MyApplication::setAutoRemoveRequest(const bool &flag)
+{
+    m_auto_remove_request = flag;
+    emit autoRemoveRequestChanged();
 }
