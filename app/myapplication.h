@@ -124,8 +124,6 @@ private:
     ApplicationController m_controller;
     ApplicationWorker *m_worker;
 
-    QNetworkAccessManager netManager;
-
     UpnpControlPoint m_upnp;
     UpnpRootDevice *m_localrootdevice;
 

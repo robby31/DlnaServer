@@ -27,6 +27,7 @@ MyApplication::MyApplication(int &argc, char **argv):
 
     m_worker = new ApplicationWorker();
     addWorker(&m_controller, m_worker);
+    m_worker->initialize();
 
     connect(this, SIGNAL(scanFolder(QString)), m_worker, SLOT(scanFolder(QString)));
 
@@ -45,13 +46,31 @@ MyApplication::MyApplication(int &argc, char **argv):
     item = new DebugItem("DlnaResource", m_debugModel);
     m_debugModel->appendRow(item);
 
-    item = new DebugItem("DlnaFolder", m_debugModel);
+    item = new DebugItem("  DlnaStorageFolder", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("    DlnaCachedFolder", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("    DlnaCachedFolderMetaData", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("    DlnaCachedGroupedFolderMetaData", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("    DlnaCachedPlaylists", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("    DlnaFolder", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("    DlnaNetworkPlaylist", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("    DlnaRootFolder", m_debugModel);
     m_debugModel->appendRow(item);
 
     item = new DebugItem("DlnaMusicTrackFile", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("DlnaRootFolder", m_debugModel);
     m_debugModel->appendRow(item);
 
     item = new DebugItem("DlnaVideoFile", m_debugModel);
@@ -61,12 +80,11 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_debugModel->appendRow(item);
 
     item = new DebugItem("DlnaNetworkVideo", m_debugModel);
-    m_debugModel->appendRow(item);
+    m_debugModel->appendRow(item);    
 
     item = new DebugItem("Device", m_debugModel);
     m_debugModel->appendRow(item);
 
-    m_upnp.setNetworkManager(&netManager);
     connect(&m_upnp, SIGNAL(newRootDevice(UpnpRootDevice*)), this, SLOT(newRootDevice(UpnpRootDevice*)));
 
     m_upnp.startDiscover();
@@ -92,7 +110,7 @@ void MyApplication::initializeDatabase()
         settings.setValue("databasePathName", db.databaseName());
     }
 
-    MediaServer *device = new MediaServer(&netManager, m_upnp.macAddress(), m_upnp.host().toString(), SERVERPORT, m_renderersModel, this);
+    MediaServer *device = new MediaServer(m_upnp.macAddress(), m_upnp.host().toString(), SERVERPORT, m_renderersModel, this);
     connect(device, SIGNAL(serverStarted()), this, SLOT(serverStarted()));
     connect(device, SIGNAL(serverError(QString)), this, SLOT(serverError(QString)));
     connect(device, SIGNAL(newRequest(HttpRequest*)), this, SLOT(newRequest(HttpRequest*)));

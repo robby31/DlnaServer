@@ -3,7 +3,7 @@
 ApplicationWorker::ApplicationWorker(QObject *parent):
     Worker(parent)
 {
-
+    connect(this, &ApplicationWorker::initializeSignal, this, &ApplicationWorker::initialisation);
 }
 
 void ApplicationWorker::scanFolder(const QString &path)
@@ -32,8 +32,6 @@ void ApplicationWorker::scanFolder(const QString &path)
 void ApplicationWorker::checkNetworkLink()
 {
     emit processStarted();
-
-    QNetworkAccessManager manager;
 
     qDebug() << "start check network links.";
 
@@ -67,7 +65,6 @@ void ApplicationWorker::checkNetworkLink()
             bool isReachable = query.value("is_reachable").toBool();
 
             DlnaNetworkVideo movie;
-            movie.setNetworkAccessManager(&manager);
 
             movie.setUrl(url);
             bool res = movie.waitUrl(30000);
@@ -124,8 +121,6 @@ void ApplicationWorker::scanVolumeInfo()
     emit processStarted();
     qDebug() << "start volume information scan";
 
-    QNetworkAccessManager manager;
-
     // initialize database in current Thread
     QSqlDatabase database = GET_DATABASE("MEDIA_DATABASE");
 
@@ -160,7 +155,7 @@ void ApplicationWorker::scanVolumeInfo()
                             if (!library.setVolumeInfo(idMedia, track.volumeInfo()))
                                 qCritical() << "Unable to set volume information for" << filename;
                         }
-                        else if (mime_type.startsWith("video/")  && !filename.startsWith("http"))
+                        else if (mime_type.startsWith("video/")  && library.isLocalUrl(filename))
                         {
                             qDebug() << "Analyze local video" << filename;
 
@@ -168,12 +163,11 @@ void ApplicationWorker::scanVolumeInfo()
                             if (!library.setVolumeInfo(idMedia, movie.volumeInfo(-1)))
                                 qCritical() << "Unable to set volume information for" << filename;
                         }
-                        else if (mime_type.startsWith("video/") && filename.startsWith("http"))
+                        else if (mime_type.startsWith("video/") && !library.isLocalUrl(filename))
                         {
                             qDebug() << "Analyze internet video" << filename;
 
                             DlnaNetworkVideo video;
-                            video.setNetworkAccessManager(&manager);
                             video.setUrl(filename);
                             bool res = video.waitUrl(30000);
 
@@ -207,4 +201,14 @@ void ApplicationWorker::scanVolumeInfo()
         qCritical() << "database is not valid, unable to scan volume.";
         emit errorDuringProcess( "database is not valid, unable to scan volume.");
     }
+}
+
+void ApplicationWorker::initialize()
+{
+    emit initializeSignal();
+}
+
+void ApplicationWorker::initialisation()
+{
+    MyNetwork::manager();
 }

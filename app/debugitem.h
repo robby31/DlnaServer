@@ -13,6 +13,12 @@
 #include "dlna/dlnavideofile.h"
 #include "dlna/dlnayoutubevideo.h"
 #include "dlna/dlnanetworkvideo.h"
+#include "dlna/dlnanetworkplaylist.h"
+#include "dlna/dlnastoragefolder.h"
+#include "dlna/cached/dlnacachedfolder.h"
+#include "dlna/cached/dlnacachedfoldermetadata.h"
+#include "dlna/cached/dlnacachedgroupedfoldermetadata.h"
+#include "dlna/cached/dlnacachedplaylists.h"
 
 class DebugItem : public ListItem
 {

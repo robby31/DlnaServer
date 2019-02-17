@@ -30,7 +30,6 @@ private:
     ApplicationController m_controller;
     ApplicationWorker *m_worker = Q_NULLPTR;
 
-    QNetworkAccessManager netManager;
     UpnpControlPoint m_upnp;
 
     // Upnp MediaServer listmodel

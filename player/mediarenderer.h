@@ -3,13 +3,14 @@
 
 #include "upnprootdevice.h"
 #include "Services/serviceconnectionmanager.h"
+#include "mynetwork.h"
 
 class MediaRenderer : public UpnpRootDevice
 {
     Q_OBJECT
 
 public:
-    explicit MediaRenderer(QNetworkAccessManager *nam, const QString &macAddress, const QString& host, int port, QObject *parent = Q_NULLPTR);
+    explicit MediaRenderer(const QString &macAddress, const QString& host, int port, QObject *parent = Q_NULLPTR);
 
 private:
     void initDescription();

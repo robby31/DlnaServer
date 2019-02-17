@@ -45,7 +45,8 @@ SOURCES += \
     tst_dlnavideoitem.cpp \
     tst_dlnacachedresources.cpp \
     tst_dlnayoutubevideo.cpp \
-    tst_dlnanetworkvideo.cpp
+    tst_dlnanetworkvideo.cpp \
+    dlna_check_functions.cpp
 
 HEADERS += \
     tst_dlnarootfolder.h \
@@ -54,4 +55,5 @@ HEADERS += \
     tst_dlnavideoitem.h \
     tst_dlnacachedresources.h \
     tst_dlnayoutubevideo.h \
-    tst_dlnanetworkvideo.h
+    tst_dlnanetworkvideo.h \
+    dlna_check_functions.h

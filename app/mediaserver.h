@@ -4,13 +4,14 @@
 #include "upnprootdevice.h"
 #include "Services/serviceconnectionmanager.h"
 #include "Services/servicecontentdirectory.h"
+#include "mynetwork.h"
 
 class MediaServer : public UpnpRootDevice
 {
     Q_OBJECT
 
 public:
-    explicit MediaServer(QNetworkAccessManager *nam, const QString& macAddress, const QString &host, int port, MediaRendererModel *renderersModel, QObject *parent = Q_NULLPTR);
+    explicit MediaServer(const QString& macAddress, const QString &host, int port, MediaRendererModel *renderersModel, QObject *parent = Q_NULLPTR);
 
     void replyGetIcon(HttpRequest *request) Q_DECL_OVERRIDE;
 

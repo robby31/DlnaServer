@@ -18,24 +18,36 @@ DebugItem::DebugItem(const QString &name, QObject *parent):
 
 QVariant DebugItem::counterValue() const
 {
-    if (m_name == "DlnaResource")
+    if (m_name.trimmed() == "DlnaResource")
         return QVariant(DlnaResource::objectCounter);
-    if (m_name == "Device")
+    if (m_name.trimmed() == "Device")
         return QVariant(Device::objectCounter);
-    if (m_name == "DlnaFolder")
+    if (m_name.trimmed() == "DlnaFolder")
         return QVariant(DlnaFolder::objectCounter);
-    if (m_name == "DlnaMusicTrackFile")
+    if (m_name.trimmed() == "DlnaMusicTrackFile")
         return QVariant(DlnaMusicTrackFile::objectCounter);
-    if (m_name == "DlnaRootFolder")
+    if (m_name.trimmed() == "DlnaRootFolder")
         return QVariant(DlnaRootFolder::objectCounter);
-    if (m_name == "DlnaVideoFile")
+    if (m_name.trimmed() == "DlnaVideoFile")
         return QVariant(DlnaVideoFile::objectCounter);
-    if (m_name == "DlnaYoutubeVideo")
+    if (m_name.trimmed() == "DlnaYoutubeVideo")
         return QVariant(DlnaYouTubeVideo::objectCounter);
-    if (m_name == "DlnaNetworkVideo")
+    if (m_name.trimmed() == "DlnaNetworkVideo")
         return QVariant(DlnaNetworkVideo::objectCounter);
+    if (m_name.trimmed() == "DlnaNetworkPlaylist")
+        return QVariant(DlnaNetworkPlaylist::objectCounter);
+    if (m_name.trimmed() == "DlnaStorageFolder")
+        return QVariant(DlnaStorageFolder::objectCounter);
+    if (m_name.trimmed() == "DlnaCachedFolder")
+        return QVariant(DlnaCachedFolder::objectCounter);
+    if (m_name.trimmed() == "DlnaCachedFolderMetaData")
+        return QVariant(DlnaCachedFolderMetaData::objectCounter);
+    if (m_name.trimmed() == "DlnaCachedGroupedFolderMetaData")
+        return QVariant(DlnaCachedGroupedFolderMetaData::objectCounter);
+    if (m_name.trimmed() == "DlnaCachedPlaylists")
+        return QVariant(DlnaCachedPlaylists::objectCounter);
 
-    return QVariant("");
+    return QVariant("invalid");
 }
 
 QVariant DebugItem::data(int role) const

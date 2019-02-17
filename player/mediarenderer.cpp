@@ -1,7 +1,7 @@
 #include "mediarenderer.h"
 
-MediaRenderer::MediaRenderer(QNetworkAccessManager *nam, const QString& macAddress, const QString& host, int port, QObject *parent):
-    UpnpRootDevice (nam, macAddress, QString(), parent)
+MediaRenderer::MediaRenderer(const QString& macAddress, const QString& host, int port, QObject *parent):
+    UpnpRootDevice (macAddress, QString(), parent)
 {
     QUrl tmp(QString("http://%1:%2").arg(host).arg(port));
     setUrl(tmp.resolved(QString("/description/fetch")));

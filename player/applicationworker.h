@@ -1,7 +1,6 @@
 #ifndef APPLICATIONWORKER_H
 #define APPLICATIONWORKER_H
 
-#include <QNetworkAccessManager>
 #include "Worker/worker.h"
 
 class ApplicationWorker : public Worker

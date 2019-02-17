@@ -1,7 +1,7 @@
 #include "mediaserver.h"
 
-MediaServer::MediaServer(QNetworkAccessManager *nam, const QString &macAddress, const QString& host, int port, MediaRendererModel *renderersModel, QObject *parent):
-    UpnpRootDevice(nam, macAddress, QString(), parent),
+MediaServer::MediaServer(const QString &macAddress, const QString& host, int port, MediaRendererModel *renderersModel, QObject *parent):
+    UpnpRootDevice(macAddress, QString(), parent),
     m_renderersModel(renderersModel)
 {
     QUrl tmp(QString("http://%1:%2").arg(host).arg(port));
