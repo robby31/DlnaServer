@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QtTest>
+#include "dlna_check_functions.h"
 
 #include "dlna/dlnavideofile.h"
 

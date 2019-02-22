@@ -124,12 +124,6 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo_data()
                                                  << "France 2 en direct"
                                                  << 0 << "256x144" << "25.000" << 4558800 << 32000 << 2
                                                  << "hls,applehttp" << "video/mpeg" << 0;
-
-    QTest::newRow("Taratata") << true
-                              << QUrl("https://www.france.tv/france-2/taratata/882373-taratata-100-live-au-zenith.html") << -1
-                              << "Taratata 100% live au Zénith"
-                              << 9445824 << "1024x576" << "25.000" << 4558800 << 48000 << 2
-                              << "hls,applehttp" << "video/mpeg" << 185683;
 }
 
 void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo()
@@ -260,30 +254,11 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
 
                 QDomDocument xml_res;
                 xml_res.appendChild(movie->getXmlContentDirectory(&xml_res, properties));
-                QCOMPARE(xml_res.childNodes().size(), 1);
-                QCOMPARE(xml_res.elementsByTagName("item").size(), 1);
-                QDomNode node = xml_res.elementsByTagName("item").at(0);
-                QVERIFY(!node.attributes().namedItem("id").nodeValue().isEmpty());
-                QVERIFY(!node.attributes().namedItem("parentID").nodeValue().isEmpty());
-                QCOMPARE(node.attributes().namedItem("restricted").nodeValue(), "true");
-                QCOMPARE(xml_res.elementsByTagName("dc:title").size(), 1);
-                QCOMPARE(xml_res.elementsByTagName("dc:title").at(0).firstChild().nodeValue(), "Cats on trees \"Sirens call\" [Clip Officiel]");
-                QCOMPARE(xml_res.elementsByTagName("upnp:genre").size(), 1);
-                QCOMPARE(xml_res.elementsByTagName("upnp:genre").at(0).firstChild().nodeValue(), "");
-                QCOMPARE(xml_res.elementsByTagName("upnp:class").size(), 1);
-                QCOMPARE(xml_res.elementsByTagName("upnp:class").at(0).firstChild().nodeValue(), "object.item.videoItem");
-                QCOMPARE(xml_res.elementsByTagName("res").size(), 1);
-                QCOMPARE(xml_res.elementsByTagName("res").at(0).childNodes().size(), 1);
-                QVERIFY2(!xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue().isEmpty(), xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue().toUtf8().constData());
-                QCOMPARE(xml_res.elementsByTagName("res").at(0).attributes().size(), 8);
-                QCOMPARE(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue(), "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-                QCOMPARE(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue(), "urn:schemas-dlna-org:metadata-1-0/");
-                QCOMPARE(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue(), "00:03:17");
-                QCOMPARE(xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue(), "1280x720");
-                QCOMPARE(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue(), "2");
-                QCOMPARE(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue(), "44100");
-                QCOMPARE(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue(), "569850");
-                QCOMPARE(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue(), "121652704");
+                check_dlna_video(xml_res,
+                                 "0$7$1$20$1", "0$7$1$20",
+                                 "Cats on trees \"Sirens call\" [Clip Officiel]", "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
+                                 "00:03:17", "1280x720", 2, 44100,
+                                 569850, 121652704);
                 xml_res.clear();
 
                 QCOMPARE(movie->getdlnaOrgOpFlags(), "10");
@@ -344,7 +319,7 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo_data()
                                             << "1920x1080" << "29.970" << 4558800 << 48000 << 2
                                             << "matroska,webm" << "video/mpeg"
                                             << "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1"
-                                            << 29661109 << 159715687 << 159511796;
+                                            << 29661109 << 159715687 << 159461224;
 
     QTest::newRow("Youtube_Muse_H264_AAC") << H264_AAC
                                            << true
@@ -354,7 +329,7 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo_data()
                                            << "1920x1080" << "29.970" << 2500000 << 48000 << 2
                                            << "matroska,webm" << "video/mp4"
                                            << "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1"
-                                           << 29661109 << 89225642 << 88554768;
+                                           << 29661109 << 89225642 << 88727164;
 
 }
 

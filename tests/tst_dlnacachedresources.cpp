@@ -301,40 +301,12 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
 
         QDomDocument xml_res;
         xml_res.appendChild(track->getXmlContentDirectory(&xml_res, properties));
-        QVERIFY(xml_res.childNodes().size() == 1);
-        QVERIFY(xml_res.elementsByTagName("item").size() == 1);
-        QDomNode node = xml_res.elementsByTagName("item").at(0);
-        QVERIFY(!node.attributes().namedItem("id").nodeValue().isEmpty());
-        QVERIFY(!node.attributes().namedItem("parentID").nodeValue().isEmpty());
-        QVERIFY(node.attributes().namedItem("restricted").nodeValue() == "true");
-        QVERIFY(xml_res.elementsByTagName("dc:title").size() == 1);
-        QVERIFY(xml_res.elementsByTagName("dc:title").at(0).firstChild().nodeValue() == "Monde virtuel");
-        QVERIFY(xml_res.elementsByTagName("upnp:album").size() == 1);
-        QVERIFY(xml_res.elementsByTagName("upnp:album").at(0).firstChild().nodeValue() == "Je dis aime");
-        QVERIFY(xml_res.elementsByTagName("upnp:artist").size() == 1);
-        QVERIFY(xml_res.elementsByTagName("upnp:artist").at(0).firstChild().nodeValue() == "-M-");
-        QVERIFY(xml_res.elementsByTagName("dc:contributor").size() == 1);
-        QVERIFY(xml_res.elementsByTagName("dc:contributor").at(0).firstChild().nodeValue() == "-M-");
-        QVERIFY(xml_res.elementsByTagName("upnp:genre").size() == 1);
-        QVERIFY(xml_res.elementsByTagName("upnp:genre").at(0).firstChild().nodeValue() == "Pop");
-        QVERIFY(xml_res.elementsByTagName("upnp:originalTrackNumber").size() == 1);
-        QVERIFY(xml_res.elementsByTagName("upnp:originalTrackNumber").at(0).firstChild().nodeValue() == "1");
-        QVERIFY(xml_res.elementsByTagName("dc:date").size() == 1);
-        QVERIFY2(xml_res.elementsByTagName("dc:date").at(0).firstChild().nodeValue() == "2013-01-02", xml_res.elementsByTagName("dc:date").at(0).firstChild().nodeValue().toUtf8().constData());
-        QVERIFY(xml_res.elementsByTagName("upnp:class").size() == 1);
-        QVERIFY(xml_res.elementsByTagName("upnp:class").at(0).firstChild().nodeValue() == "object.item.audioItem.musicTrack");
-        QVERIFY(xml_res.elementsByTagName("res").size() == 1);
-        QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
-        QVERIFY2(!xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue().isEmpty(), xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue().toUtf8().constData());
-        QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().size() == 7, QString("%1").arg(xml_res.elementsByTagName("res").at(0).attributes().size()).toUtf8());
-        QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
-        QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-        QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:03:09", xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue().toUtf8());
-        QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "40000");
-        QCOMPARE(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue(), QString("7561480"));
-        QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "44100");
-        QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "2");
-
+        check_dlna_audio(xml_res,
+                         "", "",
+                         "Monde virtuel", "Je dis aime", "-M-", "-M-", "Pop", 1, "2013-01-02",
+                         "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
+                         "00:03:09", 2, 44100,
+                         40000, 7561480);
         xml_res.clear();
 
         QVERIFY(track->mimeType() == "audio/mpeg");

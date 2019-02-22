@@ -252,30 +252,11 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
 
     QDomDocument xml_res;
     xml_res.appendChild(movie.getXmlContentDirectory(&xml_res, properties));
-    QVERIFY(xml_res.childNodes().size() == 1);
-    QVERIFY(xml_res.elementsByTagName("item").size() == 1);
-    QDomNode node = xml_res.elementsByTagName("item").at(0);
-    QVERIFY(node.attributes().namedItem("id").nodeValue() == "");
-    QVERIFY(node.attributes().namedItem("parentID").nodeValue() == "-1");
-    QVERIFY(node.attributes().namedItem("restricted").nodeValue() == "true");
-    QVERIFY(xml_res.elementsByTagName("dc:title").size() == 1);
-    QVERIFY(xml_res.elementsByTagName("dc:title").at(0).firstChild().nodeValue() == "District.9.2009.720p.BrRip.YIFY");
-    QVERIFY(xml_res.elementsByTagName("upnp:genre").size() == 1);
-    QVERIFY(xml_res.elementsByTagName("upnp:genre").at(0).firstChild().nodeValue() == "");
-    QVERIFY(xml_res.elementsByTagName("upnp:class").size() == 1);
-    QVERIFY(xml_res.elementsByTagName("upnp:class").at(0).firstChild().nodeValue() == "object.item.videoItem");
-    QVERIFY(xml_res.elementsByTagName("res").size() == 1);
-    QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
-    QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue() == "http://host:600/get//District.9.2009.720p.BrRip.YIFY.mkv");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 8);
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "4163526283", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8().constData());
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "01:52:16");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "569850");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue() == "1280x688");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "2");
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
+    check_dlna_video(xml_res,
+                     "", "-1",
+                     "District.9.2009.720p.BrRip.YIFY", "http://host:600/get//District.9.2009.720p.BrRip.YIFY.mkv",
+                     "01:52:16", "1280x688", 2, 48000,
+                     569850, 4163526283);
     xml_res.clear();
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");

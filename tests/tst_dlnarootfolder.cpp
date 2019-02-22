@@ -26,34 +26,14 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
 
     QDomDocument xml_res;
     xml_res.appendChild(rootFolder.getXmlContentDirectory(&xml_res, properties));
-    QVERIFY(xml_res.childNodes().size() == 1);
-    QVERIFY(xml_res.elementsByTagName("container").size() == 1);
-    QDomNode node = xml_res.elementsByTagName("container").at(0);
-    QVERIFY(node.attributes().namedItem("id").nodeValue() == "0");
-    QVERIFY(node.attributes().namedItem("parentID").nodeValue() == "-1");
-    QVERIFY(node.attributes().namedItem("childCount").nodeValue() == "0");
-    QVERIFY(node.attributes().namedItem("restricted").nodeValue() == "true");
-    QVERIFY(xml_res.elementsByTagName("dc:title").size() == 1);
-    QVERIFY(xml_res.elementsByTagName("dc:title").at(0).firstChild().nodeValue() == "root");
-    QVERIFY(xml_res.elementsByTagName("upnp:class").size() == 1);
-    QVERIFY(xml_res.elementsByTagName("upnp:class").at(0).firstChild().nodeValue() == "object.container.storageFolder");
+    check_dlna_storage(xml_res, "0", "-1", 0, "root");
     xml_res.clear();
 
     DlnaFolder music("/Users/doudou/Music/iTunes/iTunes Media/Music");
     QVERIFY(music.getName() == "Music");
 
     xml_res.appendChild(music.getXmlContentDirectory(&xml_res, properties));
-    QVERIFY(xml_res.childNodes().size() == 1);
-    QVERIFY(xml_res.elementsByTagName("container").size() == 1);
-    node = xml_res.elementsByTagName("container").at(0);
-    QVERIFY(node.attributes().namedItem("id").nodeValue() == "");
-    QVERIFY(node.attributes().namedItem("parentID").nodeValue() == "-1");
-    QVERIFY2(node.attributes().namedItem("childCount").nodeValue() == "610", QString("%1").arg(node.attributes().namedItem("childCount").nodeValue()).toUtf8().constData());
-    QVERIFY(node.attributes().namedItem("restricted").nodeValue() == "true");
-    QVERIFY(xml_res.elementsByTagName("dc:title").size() == 1);
-    QVERIFY(xml_res.elementsByTagName("dc:title").at(0).firstChild().nodeValue() == "Music");
-    QVERIFY(xml_res.elementsByTagName("upnp:class").size() == 1);
-    QVERIFY(xml_res.elementsByTagName("upnp:class").at(0).firstChild().nodeValue() == "object.container.storageFolder");
+    check_dlna_storage(xml_res, "", "-1", 610, "Music");
     xml_res.clear();
 
     rootFolder.addChild(&music);
@@ -68,17 +48,7 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QVERIFY(rootFolder.getChildrenSize() == 1);
 
     xml_res.appendChild(music.getXmlContentDirectory(&xml_res, properties));
-    QVERIFY(xml_res.childNodes().size() == 1);
-    QVERIFY(xml_res.elementsByTagName("container").size() == 1);
-    node = xml_res.elementsByTagName("container").at(0);
-    QVERIFY(node.attributes().namedItem("id").nodeValue() == "0$1");
-    QVERIFY(node.attributes().namedItem("parentID").nodeValue() == "0");
-    QVERIFY(node.attributes().namedItem("childCount").nodeValue() == "610");
-    QVERIFY(node.attributes().namedItem("restricted").nodeValue() == "true");
-    QVERIFY(xml_res.elementsByTagName("dc:title").size() == 1);
-    QVERIFY(xml_res.elementsByTagName("dc:title").at(0).firstChild().nodeValue() == "Music");
-    QVERIFY(xml_res.elementsByTagName("upnp:class").size() == 1);
-    QVERIFY(xml_res.elementsByTagName("upnp:class").at(0).firstChild().nodeValue() == "object.container.storageFolder");
+    check_dlna_storage(xml_res, "0$1", "0", 610, "Music");
     xml_res.clear();
 
     rootFolder.addChild(&music);
