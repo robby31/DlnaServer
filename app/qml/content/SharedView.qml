@@ -111,6 +111,12 @@ Page {
                 text: "Check"
                 onClicked: _app.startCheckNetworkLink()
             }
+
+            Button {
+                Layout.preferredHeight: 30
+                text: "Update Playlists"
+                onClicked: _app.reload_playlists()
+            }
         }
 
         RowLayout {

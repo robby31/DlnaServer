@@ -473,3 +473,20 @@ void MyApplication::setAutoRemoveRequest(const bool &flag)
     m_auto_remove_request = flag;
     emit autoRemoveRequestChanged();
 }
+
+void MyApplication::reload_playlists()
+{
+    MediaLibrary library;
+
+    // check and reload network playlists
+    QSqlQuery query = library.getAllPlaylists();
+    if (query.exec())
+    {
+        while (query.next())
+        {
+            QSqlRecord elt = query.record();
+            qWarning() << "RELOAD playlist" << elt.value("name").toString() << elt.value("url").toString();
+            emit addLink(elt.value("url").toString());
+        }
+    }
+}

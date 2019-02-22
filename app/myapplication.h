@@ -84,11 +84,14 @@ signals:
     void addFolder(QString folder);
     void addLink(QString url);
     void reloadLibrarySignal();
+    void reloadPlaylistsSignal();
 
     void updateMediaFromId(const int &id, const QHash<QString, QVariant> &data);
 
 public slots:
     void clearRequests();
+
+    void reload_playlists();
 
 private slots:
     void initializeDatabase();
