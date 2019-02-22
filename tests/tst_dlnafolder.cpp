@@ -243,7 +243,7 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
             QDomDocument xml_res;
             xml_res.appendChild(video->getXmlContentDirectory(&xml_res, properties));
             check_dlna_video(xml_res,
-                             "0$5$1", "0$5",
+                             "$1", "",
                              "Ninjago - Le masque de la tromperie",
                              "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
                              "00:21:06",

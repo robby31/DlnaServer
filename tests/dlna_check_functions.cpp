@@ -76,3 +76,69 @@ void check_dlna_video_res(const QDomNode &res, const QString &protocolInfo, cons
     QCOMPARE(attributes.namedItem("bitrate").nodeValue().toLongLong(), bitrate);
     QCOMPARE(attributes.namedItem("size").nodeValue().toLongLong(), size);
 }
+
+void check_dlna_audio(const QDomDocument &dlna, const QString &id, const QString &parentId, const QString &title, const QString &album, const QString &artist, const QString &contributor, const QString &genre, const int &track, const QString &date, const QString &protocolInfo, const QString &duration, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size)
+{
+    QCOMPARE(dlna.childNodes().size(), 1);
+
+    QCOMPARE(dlna.elementsByTagName("item").size(), 1);
+
+    QDomNode node = dlna.elementsByTagName("item").at(0);
+
+    // check attributes : id, parentID, restricted
+    QCOMPARE(node.attributes().size(), 3);
+    QCOMPARE(node.attributes().namedItem("id").nodeValue(), id);
+    QCOMPARE(node.attributes().namedItem("parentID").nodeValue(), parentId);
+    QCOMPARE(node.attributes().namedItem("restricted").nodeValue(), "true");
+
+    // check children nodes : dc:title, upnp:class, upnp:genre, res ...
+    QCOMPARE(node.childNodes().size(), 8);
+
+    QCOMPARE(dlna.elementsByTagName("dc:title").size(), 1);
+    QCOMPARE(dlna.elementsByTagName("dc:title").at(0).firstChild().nodeValue(), title);
+
+    QCOMPARE(dlna.elementsByTagName("dc:album").size(), 1);
+    QCOMPARE(dlna.elementsByTagName("dc:album").at(0).firstChild().nodeValue(), album);
+
+    QCOMPARE(dlna.elementsByTagName("dc:artist").size(), 1);
+    QCOMPARE(dlna.elementsByTagName("dc:artist").at(0).firstChild().nodeValue(), artist);
+
+    QCOMPARE(dlna.elementsByTagName("dc:contributor").size(), 1);
+    QCOMPARE(dlna.elementsByTagName("dc:contributor").at(0).firstChild().nodeValue(), contributor);
+
+    QCOMPARE(dlna.elementsByTagName("upnp:genre").size(), 1);
+    QCOMPARE(dlna.elementsByTagName("upnp:genre").at(0).firstChild().nodeValue(), genre);
+
+    QCOMPARE(dlna.elementsByTagName("dc:originalTrackNumber").size(), 1);
+    QCOMPARE(dlna.elementsByTagName("dc:originalTrackNumber").at(0).firstChild().nodeValue().toInt(), track);
+
+    QCOMPARE(dlna.elementsByTagName("upnp:date").size(), 1);
+    QCOMPARE(dlna.elementsByTagName("upnp:date").at(0).firstChild().nodeValue(), date);
+
+    QCOMPARE(dlna.elementsByTagName("upnp:class").size(), 1);
+    QCOMPARE(dlna.elementsByTagName("upnp:class").at(0).firstChild().nodeValue(), "object.item.videoItem");
+
+    QCOMPARE(dlna.elementsByTagName("res").size(), 1);
+    QDomNode res = dlna.elementsByTagName("res").at(0);
+
+    // check attributes : protocolInfo, xmlns:dlna, duration, nrAudioChannels, sampleFrequency, bitrate, size
+    check_dlna_audio_res(res, protocolInfo, duration, channels, samplerate, bitrate, size);
+
+    // check child node : text node
+    QCOMPARE(res.childNodes().size(), 1);
+    QVERIFY(!res.childNodes().at(0).nodeValue().isEmpty());
+}
+
+void check_dlna_audio_res(const QDomNode &res, const QString &protocolInfo, const QString &duration, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size)
+{
+    QDomNamedNodeMap attributes = res.attributes();
+
+    QCOMPARE(attributes.size(), 7);
+    QCOMPARE(attributes.namedItem("protocolInfo").nodeValue(), protocolInfo);
+    QCOMPARE(attributes.namedItem("xmlns:dlna").nodeValue(), "urn:schemas-dlna-org:metadata-1-0/");
+    QCOMPARE(attributes.namedItem("duration").nodeValue(), duration);
+    QCOMPARE(attributes.namedItem("nrAudioChannels").nodeValue().toInt(), channels);
+    QCOMPARE(attributes.namedItem("sampleFrequency").nodeValue().toInt(), samplerate);
+    QCOMPARE(attributes.namedItem("bitrate").nodeValue().toLongLong(), bitrate);
+    QCOMPARE(attributes.namedItem("size").nodeValue().toLongLong(), size);
+}
