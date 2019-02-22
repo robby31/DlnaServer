@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QtTest>
+#include "dlna_check_functions.h"
 
 #include "mysqldatabase.h"
 #include "dlna/cached/dlnacachedrootfolder.h"
@@ -14,7 +15,7 @@ class tst_dlnacachedresources: public QObject
     Q_OBJECT
 
 public:
-    explicit tst_dlnacachedresources(QObject *parent = 0);
+    explicit tst_dlnacachedresources(QObject *parent = Q_NULLPTR);
 
 signals:
     void startTranscoding();
@@ -26,7 +27,7 @@ public slots:
     void LogMessage(const QString &message);
 
 private:
-    qint64 parseFolder(const QString& resourceId, DlnaResource* resource);
+    qint64 parseFolder(const QString &resourceId, DlnaResource *resource);
 
 private Q_SLOTS:
     void cleanup();

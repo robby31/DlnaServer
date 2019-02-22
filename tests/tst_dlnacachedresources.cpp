@@ -17,11 +17,11 @@ void tst_dlnacachedresources::cleanup()
 {
     QVERIFY2(DlnaResource::objectCounter == 0, QString("memory leak detected, %1 DlnaResource objects.").arg(DlnaResource::objectCounter).toUtf8());
 
-     QCOMPARE(QFfmpegMedia::objectCounter, 0);
-     QCOMPARE(QFfmpegStream::objectCounter, 0);
-     QCOMPARE(QFfmpegFrame::objectCounter, 0);
-     QCOMPARE(QFfmpegCodec::objectCounter, 0);
-     QCOMPARE(QFfmpegBuffer::objectCounter, 0);
+    QCOMPARE(QFfmpegMedia::objectCounter, 0);
+    QCOMPARE(QFfmpegStream::objectCounter, 0);
+    QCOMPARE(QFfmpegFrame::objectCounter, 0);
+    QCOMPARE(QFfmpegCodec::objectCounter, 0);
+    QCOMPARE(QFfmpegBuffer::objectCounter, 0);
 }
 
 void tst_dlnacachedresources::dataAvailable()
@@ -53,7 +53,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 17031, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 17034, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -81,7 +81,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1790, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 1793, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -224,7 +224,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedRootFolder()
     rootFolder.addFolder("/Users/doudou/Movies/Films/Comédie");
     QThreadPool::globalInstance()->waitForDone();
     QVERIFY(folderKO.isEmpty());
-    QVERIFY(rootFolder.getChildrenSize() == 8);
+    QCOMPARE(rootFolder.getChildrenSize(), 8);
     QVERIFY(rootFolder.getChild(0) != Q_NULLPTR);
 }
 
@@ -439,42 +439,24 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
             sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
             movie->setSinkProtocol(sinkProtocol);
 
-            QStringList properties;
-            properties << "upnp:genre";
-            properties << "res@size";
-            properties << "res@duration";
-            properties << "res@bitrate";
-            properties << "res@resolution";
-            properties << "res@nrAudioChannels";
-            properties << "res@sampleFrequency";
+            {
+                QStringList properties;
+                properties << "upnp:genre";
+                properties << "res@size";
+                properties << "res@duration";
+                properties << "res@bitrate";
+                properties << "res@resolution";
+                properties << "res@nrAudioChannels";
+                properties << "res@sampleFrequency";
 
-            QDomDocument xml_res;
-            xml_res.appendChild(movie->getXmlContentDirectory(&xml_res, properties));
-            QVERIFY(xml_res.childNodes().size() == 1);
-            QVERIFY(xml_res.elementsByTagName("item").size() == 1);
-            QDomNode node = xml_res.elementsByTagName("item").at(0);
-            QVERIFY(!node.attributes().namedItem("id").nodeValue().isEmpty());
-            QVERIFY(!node.attributes().namedItem("parentID").nodeValue().isEmpty());
-            QVERIFY(node.attributes().namedItem("restricted").nodeValue() == "true");
-            QVERIFY(xml_res.elementsByTagName("dc:title").size() == 1);
-            QVERIFY(xml_res.elementsByTagName("dc:title").at(0).firstChild().nodeValue() == "District.9.2009.720p.BrRip.YIFY");
-            QVERIFY(xml_res.elementsByTagName("upnp:genre").size() == 1);
-            QVERIFY(xml_res.elementsByTagName("upnp:genre").at(0).firstChild().nodeValue() == "");
-            QVERIFY(xml_res.elementsByTagName("upnp:class").size() == 1);
-            QVERIFY(xml_res.elementsByTagName("upnp:class").at(0).firstChild().nodeValue() == "object.item.videoItem");
-            QVERIFY(xml_res.elementsByTagName("res").size() == 1);
-            QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
-            QVERIFY2(!xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue().isEmpty(), xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue().toUtf8().constData());
-            QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 8);
-            QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-            QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-            //    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "01:52:16", xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue().toUtf8());
-            QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("resolution").nodeValue() == "1280x688");
-            QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("nrAudioChannels").nodeValue() == "2");
-            QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("sampleFrequency").nodeValue() == "48000");
-            QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "569850", xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue().toUtf8().constData());
-            //    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "3973129325", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8().constData());
-            xml_res.clear();
+                QDomDocument xml_res;
+                xml_res.appendChild(movie->getXmlContentDirectory(&xml_res, properties));
+                check_dlna_video(xml_res,
+                                 "0$8$126", "0$8",
+                                 "District.9.2009.720p.BrRip.YIFY", "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
+                                 "01:52:16", "1280x688", 2, 48000,
+                                 569850, 3973129325);
+            }
 
             QVERIFY(movie->getdlnaOrgOpFlags() == "10");
             QVERIFY(movie->getdlnaOrgPN() == "MPEG_PS_PAL");

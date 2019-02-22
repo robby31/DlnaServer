@@ -3,9 +3,11 @@
 
 #include <QObject>
 #include <QtTest>
+#include "dlna_check_functions.h"
 
 #include "analyzer.h"
 #include "dlna/dlnafolder.h"
+#include "dlna/dlnanetworkplaylist.h"
 
 class tst_dlnafolder : public QObject
 {
@@ -20,6 +22,8 @@ public slots:
 
 private Q_SLOTS:
     void cleanup();
+
+    void testCase_DlnaFolderPlaylist();
 
     void testCase_DlnaFolder();
     void testCase_PerformanceAllArtists();

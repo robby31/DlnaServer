@@ -40,7 +40,6 @@ private Q_SLOTS:
 private:
     long transcodedSize;
     QSqlDatabase db;
-    QNetworkAccessManager manager;
 
     int media_timeout = 0;
     int media_not_available = 0;

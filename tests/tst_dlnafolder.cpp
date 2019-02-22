@@ -177,7 +177,7 @@ void tst_dlnafolder::testCase_PerformanceAllTracks()
         ANALYZER_RESET;
         QScopedPointer<DlnaResource> album(music.search("0$1$27$2", "", true));
         qint64 elapsed = parseFolder(album->getResourceId(), &music);
-        qInfo() << "PERFO" << album->getSystemName() << album->getChildrenSize() << QTime(0, 0).addMSecs(elapsed).toString("hh:mm:ss.zzz");
+        qInfo() << "PERFO" << album->getSystemName() << album->getChildrenSize() << QTime(0, 0).addMSecs(static_cast<int>(elapsed)).toString("hh:mm:ss.zzz");
         ANALYZER_DISPLAY_RESULTS;
     }
 
@@ -194,13 +194,63 @@ void tst_dlnafolder::testCase_PerformanceAllTracks()
             if (elapsed > max)
             {
                 max = elapsed;
-                qInfo() << "PERFO" << QTime(0, 0).addMSecs(elapsed).toString("hh:mm:ss.zzz") << album->getResourceId() << album->getSystemName() << album->getChildrenSize() << "children";
+                qInfo() << "PERFO" << QTime(0, 0).addMSecs(static_cast<int>(elapsed)).toString("hh:mm:ss.zzz") << album->getResourceId() << album->getSystemName() << album->getChildrenSize() << "children";
             }
         }
     }
     ANALYZER_DISPLAY_RESULTS;
 
-    qInfo() << "DURATION" << QTime(0, 0).addMSecs(timer.elapsed()).toString("hh:mm:ss.zzz");
+    qInfo() << "DURATION" << QTime(0, 0).addMSecs(static_cast<int>(timer.elapsed())).toString("hh:mm:ss.zzz");
 
     QVERIFY2(max < 13000, QString("Parse all tracks by album in %1 ms").arg(max).toUtf8());
+}
+
+void tst_dlnafolder::testCase_DlnaFolderPlaylist()
+{
+    QScopedPointer<DlnaNetworkPlaylist> playlist(new DlnaNetworkPlaylist(QUrl("https://www.ludo.fr/heros/ninjago")));
+
+    QVERIFY(playlist != Q_NULLPTR);
+    if (playlist)
+    {
+        QCOMPARE(playlist->getSystemName(), "ninjago");
+        QCOMPARE(playlist->getChildrenSize(), 19);
+
+        {
+            QStringList properties;
+            properties << "*";
+
+            QDomDocument xml_res;
+            xml_res.appendChild(playlist->getXmlContentDirectory(&xml_res, properties));
+            check_dlna_storage(xml_res, "", "-1", 19, "ninjago");
+        }
+
+        qint64 elapsed = parseFolder(playlist->getResourceId(), playlist.data());
+        qInfo() << "PERFO" << elapsed << playlist->getResourceId() << playlist->getSystemName() << playlist->getChildrenSize() << "children";
+
+        QScopedPointer<DlnaNetworkVideo> video(qobject_cast<DlnaNetworkVideo*>(playlist->getChild(0)));
+        QVERIFY(video != Q_NULLPTR);
+
+        {
+            QStringList properties;
+            properties << "upnp:genre";
+            properties << "res@size";
+            properties << "res@duration";
+            properties << "res@bitrate";
+            properties << "res@resolution";
+            properties << "res@nrAudioChannels";
+            properties << "res@sampleFrequency";
+
+            QDomDocument xml_res;
+            xml_res.appendChild(video->getXmlContentDirectory(&xml_res, properties));
+            check_dlna_video(xml_res,
+                             "0$5$1", "0$5",
+                             "Ninjago - Le masque de la tromperie",
+                             "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
+                             "00:21:06",
+                             "1024x576",
+                             2, 48000,
+                             312500,
+                             437277851);
+        }
+    }
 }

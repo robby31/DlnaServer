@@ -33,8 +33,8 @@ private Q_SLOTS:
 
     void testCase_DlnaCachedNetworkVideo();
 
-    void testCase_DlnaCachedNetworkVideo_checkLink_data();
-    void testCase_DlnaCachedNetworkVideo_checkLink();
+    void testCase_DlnaNetworkVideo_checkLink_data();
+    void testCase_DlnaNetworkVideo_checkLink();
 
 private:
     QString timeToString(const qint64 &msec);
@@ -42,7 +42,6 @@ private:
 private:
     long transcodedSize = 0;
     QSqlDatabase db;
-    QNetworkAccessManager manager;
 
     int media_timeout = 0;
     int media_not_available = 0;

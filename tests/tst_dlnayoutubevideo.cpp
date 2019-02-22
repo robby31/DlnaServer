@@ -28,8 +28,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
     timer.start();
 
     DlnaYouTubeVideo video;
-    video.setNetworkAccessManager(&manager);
-    video.setPlaybackQuality("360p");
+    video.setMaxVideoHeight(360);
     video.setTranscodeFormat(MPEG2_AC3);
     video.setUrl(QUrl("https://www.youtube.com/watch?v=JrlfFTS9kGU"));
     bool res = video.waitUrl(15000);
@@ -42,7 +41,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo()
     QVERIFY(video.getDisplayName() == "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]");
 
     QVERIFY(video.metaDataTitle() == "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]");
-    QVERIFY2(video.metaDataDuration() == 193678, QString("%1").arg(video.metaDataDuration()).toUtf8());
+    QVERIFY2(video.metaDataDuration() == 193520, QString("%1").arg(video.metaDataDuration()).toUtf8());
     QVERIFY2(video.resolution() == "640x360", QString("%1").arg(video.resolution()).toUtf8());
     QVERIFY2(video.framerate() == "25.000", QString("%1").arg(video.framerate()).toUtf8());
     QVERIFY2(video.bitrate() == 4558800, QString("%1").arg(video.bitrate()).toUtf8());
@@ -72,8 +71,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD()
     timer.start();
 
     DlnaYouTubeVideo video;
-    video.setNetworkAccessManager(&manager);
-    video.setPlaybackQuality("720p");
+    video.setMaxVideoHeight(720);
     video.setTranscodeFormat(MPEG2_AC3);
     video.setUrl(QUrl("https://www.youtube.com/watch?v=JrlfFTS9kGU"));
     bool res = video.waitUrl(15000);
@@ -110,8 +108,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD_NotFound()
     timer.start();
 
     DlnaYouTubeVideo video;
-    video.setNetworkAccessManager(&manager);
-    video.setPlaybackQuality("720p");
+    video.setMaxVideoHeight(720);
     video.setTranscodeFormat(MPEG2_AC3);
     video.setUrl(QUrl("https://www.youtube.com/watch?v=RQlXgAR0F4Y"));
     bool res = video.waitUrl(15000);
@@ -124,7 +121,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_HD_NotFound()
     QVERIFY(video.getDisplayName() == "Lilly Wood & The Prick en concert privé Le Mouv'");
 
     QVERIFY(video.metaDataTitle() == "Lilly Wood & The Prick en concert privé Le Mouv'");
-    QVERIFY2(video.metaDataDuration() == 3671190, QString("%1").arg(video.metaDataDuration()).toUtf8());
+    QVERIFY2(video.metaDataDuration() == 3671000, QString("%1").arg(video.metaDataDuration()).toUtf8());
     QVERIFY2(video.resolution() == "640x356", QString("%1").arg(video.resolution()).toUtf8());
     QVERIFY2(video.framerate() == "25.000", QString("%1").arg(video.framerate()).toUtf8());
     QVERIFY2(video.bitrate() == 4558800, QString("%1").arg(video.bitrate()).toUtf8());
@@ -148,8 +145,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG2()
     timer.start();
 
     DlnaYouTubeVideo video;
-    video.setNetworkAccessManager(&manager);
-    video.setPlaybackQuality("360p");
+    video.setMaxVideoHeight(360);
     video.setTranscodeFormat(MPEG2_AC3);
     video.setUrl(QUrl("https://www.youtube.com/watch?v=l9kqU_7-CgI"));
 
@@ -167,7 +163,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG2()
     QVERIFY(video.getDisplayName() == "Muse - Exogenesis: Symphony, Part 1 (Overture) [HD]");
 
     QVERIFY(video.metaDataTitle() == "Muse - Exogenesis: Symphony, Part 1 (Overture) [HD]");
-    QVERIFY2(video.metaDataDuration() == 258483, QString("%1").arg(video.metaDataDuration()).toUtf8());
+    QVERIFY2(video.metaDataDuration() == 258391, QString("%1").arg(video.metaDataDuration()).toUtf8());
     QVERIFY2(video.resolution() == "640x360", QString("%1").arg(video.resolution()).toUtf8());
     QVERIFY2(video.framerate() == "29.970", QString("%1").arg(video.framerate()).toUtf8());
     QVERIFY2(video.bitrate() == 4558800, QString("%1").arg(video.bitrate()).toUtf8());
@@ -221,8 +217,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG4()
     timer.start();
 
     DlnaYouTubeVideo video;
-    video.setNetworkAccessManager(&manager);
-    video.setPlaybackQuality("360p");
+    video.setMaxVideoHeight(360);
     video.setTranscodeFormat(H264_AAC);
     video.setUrl(QUrl("https://www.youtube.com/watch?v=l9kqU_7-CgI"));
 
@@ -240,7 +235,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo_MPEG4()
     QVERIFY(video.getDisplayName() == "Muse - Exogenesis: Symphony, Part 1 (Overture) [HD]");
 
     QVERIFY(video.metaDataTitle() == "Muse - Exogenesis: Symphony, Part 1 (Overture) [HD]");
-    QVERIFY2(video.metaDataDuration() == 258483, QString("%1").arg(video.metaDataDuration()).toUtf8());
+    QVERIFY2(video.metaDataDuration() == 258391, QString("%1").arg(video.metaDataDuration()).toUtf8());
     QVERIFY(video.resolution() == "640x360");
     QVERIFY2(video.framerate() == "29.970", QString("%1").arg(video.framerate()).toUtf8());
     QVERIFY2(video.bitrate() == 2500000, QString("%1").arg(video.bitrate()).toUtf8());
@@ -302,8 +297,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
     timer.start();
 
     DlnaYouTubeVideo video;
-    video.setNetworkAccessManager(&manager);
-    video.setPlaybackQuality("360p");
+    video.setMaxVideoHeight(360);
     video.setTranscodeFormat(MPEG2_AC3);
     video.setUrl(QUrl("http://www.youtube.com/watch?v=cXxwIZwYnok"));
     bool res = video.waitUrl(15000);
@@ -316,7 +310,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo3()
     QVERIFY(video.getDisplayName() == "Lilly Wood & The Prick - Let's Not Pretend [Clip Officiel]");
 
     QVERIFY(video.metaDataTitle() == "Lilly Wood & The Prick - Let's Not Pretend [Clip Officiel]");
-    QVERIFY2(video.metaDataDuration() == 220216, QString("%1").arg(video.metaDataDuration()).toUtf8());
+    QVERIFY2(video.metaDataDuration() == 220160, QString("%1").arg(video.metaDataDuration()).toUtf8());
     QVERIFY(video.resolution() == "640x360");
     QVERIFY2(video.framerate() == "25.000", QString("%1").arg(video.framerate()).toUtf8());
     QVERIFY2(video.bitrate() == 4558800, QString("%1").arg(video.bitrate()).toUtf8());
@@ -338,8 +332,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo4()
     timer.start();
 
     DlnaYouTubeVideo video;
-    video.setNetworkAccessManager(&manager);
-    video.setPlaybackQuality("360p");
+    video.setMaxVideoHeight(360);
     video.setTranscodeFormat(MPEG2_AC3);
     video.setUrl(QUrl("https://www.youtube.com/watch?v=cmSYV5A9iuU"));
     bool res = video.waitUrl(30000);
@@ -351,7 +344,7 @@ void tst_dlnayoutubevideo::testCase_DlnaYouTubeVideo4()
     QVERIFY(video.getDisplayName() == "6 Hour Jazz Music Mix by JaBig (Best of Classic Long Smooth Piano Soft Instrumental Study Playlist)");
 
     QVERIFY(video.metaDataTitle() == "6 Hour Jazz Music Mix by JaBig (Best of Classic Long Smooth Piano Soft Instrumental Study Playlist)");
-    QVERIFY2(video.metaDataDuration() == 22023221, QString("%1").arg(video.metaDataDuration()).toUtf8());
+    QVERIFY2(video.metaDataDuration() == 22023201, QString("%1").arg(video.metaDataDuration()).toUtf8());
     QVERIFY2(video.resolution() == "640x360", video.resolution().toUtf8());
     QVERIFY2(video.framerate() == "24.000", QString("%1").arg(video.framerate()).toUtf8());
     QVERIFY2(video.bitrate() == 4558800, QString("%1").arg(video.bitrate()).toUtf8());
@@ -390,7 +383,6 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
     QFETCH(QUrl, url);
 
     DlnaYouTubeVideo video;
-    video.setNetworkAccessManager(&manager);
 
     bool res = false;
 
@@ -402,9 +394,9 @@ void tst_dlnayoutubevideo::testCase_DlnaCachedNetworkVideo_checkLink()
 
     if (!res || !video.isValid())
     {
-        if (res && !video.unavailableMessage().isEmpty())
+        if (res && !video.error().isEmpty())
         {
-            qInfo() << "VIDEO NOT AVAILABLE" << url << video.unavailableMessage();
+            qInfo() << "VIDEO NOT AVAILABLE" << url << video.error();
             ++media_not_available;
         }
         else if (res && !video.isValid())
