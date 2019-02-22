@@ -7,6 +7,7 @@
 #include "tst_dlnavideoitem.h"
 #include "tst_dlnayoutubevideo.h"
 #include "tst_dlnacachedresources.h"
+#include "tst_dlnanetworkvideo.h"
 
 int main(int argc, char *argv[])
 {
@@ -30,6 +31,11 @@ int main(int argc, char *argv[])
 
     {
         tst_dlnayoutubevideo test;
+        QTest::qExec(&test, argc, argv);
+    }
+
+    {
+        tst_dlnanetworkvideo test;
         QTest::qExec(&test, argc, argv);
     }
 
