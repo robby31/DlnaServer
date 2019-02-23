@@ -53,7 +53,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QVERIFY2(nbMedias == 17034, QString("%1").arg(nbMedias).toUtf8().constData());
+    QVERIFY2(nbMedias == 17249, QString("%1").arg(nbMedias).toUtf8().constData());
     db.close();
 }
 
@@ -81,7 +81,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QVERIFY2(nbVideos == 1793, QString("%1").arg(nbVideos).toUtf8().constData());
+    QVERIFY2(nbVideos == 2008, QString("%1").arg(nbVideos).toUtf8().constData());
     db.close();
 }
 
@@ -224,7 +224,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedRootFolder()
     rootFolder.addFolder("/Users/doudou/Movies/Films/Comédie");
     QThreadPool::globalInstance()->waitForDone();
     QVERIFY(folderKO.isEmpty());
-    QCOMPARE(rootFolder.getChildrenSize(), 8);
+    QCOMPARE(rootFolder.getChildrenSize(), 9);
     QVERIFY(rootFolder.getChild(0) != Q_NULLPTR);
 }
 
@@ -235,7 +235,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     rootFolder.addFolder("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO");
     QThreadPool::globalInstance()->waitForDone();
     QVERIFY(folderKO.isEmpty());
-    QVERIFY(rootFolder.getChildrenSize() == 8);
+    QCOMPARE(rootFolder.getChildrenSize(), 9);
 
     auto root = qobject_cast<DlnaRootFolder*>(rootFolder.getChild(7));
     QVERIFY(root != Q_NULLPTR);
