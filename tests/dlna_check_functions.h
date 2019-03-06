@@ -11,7 +11,7 @@ void check_dlna_storage(const QDomDocument &dlna,
 void check_dlna_video(const QDomDocument &dlna,
                       const QString &id, const QString &parentId,
                       const QString &title,
-                      const QString &protocolInfo, const QString &duration, const QString &resolution, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size);
+                      const QString &protocolInfo, const QString &duration, const QString &resolution, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size, const QString link);
 
 void check_dlna_video_res(const QDomNode &res,
                           const QString &protocolInfo,
@@ -19,18 +19,20 @@ void check_dlna_video_res(const QDomNode &res,
                           const QString &resolution,
                           const int &channels, const int &samplerate,
                           const qint64 &bitrate,
-                          const qint64 &size);
+                          const qint64 &size,
+                          const QString &link);
 
 void check_dlna_audio(const QDomDocument &dlna,
                       const QString &id, const QString &parentId,
                       const QString &title, const QString &album, const QString &artist, const QString &contributor, const QString &genre, const int &track, const QString &date,
-                      const QString &protocolInfo, const QString &duration, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size);
+                      const QString &protocolInfo, const QString &duration, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size, const QString &link);
 
 void check_dlna_audio_res(const QDomNode &res,
                           const QString &protocolInfo,
                           const QString &duration,
                           const int &channels, const int &samplerate,
                           const qint64 &bitrate,
-                          const qint64 &size);
+                          const qint64 &size,
+                          const QString &link);
 
 #endif // DLNA_CHECK_FUNCTIONS_H

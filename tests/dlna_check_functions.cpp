@@ -25,7 +25,7 @@ void check_dlna_storage(const QDomDocument &dlna, const QString &id, const QStri
     QCOMPARE(dlna.elementsByTagName("upnp:class").at(0).firstChild().nodeValue(), "object.container.storageFolder");
 }
 
-void check_dlna_video(const QDomDocument &dlna, const QString &id, const QString &parentId, const QString &title, const QString &protocolInfo, const QString &duration, const QString &resolution, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size)
+void check_dlna_video(const QDomDocument &dlna, const QString &id, const QString &parentId, const QString &title, const QString &protocolInfo, const QString &duration, const QString &resolution, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size, const QString link)
 {
     QCOMPARE(dlna.childNodes().size(), 1);
 
@@ -55,14 +55,10 @@ void check_dlna_video(const QDomDocument &dlna, const QString &id, const QString
     QDomNode res = dlna.elementsByTagName("res").at(0);
 
     // check attributes : protocolInfo, xmlns:dlna, duration, resolution, nrAudioChannels, sampleFrequency, bitrate, size
-    check_dlna_video_res(res, protocolInfo, duration, resolution, channels, samplerate, bitrate, size);
-
-    // check child node : text node
-    QCOMPARE(res.childNodes().size(), 1);
-    QVERIFY(!res.childNodes().at(0).nodeValue().isEmpty());
+    check_dlna_video_res(res, protocolInfo, duration, resolution, channels, samplerate, bitrate, size, link);
 }
 
-void check_dlna_video_res(const QDomNode &res, const QString &protocolInfo, const QString &duration, const QString &resolution, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size)
+void check_dlna_video_res(const QDomNode &res, const QString &protocolInfo, const QString &duration, const QString &resolution, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size, const QString &link)
 {
     QDomNamedNodeMap attributes = res.attributes();
 
@@ -75,9 +71,13 @@ void check_dlna_video_res(const QDomNode &res, const QString &protocolInfo, cons
     QCOMPARE(attributes.namedItem("sampleFrequency").nodeValue().toInt(), samplerate);
     QCOMPARE(attributes.namedItem("bitrate").nodeValue().toLongLong(), bitrate);
     QCOMPARE(attributes.namedItem("size").nodeValue().toLongLong(), size);
+
+    // check child node : text node
+    QCOMPARE(res.childNodes().size(), 1);
+    QCOMPARE(res.childNodes().at(0).nodeValue(), link);
 }
 
-void check_dlna_audio(const QDomDocument &dlna, const QString &id, const QString &parentId, const QString &title, const QString &album, const QString &artist, const QString &contributor, const QString &genre, const int &track, const QString &date, const QString &protocolInfo, const QString &duration, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size)
+void check_dlna_audio(const QDomDocument &dlna, const QString &id, const QString &parentId, const QString &title, const QString &album, const QString &artist, const QString &contributor, const QString &genre, const int &track, const QString &date, const QString &protocolInfo, const QString &duration, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size, const QString &link)
 {
     QCOMPARE(dlna.childNodes().size(), 1);
 
@@ -122,14 +122,14 @@ void check_dlna_audio(const QDomDocument &dlna, const QString &id, const QString
     QDomNode res = dlna.elementsByTagName("res").at(0);
 
     // check attributes : protocolInfo, xmlns:dlna, duration, nrAudioChannels, sampleFrequency, bitrate, size
-    check_dlna_audio_res(res, protocolInfo, duration, channels, samplerate, bitrate, size);
+    check_dlna_audio_res(res, protocolInfo, duration, channels, samplerate, bitrate, size, link);
 
     // check child node : text node
     QCOMPARE(res.childNodes().size(), 1);
     QVERIFY(!res.childNodes().at(0).nodeValue().isEmpty());
 }
 
-void check_dlna_audio_res(const QDomNode &res, const QString &protocolInfo, const QString &duration, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size)
+void check_dlna_audio_res(const QDomNode &res, const QString &protocolInfo, const QString &duration, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size, const QString &link)
 {
     QDomNamedNodeMap attributes = res.attributes();
 
@@ -141,4 +141,8 @@ void check_dlna_audio_res(const QDomNode &res, const QString &protocolInfo, cons
     QCOMPARE(attributes.namedItem("sampleFrequency").nodeValue().toInt(), samplerate);
     QCOMPARE(attributes.namedItem("bitrate").nodeValue().toLongLong(), bitrate);
     QCOMPARE(attributes.namedItem("size").nodeValue().toLongLong(), size);
+
+    // check child node : text node
+    QCOMPARE(res.childNodes().size(), 1);
+    QCOMPARE(res.childNodes().at(0).nodeValue(), link);
 }
