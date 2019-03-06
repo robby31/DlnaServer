@@ -254,9 +254,9 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
     xml_res.appendChild(movie.getXmlContentDirectory(&xml_res, properties));
     check_dlna_video(xml_res,
                      "", "-1",
-                     "District.9.2009.720p.BrRip.YIFY", "http://host:600/get//District.9.2009.720p.BrRip.YIFY.mkv",
+                     "District.9.2009.720p.BrRip.YIFY", "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
                      "01:52:16", "1280x688", 2, 48000,
-                     569850, 4163526283);
+                     569850, 4163526283, "http://host:600/get//District.9.2009.720p.BrRip.YIFY.mkv");
     xml_res.clear();
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");

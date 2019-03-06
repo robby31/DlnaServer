@@ -82,6 +82,8 @@ qint64 tst_dlnafolder::parseFolder(const QString& resourceId, DlnaResource *reso
 
                 QStringList sinkProtocol;
                 sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
+                sinkProtocol << "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL";
+                sinkProtocol << "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL";
                 item->setSinkProtocol(sinkProtocol);
 
                 item->getStringContentDirectory(QStringList("*"));
@@ -213,7 +215,7 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
     if (playlist)
     {
         QCOMPARE(playlist->getSystemName(), "ninjago");
-        QCOMPARE(playlist->getChildrenSize(), 19);
+        QCOMPARE(playlist->getChildrenSize(), 14);
 
         {
             QStringList properties;
@@ -221,7 +223,7 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
 
             QDomDocument xml_res;
             xml_res.appendChild(playlist->getXmlContentDirectory(&xml_res, properties));
-            check_dlna_storage(xml_res, "", "-1", 19, "ninjago");
+            check_dlna_storage(xml_res, "", "-1", playlist->getChildrenSize(), "ninjago");
         }
 
         qint64 elapsed = parseFolder(playlist->getResourceId(), playlist.data());
@@ -244,13 +246,14 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
             xml_res.appendChild(video->getXmlContentDirectory(&xml_res, properties));
             check_dlna_video(xml_res,
                              "$1", "",
-                             "Ninjago - Le masque de la tromperie",
+                             "S02 E01 Ninjago L'av\u00E8nement des t\u00E9n\u00E8bres",
                              "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
-                             "00:21:06",
+                             "00:21:54",
                              "1024x576",
                              2, 48000,
                              312500,
-                             437277851);
+                             453793803,
+                             "http://host:600/get/$1/S02%20E01%20Ninjago%20L%27av%C3%A8nement%20des%20t%C3%A9n%C3%A8bres");
         }
     }
 }
