@@ -286,26 +286,38 @@ void MyApplication::removeMedia(const int &id)
             }
             else
             {
-                // remove media
-                if (query.prepare("DELETE FROM media WHERE id=:id"))
+                // remove media from playlist
+                query.prepare("DELETE FROM media_in_playlists WHERE media=:id");
+                query.bindValue(":id", id);
+                if (!query.exec())
                 {
-                    query.bindValue(":id", id);
-                    if (!query.exec())
-                    {
-                        qCritical() << QString("unable to remove media(%1) : %2.").arg(id).arg(query.lastError().text());
-                        if (!db.rollback())
-                            qCritical() << "unable to rollback" << db.lastError().text();
-                    }
-                    else
-                    {
-                        if (!db.commit())
-                            qCritical() << "unable to commit" << db.lastError().text();
-                    }
+                    qCritical() << QString("unable to remove media(%1) from playlist : %2.").arg(id).arg(query.lastError().text());
+                    if (!db.rollback())
+                        qCritical() << "unable to rollback" << db.lastError().text();
                 }
                 else
                 {
-                    if (!db.rollback())
-                        qCritical() << "unable to rollback" << db.lastError().text();
+                    // remove media
+                    if (query.prepare("DELETE FROM media WHERE id=:id"))
+                    {
+                        query.bindValue(":id", id);
+                        if (!query.exec())
+                        {
+                            qCritical() << QString("unable to remove media(%1) : %2.").arg(id).arg(query.lastError().text());
+                            if (!db.rollback())
+                                qCritical() << "unable to rollback" << db.lastError().text();
+                        }
+                        else
+                        {
+                            if (!db.commit())
+                                qCritical() << "unable to commit" << db.lastError().text();
+                        }
+                    }
+                    else
+                    {
+                        if (!db.rollback())
+                            qCritical() << "unable to rollback" << db.lastError().text();
+                    }
                 }
             }
         }
