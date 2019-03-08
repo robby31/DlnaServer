@@ -237,7 +237,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
     QVERIFY(folderKO.isEmpty());
     QCOMPARE(rootFolder.getChildrenSize(), 9);
 
-    auto root = qobject_cast<DlnaRootFolder*>(rootFolder.getChild(7));
+    auto root = qobject_cast<DlnaRootFolder*>(rootFolder.getChild(8));
     QVERIFY(root != Q_NULLPTR);
     if (root)
     {
@@ -306,7 +306,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
                          "Monde virtuel", "Je dis aime", "-M-", "-M-", "Pop", 1, "2013-01-02",
                          "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
                          "00:03:09", 2, 44100,
-                         40000, 7561480);
+                         40000, 7561480, "");
         xml_res.clear();
 
         QVERIFY(track->mimeType() == "audio/mpeg");
@@ -427,7 +427,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
                                  "0$8$126", "0$8",
                                  "District.9.2009.720p.BrRip.YIFY", "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
                                  "01:52:16", "1280x688", 2, 48000,
-                                 569850, 3973129325);
+                                 569850, 3973129325, "");
             }
 
             QVERIFY(movie->getdlnaOrgOpFlags() == "10");

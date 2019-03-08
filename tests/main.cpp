@@ -29,10 +29,10 @@ int main(int argc, char *argv[])
         QTest::qExec(&test, argc, argv);
     }
 
-    {
-        tst_dlnayoutubevideo test;
-        QTest::qExec(&test, argc, argv);
-    }
+//    {
+//        tst_dlnayoutubevideo test;
+//        QTest::qExec(&test, argc, argv);
+//    }
 
     {
         tst_dlnanetworkvideo test;
