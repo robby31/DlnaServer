@@ -15,7 +15,7 @@ ListViewDelegate {
             spacing: 10
 
             Image {
-                anchors { verticalCenter: parent.verticalCenter }
+                Layout.alignment: Qt.AlignVCenter
                 height: delegate.height*0.6
                 sourceSize.height: height
                 fillMode: Image.PreserveAspectFit
@@ -23,7 +23,7 @@ ListViewDelegate {
             }
 
             Label {
-                anchors { verticalCenter: parent.verticalCenter }
+                Layout.alignment: Qt.AlignVCenter
                 text: name
                 Layout.fillWidth: true
                 elide: Text.ElideRight
@@ -31,7 +31,7 @@ ListViewDelegate {
             }
 
             Label {
-                anchors { verticalCenter: parent.verticalCenter }
+                Layout.alignment: Qt.AlignVCenter
                 text: networkAddress
                 width: 100
                 Layout.preferredWidth: width

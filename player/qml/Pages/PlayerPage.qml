@@ -132,7 +132,7 @@ Page {
         }
 
         Text {
-            anchors.horizontalCenter: parent.horizontalCenter
+            Layout.alignment: Qt.AlignHCenter
             text:  player.metaData.title ? player.metaData.title : (objectData && objectData["title"] ? objectData["title"] : "<no title>")
             width: contentWidth
             height: parent.height
@@ -142,7 +142,7 @@ Page {
         }
 
         Row {
-            anchors.horizontalCenter: parent.horizontalCenter
+            Layout.alignment: Qt.AlignHCenter
             height: 40
             spacing: 10
 
@@ -168,7 +168,7 @@ Page {
         }
 
         Row {
-            anchors.horizontalCenter: parent.horizontalCenter
+            Layout.alignment: Qt.AlignHCenter
             height: 40
             spacing: 10
 
@@ -191,7 +191,7 @@ Page {
         }
 
         Row {
-            anchors.horizontalCenter: parent.horizontalCenter
+            Layout.alignment: Qt.AlignHCenter
             height: 50
             spacing: 10
 

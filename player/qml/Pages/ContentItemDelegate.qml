@@ -15,8 +15,7 @@ Item {
 
         Image {
             id: image
-            anchors { horizontalCenter: parent.horizontalCenter }
-
+            Layout.alignment: Qt.AlignHCenter
             fillMode: Image.PreserveAspectFit
             height: (parent.height-text.height)*0.8
             sourceSize.height: height
@@ -27,7 +26,7 @@ Item {
 
         Label {
             id: text
-            anchors { horizontalCenter: parent.horizontalCenter }
+            Layout.alignment: Qt.AlignHCenter
             horizontalAlignment: Text.AlignHCenter
             height: contentHeight
             text: title
