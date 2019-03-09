@@ -53,6 +53,12 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo_data()
     QTest::addColumn<QString>("mime_type");
     QTest::addColumn<qint64>("source_size");
 
+    QTest::newRow("ArteTv Jazz") << true
+                                 << QUrl("https://www.arte.tv/fr/videos/086296-006-A/julian-roman-wasserfuhr-feat-joerg-brinkmann-au-wdr-3-jazzfest/") << -1
+                                 << "Julian & Roman Wasserfuhr feat. J\u00F6rg Brinkmann au WDR 3 Jazzfest"
+                                 << 3705000 << "1280x720" << "25.000" << 4558800 << 48000 << 2
+                                 << "mov,mp4,m4a,3gp,3g2,mj2" << "video/mpeg" << static_cast<qint64>(1150792878);
+
     QTest::newRow("RMCDecouverte Vintage") << true
                                            << QUrl("https://rmcdecouverte.bfmtv.com/vintage-mecanic/program_5280/") << -1
                                            << "PORSCHE 356 CABRIOLET 1958"
