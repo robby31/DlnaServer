@@ -65,6 +65,7 @@ void ApplicationWorker::checkNetworkLink()
             bool isReachable = query.value("is_reachable").toBool();
 
             DlnaNetworkVideo movie;
+            movie.setAnalyzeStream(false);
 
             movie.setUrl(url);
             bool res = movie.waitUrl(30000);
