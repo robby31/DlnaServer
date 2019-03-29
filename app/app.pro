@@ -30,7 +30,8 @@ HEADERS += \
     mediaimageprovider.h \
     albumimageprovider.h \
     formatimageprovider.h \
-    mediaserver.h
+    mediaserver.h \
+    mediamodel.h
 
 SOURCES += \
     main.cpp \
@@ -42,7 +43,8 @@ SOURCES += \
     mediaimageprovider.cpp \
     albumimageprovider.cpp \
     formatimageprovider.cpp \
-    mediaserver.cpp
+    mediaserver.cpp \
+    mediamodel.cpp
 
 RESOURCES += \
     ressources.qrc

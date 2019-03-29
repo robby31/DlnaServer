@@ -1,9 +1,11 @@
 #include "myapplication.h"
 #include "mysqldatabase.h"
-#include "decryptyoutubesignature.h"
+#include "mediamodel.h"
 
 int main(int argc, char** argv)
 {
+    qmlRegisterType<MediaModel>("Model", 1, 0, "MediaModel");
+
     MyApplication app(argc, argv);
 
     // load the qml file describing the application
