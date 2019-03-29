@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<profiles>
+<profile pn="MP3">
+    <mime_type>audio/mpeg</mime_type>
+    <container>mp3</container>
+    <codec_audio>mp3</codec_audio>
+    <channels>1</channels>
+    <channels>2</channels>
+    <sample_rate>32000</sample_rate>
+    <sample_rate>44100</sample_rate>
+    <sample_rate>48000</sample_rate>
+    <bitrate>32000</bitrate>
+    <bitrate>40000</bitrate>
+    <bitrate>48000</bitrate>
+    <bitrate>56000</bitrate>
+    <bitrate>64000</bitrate>
+    <bitrate>80000</bitrate>
+    <bitrate>96000</bitrate>
+    <bitrate>112000</bitrate>
+    <bitrate>128000</bitrate>
+    <bitrate>160000</bitrate>
+    <bitrate>192000</bitrate>
+    <bitrate>224000</bitrate>
+    <bitrate>256000</bitrate>
+    <bitrate>320000</bitrate>
+</profile>
+
+<profile pn="MP3X">
+    <mime_type>audio/mpeg</mime_type>
+    <container>mp3</container>
+    <codec_audio>mp3</codec_audio>
+    <channels>1</channels>
+    <channels>2</channels>
+    <sample_rate>16000</sample_rate>
+    <sample_rate>22050</sample_rate>
+    <sample_rate>24000</sample_rate>
+    <sample_rate>32000</sample_rate>
+    <sample_rate>44100</sample_rate>
+    <sample_rate>48000</sample_rate>
+    <bitrate>8000</bitrate>
+    <bitrate>16000</bitrate>
+    <bitrate>24000</bitrate>
+    <bitrate>32000</bitrate>
+    <bitrate>40000</bitrate>
+    <bitrate>48000</bitrate>
+    <bitrate>56000</bitrate>
+    <bitrate>64000</bitrate>
+    <bitrate>80000</bitrate>
+    <bitrate>96000</bitrate>
+    <bitrate>112000</bitrate>
+    <bitrate>128000</bitrate>
+    <bitrate>160000</bitrate>
+    <bitrate>192000</bitrate>
+    <bitrate>224000</bitrate>
+    <bitrate>256000</bitrate>
+    <bitrate>320000</bitrate>
+</profile>
+
+<profile pn="AAC_ISO">
+    <mime_type>audio/mp4</mime_type>
+    <container>mov,mp4,m4a,3gp,3g2,mj2</container>
+    <codec_audio>aac</codec_audio>
+    <codec_audio>alac</codec_audio>
+    <channels>1</channels>
+    <channels>2</channels>
+    <sample_rate>8000</sample_rate>
+    <sample_rate>11025</sample_rate>
+    <sample_rate>12000</sample_rate>
+    <sample_rate>16000</sample_rate>
+    <sample_rate>22050</sample_rate>
+    <sample_rate>24000</sample_rate>
+    <sample_rate>32000</sample_rate>
+    <sample_rate>44100</sample_rate>
+    <sample_rate>48000</sample_rate>
+</profile>
+
+<profile pn="LPCM">
+    <mime_type>audio/L16</mime_type>
+    <container>lpcm</container>
+    <codec_audio>lpcm</codec_audio>
+    <channels>1</channels>
+    <channels>2</channels>
+    <sample_rate>44100</sample_rate>
+    <sample_rate>48000</sample_rate>
+</profile>
+
+<profile pn="AVC_TS_MP_HD_AC3">
+    <mime_type>video/vnd.dlna.mpeg-tts</mime_type>
+    <container>mpegts</container>
+    <codec_audio>ac3</codec_audio>
+    <codec_video>h264</codec_video>
+    <channels>1</channels>
+    <channels>2</channels>
+    <sample_rate>44100</sample_rate>
+    <sample_rate>48000</sample_rate>
+</profile>
+
+<profile pn="AVC_TS_MP_HD_AAC_MULT5">
+    <mime_type>video/vnd.dlna.mpeg-tts</mime_type>
+    <container>mpegts</container>
+    <codec_audio>aac</codec_audio>
+    <codec_video>h264</codec_video>
+    <channels>1</channels>
+    <channels>2</channels>
+    <sample_rate>44100</sample_rate>
+    <sample_rate>48000</sample_rate>
+</profile>
+
+<profile pn="MPEG_TS_HD_NA">
+    <mime_type>video/vnd.dlna.mpeg-tts</mime_type>
+    <container>mpegts</container>
+    <codec_audio>ac3</codec_audio>
+    <codec_video>mpeg</codec_video>
+    <channels>1</channels>
+    <channels>2</channels>
+    <sample_rate>44100</sample_rate>
+    <sample_rate>48000</sample_rate>
+</profile>
+
+</profiles>

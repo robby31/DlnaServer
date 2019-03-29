@@ -52,5 +52,6 @@
         <file>images/media/aac.png</file>
         <file>images/media/mp3.png</file>
         <file>images/media/movie.png</file>
+        <file>xml profiles/dlna_profiles.xml</file>
     </qresource>
 </RCC>

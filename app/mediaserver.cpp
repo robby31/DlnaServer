@@ -12,6 +12,9 @@ MediaServer::MediaServer(const QString &macAddress, const QString& host, int por
     initConnectionManager();
 
     initContentDirectory();
+
+    Protocol dlnaProfiles(":xml profiles/dlna_profiles.xml");
+    m_renderersModel->setDlnaProfiles(dlnaProfiles);
 }
 
 void MediaServer::initDescription()
@@ -52,6 +55,7 @@ void MediaServer::initConnectionManager()
 
     format << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
     format << "http-get:*:audio/L16:DLNA.ORG_PN=LPCM";
+    format << "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO";
 
     format << "http-get:*:video/mpeg:DLNA.ORG_PN=AVC_TS_HD_24_AC3_ISO;SONY.COM_PN=AVC_TS_HD_24_AC3_ISO";
     format << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_HD_24_AC3;SONY.COM_PN=AVC_TS_HD_24_AC3";
