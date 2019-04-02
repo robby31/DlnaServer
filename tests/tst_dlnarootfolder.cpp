@@ -1,7 +1,8 @@
 #include "tst_dlnarootfolder.h"
 
 tst_dlnarootfolder::tst_dlnarootfolder(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    m_dlnaProfiles("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml")
 {
 }
 
@@ -97,13 +98,14 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
 
     QStringList sinkProtocol;
     sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
+    item_found->setDlnaProfiles(m_dlnaProfiles);
     item_found->setSinkProtocol(sinkProtocol);
 
     QVERIFY(item_found->getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Je dis aime/01 Monde virtuel.m4a");
     QVERIFY(item_found->getdlnaOrgOpFlags() == "10");
     QVERIFY(item_found->getdlnaOrgPN() == "MP3");
-    QVERIFY2(item_found->getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1", item_found->getDlnaContentFeatures().toUtf8());
-    QVERIFY(item_found->getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    QVERIFY2(item_found->getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000", item_found->getDlnaContentFeatures().toUtf8());
+    QVERIFY(item_found->getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
     item_found->setdlnaOrgPN(QString());
     QVERIFY(item_found->getdlnaOrgOpFlags() == "10");

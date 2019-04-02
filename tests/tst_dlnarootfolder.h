@@ -20,6 +20,8 @@ public slots:
 private Q_SLOTS:
     void testCase_DlnaRootFolder();
 
+private:
+    Protocol m_dlnaProfiles;
 };
 
 #endif // TST_DLNAROOTFOLDER_H
