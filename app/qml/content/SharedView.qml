@@ -98,6 +98,7 @@ Page {
                 Layout.fillWidth: true
                 placeholderText: "Network Link, example: https://www.youtube.com/watch?v=rWy30tJdyAM"
                 selectByMouse: true
+                onAccepted: _app.addNetworkLink(text)
             }
 
             Button {
@@ -116,6 +117,12 @@ Page {
                 Layout.preferredHeight: 30
                 text: "Update Playlists"
                 onClicked: _app.reload_playlists()
+            }
+
+            Button {
+                Layout.preferredHeight: 30
+                text: "Update NetLinks"
+                onClicked: _app.reload_network_links()
             }
         }
 

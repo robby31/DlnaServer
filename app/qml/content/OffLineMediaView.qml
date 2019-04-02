@@ -1,14 +1,14 @@
 import QtQuick 2.0
 import QtQuick.Controls 2.1
 import MyComponents 1.0
+import Model 1.0
 
 Rectangle {
 
-    SqlListModel {
+    MediaModel {
         id: mediaModel
-        connectionName: "MEDIA_DATABASE"
-        tablename: "media"
-        query: "SELECT id, filename, title from media where is_reachable=0"
+        filter: "is_reachable=0"
+        Component.onCompleted: select()
     }
 
     ListView {

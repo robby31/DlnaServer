@@ -17,8 +17,11 @@ ListViewDelegate {
         anchors.left: parent.left
 
         SwipeDelegate.onClicked: {
-            _app.removeMedia(model["id"])
-            mediaModel.reload()
+            if (!delegate.ListView.view.model.remove(index))
+                swipe.close()
+            else
+                delegate.ListView.view.model.select()
+
         }
 
         background: Rectangle {
@@ -39,7 +42,7 @@ ListViewDelegate {
 
             Text {
                 id: textId
-                text: model["id"]
+                text: model["id"] ? model["id"] : ""
                 width: 100
                 height: contentHeight
                 anchors.verticalCenter: parent.verticalCenter
@@ -61,7 +64,7 @@ ListViewDelegate {
 
             Text {
                 id: textTitle
-                text: model["title"]
+                text: model["title"] ? model["title"] : ""
                 width: (parent.width-textId.width)/2
                 anchors.verticalCenter: parent.verticalCenter
                 elide: Text.ElideRight

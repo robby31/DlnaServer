@@ -2,21 +2,20 @@ import QtQuick 2.0
 import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 import MyComponents 1.0
+import Model 1.0
 
 Rectangle {
 
-    SqlListModel {
+    MediaModel {
         id: mediaModel
-        connectionName: "MEDIA_DATABASE"
-        tablename: "album"
+        table: "album"
+        query: "SELECT album.id, album.id AS albumId, album.year, album.name AS albumName, artist.name AS artistName, (SELECT count(media.id) from media WHERE media.album=album.id) AS mediaCount from album"
+        join: "LEFT OUTER JOIN artist ON album.artist=artist.id"
+        orderClause: "ORDER BY album.name, artist.name, album.year"
 
-        function filter(cmd) {
-            var strQuery
-            strQuery = "SELECT album.id, album.id AS albumId, album.year, album.name AS albumName, artist.name AS artistName, (SELECT count(media.id) from media WHERE media.album=album.id) AS mediaCount from album LEFT OUTER JOIN artist ON album.artist=artist.id "
-            if (cmd)
-                strQuery += "WHERE %1 ".arg(cmd)
-            strQuery += "ORDER BY album.name, artist.name, album.year"
-            query = strQuery
+        function filterCmd(cmd) {
+            filter = cmd
+            select()
         }
     }
 
@@ -51,7 +50,7 @@ Rectangle {
                     clip: true
                     placeholderText: "Filtering"
                     selectByMouse: true
-                    onAccepted: mediaModel.filter(text)
+                    onAccepted: mediaModel.filterCmd(text)
 
                     background: Rectangle {
                         color: "white"
@@ -120,7 +119,7 @@ Rectangle {
             Component.onCompleted: {
                 if (model)
                 {
-                    model.filter("")
+                    model.filterCmd("")
                     if (model.rowCount > 0)
                         currentIndex = 0
                 }

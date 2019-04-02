@@ -2,28 +2,31 @@ import QtQuick 2.0
 import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 import MyComponents 1.0
+import Model 1.0
 
 Rectangle {
     id: item
 
-    SqlListModel {
+    MediaModel {
         id: mediaModel
-        connectionName: "MEDIA_DATABASE"
-        tablename: "media"
 
-        function filter(cmd) {
-            var strQuery
-            strQuery = "SELECT media.id, media.id AS mediaId, media.picture, filename, format, type.name AS mediaType, title, media.artist, artist.name AS artistName, media.album, album.name AS albumName, media.genre, genre.name AS genreName FROM media "
-            strQuery += "LEFT OUTER JOIN artist ON media.artist=artist.id "
-            strQuery += "LEFT OUTER JOIN album ON media.album=album.id "
-            strQuery += "LEFT OUTER JOIN genre ON media.genre=genre.id "
-            strQuery += "LEFT OUTER JOIN type ON media.type=type.id "
-            if (cmd)
-                strQuery += "WHERE %1".arg(cmd)
-            query = strQuery
+        function filterCmd(cmd) {
+            filter = cmd
+            select()
         }
 
-        Component.onCompleted: filter("")
+        Component.onCompleted: {
+            query = "SELECT media.id, media.id AS mediaId, media.picture, filename, format, type.name AS mediaType, title, media.artist, artist.name AS artistName, media.album, album.name AS albumName, media.genre, genre.name AS genreName FROM media "
+
+            var joinQuery
+            joinQuery =  "LEFT OUTER JOIN artist ON media.artist=artist.id "
+            joinQuery += "LEFT OUTER JOIN album ON media.album=album.id "
+            joinQuery += "LEFT OUTER JOIN genre ON media.genre=genre.id "
+            joinQuery += "LEFT OUTER JOIN type ON media.type=type.id "
+            join = joinQuery;
+
+            filterCmd("")
+        }
     }
 
     Column {
@@ -57,7 +60,7 @@ Rectangle {
                     clip: true
                     placeholderText: "Filtering"
                     selectByMouse: true
-                    onAccepted: mediaModel.filter(text)
+                    onAccepted: mediaModel.filterCmd(text)
 
                     background: Rectangle {
                         color: "white"

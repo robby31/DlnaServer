@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.1
 import QtQuick.Controls.Styles 1.1
 import QtMultimedia 5.9
 import MyComponents 1.0
+import Model 1.0
 
 Page {
     id: libraryView
@@ -31,25 +32,28 @@ Page {
 
     }
 
-    SqlListModel {
+    MediaModel {
         id: artistModel
-        connectionName: "MEDIA_DATABASE"
-        tablename: "artist"
-        query: "SELECT id, name FROM artist ORDER BY name"
+        table: "artist"
+        query: "SELECT id, name FROM artist"
+        orderClause: "ORDER BY name"
+        Component.onCompleted: select()
     }
 
-    SqlListModel {
+    MediaModel {
         id: genreModel
-        connectionName: "MEDIA_DATABASE"
-        tablename: "genre"
-        query: "SELECT id, name from genre ORDER BY name"
+        table: "genre"
+        query: "SELECT id, name from genre"
+        orderClause: "ORDER BY name"
+        Component.onCompleted: select()
     }
 
-    SqlListModel {
+    MediaModel {
         id: albumModel
-        connectionName: "MEDIA_DATABASE"
-        tablename: "album"
-        query: "SELECT id, name from album ORDER BY name"
+        table: "album"
+        query: "SELECT id, name from album"
+        orderClause: "ORDER BY name"
+        Component.onCompleted: select()
     }
 
     ListModel {

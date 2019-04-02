@@ -5,26 +5,25 @@ import MyComponents 1.0
 
 ListViewDelegate {
     id: delegate
-    width: parent ? parent.width : 0
-    height: 60
+    height: 100
 
     onDoubleClicked: playMedia("file:///%1".arg(filename))
 
     contentItem: Item {
-        width: parent.width
-        height: delegate.height
+        id: item
+        width: parent.width-10
+        height: parent.height-10
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.verticalCenter: parent.verticalCenter
 
         RowLayout {
-            width: parent.width-10
-            height: parent.height
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.verticalCenter: parent.verticalCenter
+            anchors.fill: parent
             spacing: 5
 
             Image {
                 Layout.alignment: Qt.AlignVCenter
                 fillMode: Image.PreserveAspectFit
-                sourceSize.height: delegate.height-10
+                sourceSize.height: parent.height
                 source: "image://media/" + picture
                 asynchronous: false
                 clip: true
@@ -41,7 +40,7 @@ ListViewDelegate {
             Image {
                 Layout.alignment: Qt.AlignVCenter
                 fillMode: Image.PreserveAspectFit
-                sourceSize.height: parent.height-10
+                sourceSize.width: 40
                 source: "image://format/%1/%2".arg(mediaType).arg(format)
                 asynchronous: false
                 clip: true
@@ -81,25 +80,26 @@ ListViewDelegate {
                 textRole: "name"
 
                 onUpdateModelText: {
-                    var newIndex = model.findRow(text, "name")
-                    var obj = model.get(newIndex)
-                    if (obj.id !== undefined)
+                    var artist_index = find(text)
+                    if (artist_index !== -1)
                     {
-                        // add entry existing in combo model
+                        // add existing artist in combo model
+                        var obj = model.get(artist_index)
                         artist = obj.id
                     }
                     else
                     {
-                        // add entry in combo model
-                        var artist_id = model.append({name: text})
-                        if (artist_id === -1)
+                        model.append({name: text})
+                        model.select()
+                        artist_index = find(text)
+                        if (artist_index !== -1)
                         {
-                            console.log("unable to add new artist", text, artist_id)
+                            obj = model.get(artist_index)
+                            artist = obj.id
                         }
                         else
                         {
-                            model.reload()
-                            artist = artist_id
+                            console.log("unable to find artist", text, "in model", model)
                         }
                     }
                 }
@@ -119,26 +119,26 @@ ListViewDelegate {
                 textRole: "name"
 
                 onUpdateModelText: {
-                    // text written by keyboard
-                    var newIndex = model.findRow(text, "name")
-                    var obj = model.get(newIndex)
-                    if (obj.id !== undefined)
+                    var album_index = find(text)
+                    if (album_index !== -1)
                     {
-                        // add entry existing in combo model
+                        // add existing album in combo model
+                        var obj = model.get(album_index)
                         album = obj.id
                     }
                     else
                     {
-                        // add entry in combo model
-                        var album_id = model.append({name: text})
-                        if (album_id === -1)
+                        model.append({name: text})
+                        model.select()
+                        album_index = find(text)
+                        if (album_index !== -1)
                         {
-                            console.log("unable to add new album", text, album_id)
+                            obj = model.get(album_index)
+                            album = obj.id
                         }
                         else
                         {
-                            model.reload()
-                            album = album_id
+                            console.log("unable to find album", text, "in model", model)
                         }
                     }
                 }
@@ -158,26 +158,26 @@ ListViewDelegate {
                 textRole: "name"
 
                 onUpdateModelText: {
-                    // text written by keyboard
-                    var newIndex = model.findRow(text, "name")
-                    var obj = model.get(newIndex)
-                    if (obj.id !== undefined)
+                    var genre_index = find(text)
+                    if (genre_index !== -1)
                     {
-                        // add entry existing in combo model
+                        // add existing genre in combo model
+                        var obj = model.get(genre_index)
                         genre = obj.id
                     }
                     else
                     {
-                        // add entry in combo model
-                        var genre_id = model.append({name: text})
-                        if (genre_id === -1)
+                        model.append({name: text})
+                        model.select()
+                        genre_index = find(text)
+                        if (genre_index !== -1)
                         {
-                            console.log("unable to add new genre", text, genre_id)
+                            obj = model.get(genre_index)
+                            genre = obj.id
                         }
                         else
                         {
-                            model.reload()
-                            genre = genre_id
+                            console.log("unable to find genre", text, "in model", model)
                         }
                     }
                 }

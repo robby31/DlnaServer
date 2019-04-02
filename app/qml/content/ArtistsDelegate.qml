@@ -22,7 +22,10 @@ ListViewDelegate {
             height: parent.height
 
             SwipeDelegate.onClicked: {
-                delegate.ListView.view.model.remove(index)
+                if (!delegate.ListView.view.model.remove(index))
+                    swipe.close()
+                else
+                    delegate.ListView.view.model.select()
             }
 
             background: Rectangle {
@@ -42,7 +45,7 @@ ListViewDelegate {
             spacing: 5
 
             Text {
-                text: artistId
+                text: artistId != null ? artistId : "<invalid>"
                 Layout.preferredWidth: 50
                 Layout.alignment: Qt.AlignVCenter
                 elide: Text.ElideRight
@@ -50,7 +53,7 @@ ListViewDelegate {
             }
 
             ModelEditableText {
-                text: name
+                text: name != null ? name : "<invalid>"
                 placeholderText: "unknown name"
                 Layout.preferredWidth: 200
                 Layout.alignment: Qt.AlignVCenter
@@ -62,7 +65,7 @@ ListViewDelegate {
             }
 
             ModelEditableText {
-                text: sortname
+                text: sortname != null ? sortname : "<invalid>"
                 placeholderText: "unknown sortname"
                 Layout.preferredWidth: 200
                 Layout.alignment: Qt.AlignVCenter
@@ -74,7 +77,7 @@ ListViewDelegate {
             }
 
             Text {
-                text: mediaCount + " medias"
+                text: mediaCount != null ? mediaCount + " medias" : "<invalid>"
                 color: "blue"
                 Layout.preferredWidth: 200
                 Layout.alignment: Qt.AlignVCenter
@@ -83,7 +86,7 @@ ListViewDelegate {
             }
 
             Text {
-                text: albumCount + " albums"
+                text: albumCount != null ? albumCount + " albums" : "<invalid>"
                 color: "blue"
                 Layout.preferredWidth: 200
                 Layout.alignment: Qt.AlignVCenter

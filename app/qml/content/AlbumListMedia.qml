@@ -2,32 +2,27 @@ import QtQuick 2.0
 import QtQuick.Controls 2.1
 import QtQuick.Layouts 1.1
 import MyComponents 1.0
-import myTypes 1.0
+import Model 1.0
 
 Rectangle {
 
     property int idAlbum: -1
 
-    SqlListModel {
+    MediaModel {
         id: mediaModel
-        connectionName: "MEDIA_DATABASE"
-        tablename: "media"
+        query: "SELECT media.id, media.id AS mediaId, media.picture, filename, format, type.name AS mediaType, title, media.artist, artist.name AS artistName, media.album, album.name AS albumName, media.genre, genre.name AS genreName from media"
+        join: "LEFT OUTER JOIN artist ON media.artist=artist.id LEFT OUTER JOIN album ON media.album=album.id LEFT OUTER JOIN genre ON media.genre=genre.id LEFT OUTER JOIN type ON media.type=type.id"
+        filter: "media.album=%1".arg(idAlbum)
 
-        function filter(cmd) {
-            var strQuery
-            strQuery = "SELECT media.id, media.id AS mediaId, media.picture, filename, format, type.name AS mediaType, title, media.artist, artist.name AS artistName, media.album, album.name AS albumName, media.genre, genre.name AS genreName from media "
-            strQuery += "LEFT OUTER JOIN artist ON media.artist=artist.id "
-            strQuery += "LEFT OUTER JOIN album ON media.album=album.id "
-            strQuery += "LEFT OUTER JOIN genre ON media.genre=genre.id "
-            strQuery += "LEFT OUTER JOIN type ON media.type=type.id "
+        function filterCmd(cmd) {
             if (cmd)
-                strQuery += "WHERE media.album=%1 and %2".arg(idAlbum).arg(cmd)
+                filter = "media.album=%1 and %2".arg(idAlbum).arg(cmd)
             else
-                strQuery += "WHERE media.album=%1".arg(idAlbum)
-            query = strQuery
+                filter = "media.album=%1".arg(idAlbum)
+            select()
         }
 
-        Component.onCompleted: filter("")
+        Component.onCompleted: filterCmd("")
     }
 
     Column {
@@ -54,7 +49,7 @@ Rectangle {
                 spacing: 10
 
                 MyButton {
-                    anchors.verticalCenter: parent.verticalCenter
+                    Layout.alignment: Qt.AlignVCenter
                     sourceComponent: Text { text: "< Albums" }
                     onButtonClicked: goBack()
                 }
@@ -63,11 +58,11 @@ Rectangle {
                     id: textFilter
                     Layout.preferredWidth: 400
                     Layout.preferredHeight: 30
-                    anchors.verticalCenter: parent.verticalCenter
+                    Layout.alignment: Qt.AlignVCenter
                     clip: true
                     placeholderText: "Filtering"
                     selectByMouse: true
-                    onAccepted: mediaModel.filter(text)
+                    onAccepted: mediaModel.filterCmd(text)
 
                     background: Rectangle {
                         color: "white"
@@ -76,7 +71,7 @@ Rectangle {
                 }
 
                 Row {
-                    anchors.verticalCenter: parent.verticalCenter
+                    Layout.alignment: Qt.AlignVCenter
                     Layout.fillWidth: true
                     layoutDirection: Qt.RightToLeft
                     spacing: 10
