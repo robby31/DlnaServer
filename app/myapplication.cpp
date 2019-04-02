@@ -265,74 +265,6 @@ void MyApplication::startCheckNetworkLink()
     }
 }
 
-void MyApplication::removeMedia(const int &id)
-{
-    QSqlDatabase db = database();
-
-    if (db.isValid())
-    {
-        db.transaction();
-
-        QSqlQuery query(db);
-
-        if (query.prepare("DELETE FROM param_value WHERE media=:id"))
-        {
-            query.bindValue(":id", id);
-            if (!query.exec())
-            {
-                qCritical() << QString("unable to remove param values for media(%1) : %2.").arg(id).arg(query.lastError().text());
-                if (!db.rollback())
-                    qCritical() << "unable to rollback" << db.lastError().text();
-            }
-            else
-            {
-                // remove media from playlist
-                query.prepare("DELETE FROM media_in_playlists WHERE media=:id");
-                query.bindValue(":id", id);
-                if (!query.exec())
-                {
-                    qCritical() << QString("unable to remove media(%1) from playlist : %2.").arg(id).arg(query.lastError().text());
-                    if (!db.rollback())
-                        qCritical() << "unable to rollback" << db.lastError().text();
-                }
-                else
-                {
-                    // remove media
-                    if (query.prepare("DELETE FROM media WHERE id=:id"))
-                    {
-                        query.bindValue(":id", id);
-                        if (!query.exec())
-                        {
-                            qCritical() << QString("unable to remove media(%1) : %2.").arg(id).arg(query.lastError().text());
-                            if (!db.rollback())
-                                qCritical() << "unable to rollback" << db.lastError().text();
-                        }
-                        else
-                        {
-                            if (!db.commit())
-                                qCritical() << "unable to commit" << db.lastError().text();
-                        }
-                    }
-                    else
-                    {
-                        if (!db.rollback())
-                            qCritical() << "unable to rollback" << db.lastError().text();
-                    }
-                }
-            }
-        }
-        else
-        {
-            if (!db.rollback())
-                qCritical() << "unable to rollback" << db.lastError().text();
-        }
-    }
-    else
-    {
-        qWarning() << this << "invalid database.";
-    }
-}
-
 void MyApplication::checkNetworkLinkMessage(const QString &name, const QString &message)
 {
     if (m_checkNetworkLinkModel)
@@ -499,6 +431,26 @@ void MyApplication::reload_playlists()
             QSqlRecord elt = query.record();
             qWarning() << "RELOAD playlist" << elt.value("name").toString() << elt.value("url").toString();
             emit addLink(elt.value("url").toString());
+        }
+    }
+}
+
+void MyApplication::reload_network_links()
+{
+    MediaLibrary library;
+
+    // check and reload network playlists
+    QSqlQuery query = library.getAllNetworkLinks();
+    if (query.exec())
+    {
+        while (query.next())
+        {
+            QSqlRecord elt = query.record();
+
+            if (elt.value("is_reachable").toInt() != 1)
+                continue;
+
+            emit addLink(elt.value("filename").toString());
         }
     }
 }

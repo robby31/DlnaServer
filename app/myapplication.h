@@ -41,7 +41,6 @@ public:
     Q_INVOKABLE void addNetworkLink(const QString &url)  { emit addLink(url); }
     Q_INVOKABLE void startCheckNetworkLink();
     Q_INVOKABLE void reloadLibrary() { emit reloadLibrarySignal(); }
-    Q_INVOKABLE void removeMedia(const int &id);
     Q_INVOKABLE void updateFilenameMedia(const int &id, const QString &pathname);
 
     QUrl ffmpegFolder() const;
@@ -92,6 +91,8 @@ public slots:
     void clearRequests();
 
     void reload_playlists();
+
+    void reload_network_links();
 
 private slots:
     void initializeDatabase();
