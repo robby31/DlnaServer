@@ -5,7 +5,6 @@
 #include "tst_dlnafolder.h"
 #include "tst_dlnamusictrack.h"
 #include "tst_dlnavideoitem.h"
-#include "tst_dlnayoutubevideo.h"
 #include "tst_dlnacachedresources.h"
 #include "tst_dlnanetworkvideo.h"
 
@@ -28,11 +27,6 @@ int main(int argc, char *argv[])
         tst_dlnacachedresources test;
         QTest::qExec(&test, argc, argv);
     }
-
-//    {
-//        tst_dlnayoutubevideo test;
-//        QTest::qExec(&test, argc, argv);
-//    }
 
     {
         tst_dlnanetworkvideo test;

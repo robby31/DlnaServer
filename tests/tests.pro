@@ -44,7 +44,6 @@ SOURCES += \
     tst_dlnamusictrack.cpp \
     tst_dlnavideoitem.cpp \
     tst_dlnacachedresources.cpp \
-    #tst_dlnayoutubevideo.cpp \
     tst_dlnanetworkvideo.cpp \
     dlna_check_functions.cpp
 
@@ -54,7 +53,6 @@ HEADERS += \
     tst_dlnamusictrack.h \
     tst_dlnavideoitem.h \
     tst_dlnacachedresources.h \
-    #tst_dlnayoutubevideo.h \
     tst_dlnanetworkvideo.h \
     dlna_check_functions.h
 
