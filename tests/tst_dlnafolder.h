@@ -14,7 +14,7 @@ class tst_dlnafolder : public QObject
     Q_OBJECT
 
 public:
-    explicit tst_dlnafolder(QObject *parent = 0);
+    explicit tst_dlnafolder(QObject *parent = Q_NULLPTR);
 
 signals:
 
@@ -33,6 +33,7 @@ private Q_SLOTS:
 private:
     qint64 parseFolder(const QString& resourceId, DlnaResource* resource);
 
+    Protocol m_dlnaProfiles;
 };
 
 #endif // TST_DLNAFOLDER_H

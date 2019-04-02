@@ -1,7 +1,8 @@
 #include "tst_dlnafolder.h"
 
 tst_dlnafolder::tst_dlnafolder(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    m_dlnaProfiles("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml")
 {
 }
 
@@ -82,8 +83,11 @@ qint64 tst_dlnafolder::parseFolder(const QString& resourceId, DlnaResource *reso
 
                 QStringList sinkProtocol;
                 sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
-                sinkProtocol << "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL";
-                sinkProtocol << "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL";
+                sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3X";
+                sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA";
+                sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
+                sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
+                item->setDlnaProfiles(m_dlnaProfiles);
                 item->setSinkProtocol(sinkProtocol);
 
                 item->getStringContentDirectory(QStringList("*"));
@@ -218,7 +222,7 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
     if (playlist)
     {
         QCOMPARE(playlist->getSystemName(), "ninjago");
-        QCOMPARE(playlist->getChildrenSize(), 19);
+        QCOMPARE(playlist->getChildrenSize(), 15);
 
         {
             QStringList properties;
