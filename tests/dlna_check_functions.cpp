@@ -92,16 +92,16 @@ void check_dlna_audio(const QDomDocument &dlna, const QString &id, const QString
     QCOMPARE(node.attributes().namedItem("restricted").nodeValue(), "true");
 
     // check children nodes : dc:title, upnp:class, upnp:genre, res ...
-    QCOMPARE(node.childNodes().size(), 8);
+    QCOMPARE(node.childNodes().size(), 9);
 
     QCOMPARE(dlna.elementsByTagName("dc:title").size(), 1);
     QCOMPARE(dlna.elementsByTagName("dc:title").at(0).firstChild().nodeValue(), title);
 
-    QCOMPARE(dlna.elementsByTagName("dc:album").size(), 1);
-    QCOMPARE(dlna.elementsByTagName("dc:album").at(0).firstChild().nodeValue(), album);
+    QCOMPARE(dlna.elementsByTagName("upnp:album").size(), 1);
+    QCOMPARE(dlna.elementsByTagName("upnp:album").at(0).firstChild().nodeValue(), album);
 
-    QCOMPARE(dlna.elementsByTagName("dc:artist").size(), 1);
-    QCOMPARE(dlna.elementsByTagName("dc:artist").at(0).firstChild().nodeValue(), artist);
+    QCOMPARE(dlna.elementsByTagName("upnp:artist").size(), 1);
+    QCOMPARE(dlna.elementsByTagName("upnp:artist").at(0).firstChild().nodeValue(), artist);
 
     QCOMPARE(dlna.elementsByTagName("dc:contributor").size(), 1);
     QCOMPARE(dlna.elementsByTagName("dc:contributor").at(0).firstChild().nodeValue(), contributor);
@@ -109,14 +109,14 @@ void check_dlna_audio(const QDomDocument &dlna, const QString &id, const QString
     QCOMPARE(dlna.elementsByTagName("upnp:genre").size(), 1);
     QCOMPARE(dlna.elementsByTagName("upnp:genre").at(0).firstChild().nodeValue(), genre);
 
-    QCOMPARE(dlna.elementsByTagName("dc:originalTrackNumber").size(), 1);
-    QCOMPARE(dlna.elementsByTagName("dc:originalTrackNumber").at(0).firstChild().nodeValue().toInt(), track);
+    QCOMPARE(dlna.elementsByTagName("upnp:originalTrackNumber").size(), 1);
+    QCOMPARE(dlna.elementsByTagName("upnp:originalTrackNumber").at(0).firstChild().nodeValue().toInt(), track);
 
-    QCOMPARE(dlna.elementsByTagName("upnp:date").size(), 1);
-    QCOMPARE(dlna.elementsByTagName("upnp:date").at(0).firstChild().nodeValue(), date);
+    QCOMPARE(dlna.elementsByTagName("dc:date").size(), 1);
+    QCOMPARE(dlna.elementsByTagName("dc:date").at(0).firstChild().nodeValue(), date);
 
     QCOMPARE(dlna.elementsByTagName("upnp:class").size(), 1);
-    QCOMPARE(dlna.elementsByTagName("upnp:class").at(0).firstChild().nodeValue(), "object.item.videoItem");
+    QCOMPARE(dlna.elementsByTagName("upnp:class").at(0).firstChild().nodeValue(), "object.item.audioItem.musicTrack");
 
     QCOMPARE(dlna.elementsByTagName("res").size(), 1);
     QDomNode res = dlna.elementsByTagName("res").at(0);
