@@ -222,7 +222,7 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
     if (playlist)
     {
         QCOMPARE(playlist->getSystemName(), "ninjago");
-        QCOMPARE(playlist->getChildrenSize(), 15);
+        QCOMPARE(playlist->getChildrenSize(), 14);
 
         {
             QStringList properties;
@@ -253,14 +253,14 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
             xml_res.appendChild(video->getXmlContentDirectory(&xml_res, properties));
             check_dlna_video(xml_res,
                              "$1", "",
-                             "S02 E01 Ninjago L'av\u00E8nement des t\u00E9n\u00E8bres",
-                             "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
-                             "00:21:54",
+                             "S09 E01 Ninjago La m\u00E8re de tous les dragons",
+                             "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
+                             "00:21:06",
                              "1024x576",
                              2, 48000,
                              312500,
-                             453793803,
-                             "http://host:600/get/$1/S02%20E01%20Ninjago%20L%27av%C3%A8nement%20des%20t%C3%A9n%C3%A8bres");
+                             437277851,
+                             "http://host:600/get/$1/S09%20E01%20Ninjago%20La%20m%C3%A8re%20de%20tous%20les%20dragons");
         }
     }
 }
