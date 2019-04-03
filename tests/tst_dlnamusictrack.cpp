@@ -3,7 +3,8 @@
 tst_dlnamusictrack::tst_dlnamusictrack(QObject *parent) :
     QObject(parent),
     transcodedBytes(0),
-    timeToOpenTranscoding(0)
+    timeToOpenTranscoding(0),
+    m_dlnaProfiles("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml")
 {
     m_streamingThread = new QThread();
     connect(m_streamingThread, SIGNAL(finished()), this, SLOT(deleteLater()));
@@ -52,6 +53,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
 
         QStringList sinkProtocol;
         sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
+        sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3X;DLNA.ORG_FLAGS=8D100000000000000000000000000000";
+        track.setDlnaProfiles(m_dlnaProfiles);
         track.setSinkProtocol(sinkProtocol);
 
         QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3");
@@ -96,7 +99,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
         QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
         QVERIFY2(xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue() == "http://host:600/get//07%20On_Off.mp3", xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue().toUtf8().constData());
         QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 5);
-        QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
+        QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=A1100000000000000000000000000000", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
         QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
         QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "376593");
         QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:00:19", xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue().toUtf8());
@@ -115,8 +118,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
 
         QVERIFY2(track.getdlnaOrgOpFlags() == "01", track.getdlnaOrgOpFlags().toUtf8());
         QVERIFY(track.getdlnaOrgPN() == "MP3");
-        QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0");
-        QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0");
+        QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=A1100000000000000000000000000000");
+        QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=A1100000000000000000000000000000");
 
         QVERIFY(track.getAlbumArt().isNull() == true);
         QVERIFY(track.getByteAlbumArt().isNull() == true);
@@ -277,6 +280,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
 
         QStringList sinkProtocol;
         sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
+        track.setDlnaProfiles(m_dlnaProfiles);
         track.setSinkProtocol(sinkProtocol);
 
         QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/16 Funk Ad.mp3");
@@ -321,7 +325,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
         QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
         QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue() == "http://host:600/get//16%20Funk%20Ad.mp3");
         QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 5);
-        QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0");
+        QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=A1100000000000000000000000000000");
         QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
         QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "845029");
         QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:00:51", xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue().toUtf8());
@@ -340,8 +344,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
 
         QVERIFY(track.getdlnaOrgOpFlags() == "01");
         QVERIFY(track.getdlnaOrgPN() == "MP3");
-        QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0");
-        QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0");
+        QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=A1100000000000000000000000000000");
+        QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=A1100000000000000000000000000000");
 
         QVERIFY(track.getAlbumArt().isNull() == false);
         QCOMPARE(track.getAlbumArt().size().width(), 300);
@@ -379,6 +383,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
 
         QStringList sinkProtocol;
         sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
+        track.setDlnaProfiles(m_dlnaProfiles);
         track.setSinkProtocol(sinkProtocol);
 
         QVERIFY(track.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Mister Mystère/1-02 Phébus.mp3");
@@ -423,7 +428,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
         QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
         QVERIFY2(xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue() == "http://host:600/get//1-02%20Phe%CC%81bus.mp3", xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue().toUtf8().constData());
         QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 5);
-        QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0");
+        QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=A1100000000000000000000000000000");
         QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
         QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "3841064");
         QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:02:39");
@@ -442,8 +447,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
 
         QVERIFY(track.getdlnaOrgOpFlags() == "01");
         QVERIFY(track.getdlnaOrgPN() == "MP3");
-        QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0");
-        QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0");
+        QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=A1100000000000000000000000000000");
+        QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=A1100000000000000000000000000000");
 
         QVERIFY(track.getAlbumArt().isNull() == false);
         QCOMPARE(track.getAlbumArt().size().width(), 300);
@@ -472,14 +477,15 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
     }
 }
 
-void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_WAV()
+void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_LPCM()
 {
     DlnaMusicTrackFile track("/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3");
     track.setHostUrl(QUrl("http://host:600"));
-    track.setTranscodeFormat(WAV);
+    track.setTranscodeFormat(LPCM_S16BE);
 
     QStringList sinkProtocol;
-    sinkProtocol << "http-get:*:audio/wav:DLNA.ORG_PN=WAV";
+    sinkProtocol << "http-get:*:audio/L16:DLNA.ORG_PN=LPCM";
+    track.setDlnaProfiles(m_dlnaProfiles);
     track.setSinkProtocol(sinkProtocol);
 
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3");
@@ -524,16 +530,16 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_WAV()
     QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
     QVERIFY2(xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue() == "http://host:600/get//07%20On_Off.mp3", xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue().toUtf8().constData());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 5);
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/wav:DLNA.ORG_PN=WAV;DLNA.ORG_OP=10;DLNA.ORG_CI=1", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/L16;rate=44100;channels=2:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
-    QCOMPARE(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue(), QString("3418984"));
+    QCOMPARE(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue(), QString("3419018"));
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:00:19", xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue().toUtf8());
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue() == "176400", xml_res.elementsByTagName("res").at(0).attributes().namedItem("bitrate").nodeValue().toUtf8());
     xml_res.clear();
 
-    QVERIFY(track.mimeType() == "audio/wav");
-    QVERIFY(track.format() == WAV);
-    QVERIFY(track.size() == 3418984);
+    QCOMPARE(track.mimeType(), "audio/L16;rate=44100;channels=2");
+    QVERIFY(track.format() == LPCM_S16BE);
+    QVERIFY(track.size() == 3419018);
     QVERIFY2(track.bitrate() == 1411200, QString("%1").arg(track.bitrate()).toUtf8());
     QVERIFY(track.getLengthInSeconds() == 19);
     QVERIFY2(track.getLengthInMilliSeconds() == 19382, QString("%1").arg(track.getLengthInMilliSeconds()).toUtf8());
@@ -542,9 +548,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_WAV()
     QVERIFY(track.toTranscode() == true);
 
     QVERIFY(track.getdlnaOrgOpFlags() == "10");
-    QVERIFY(track.getdlnaOrgPN() == "WAV");
-    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=WAV;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/wav:DLNA.ORG_PN=WAV;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    QVERIFY(track.getdlnaOrgPN() == "LPCM");
+    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
+    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/L16;rate=44100;channels=2:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
     QVERIFY(track.getAlbumArt().isNull() == true);
     QVERIFY(track.getByteAlbumArt().isNull() == true);
@@ -589,7 +595,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_WAV()
         QCOMPARE(transcodeProcess->error(), QString());
         QCOMPARE(transcodeProcess->exitCode(), 0);
         QVERIFY2(transcodeProcess->bytesAvailable() == 0, QString("%1").arg(transcodeProcess->bytesAvailable()).toUtf8());
-        QVERIFY2(transcodedBytes == 3410478, QString("%1").arg(transcodedBytes).toUtf8().constData());
+        QVERIFY2(transcodedBytes == 3410400, QString("%1").arg(transcodedBytes).toUtf8().constData());
         QVERIFY(transcodeProcess->atEnd() == true);
         QVERIFY(track.size() > transcodedBytes);
     }
@@ -607,6 +613,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3()
 
     QStringList sinkProtocol;
     sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
+    track.setDlnaProfiles(m_dlnaProfiles);
     track.setSinkProtocol(sinkProtocol);
 
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/01 Monde virtuel.m4a");
@@ -651,7 +658,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3()
     QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
     QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue() == "http://host:600/get//01%20Monde%20virtuel.m4a");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 5);
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "7561480", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:03:09");
@@ -670,8 +677,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3()
 
     QVERIFY(track.getdlnaOrgOpFlags() == "10");
     QVERIFY(track.getdlnaOrgPN() == "MP3");
-    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
+    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
     QVERIFY(track.getAlbumArt().isNull() == false);
     QVERIFY(track.getByteAlbumArt().isNull() == false);
@@ -735,6 +742,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3()
 
     QStringList sinkProtocol;
     sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
+    track.setDlnaProfiles(m_dlnaProfiles);
     track.setSinkProtocol(sinkProtocol);
 
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
@@ -781,7 +789,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3()
     QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
     QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue() == "http://host:600/get//test.wav");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 7);
-    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "21787040", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:09:05");
@@ -808,8 +816,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3()
 
     QVERIFY(track.getdlnaOrgOpFlags() == "10");
     QVERIFY(track.getdlnaOrgPN() == "MP3");
-    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
+    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
     Device *device = track.getStream();
 
@@ -864,6 +872,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM()
 
     QStringList sinkProtocol;
     sinkProtocol << "http-get:*:audio/L16;rate=48000;channels=2:DLNA.ORG_PN=LPCM";
+    track.setDlnaProfiles(m_dlnaProfiles);
     track.setSinkProtocol(sinkProtocol);
 
     QStringList properties;
@@ -908,7 +917,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM()
     QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
     QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue() == "http://host:600/get//test.wav");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 7);
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/L16;rate=48000;channels=2:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/L16;rate=48000;channels=2:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "104569237", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:09:05");
@@ -935,8 +944,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM()
 
     QVERIFY(track.getdlnaOrgOpFlags() == "10");
     QVERIFY(track.getdlnaOrgPN() == "LPCM");
-    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/L16;rate=48000;channels=2:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
+    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/L16;rate=48000;channels=2:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
     Device *device = track.getStream();
     QVERIFY(device != Q_NULLPTR);
@@ -985,7 +994,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
     track.setTranscodeFormat(AAC);
 
     QStringList sinkProtocol;
-    sinkProtocol << "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO_320";
+    sinkProtocol << "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO";
+    track.setDlnaProfiles(m_dlnaProfiles);
     track.setSinkProtocol(sinkProtocol);
 
     QVERIFY(track.toTranscode()==true);
@@ -1033,7 +1043,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
     QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
     QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue() == "http://host:600/get//test.wav");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 7);
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO_320;DLNA.ORG_OP=10;DLNA.ORG_CI=1", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "22662977", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:09:05");
@@ -1059,9 +1069,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
     //    QVERIFY2(result["histogram_0db"] == 300058, QString("%1").arg(result["histogram_0db"]).toUtf8());
 
     QVERIFY(track.getdlnaOrgOpFlags() == "10");
-    QVERIFY(track.getdlnaOrgPN() == "AAC_ISO_320");
-    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=AAC_ISO_320;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO_320;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    QCOMPARE(track.getdlnaOrgPN(), "AAC_ISO");
+    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=AAC_ISO;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
+    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
     Device *device = track.getStream();
     QVERIFY(device != Q_NULLPTR);
@@ -1109,7 +1119,8 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
     track.setTranscodeFormat(ALAC);
 
     QStringList sinkProtocol;
-    sinkProtocol << "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO_320";
+    sinkProtocol << "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO";
+    track.setDlnaProfiles(m_dlnaProfiles);
     track.setSinkProtocol(sinkProtocol);
 
     QVERIFY(track.toTranscode()==true);
@@ -1157,7 +1168,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
     QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().size() == 1);
     QVERIFY(xml_res.elementsByTagName("res").at(0).childNodes().at(0).nodeValue() == "http://host:600/get//test.wav");
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().size() == 7);
-    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO_320;DLNA.ORG_OP=10;DLNA.ORG_CI=1", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
+    QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000", xml_res.elementsByTagName("res").at(0).attributes().namedItem("protocolInfo").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("xmlns:dlna").nodeValue() == "urn:schemas-dlna-org:metadata-1-0/");
     QVERIFY2(xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue() == "116321656", xml_res.elementsByTagName("res").at(0).attributes().namedItem("size").nodeValue().toUtf8());
     QVERIFY(xml_res.elementsByTagName("res").at(0).attributes().namedItem("duration").nodeValue() == "00:09:05");
@@ -1183,9 +1194,9 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
     //    QVERIFY2(result["histogram_0db"] == 300058, QString("%1").arg(result["histogram_0db"]).toUtf8());
 
     QVERIFY(track.getdlnaOrgOpFlags() == "10");
-    QVERIFY(track.getdlnaOrgPN() == "AAC_ISO_320");
-    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=AAC_ISO_320;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO_320;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    QCOMPARE(track.getdlnaOrgPN(), "AAC_ISO");
+    QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=AAC_ISO;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
+    QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
     Device *device = track.getStream();
     QVERIFY(device != Q_NULLPTR);
