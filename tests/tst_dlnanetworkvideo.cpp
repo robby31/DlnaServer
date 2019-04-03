@@ -2,7 +2,8 @@
 
 tst_dlnanetworkvideo::tst_dlnanetworkvideo(QObject *parent):
     QObject(parent),
-    db(CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE"))
+    db(CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE")),
+    m_dlnaProfiles("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml")
 {
     FfmpegTranscoding::setDirPath("/opt/local/bin");
 
@@ -50,6 +51,8 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo_data()
     QTest::addColumn<int>("sample_rate");
     QTest::addColumn<int>("channels");
     QTest::addColumn<QString>("format");
+    QTest::addColumn<QString>("audio_format");
+    QTest::addColumn<QString>("video_format");
     QTest::addColumn<QString>("mime_type");
     QTest::addColumn<qint64>("source_size");
 
@@ -57,91 +60,91 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo_data()
                                  << QUrl("https://www.arte.tv/fr/videos/086296-006-A/julian-roman-wasserfuhr-feat-joerg-brinkmann-au-wdr-3-jazzfest/") << -1
                                  << "Julian & Roman Wasserfuhr feat. J\u00F6rg Brinkmann au WDR 3 Jazzfest"
                                  << 3705000 << "1280x720" << "25.000" << 4558800 << 48000 << 2
-                                 << "mov,mp4,m4a,3gp,3g2,mj2" << "video/mpeg" << static_cast<qint64>(1150792878);
+                                 << "mov,mp4,m4a,3gp,3g2,mj2" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(1150792878);
 
     QTest::newRow("RMCDecouverte Vintage") << true
                                            << QUrl("https://rmcdecouverte.bfmtv.com/vintage-mecanic/program_5280/") << -1
                                            << "PORSCHE 356 CABRIOLET 1958"
-                                           << 3722112 << "1138x720" << "25.000" << 4558800 << 44100 << 2
-                                           << "hls,applehttp" << "video/mpeg" << static_cast<qint64>(0);
+                                           << 3722112 << "1280x720" << "25.000" << 4558800 << 44100 << 2
+                                           << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
     QTest::newRow("Youtube_Comptines") << true
                                        << QUrl("http://www.youtube.com/watch?v=SLbxwYTymCQ") << -1
                                        << "Comptines et chansons pour enfants - Titounis"
                                        << 1667521 << "1280x720" << "29.970" << 4558800 << 48000 << 2
-                                       << "matroska,webm" << "video/mpeg" << static_cast<qint64>(29818677);
+                                       << "matroska,webm" << "opus" << "av01.0.05M.08" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(29818677);
 
     QTest::newRow("Youtube_Lilly") << true
                                    << QUrl("https://www.youtube.com/watch?v=JrlfFTS9kGU") << -1
                                    << "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]"
                                    << 193641 << "1920x1080" << "25.000" << 4558800 << 48000 << 2
-                                   << "mov,mp4,m4a,3gp,3g2,mj2" << "video/mpeg" << static_cast<qint64>(49042411);
+                                   << "mov,mp4,m4a,3gp,3g2,mj2" << "opus" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(49042411);
 
     QTest::newRow("Youtube_Lilly_MaxHeight_720") << true
                                                  << QUrl("https://www.youtube.com/watch?v=JrlfFTS9kGU") << 720
                                                  << "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]"
                                                  << 193641 << "1280x720" << "25.000" << 4558800 << 48000 << 2
-                                                 << "mov,mp4,m4a,3gp,3g2,mj2" << "video/mpeg" << static_cast<qint64>(30880770);
+                                                 << "mov,mp4,m4a,3gp,3g2,mj2" << "opus" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(30880770);
 
     QTest::newRow("Youtube_Lilly_MaxHeight_100") << true
                                                  << QUrl("https://www.youtube.com/watch?v=JrlfFTS9kGU") << 100
                                                  << "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]"
                                                  << 193641 << "256x144" << "25.000" << 4558800 << 48000 << 2
-                                                 << "matroska,webm" << "video/mpeg" << static_cast<qint64>(5603535);
+                                                 << "matroska,webm" << "opus" << "vp9" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(5603535);
 
     QTest::newRow("Youtube_Lilly2") << true
                                     << QUrl("http://www.youtube.com/watch?v=cXxwIZwYnok") << -1
                                     << "Lilly Wood & The Prick - Let's Not Pretend [Clip Officiel]"
                                     << 220160 << "1920x1080" << "25.000" << 4558800 << 48000 << 2
-                                    << "mov,mp4,m4a,3gp,3g2,mj2" << "video/mpeg" << static_cast<qint64>(67988426);
+                                    << "mov,mp4,m4a,3gp,3g2,mj2" << "opus" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(67988426);
 
     QTest::newRow("Youtube_Lilly3") << true
                                     << QUrl("https://www.youtube.com/watch?v=RQlXgAR0F4Y") << -1
                                     << "Lilly Wood & The Prick en concert privé Le Mouv'"
                                     << 3671000 << "640x356" << "25.000" << 4558800 << 44100 << 2
-                                    << "mov,mp4,m4a,3gp,3g2,mj2" << "video/mpeg" << static_cast<qint64>(221908288);
+                                    << "mov,mp4,m4a,3gp,3g2,mj2" << "vorbis" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(221908288);
 
     QTest::newRow("Youtube_not_available") << false
                                            << QUrl("https://www.youtube.com/watch?v=ji74LmoyqAg") << -1
                                            << ""
                                            << 0 << "" << "" << 4558800 << -1 << -1
-                                           << "" << "video/mpeg" << static_cast<qint64>(0);
+                                           << "" << "" << "" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
     QTest::newRow("Youtube_Muse") << true
                                   << QUrl("https://www.youtube.com/watch?v=l9kqU_7-CgI") << -1
                                   << "Muse - Exogenesis: Symphony, Part 1 (Overture) [HD]"
                                   << 258391 << "1920x1080" << "29.970" << 4558800 << 48000 << 2
-                                  << "matroska,webm" << "video/mpeg" << static_cast<qint64>(29661109);
+                                  << "matroska,webm" << "opus" << "vp9" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(29661109);
 
     QTest::newRow("Youtube_Jabig") << true
                                    << QUrl("https://www.youtube.com/watch?v=cmSYV5A9iuU") << -1
                                    << "6 Hour Jazz Music Mix by JaBig (Best of Classic Long Smooth Piano Soft Instrumental Study Playlist)"
                                    << 22023167 << "1280x720" << "24.000" << 4558800 << 48000 << 2
-                                   << "matroska,webm" << "video/mpeg" << static_cast<qint64>(602836473);
+                                   << "matroska,webm" << "opus" << "vp9" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(602836473);
 
     QTest::newRow("France2 (SITE)") << true
                                     << QUrl("https://www.france.tv/france-2/direct.html") << -1
                                     << "France 2 en direct"
                                     << 0 << "1024x576" << "25.000" << 4558800 << 32000 << 2
-                                    << "hls,applehttp" << "video/mpeg" << static_cast<qint64>(0);
+                                    << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
     QTest::newRow("France2 (URL)") << true
                                    << QUrl("francetv:SIM_France2") << -1
                                    << "France 2 en direct"
                                    << 0 << "1024x576" << "25.000" << 4558800 << 32000 << 2
-                                   << "hls,applehttp" << "video/mpeg" << static_cast<qint64>(0);
+                                   << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
     QTest::newRow("France2 (URL) MaxHeight 396") << true
                                                  << QUrl("francetv:SIM_France2") << 396
                                                  << "France 2 en direct"
                                                  << 0 << "704x396" << "25.000" << 4558800 << 32000 << 2
-                                                 << "hls,applehttp" << "video/mpeg" << static_cast<qint64>(0);
+                                                 << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
     QTest::newRow("France2 (URL) MaxHeight 50") << true
                                                  << QUrl("francetv:SIM_France2") << 50
                                                  << "France 2 en direct"
                                                  << 0 << "256x144" << "25.000" << 4558800 << 32000 << 2
-                                                 << "hls,applehttp" << "video/mpeg" << static_cast<qint64>(0);
+                                                 << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
 }
 
@@ -158,6 +161,8 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo()
     QFETCH(int, sample_rate);
     QFETCH(int, channels);
     QFETCH(QString, format);
+    QFETCH(QString, audio_format);
+    QFETCH(QString, video_format);
     QFETCH(QString, mime_type);
     QFETCH(qint64, source_size);
 
@@ -192,6 +197,8 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo()
         QCOMPARE(video.channelCount(), channels);
 
         QCOMPARE(video.metaDataFormat(), format);
+        QCOMPARE(video.sourceAudioFormat(), audio_format);
+        QCOMPARE(video.sourceVideoFormat(), video_format);
         QCOMPARE(video.mimeType(), mime_type);
         QCOMPARE(video.sourceSize(), source_size);
 
@@ -227,7 +234,7 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
 
         auto artists = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(0));
         QCOMPARE(artists->getDisplayName(), "Artist");
-        QCOMPARE(artists->getChildrenSize(), 104);
+        QCOMPARE(artists->getChildrenSize(), 109);
 
         DlnaCachedFolder *artist = Q_NULLPTR;
         for (int index=0;index<artists->getChildrenSize();++index)
@@ -265,7 +272,10 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
                 movie->setHostUrl(QUrl("http://host:600"));
 
                 QStringList sinkProtocol;
-                sinkProtocol << "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL";
+                sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA";
+                sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
+                sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
+                movie->setDlnaProfiles(m_dlnaProfiles);
                 movie->setSinkProtocol(sinkProtocol);
 
                 QStringList properties;
@@ -280,20 +290,21 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
                 QDomDocument xml_res;
                 xml_res.appendChild(movie->getXmlContentDirectory(&xml_res, properties));
                 check_dlna_video(xml_res,
-                                 "0$7$1$21$1", "0$7$1$21",
-                                 "Cats on trees \"Sirens call\" [Clip Officiel]", "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
-                                 "00:03:17", "1280x720", 2, 44100,
-                                 569850, 121652704,
-                                 "http://host:600/get/0$7$1$21$1/Media%2814955%29");
+                                 "0$7$1$22$1", "0$7$1$22",
+                                 "Cats on trees \"Sirens call\" [Clip Officiel]",
+                                 "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
+                                 "00:03:17", "1920x1080", 2, 48000,
+                                 569850, 121645286,
+                                 "http://host:600/get/0$7$1$22$1/Media%2814955%29");
                 xml_res.clear();
 
                 QCOMPARE(movie->getdlnaOrgOpFlags(), "10");
-                QCOMPARE(movie->getdlnaOrgPN(), "MPEG_PS_PAL");
-                QCOMPARE(movie->getDlnaContentFeatures(), "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-                QCOMPARE(movie->getProtocolInfo(), "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+                QCOMPARE(movie->getdlnaOrgPN(), "MPEG_TS_HD_NA");
+                QCOMPARE(movie->getDlnaContentFeatures(), "DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
+                QCOMPARE(movie->getProtocolInfo(), "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
-                QVERIFY(movie->getAlbumArt().isNull());
-                QVERIFY(movie->getByteAlbumArt().isNull());
+                QVERIFY(!movie->getAlbumArt().isNull());
+                QVERIFY(!movie->getByteAlbumArt().isNull());
 
                 QHash<QString, double> result = movie->volumeInfo(-1);
                 QVERIFY2(result.size() == 2, QString("%1").arg(QVariant::fromValue(result.keys()).toString()).toUtf8());
@@ -302,14 +313,14 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
 
                 QVERIFY(movie->toTranscode());
                 QCOMPARE(movie->metaDataFormat(), "mov,mp4,m4a,3gp,3g2,mj2");
-                QCOMPARE(movie->mimeType(), "video/mpeg");
-                QCOMPARE(movie->size(), 121652704);
+                QCOMPARE(movie->mimeType(), "video/vnd.dlna.mpeg-tts");
+                QCOMPARE(movie->size(), 121645286);
                 QCOMPARE(movie->bitrate(), 4558800);
                 QCOMPARE(movie->getLengthInSeconds(), 197);
-                QCOMPARE(movie->getLengthInMilliSeconds(), 196812);
-                QCOMPARE(movie->samplerate(), 44100);
+                QCOMPARE(movie->getLengthInMilliSeconds(), 196800);
+                QCOMPARE(movie->samplerate(), 48000);
                 QCOMPARE(movie->channelCount(), 2);
-                QCOMPARE(movie->resolution(), "1280x720");
+                QCOMPARE(movie->resolution(), "1920x1080");
                 QVERIFY2(movie->audioLanguages() == QStringList() << "", movie->audioLanguages().join(',').toUtf8());
                 QVERIFY2(movie->subtitleLanguages() == QStringList() << "", movie->subtitleLanguages().join(',').toUtf8());
                 QCOMPARE(movie->framerate(), "25.000");
@@ -332,6 +343,8 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo_data()
     QTest::addColumn<int>("channels");
     QTest::addColumn<QString>("format");
     QTest::addColumn<QString>("mime_type");
+    QTest::addColumn<QString>("dlna_org_pn");
+    QTest::addColumn<QString>("dlna_content_features");
     QTest::addColumn<QString>("protocolInfo");
     QTest::addColumn<int>("source_size");
     QTest::addColumn<int>("video_size");
@@ -343,8 +356,10 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo_data()
                                             << "Muse - Exogenesis: Symphony, Part 1 (Overture) [HD]"
                                             << 258391
                                             << "1920x1080" << "29.970" << 4558800 << 48000 << 2
-                                            << "matroska,webm" << "video/mpeg"
-                                            << "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1"
+                                            << "matroska,webm" << "video/vnd.dlna.mpeg-tts"
+                                            << "MPEG_TS_HD_NA"
+                                            << "DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
+                                            << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
                                             << 29661109 << 159715687 << 159511796;
 
     QTest::newRow("Youtube_Muse_H264_AAC") << H264_AAC
@@ -353,8 +368,10 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo_data()
                                            << "Muse - Exogenesis: Symphony, Part 1 (Overture) [HD]"
                                            << 258391
                                            << "1920x1080" << "29.970" << 2500000 << 48000 << 2
-                                           << "matroska,webm" << "video/mp4"
-                                           << "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1"
+                                           << "matroska,webm" << "video/vnd.dlna.mpeg-tts"
+                                           << "AVC_TS_MP_HD_AAC_MULT5"
+                                           << "DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
+                                           << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
                                            << 29661109 << 89225642 << 88727164;
 
 }
@@ -377,14 +394,24 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo()
     QFETCH(int, video_size);
     QFETCH(int, transcoded_size);
     QFETCH(QString, protocolInfo);
+    QFETCH(QString, dlna_org_pn);
+    QFETCH(QString, dlna_content_features);
 
     QElapsedTimer timer;
     timer.start();
 
     DlnaNetworkVideo video;
     video.setTranscodeFormat(transcode_format);
+
     video.setUrl(url);
     bool res = video.waitUrl(15000);
+
+    QStringList sinkProtocol;
+    sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA";
+    sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
+    sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
+    video.setDlnaProfiles(m_dlnaProfiles);
+    video.setSinkProtocol(sinkProtocol);
 
     qint64 duration = timer.elapsed();
     QVERIFY2(duration < 10000, QString("Duration: %1").arg(duration).toUtf8());
@@ -446,8 +473,8 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo()
     QCOMPARE(transcodedSize, transcoded_size);
 
     QCOMPARE(video.getdlnaOrgOpFlags(), "10");
-    QCOMPARE(video.getdlnaOrgPN(), "MPEG_PS_PAL");
-    QCOMPARE(video.getDlnaContentFeatures(), "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    QCOMPARE(video.getdlnaOrgPN(), dlna_org_pn);
+    QCOMPARE(video.getDlnaContentFeatures(), dlna_content_features);
     QCOMPARE(video.getProtocolInfo(), protocolInfo);
 
     QVERIFY(video.getAlbumArt().isNull());

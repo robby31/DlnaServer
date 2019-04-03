@@ -2,10 +2,13 @@
 
 tst_dlnavideoitem::tst_dlnavideoitem(QObject *parent) :
     QObject(parent),
-    transcodedSize(0),
-    timeToOpenTranscoding(0)
+    m_dlnaProfiles("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml")
 {
     FfmpegTranscoding::setDirPath("/opt/local/bin");
+
+    m_sinkProtocols << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA";
+    m_sinkProtocols << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
+    m_sinkProtocols << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
 }
 
 void tst_dlnavideoitem::dataAvailable()
@@ -41,10 +44,8 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     DlnaVideoFile movie("/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.Episode.III.FRENCH.Bdrip.Xvid.AC3-FQT.mp4");
     movie.setTranscodeFormat(H264_AAC);
 
-    QStringList sinkProtocol;
-    sinkProtocol << "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL";
-    sinkProtocol << "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL";
-    movie.setSinkProtocol(sinkProtocol);
+    movie.setDlnaProfiles(m_dlnaProfiles);
+    movie.setSinkProtocol(m_sinkProtocols);
 
     QVERIFY(movie.toTranscode()==true);
     QVERIFY(movie.format() == H264_AAC);
@@ -58,9 +59,9 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     QVERIFY2(movie.subtitleLanguages().isEmpty() == true, movie.audioLanguages().join(',').toUtf8());
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
-    QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
-    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-    QVERIFY2(movie.getProtocolInfo() == "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1", movie.getProtocolInfo().toUtf8());
+    QCOMPARE(movie.getdlnaOrgPN(), "AVC_TS_MP_HD_AAC_MULT5");
+    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
+    QVERIFY2(movie.getProtocolInfo() == "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000", movie.getProtocolInfo().toUtf8());
 
     QVERIFY(movie.getAlbumArt().isNull() == true);
     QVERIFY(movie.getByteAlbumArt().isNull() == true);
@@ -104,10 +105,8 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     DlnaVideoFile movie("/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.Episode.III.FRENCH.Bdrip.Xvid.AC3-FQT.mp4");
     movie.setTranscodeFormat(MPEG2_AC3);
 
-    QStringList sinkProtocol;
-    sinkProtocol << "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL";
-    sinkProtocol << "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL";
-    movie.setSinkProtocol(sinkProtocol);
+    movie.setDlnaProfiles(m_dlnaProfiles);
+    movie.setSinkProtocol(m_sinkProtocols);
 
     QVERIFY(movie.toTranscode()==true);
     QVERIFY(movie.format() == MPEG2_AC3);
@@ -121,9 +120,9 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     QVERIFY2(movie.subtitleLanguages().isEmpty() == true, movie.audioLanguages().join(',').toUtf8());
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
-    QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
-    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-    QVERIFY2(movie.getProtocolInfo() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1", movie.getProtocolInfo().toUtf8());
+    QVERIFY(movie.getdlnaOrgPN() == "MPEG_TS_HD_NA");
+    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
+    QVERIFY2(movie.getProtocolInfo() == "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000", movie.getProtocolInfo().toUtf8());
 
     QVERIFY(movie.getAlbumArt().isNull() == true);
     QVERIFY(movie.getByteAlbumArt().isNull() == true);
@@ -169,10 +168,8 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
     DlnaVideoFile movie("/Users/doudou/Movies/Films/Action/Looper.2012.DVDRip.XviD-PTpOWeR.mkv");
     movie.setTranscodeFormat(MPEG2_AC3);
 
-    QStringList sinkProtocol;
-    sinkProtocol << "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL";
-    sinkProtocol << "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL";
-    movie.setSinkProtocol(sinkProtocol);
+    movie.setDlnaProfiles(m_dlnaProfiles);
+    movie.setSinkProtocol(m_sinkProtocols);
 
     QVERIFY(movie.toTranscode()==true);
     QVERIFY(movie.format() == MPEG2_AC3);
@@ -186,9 +183,9 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
     QVERIFY2(movie.subtitleLanguages() == QStringList() << "fre", movie.subtitleLanguages().join(',').toUtf8());
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
-    QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
-    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-    QVERIFY2(movie.getProtocolInfo() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1", movie.getProtocolInfo().toUtf8());
+    QVERIFY(movie.getdlnaOrgPN() == "MPEG_TS_HD_NA");
+    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
+    QVERIFY2(movie.getProtocolInfo() == "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000", movie.getProtocolInfo().toUtf8());
 
     QVERIFY(movie.getAlbumArt().isNull() == true);
     QVERIFY(movie.getByteAlbumArt().isNull() == true);
@@ -236,10 +233,8 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
     movie.setTranscodeFormat(MPEG2_AC3);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/District.9.2009.720p.BrRip.YIFY.mkv");
 
-    QStringList sinkProtocol;
-    sinkProtocol << "http-get:*:video/mp4:DLNA.ORG_PN=MPEG_PS_PAL";
-    sinkProtocol << "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL";
-    movie.setSinkProtocol(sinkProtocol);
+    movie.setDlnaProfiles(m_dlnaProfiles);
+    movie.setSinkProtocol(m_sinkProtocols);
 
     QStringList properties;
     properties << "upnp:genre";
@@ -254,15 +249,15 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
     xml_res.appendChild(movie.getXmlContentDirectory(&xml_res, properties));
     check_dlna_video(xml_res,
                      "", "-1",
-                     "District.9.2009.720p.BrRip.YIFY", "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
+                     "District.9.2009.720p.BrRip.YIFY", "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
                      "01:52:16", "1280x688", 2, 48000,
                      569850, 4163526283, "http://host:600/get//District.9.2009.720p.BrRip.YIFY.mkv");
     xml_res.clear();
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
-    QVERIFY(movie.getdlnaOrgPN() == "MPEG_PS_PAL");
-    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-    QVERIFY(movie.getProtocolInfo() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+    QVERIFY(movie.getdlnaOrgPN() == "MPEG_TS_HD_NA");
+    QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
+    QVERIFY(movie.getProtocolInfo() == "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
     QVERIFY(movie.getAlbumArt().isNull() == true);
     QVERIFY(movie.getByteAlbumArt().isNull() == true);
@@ -274,7 +269,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
 
     QVERIFY(movie.toTranscode() == true);
     QVERIFY(movie.format() == MPEG2_AC3);
-    QVERIFY(movie.mimeType() == "video/mpeg");
+    QVERIFY(movie.mimeType() == "video/vnd.dlna.mpeg-tts");
     QVERIFY(movie.size() == 4163526283);
     QVERIFY(movie.bitrate() == 4558800);
     QVERIFY(movie.getLengthInSeconds() == 6736);

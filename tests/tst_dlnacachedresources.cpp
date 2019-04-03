@@ -4,7 +4,8 @@ tst_dlnacachedresources::tst_dlnacachedresources(QObject *parent) :
     QObject(parent),
     transcodedSize(0),
     db(CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE")),
-    folderKO()
+    folderKO(),
+    m_dlnaProfiles("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml")
 {
     FfmpegTranscoding::setDirPath("/opt/local/bin");
 
@@ -281,6 +282,8 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
 
         QStringList sinkProtocol;
         sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
+        sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3X";
+        track->setDlnaProfiles(m_dlnaProfiles);
         track->setSinkProtocol(sinkProtocol);
 
         QVERIFY2(track->getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Je dis aime/01 Monde virtuel.m4a", track->getSystemName().toUtf8().constData());
@@ -302,11 +305,11 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
         QDomDocument xml_res;
         xml_res.appendChild(track->getXmlContentDirectory(&xml_res, properties));
         check_dlna_audio(xml_res,
-                         "", "",
+                         "0$6$1$4$1", "0$6$1$4",
                          "Monde virtuel", "Je dis aime", "-M-", "-M-", "Pop", 1, "2013-01-02",
-                         "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
+                         "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
                          "00:03:09", 2, 44100,
-                         40000, 7561480, "");
+                         40000, 7561480, "http://host:600/get/0$6$1$4$1/Media%281%29");
         xml_res.clear();
 
         QVERIFY(track->mimeType() == "audio/mpeg");
@@ -320,8 +323,8 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
 
         QVERIFY(track->getdlnaOrgOpFlags() == "10");
         QVERIFY(track->getdlnaOrgPN() == "MP3");
-        QVERIFY(track->getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-        QVERIFY(track->getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+        QVERIFY(track->getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
+        QVERIFY(track->getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
         QVERIFY2(track->metaDataPerformerSort() == "M", track->metaDataPerformerSort().toUtf8());
         QVERIFY2(track->metaDataAlbumArtist() == "-M-", track->metaDataAlbumArtist().toUtf8());
@@ -408,7 +411,10 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
             movie->setHostUrl(QUrl("http://host:600"));
 
             QStringList sinkProtocol;
-            sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
+            sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA";
+            sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
+            sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
+            movie->setDlnaProfiles(m_dlnaProfiles);
             movie->setSinkProtocol(sinkProtocol);
 
             {
@@ -425,15 +431,16 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
                 xml_res.appendChild(movie->getXmlContentDirectory(&xml_res, properties));
                 check_dlna_video(xml_res,
                                  "0$8$126", "0$8",
-                                 "District.9.2009.720p.BrRip.YIFY", "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
+                                 "District.9.2009.720p.BrRip.YIFY",
+                                 "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
                                  "01:52:16", "1280x688", 2, 48000,
                                  569850, 3973129325, "");
             }
 
             QVERIFY(movie->getdlnaOrgOpFlags() == "10");
-            QVERIFY(movie->getdlnaOrgPN() == "MPEG_PS_PAL");
-            QVERIFY(movie->getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
-            QVERIFY(movie->getProtocolInfo() == "http-get:*:video/mpeg:DLNA.ORG_PN=MPEG_PS_PAL;DLNA.ORG_OP=10;DLNA.ORG_CI=1");
+            QVERIFY(movie->getdlnaOrgPN() == "MPEG_TS_HD_NA");
+            QVERIFY(movie->getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
+            QVERIFY(movie->getProtocolInfo() == "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
             QVERIFY(movie->getAlbumArt().isNull() == true);
             QVERIFY(movie->getByteAlbumArt().isNull() == true);
@@ -444,7 +451,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
             QVERIFY2(QVariant::fromValue(result["max_volume"]).toString() == "0", QString("%1").arg(result["max_volume"]).toUtf8());
 
             QVERIFY(movie->toTranscode() == true);
-            QVERIFY(movie->mimeType() == "video/mpeg");
+            QVERIFY(movie->mimeType() == "video/vnd.dlna.mpeg-tts");
             //    QVERIFY(movie->size() == 3973129325);
             QVERIFY(movie->bitrate() == 4558800);
             //    QVERIFY(movie->getLengthInSeconds() == 6736);
@@ -503,6 +510,8 @@ qint64 tst_dlnacachedresources::parseFolder(const QString& resourceId, DlnaResou
 
                 QStringList sinkProtocol;
                 sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
+                sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3X";
+                item->setDlnaProfiles(m_dlnaProfiles);
                 item->setSinkProtocol(sinkProtocol);
 
                 child->getStringContentDirectory(QStringList("*"));

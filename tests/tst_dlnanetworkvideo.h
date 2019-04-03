@@ -43,6 +43,7 @@ private:
 private:
     long transcodedSize = 0;
     QSqlDatabase db;
+    Protocol m_dlnaProfiles;
 
     int media_timeout = 0;
     int media_not_available = 0;

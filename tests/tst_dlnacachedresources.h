@@ -58,6 +58,8 @@ private:
     qint64 transcodedSize;
     QSqlDatabase db;
     QString folderKO;
+
+    Protocol m_dlnaProfiles;
 };
 
 #endif // TST_DLNACACHEDRESOURCES_H

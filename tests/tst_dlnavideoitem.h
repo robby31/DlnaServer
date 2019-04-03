@@ -29,9 +29,11 @@ private Q_SLOTS:
     void testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3();
 
 private:
-    long transcodedSize;
+    long transcodedSize = 0;
     QElapsedTimer transcodeTimer;
-    qint64 timeToOpenTranscoding;
+    qint64 timeToOpenTranscoding = 0;
+    Protocol m_dlnaProfiles;
+    QStringList m_sinkProtocols;
 };
 
 #endif // TST_DLNAVIDEOITEM_H
