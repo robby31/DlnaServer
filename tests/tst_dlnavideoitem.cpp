@@ -50,9 +50,9 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     QVERIFY(movie.toTranscode()==true);
     QVERIFY(movie.format() == H264_AAC);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.Episode.III.FRENCH.Bdrip.Xvid.AC3-FQT.mp4");
-    QVERIFY2(movie.bitrate()==2500000, QString("%1").arg(movie.bitrate()).toUtf8().constData());
+    QVERIFY2(movie.bitrate()==4000000, QString("%1").arg(movie.bitrate()).toUtf8().constData());
     QVERIFY2(movie.getLengthInMilliSeconds()==8405880, QString("%1").arg(movie.getLengthInMilliSeconds()).toUtf8().constData());
-    QVERIFY2(movie.size()==2902655437, QString("%1").arg(movie.size()).toUtf8().constData());
+    QVERIFY2(movie.size()==4644248700, QString("%1").arg(movie.size()).toUtf8().constData());
     QVERIFY2(movie.framerate() == "25.000", movie.framerate().toUtf8());
 
     QVERIFY2(movie.audioLanguages() == QStringList() << "und", movie.audioLanguages().join(',').toUtf8());

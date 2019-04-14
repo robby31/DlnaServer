@@ -293,7 +293,7 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
                                  "0$7$1$22$1", "0$7$1$22",
                                  "Cats on trees \"Sirens call\" [Clip Officiel]",
                                  "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
-                                 "00:03:17", "1920x1080", 2, 48000,
+                                 "00:03:17", "1280x720", 2, 48000,
                                  569850, 121645286,
                                  "http://host:600/get/0$7$1$22$1/Media%2814955%29");
                 xml_res.clear();
@@ -320,7 +320,7 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
                 QCOMPARE(movie->getLengthInMilliSeconds(), 196800);
                 QCOMPARE(movie->samplerate(), 48000);
                 QCOMPARE(movie->channelCount(), 2);
-                QCOMPARE(movie->resolution(), "1920x1080");
+                QCOMPARE(movie->resolution(), "1280x720");
                 QVERIFY2(movie->audioLanguages() == QStringList() << "", movie->audioLanguages().join(',').toUtf8());
                 QVERIFY2(movie->subtitleLanguages() == QStringList() << "", movie->subtitleLanguages().join(',').toUtf8());
                 QCOMPARE(movie->framerate(), "25.000");
@@ -355,24 +355,24 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo_data()
                                             << QUrl("https://www.youtube.com/watch?v=l9kqU_7-CgI")
                                             << "Muse - Exogenesis: Symphony, Part 1 (Overture) [HD]"
                                             << 258391
-                                            << "1920x1080" << "29.970" << 4558800 << 48000 << 2
+                                            << "1280x720" << "29.970" << 4558800 << 48000 << 2
                                             << "matroska,webm" << "video/vnd.dlna.mpeg-tts"
                                             << "MPEG_TS_HD_NA"
                                             << "DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
                                             << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
-                                            << 29661109 << 159715687 << 159511796;
+                                            << 17690325 << 159715687 << 159511796;
 
     QTest::newRow("Youtube_Muse_H264_AAC") << H264_AAC
                                            << true
                                            << QUrl("https://www.youtube.com/watch?v=l9kqU_7-CgI")
                                            << "Muse - Exogenesis: Symphony, Part 1 (Overture) [HD]"
                                            << 258391
-                                           << "1920x1080" << "29.970" << 2500000 << 48000 << 2
+                                           << "1280x720" << "29.970" << 4000000 << 48000 << 2
                                            << "matroska,webm" << "video/vnd.dlna.mpeg-tts"
                                            << "AVC_TS_MP_HD_AAC_MULT5"
                                            << "DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
                                            << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
-                                           << 29661109 << 89225642 << 88727164;
+                                           << 17690325 << 142761027 << 88727164;
 
 }
 
@@ -404,6 +404,7 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo()
     video.setTranscodeFormat(transcode_format);
 
     video.setUrl(url);
+    video.setMaxVideoHeight(720);
     bool res = video.waitUrl(15000);
 
     QStringList sinkProtocol;

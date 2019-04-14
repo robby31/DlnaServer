@@ -102,6 +102,17 @@
     <codec_video>h264</codec_video>
     <channels>1</channels>
     <channels>2</channels>
+    <channels>3</channels>
+    <channels>4</channels>
+    <channels>5</channels>
+    <channels>6</channels>
+    <sample_rate>8000</sample_rate>
+    <sample_rate>11025</sample_rate>
+    <sample_rate>12000</sample_rate>
+    <sample_rate>16000</sample_rate>
+    <sample_rate>22050</sample_rate>
+    <sample_rate>32000</sample_rate>
+    <sample_rate>24000</sample_rate>
     <sample_rate>44100</sample_rate>
     <sample_rate>48000</sample_rate>
 </profile>
