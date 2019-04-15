@@ -56,17 +56,23 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo_data()
     QTest::addColumn<QString>("mime_type");
     QTest::addColumn<qint64>("source_size");
 
+    QTest::newRow("SixPlay") << true
+                             << QUrl("https://www.6play.fr/turbo-p_884/emission-du-07-avril-c_12330637") << -1
+                             << "Emission du 07 avril"
+                             << 3313000 << "720x406" << "25.000" << 4558800 << 48000 << 2
+                             << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(55457);
+
     QTest::newRow("ArteTv Jazz") << true
                                  << QUrl("https://www.arte.tv/fr/videos/086296-006-A/julian-roman-wasserfuhr-feat-joerg-brinkmann-au-wdr-3-jazzfest/") << -1
                                  << "Julian & Roman Wasserfuhr feat. J\u00F6rg Brinkmann au WDR 3 Jazzfest"
                                  << 3705000 << "1280x720" << "25.000" << 4558800 << 48000 << 2
                                  << "mov,mp4,m4a,3gp,3g2,mj2" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(1150792878);
 
-    QTest::newRow("RMCDecouverte Vintage") << true
-                                           << QUrl("https://rmcdecouverte.bfmtv.com/vintage-mecanic/program_5280/") << -1
-                                           << "PORSCHE 356 CABRIOLET 1958"
-                                           << 3722112 << "1280x720" << "25.000" << 4558800 << 44100 << 2
-                                           << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
+    QTest::newRow("RMCDecouverte (Direct)") << true
+                                            << QUrl("https://rmcdecouverte.bfmtv.com/mediaplayer-direct/") << -1
+                                            << "RMCDecouverte Live KB"
+                                            << 0 << "848x480" << "25.000" << 4558800 << 44100 << 2
+                                            << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
     QTest::newRow("Youtube_Comptines") << true
                                        << QUrl("http://www.youtube.com/watch?v=SLbxwYTymCQ") << -1
