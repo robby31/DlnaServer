@@ -41,6 +41,7 @@ void MediaRenderer::initConnectionManager()
     format << "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO_320";
 
     format << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
+    format << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
 
     connection_manager->updateStateVariable("SinkProtocolInfo", format.join(","));
 

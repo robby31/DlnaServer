@@ -20,7 +20,7 @@ Item {
             height: (parent.height-text.height)*0.8
             sourceSize.height: height
             source: "image://upnpclass/" + upnpClass
-            asynchronous: false
+            asynchronous: true
             clip: true
         }
 
