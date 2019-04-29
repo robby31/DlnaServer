@@ -82,6 +82,12 @@ MyApplication::MyApplication(int &argc, char **argv):
     item = new DebugItem("DlnaNetworkVideo", m_debugModel);
     m_debugModel->appendRow(item);    
 
+    item = new DebugItem("DlnaCachedMusicTrack", m_debugModel);
+    m_debugModel->appendRow(item);
+
+    item = new DebugItem("DlnaCachedNetworkVideo", m_debugModel);
+    m_debugModel->appendRow(item);
+
     item = new DebugItem("Device", m_debugModel);
     m_debugModel->appendRow(item);
 

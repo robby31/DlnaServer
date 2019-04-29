@@ -46,6 +46,10 @@ QVariant DebugItem::counterValue() const
         return QVariant(DlnaCachedGroupedFolderMetaData::objectCounter);
     if (m_name.trimmed() == "DlnaCachedPlaylists")
         return QVariant(DlnaCachedPlaylists::objectCounter);
+    if (m_name.trimmed() == "DlnaCachedMusicTrack")
+        return QVariant(DlnaCachedMusicTrack::objectCounter);
+    if (m_name.trimmed() == "DlnaCachedNetworkVideo")
+        return QVariant(DlnaCachedNetworkVideo::objectCounter);
 
     return QVariant("invalid");
 }
