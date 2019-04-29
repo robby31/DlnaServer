@@ -9,12 +9,32 @@ ListViewDelegate {
 
     onDoubleClicked: playMedia("file:///%1".arg(filename))
 
+    swipe.left: Label {
+        id: deleteLabel
+        text: qsTr("Delete")
+        color: "white"
+        verticalAlignment: Label.AlignVCenter
+        padding: 12
+        height: parent.height
+        anchors.left: parent.left
+
+        SwipeDelegate.onClicked: {
+            if (!delegate.ListView.view.model.remove(index))
+                swipe.close()
+            else
+                delegate.ListView.view.model.select()
+
+        }
+
+        background: Rectangle {
+            color: deleteLabel.SwipeDelegate.pressed ? Qt.darker("tomato", 1.1) : "tomato"
+        }
+    }
+
     contentItem: Item {
         id: item
         width: parent.width-10
         height: parent.height-10
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.verticalCenter: parent.verticalCenter
 
         RowLayout {
             anchors.fill: parent

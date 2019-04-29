@@ -60,6 +60,8 @@ Page {
         id: viewModel
         ListElement { name: "All media"; qml: "AllMediaView.qml" }
         ListElement { name: "Off-Line"; qml: "OffLineMediaView.qml" }
+        ListElement { name: "Recently played"; qml: "RecentlyPlayedMediaView.qml" }
+
         ListElement { name: "Artists"; qml: "ArtistsView.qml" }
         ListElement { name: "Albums"; qml: "AlbumsView.qml" }
     }
@@ -157,7 +159,7 @@ Page {
 
         ListView {
             id: menuView
-            Layout.preferredWidth: 100
+            Layout.preferredWidth: 200
             Layout.fillHeight: true
             clip: true
 

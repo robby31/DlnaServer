@@ -53,5 +53,7 @@
         <file>images/media/mp3.png</file>
         <file>images/media/movie.png</file>
         <file>xml profiles/dlna_profiles.xml</file>
+        <file>qml/content/RecentlyPlayedMediaView.qml</file>
+        <file>qml/content/RecentlyPlayedMediaDelegate.qml</file>
     </qresource>
 </RCC>
