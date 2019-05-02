@@ -30,6 +30,16 @@ void tst_dlnanetworkvideo::cleanupTestCase()
     qInfo() << media_timeout << "MEDIAS TIMEOUT.";
 
     DecryptYoutubeSignature::print_cache();
+
+    QCoreApplication::processEvents();
+
+    QVERIFY2(DlnaResource::objectCounter == 0, QString("memory leak detected, %1 DlnaResource objects.").arg(DlnaResource::objectCounter).toUtf8());
+
+    QCOMPARE(QFfmpegMedia::objectCounter, 0);
+    QCOMPARE(QFfmpegStream::objectCounter, 0);
+    QCOMPARE(QFfmpegFrame::objectCounter, 0);
+    QCOMPARE(QFfmpegCodec::objectCounter, 0);
+    QCOMPARE(QFfmpegBuffer::objectCounter, 0);
 }
 
 QString tst_dlnanetworkvideo::timeToString(const qint64 &msec)
@@ -57,10 +67,10 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo_data()
     QTest::addColumn<qint64>("source_size");
 
     QTest::newRow("SixPlay") << true
-                             << QUrl("https://www.6play.fr/turbo-p_884/emission-du-07-avril-c_12330637") << -1
-                             << "Emission du 07 avril"
-                             << 3313000 << "720x406" << "25.000" << 4558800 << 48000 << 2
-                             << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(55457);
+                             << QUrl("https://www.6play.fr/jose-garcia-defie-les-champions-p_13637/jose-garcia-defie-les-champions-la-bande-annonce-c_12330113") << -1
+                             << "José Garcia défie les champions : la bande-annonce !"
+                             << 66000 << "1280x720" << "25.000" << 4558800 << 48000 << 2
+                             << "mov,mp4,m4a,3gp,3g2,mj2" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(11070686);
 
     QTest::newRow("ArteTv Jazz") << true
                                  << QUrl("https://www.arte.tv/fr/videos/086296-006-A/julian-roman-wasserfuhr-feat-joerg-brinkmann-au-wdr-3-jazzfest/") << -1
@@ -72,7 +82,7 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo_data()
                                             << QUrl("https://rmcdecouverte.bfmtv.com/mediaplayer-direct/") << -1
                                             << "RMCDecouverte Live KB"
                                             << 0 << "848x480" << "25.000" << 4558800 << 44100 << 2
-                                            << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
+                                            << "hls,applehttp" << "mp4a.40.2" << "avc1.77.30" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
     QTest::newRow("Youtube_Comptines") << true
                                        << QUrl("http://www.youtube.com/watch?v=SLbxwYTymCQ") << -1
@@ -240,7 +250,7 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
 
         auto artists = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(0));
         QCOMPARE(artists->getDisplayName(), "Artist");
-        QCOMPARE(artists->getChildrenSize(), 109);
+        QCOMPARE(artists->getChildrenSize(), 111);
 
         DlnaCachedFolder *artist = Q_NULLPTR;
         for (int index=0;index<artists->getChildrenSize();++index)
@@ -296,12 +306,12 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
                 QDomDocument xml_res;
                 xml_res.appendChild(movie->getXmlContentDirectory(&xml_res, properties));
                 check_dlna_video(xml_res,
-                                 "0$7$1$22$1", "0$7$1$22",
+                                 "0$7$1$23$1", "0$7$1$23",
                                  "Cats on trees \"Sirens call\" [Clip Officiel]",
                                  "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
                                  "00:03:17", "1280x720", 2, 48000,
                                  569850, 121645286,
-                                 "http://host:600/get/0$7$1$22$1/Media%2814955%29");
+                                 "http://host:600/get/0$7$1$23$1/Media%2814955%29");
                 xml_res.clear();
 
                 QCOMPARE(movie->getdlnaOrgOpFlags(), "10");
@@ -366,19 +376,19 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo_data()
                                             << "MPEG_TS_HD_NA"
                                             << "DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
                                             << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
-                                            << 17690325 << 159715687 << 159511796;
+                                            << 17690325 << 159715687 << 114146080;
 
     QTest::newRow("Youtube_Muse_H264_AAC") << H264_AAC
                                            << true
                                            << QUrl("https://www.youtube.com/watch?v=l9kqU_7-CgI")
                                            << "Muse - Exogenesis: Symphony, Part 1 (Overture) [HD]"
                                            << 258391
-                                           << "1280x720" << "29.970" << 4000000 << 48000 << 2
+                                           << "1280x720" << "29.970" << 6000000 << 48000 << 2
                                            << "matroska,webm" << "video/vnd.dlna.mpeg-tts"
                                            << "AVC_TS_MP_HD_AAC_MULT5"
                                            << "DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
                                            << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
-                                           << 17690325 << 142761027 << 88727164;
+                                           << 17690325 << 214141541 << 64043704;
 
 }
 

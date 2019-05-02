@@ -50,9 +50,9 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     QVERIFY(movie.toTranscode()==true);
     QVERIFY(movie.format() == H264_AAC);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.Episode.III.FRENCH.Bdrip.Xvid.AC3-FQT.mp4");
-    QVERIFY2(movie.bitrate()==4000000, QString("%1").arg(movie.bitrate()).toUtf8().constData());
+    QVERIFY2(movie.bitrate()==6000000, QString("%1").arg(movie.bitrate()).toUtf8().constData());
     QVERIFY2(movie.getLengthInMilliSeconds()==8405880, QString("%1").arg(movie.getLengthInMilliSeconds()).toUtf8().constData());
-    QVERIFY2(movie.size()==4644248700, QString("%1").arg(movie.size()).toUtf8().constData());
+    QVERIFY2(movie.size()==6966373050, QString("%1").arg(movie.size()).toUtf8().constData());
     QVERIFY2(movie.framerate() == "25.000", movie.framerate().toUtf8());
 
     QVERIFY2(movie.audioLanguages() == QStringList() << "und", movie.audioLanguages().join(',').toUtf8());
@@ -120,7 +120,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     QVERIFY2(movie.subtitleLanguages().isEmpty() == true, movie.audioLanguages().join(',').toUtf8());
 
     QVERIFY(movie.getdlnaOrgOpFlags() == "10");
-    QVERIFY(movie.getdlnaOrgPN() == "MPEG_TS_HD_NA");
+    QCOMPARE(movie.getdlnaOrgPN(), "MPEG_TS_HD_NA");
     QVERIFY(movie.getDlnaContentFeatures() == "DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
     QVERIFY2(movie.getProtocolInfo() == "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000", movie.getProtocolInfo().toUtf8());
 
