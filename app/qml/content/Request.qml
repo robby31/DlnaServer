@@ -87,7 +87,7 @@ Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            TextArea.flickable: TextArea { id: textArea }
+            TextArea.flickable: TextArea { id: textArea; readOnly: true; selectByMouse: true }
 
             ScrollBar.vertical: ScrollBar { }
         }

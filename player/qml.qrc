@@ -24,5 +24,6 @@
         <file>images/player/stop.png</file>
         <file>images/player/unmuted.png</file>
         <file>qml/Pages/ImageButton.qml</file>
+        <file>qml/Pages/XmlItemContent.qml</file>
     </qresource>
 </RCC>
