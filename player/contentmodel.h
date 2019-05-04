@@ -29,15 +29,16 @@ class ContentModel : public QAbstractListModel
         resDurationRole,
         itemDurationRoles,
         resSizeRole,
+        xmlDataRole
     };
 
 public:
     explicit ContentModel(QObject *parent = Q_NULLPTR);
     explicit ContentModel(UpnpService *service, const QString &objectId = QString(), QObject *parent = Q_NULLPTR);
 
-    virtual QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
-    virtual int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
-    virtual QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
+    QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const Q_DECL_OVERRIDE;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const Q_DECL_OVERRIDE;
 
     Q_INVOKABLE ContentModel *getChildrenModel(const QString &objectId);
 
@@ -57,6 +58,7 @@ private:
     QString m_updateId;
     QString m_objectId;
     QDomNodeList m_items;
+    QString m_xmlData;
 };
 
 #endif // CONTENTMODEL_H

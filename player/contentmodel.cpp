@@ -29,6 +29,7 @@ ContentModel::ContentModel(UpnpService *service, const QString &objectId, QObjec
     m_roles[resDurationRole] = "res@duration";
     m_roles[itemDurationRoles] = "duration";
     m_roles[resSizeRole] = "res@size";
+    m_roles[xmlDataRole] = "xmlData";
 
     if (service && !m_objectId.isEmpty())
     {
@@ -151,6 +152,11 @@ QVariant ContentModel::data(const QModelIndex &index, int role) const
                 return resParam(item, "size");
             }
 
+            case xmlDataRole:
+            {
+                return m_xmlData;
+            }
+
             default:
             {
                 return QVariant::Invalid;
@@ -177,7 +183,8 @@ void ContentModel::actionFinished()
 
             QDomDocument xmlDoc;
             xmlDoc.setContent(answer->value("Result"), true);
-//            qWarning() << answer->value("Result");
+
+            m_xmlData = answer->value("Result");
 
             QDomNode root = xmlDoc.firstChild();
             if (!root.isNull())
