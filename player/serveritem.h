@@ -14,8 +14,8 @@ class ServerItem : public ListItem
     Q_PROPERTY(QUrl iconurl READ iconurl NOTIFY iconurlChanged)
 
 public:
-    explicit ServerItem(QObject *parent = 0);
-    explicit ServerItem(UpnpRootDevice *device, QObject *parent = 0);
+    explicit ServerItem(QObject *parent = Q_NULLPTR);
+    explicit ServerItem(UpnpRootDevice *device, QObject *parent = Q_NULLPTR);
 
     enum Roles {
         statusRole = Qt::UserRole+1,
@@ -25,11 +25,11 @@ public:
         availableRole
     };
 
-    virtual QString id() const Q_DECL_OVERRIDE;
+    QString id() const Q_DECL_OVERRIDE;
 
-    virtual QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
-    virtual QVariant data(int role) const Q_DECL_OVERRIDE;
-    virtual bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
+    QHash<int, QByteArray> roleNames() const Q_DECL_OVERRIDE;
+    QVariant data(int role) const Q_DECL_OVERRIDE;
+    bool setData(const QVariant &value, const int &role) Q_DECL_OVERRIDE;
 
     UpnpRootDevice *device() const;
 
