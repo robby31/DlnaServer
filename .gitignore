@@ -14,3 +14,14 @@ DLNA_server.pro.user
 *.database-wal
 *.8-pre1
 *.9-pre1
+tests/.xcode/*
+tests/tst_request.xcodeproj/*
+tests/Debug/*
+tests/.qmake.stash
+tests/moc_predefs.h
+tests/moc_tst_dlnacachedresources.cpp
+tests/moc_tst_dlnafolder.cpp
+tests/moc_tst_dlnamusictrack.cpp
+tests/moc_tst_dlnanetworkvideo.cpp
+tests/moc_tst_dlnarootfolder.cpp
+tests/moc_tst_dlnavideoitem.cpp
