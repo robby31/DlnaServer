@@ -33,6 +33,8 @@ void tst_dlnanetworkvideo::cleanupTestCase()
 
     QCoreApplication::processEvents();
 
+    DebugInfo::display_alive_objects();
+
     QVERIFY2(DlnaResource::objectCounter == 0, QString("memory leak detected, %1 DlnaResource objects.").arg(DlnaResource::objectCounter).toUtf8());
 
     QCOMPARE(QFfmpegMedia::objectCounter, 0);
@@ -87,8 +89,8 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo_data()
     QTest::newRow("Youtube_Comptines") << true
                                        << QUrl("http://www.youtube.com/watch?v=SLbxwYTymCQ") << -1
                                        << "Comptines et chansons pour enfants - Titounis"
-                                       << 1667521 << "1280x720" << "29.970" << 4558800 << 48000 << 2
-                                       << "matroska,webm" << "opus" << "av01.0.05M.08" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(29818677);
+                                       << 1667521 << "1280x720" << "30.000" << 4558800 << 44100 << 2
+                                       << "mov,mp4,m4a,3gp,3g2,mj2" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(122914585);
 
     QTest::newRow("Youtube_Lilly") << true
                                    << QUrl("https://www.youtube.com/watch?v=JrlfFTS9kGU") << -1
@@ -141,25 +143,25 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo_data()
     QTest::newRow("France2 (SITE)") << true
                                     << QUrl("https://www.france.tv/france-2/direct.html") << -1
                                     << "France 2 en direct"
-                                    << 0 << "1024x576" << "25.000" << 4558800 << 32000 << 2
+                                    << 0 << "1280x720" << "25.000" << 4558800 << 44100 << 2
                                     << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
     QTest::newRow("France2 (URL)") << true
-                                   << QUrl("francetv:SIM_France2") << -1
+                                   << QUrl("francetv:006194ea-117d-4bcf-94a9-153d999c59ae") << -1
                                    << "France 2 en direct"
-                                   << 0 << "1024x576" << "25.000" << 4558800 << 32000 << 2
+                                   << 0 << "1280x720" << "25.000" << 4558800 << 44100 << 2
                                    << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
     QTest::newRow("France2 (URL) MaxHeight 396") << true
-                                                 << QUrl("francetv:SIM_France2") << 396
+                                                 << QUrl("francetv:006194ea-117d-4bcf-94a9-153d999c59ae") << 396
                                                  << "France 2 en direct"
-                                                 << 0 << "704x396" << "25.000" << 4558800 << 32000 << 2
+                                                 << 0 << "640x360" << "25.000" << 4558800 << 44100 << 2
                                                  << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
     QTest::newRow("France2 (URL) MaxHeight 50") << true
-                                                 << QUrl("francetv:SIM_France2") << 50
+                                                 << QUrl("francetv:006194ea-117d-4bcf-94a9-153d999c59ae") << 50
                                                  << "France 2 en direct"
-                                                 << 0 << "256x144" << "25.000" << 4558800 << 32000 << 2
+                                                 << 0 << "256x144" << "25.000" << 4558800 << 44100 << 2
                                                  << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
 }
