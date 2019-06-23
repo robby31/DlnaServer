@@ -27,7 +27,6 @@ LIBS += -L/opt/local/lib -lavcodec -lavformat -lavutil -lswscale -lswresample
 HEADERS += \
     myapplication.h \
     applicationcontroller.h \
-    debugitem.h \
     checknetworklinkitem.h \
     applicationworker.h \
     mediaimageprovider.h \
@@ -40,7 +39,6 @@ SOURCES += \
     main.cpp \
     myapplication.cpp \
     applicationcontroller.cpp \
-    debugitem.cpp \
     checknetworklinkitem.cpp \
     applicationworker.cpp \
     mediaimageprovider.cpp \

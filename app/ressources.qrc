@@ -55,5 +55,6 @@
         <file>xml profiles/dlna_profiles.xml</file>
         <file>qml/content/RecentlyPlayedMediaView.qml</file>
         <file>qml/content/RecentlyPlayedMediaDelegate.qml</file>
+        <file>qml/content/DebugDetails.qml</file>
     </qresource>
 </RCC>

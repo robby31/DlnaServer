@@ -14,25 +14,12 @@ Page {
     actions: pageActions
 
     onActionClicked: {
-        if (name == "Reload")
-            reloadPage()
-        else if (name == "Quit")
+        if (name == "Quit")
             quit()
-    }
-
-    function reloadPage() {
-        listView.model = null
-        listView.model = _app.debugModel
     }
 
     ListModel {
         id: pageActions
-
-        ListElement {
-            name: "Reload"
-            description: "Reload screen"
-            icon: "qrc:///images/exit.png"
-        }
 
         ListElement {
             name: "Quit"
@@ -44,37 +31,53 @@ Page {
     Component {
         id: debugDelegate
 
-        Row {
-            Text {
-                id: textName
-                text: model["name"]
-                width: 400
-                height: contentHeight
+        ListViewDelegate {
+            clip: true
+
+            contentItem: Row {
+                Text {
+                    id: textName
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: model["name"]
+                    width: 400
+                    height: contentHeight
+                }
+
+                Text {
+                    id: textCounter
+                    anchors.verticalCenter: parent.verticalCenter
+                    text: model["counter"]
+                    width: 100
+                    height: contentHeight
+                }
             }
 
-            Text {
-                id: textCounter
-                text: model["counter"]
-                width: 100
-                height: contentHeight
+            onDoubleClicked: {
+                var detailsModel = ListView.view.model.detailsModel(model["name"])
+                stackView.push("DebugDetails.qml", {model: detailsModel})
             }
         }
-    }  
-
-    ListView {
-        id: listView
-        anchors.fill: parent
-        clip: true
-        model: _app.debugModel
-        delegate: debugDelegate
-
-        ScrollBar.vertical: ScrollBar { }
     }
 
-    Timer {
-        interval: 1000
-        running: listView.visible
-        repeat: true
-        onTriggered: reloadPage()
+    function goBack() {
+        stackView.pop()
+    }
+
+    StackView {
+        id: stackView
+        anchors.fill: parent
+        initialItem: homeView
+    }
+
+    Component {
+        id: homeView
+
+        ListView {
+            clip: true
+            model: _app.debugModel
+            delegate: debugDelegate
+
+            ScrollBar.vertical: ScrollBar { }
+        }
     }
 }

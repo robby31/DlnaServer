@@ -10,7 +10,7 @@ MyApplication::MyApplication(int &argc, char **argv):
     m_localrootdevice(Q_NULLPTR),
     m_requestsModel(Q_NULLPTR),
     m_renderersModel(Q_NULLPTR),
-    m_debugModel(Q_NULLPTR),
+    m_debugModel(DebugInfo::model),
     m_checkNetworkLinkModel(Q_NULLPTR)
 {
     addImageProvider("media", new MediaImageProvider);
@@ -39,57 +39,6 @@ MyApplication::MyApplication(int &argc, char **argv):
     setRenderersModel(new MediaRendererModel(this));
 
     setRequestsModel(new ListModel(new HttpRequest, this));
-
-    m_debugModel = new ListModel(new DebugItem, this);
-
-    DebugItem *item;
-    item = new DebugItem("DlnaResource", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("  DlnaStorageFolder", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("    DlnaCachedFolder", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("    DlnaCachedFolderMetaData", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("    DlnaCachedGroupedFolderMetaData", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("    DlnaCachedPlaylists", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("    DlnaFolder", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("    DlnaNetworkPlaylist", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("    DlnaRootFolder", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("DlnaMusicTrackFile", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("DlnaVideoFile", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("DlnaYoutubeVideo", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("DlnaNetworkVideo", m_debugModel);
-    m_debugModel->appendRow(item);    
-
-    item = new DebugItem("DlnaCachedMusicTrack", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("DlnaCachedNetworkVideo", m_debugModel);
-    m_debugModel->appendRow(item);
-
-    item = new DebugItem("Device", m_debugModel);
-    m_debugModel->appendRow(item);
 
     connect(&m_upnp, SIGNAL(newRootDevice(UpnpRootDevice*)), this, SLOT(newRootDevice(UpnpRootDevice*)));
 
