@@ -8,13 +8,13 @@
 #include "applicationcontroller.h"
 #include "applicationworker.h"
 #include "Devices/mediarenderermodel.h"
-#include "debugitem.h"
 #include "checknetworklinkitem.h"
 #include "upnpcontrolpoint.h"
 #include "mediaserver.h"
 #include "mediaimageprovider.h"
 #include "albumimageprovider.h"
 #include "formatimageprovider.h"
+#include "debuginfo.h"
 
 class MyApplication : public Application
 {
