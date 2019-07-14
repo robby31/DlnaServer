@@ -283,7 +283,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
         QStringList sinkProtocol;
         sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
         sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3X";
-        track->setDlnaProfiles(m_dlnaProfiles);
+        track->setDlnaProfiles(&m_dlnaProfiles);
         track->setSinkProtocol(sinkProtocol);
 
         QVERIFY2(track->getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Je dis aime/01 Monde virtuel.m4a", track->getSystemName().toUtf8().constData());
@@ -414,7 +414,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
             sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA";
             sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
             sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
-            movie->setDlnaProfiles(m_dlnaProfiles);
+            movie->setDlnaProfiles(&m_dlnaProfiles);
             movie->setSinkProtocol(sinkProtocol);
 
             {
@@ -511,7 +511,7 @@ qint64 tst_dlnacachedresources::parseFolder(const QString& resourceId, DlnaResou
                 QStringList sinkProtocol;
                 sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
                 sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3X";
-                item->setDlnaProfiles(m_dlnaProfiles);
+                item->setDlnaProfiles(&m_dlnaProfiles);
                 item->setSinkProtocol(sinkProtocol);
 
                 child->getStringContentDirectory(QStringList("*"));

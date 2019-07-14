@@ -293,7 +293,7 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
                 sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA";
                 sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
                 sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
-                movie->setDlnaProfiles(m_dlnaProfiles);
+                movie->setDlnaProfiles(&m_dlnaProfiles);
                 movie->setSinkProtocol(sinkProtocol);
 
                 QStringList properties;
@@ -429,7 +429,7 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo()
     sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA";
     sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
     sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
-    video.setDlnaProfiles(m_dlnaProfiles);
+    video.setDlnaProfiles(&m_dlnaProfiles);
     video.setSinkProtocol(sinkProtocol);
 
     qint64 duration = timer.elapsed();

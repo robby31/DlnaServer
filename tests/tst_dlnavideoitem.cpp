@@ -44,7 +44,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     DlnaVideoFile movie("/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.Episode.III.FRENCH.Bdrip.Xvid.AC3-FQT.mp4");
     movie.setTranscodeFormat(H264_AAC);
 
-    movie.setDlnaProfiles(m_dlnaProfiles);
+    movie.setDlnaProfiles(&m_dlnaProfiles);
     movie.setSinkProtocol(m_sinkProtocols);
 
     QVERIFY(movie.toTranscode()==true);
@@ -105,7 +105,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     DlnaVideoFile movie("/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.Episode.III.FRENCH.Bdrip.Xvid.AC3-FQT.mp4");
     movie.setTranscodeFormat(MPEG2_AC3);
 
-    movie.setDlnaProfiles(m_dlnaProfiles);
+    movie.setDlnaProfiles(&m_dlnaProfiles);
     movie.setSinkProtocol(m_sinkProtocols);
 
     QVERIFY(movie.toTranscode()==true);
@@ -168,7 +168,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
     DlnaVideoFile movie("/Users/doudou/Movies/Films/Action/Looper.2012.DVDRip.XviD-PTpOWeR.mkv");
     movie.setTranscodeFormat(MPEG2_AC3);
 
-    movie.setDlnaProfiles(m_dlnaProfiles);
+    movie.setDlnaProfiles(&m_dlnaProfiles);
     movie.setSinkProtocol(m_sinkProtocols);
 
     QVERIFY(movie.toTranscode()==true);
@@ -233,7 +233,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
     movie.setTranscodeFormat(MPEG2_AC3);
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/District.9.2009.720p.BrRip.YIFY.mkv");
 
-    movie.setDlnaProfiles(m_dlnaProfiles);
+    movie.setDlnaProfiles(&m_dlnaProfiles);
     movie.setSinkProtocol(m_sinkProtocols);
 
     QStringList properties;

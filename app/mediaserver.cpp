@@ -13,7 +13,7 @@ MediaServer::MediaServer(const QString &macAddress, const QString& host, int por
 
     initContentDirectory();
 
-    Protocol dlnaProfiles(":xml profiles/dlna_profiles.xml");
+    Protocol *dlnaProfiles = new Protocol(":xml profiles/dlna_profiles.xml", m_renderersModel);
     m_renderersModel->setDlnaProfiles(dlnaProfiles);
 }
 
