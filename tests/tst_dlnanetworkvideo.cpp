@@ -294,7 +294,7 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
                 sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
                 sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
                 movie->setDlnaProfiles(&m_dlnaProfiles);
-                movie->setSinkProtocol(sinkProtocol);
+                m_dlnaProfiles.setProtocols(sinkProtocol);
 
                 QStringList properties;
                 properties << "upnp:genre";
@@ -430,7 +430,7 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo()
     sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
     sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
     video.setDlnaProfiles(&m_dlnaProfiles);
-    video.setSinkProtocol(sinkProtocol);
+    m_dlnaProfiles.setProtocols(sinkProtocol);
 
     qint64 duration = timer.elapsed();
     QVERIFY2(duration < 10000, QString("Duration: %1").arg(duration).toUtf8());

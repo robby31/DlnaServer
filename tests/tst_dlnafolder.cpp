@@ -88,7 +88,7 @@ qint64 tst_dlnafolder::parseFolder(const QString& resourceId, DlnaResource *reso
                 sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
                 sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
                 item->setDlnaProfiles(&m_dlnaProfiles);
-                item->setSinkProtocol(sinkProtocol);
+                m_dlnaProfiles.setProtocols(sinkProtocol);
 
                 item->getStringContentDirectory(QStringList("*"));
                 Device * stream = item->getStream();

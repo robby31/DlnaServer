@@ -45,7 +45,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
     movie.setTranscodeFormat(H264_AAC);
 
     movie.setDlnaProfiles(&m_dlnaProfiles);
-    movie.setSinkProtocol(m_sinkProtocols);
+    m_dlnaProfiles.setProtocols(m_sinkProtocols);
 
     QVERIFY(movie.toTranscode()==true);
     QVERIFY(movie.format() == H264_AAC);
@@ -106,7 +106,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
     movie.setTranscodeFormat(MPEG2_AC3);
 
     movie.setDlnaProfiles(&m_dlnaProfiles);
-    movie.setSinkProtocol(m_sinkProtocols);
+    m_dlnaProfiles.setProtocols(m_sinkProtocols);
 
     QVERIFY(movie.toTranscode()==true);
     QVERIFY(movie.format() == MPEG2_AC3);
@@ -169,7 +169,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
     movie.setTranscodeFormat(MPEG2_AC3);
 
     movie.setDlnaProfiles(&m_dlnaProfiles);
-    movie.setSinkProtocol(m_sinkProtocols);
+    m_dlnaProfiles.setProtocols(m_sinkProtocols);
 
     QVERIFY(movie.toTranscode()==true);
     QVERIFY(movie.format() == MPEG2_AC3);
@@ -234,7 +234,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3() {
     QVERIFY(movie.getSystemName() == "/Users/doudou/Movies/Films/District.9.2009.720p.BrRip.YIFY.mkv");
 
     movie.setDlnaProfiles(&m_dlnaProfiles);
-    movie.setSinkProtocol(m_sinkProtocols);
+    m_dlnaProfiles.setProtocols(m_sinkProtocols);
 
     QStringList properties;
     properties << "upnp:genre";

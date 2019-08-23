@@ -55,7 +55,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3() {
         sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
         sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3X;DLNA.ORG_FLAGS=8D100000000000000000000000000000";
         track.setDlnaProfiles(&m_dlnaProfiles);
-        track.setSinkProtocol(sinkProtocol);
+        m_dlnaProfiles.setProtocols(sinkProtocol);
 
         QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3");
 
@@ -281,7 +281,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image() {
         QStringList sinkProtocol;
         sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
         track.setDlnaProfiles(&m_dlnaProfiles);
-        track.setSinkProtocol(sinkProtocol);
+        m_dlnaProfiles.setProtocols(sinkProtocol);
 
         QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/16 Funk Ad.mp3");
 
@@ -384,7 +384,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode() {
         QStringList sinkProtocol;
         sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
         track.setDlnaProfiles(&m_dlnaProfiles);
-        track.setSinkProtocol(sinkProtocol);
+        m_dlnaProfiles.setProtocols(sinkProtocol);
 
         QVERIFY(track.getSystemName() == "/Users/doudou/Music/iTunes/iTunes Media/Music/-M-/Mister Mystère/1-02 Phébus.mp3");
 
@@ -486,7 +486,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_LPCM()
     QStringList sinkProtocol;
     sinkProtocol << "http-get:*:audio/L16:DLNA.ORG_PN=LPCM";
     track.setDlnaProfiles(&m_dlnaProfiles);
-    track.setSinkProtocol(sinkProtocol);
+    m_dlnaProfiles.setProtocols(sinkProtocol);
 
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/07 On_Off.mp3");
 
@@ -614,7 +614,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3()
     QStringList sinkProtocol;
     sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
     track.setDlnaProfiles(&m_dlnaProfiles);
-    track.setSinkProtocol(sinkProtocol);
+    m_dlnaProfiles.setProtocols(sinkProtocol);
 
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/01 Monde virtuel.m4a");
 
@@ -743,7 +743,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3()
     QStringList sinkProtocol;
     sinkProtocol << "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3";
     track.setDlnaProfiles(&m_dlnaProfiles);
-    track.setSinkProtocol(sinkProtocol);
+    m_dlnaProfiles.setProtocols(sinkProtocol);
 
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
 
@@ -873,7 +873,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM()
     QStringList sinkProtocol;
     sinkProtocol << "http-get:*:audio/L16;rate=48000;channels=2:DLNA.ORG_PN=LPCM";
     track.setDlnaProfiles(&m_dlnaProfiles);
-    track.setSinkProtocol(sinkProtocol);
+    m_dlnaProfiles.setProtocols(sinkProtocol);
 
     QStringList properties;
     properties << "dc:title";
@@ -996,7 +996,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
     QStringList sinkProtocol;
     sinkProtocol << "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO";
     track.setDlnaProfiles(&m_dlnaProfiles);
-    track.setSinkProtocol(sinkProtocol);
+    m_dlnaProfiles.setProtocols(sinkProtocol);
 
     QVERIFY(track.toTranscode()==true);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
@@ -1121,7 +1121,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
     QStringList sinkProtocol;
     sinkProtocol << "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO";
     track.setDlnaProfiles(&m_dlnaProfiles);
-    track.setSinkProtocol(sinkProtocol);
+    m_dlnaProfiles.setProtocols(sinkProtocol);
 
     QVERIFY(track.toTranscode()==true);
     QVERIFY(track.getSystemName() == "/Users/doudou/workspaceQT/DLNA_server/tests/AUDIO/test.wav");
