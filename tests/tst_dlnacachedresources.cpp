@@ -7,7 +7,7 @@ tst_dlnacachedresources::tst_dlnacachedresources(QObject *parent) :
     folderKO(),
     m_dlnaProfiles("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml")
 {
-    FfmpegTranscoding::setDirPath("/opt/local/bin");
+    FfmpegTranscoding::setDirPath("/usr/local/bin");
 
     db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     db.setConnectOptions("Pooling=True;Max Pool Size=100;");

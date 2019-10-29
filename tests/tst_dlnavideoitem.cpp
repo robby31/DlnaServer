@@ -4,7 +4,7 @@ tst_dlnavideoitem::tst_dlnavideoitem(QObject *parent) :
     QObject(parent),
     m_dlnaProfiles("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml")
 {
-    FfmpegTranscoding::setDirPath("/opt/local/bin");
+    FfmpegTranscoding::setDirPath("/usr/local/bin");
 
     m_sinkProtocols << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA";
     m_sinkProtocols << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";

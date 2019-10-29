@@ -8,13 +8,15 @@ tst_dlnafolder::tst_dlnafolder(QObject *parent) :
 
 void tst_dlnafolder::cleanup()
 {
+    DebugInfo::display_alive_objects();
+
     QVERIFY2(DlnaResource::objectCounter == 0, QString("memory leak detected, %1 DlnaResource objects.").arg(DlnaResource::objectCounter).toUtf8());
 
-     QCOMPARE(QFfmpegMedia::objectCounter, 0);
-     QCOMPARE(QFfmpegStream::objectCounter, 0);
-     QCOMPARE(QFfmpegFrame::objectCounter, 0);
-     QCOMPARE(QFfmpegCodec::objectCounter, 0);
-     QCOMPARE(QFfmpegBuffer::objectCounter, 0);
+    QCOMPARE(QFfmpegMedia::objectCounter, 0);
+    QCOMPARE(QFfmpegStream::objectCounter, 0);
+    QCOMPARE(QFfmpegFrame::objectCounter, 0);
+    QCOMPARE(QFfmpegCodec::objectCounter, 0);
+    QCOMPARE(QFfmpegBuffer::objectCounter, 0);
 }
 
 void tst_dlnafolder::testCase_DlnaFolder()
@@ -222,7 +224,7 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
     if (playlist)
     {
         QCOMPARE(playlist->getSystemName(), "ninjago");
-        QCOMPARE(playlist->getChildrenSize(), 14);
+        QCOMPARE(playlist->getChildrenSize(), 17);
 
         {
             QStringList properties;
@@ -253,14 +255,14 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
             xml_res.appendChild(video->getXmlContentDirectory(&xml_res, properties));
             check_dlna_video(xml_res,
                              "$1", "",
-                             "S09 E01 Ninjago La m\u00E8re de tous les dragons",
-                             "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
-                             "00:21:06",
+                             "S10 E01 Ninjago L'arriv\u00E9e des t\u00E9n\u00E8bres",
+                             "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
+                             "00:21:07",
                              "1024x576",
                              2, 48000,
-                             312500,
-                             437277851,
-                             "http://host:600/get/$1/S09%20E01%20Ninjago%20La%20m%C3%A8re%20de%20tous%20les%20dragons");
+                             750000,
+                             1050385927,
+                             "http://host:600/get/$1/S10%20E01%20Ninjago%20L%27arriv%C3%A9e%20des%20t%C3%A9n%C3%A8bres");
         }
     }
 }

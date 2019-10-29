@@ -5,7 +5,7 @@ tst_dlnanetworkvideo::tst_dlnanetworkvideo(QObject *parent):
     db(CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE")),
     m_dlnaProfiles("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml")
 {
-    FfmpegTranscoding::setDirPath("/opt/local/bin");
+    FfmpegTranscoding::setDirPath("/usr/local/bin");
 
     db.setDatabaseName("/Users/doudou/workspaceQT/DLNA_server/MEDIA.database");
     db.setConnectOptions("Pooling=True;Max Pool Size=100;");
@@ -144,25 +144,25 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo_data()
                                     << QUrl("https://www.france.tv/france-2/direct.html") << -1
                                     << "France 2 en direct"
                                     << 0 << "1280x720" << "25.000" << 4558800 << 44100 << 2
-                                    << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
+                                    << "hls" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
     QTest::newRow("France2 (URL)") << true
                                    << QUrl("francetv:006194ea-117d-4bcf-94a9-153d999c59ae") << -1
                                    << "France 2 en direct"
                                    << 0 << "1280x720" << "25.000" << 4558800 << 44100 << 2
-                                   << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
+                                   << "hls" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
     QTest::newRow("France2 (URL) MaxHeight 396") << true
                                                  << QUrl("francetv:006194ea-117d-4bcf-94a9-153d999c59ae") << 396
                                                  << "France 2 en direct"
                                                  << 0 << "640x360" << "25.000" << 4558800 << 44100 << 2
-                                                 << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
+                                                 << "hls" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
     QTest::newRow("France2 (URL) MaxHeight 50") << true
                                                  << QUrl("francetv:006194ea-117d-4bcf-94a9-153d999c59ae") << 50
                                                  << "France 2 en direct"
                                                  << 0 << "256x144" << "25.000" << 4558800 << 44100 << 2
-                                                 << "hls,applehttp" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
+                                                 << "hls" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(0);
 
 }
 
