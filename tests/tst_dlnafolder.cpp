@@ -1,13 +1,19 @@
 #include "tst_dlnafolder.h"
 
 tst_dlnafolder::tst_dlnafolder(QObject *parent) :
-    QObject(parent),
-    m_dlnaProfiles("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml")
+    QObject(parent)
 {
+}
+
+void tst_dlnafolder::init()
+{
+    m_dlnaProfiles = new Protocol("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml");
 }
 
 void tst_dlnafolder::cleanup()
 {
+    delete m_dlnaProfiles;
+
     DebugInfo::display_alive_objects();
 
     QVERIFY2(DlnaResource::objectCounter == 0, QString("memory leak detected, %1 DlnaResource objects.").arg(DlnaResource::objectCounter).toUtf8());
@@ -89,8 +95,8 @@ qint64 tst_dlnafolder::parseFolder(const QString& resourceId, DlnaResource *reso
                 sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA";
                 sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
                 sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
-                item->setDlnaProfiles(&m_dlnaProfiles);
-                m_dlnaProfiles.setProtocols(sinkProtocol);
+                m_dlnaProfiles->setProtocols(sinkProtocol);
+                item->setDlnaProfiles(m_dlnaProfiles);
 
                 item->getStringContentDirectory(QStringList("*"));
                 Device * stream = item->getStream();
@@ -224,7 +230,7 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
     if (playlist)
     {
         QCOMPARE(playlist->getSystemName(), "ninjago");
-        QCOMPARE(playlist->getChildrenSize(), 17);
+        QVERIFY(playlist->getChildrenSize() > 0);
 
         {
             QStringList properties;

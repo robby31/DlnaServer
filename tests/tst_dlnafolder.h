@@ -21,6 +21,7 @@ signals:
 public slots:
 
 private Q_SLOTS:
+    void init();
     void cleanup();
 
     void testCase_DlnaFolderPlaylist();
@@ -33,7 +34,7 @@ private Q_SLOTS:
 private:
     qint64 parseFolder(const QString& resourceId, DlnaResource* resource);
 
-    Protocol m_dlnaProfiles;
+    Protocol *m_dlnaProfiles = Q_NULLPTR;
 };
 
 #endif // TST_DLNAFOLDER_H
