@@ -11,6 +11,7 @@ QT      -= gui
 TARGET = tst_request
 CONFIG   += console
 CONFIG   -= app_bundle
+CONFIG += sdk_no_version_check
 
 CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 
