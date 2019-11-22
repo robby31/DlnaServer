@@ -8,7 +8,7 @@ class ApplicationWorker : public Worker
     Q_OBJECT
 
 public:
-    explicit ApplicationWorker(QObject *parent = 0);
+    explicit ApplicationWorker(QObject *parent = Q_NULLPTR);
 
 };
 
