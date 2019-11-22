@@ -64,6 +64,8 @@ Page {
 
         ListElement { name: "Artists"; qml: "ArtistsView.qml" }
         ListElement { name: "Albums"; qml: "AlbumsView.qml" }
+
+        ListElement { name: "Playlists"; qml: "PlaylistsView.qml" }
     }
 
     function formatTime(time) {
