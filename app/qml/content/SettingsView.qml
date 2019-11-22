@@ -10,35 +10,62 @@ Page {
     width: 600
     height: 300
 
-    Row {
+    Column {
         anchors { left: parent.left; leftMargin: 10; right: parent.right; rightMargin: 10; top: parent.top; topMargin: 10 }
-        height: 40
-        spacing: 10
-        clip: true
 
-        Label {
-            anchors.verticalCenter: parent.verticalCenter
-            text: "ffmpeg:"
-        }
-
-        Column {
-            spacing: 5
+        Row {
+            height: 40
+            spacing: 10
+            clip: true
 
             Label {
-                text: _app.ffmpegFolder
+                anchors.verticalCenter: parent.verticalCenter
+                text: "ffmpeg:"
+            }
+
+            Column {
+                spacing: 5
+
+                Label {
+                    text: _app.ffmpegFolder
+                }
+
+                Label {
+                    text: _app.ffmpegVersion
+                }
+            }
+
+            Button {
+                height: 20
+                anchors.verticalCenter: parent.verticalCenter
+                text: "select"
+                onClicked: chooseFolderDialog.open()
+            }
+        }
+
+        Row {
+            height: 40
+            spacing: 10
+            clip: true
+
+            Label {
+                anchors.verticalCenter: parent.verticalCenter
+                text: "export:"
             }
 
             Label {
-                text: _app.ffmpegVersion
+                anchors.verticalCenter: parent.verticalCenter
+                text: _app.exportFolder
+            }
+
+            Button {
+                height: 20
+                anchors.verticalCenter: parent.verticalCenter
+                text: "select"
+                onClicked: exportFolderDialog.open()
             }
         }
 
-        Button {
-            height: 20
-            anchors.verticalCenter: parent.verticalCenter
-            text: "select"
-            onClicked: chooseFolderDialog.open()
-        }
     }
 
     FileDialog {
@@ -48,4 +75,10 @@ Page {
         onAccepted:  _app.ffmpegFolder = fileUrl
     }
 
+    FileDialog {
+        id: exportFolderDialog
+        selectExisting: true
+        selectFolder: true
+        onAccepted:  _app.exportFolder = fileUrl
+    }
 }
