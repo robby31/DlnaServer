@@ -36,6 +36,9 @@ MyApplication::MyApplication(int &argc, char **argv):
 
     connect(&m_controller, SIGNAL(scanVolumeInfoSignal()), m_worker, SLOT(scanVolumeInfo()));
 
+    connect(&m_controller, &ApplicationController::exportPlaylistSignal, m_worker, &ApplicationWorker::export_playlist);
+    connect(&m_controller, &ApplicationController::exportMediaSignal, m_worker, &ApplicationWorker::export_media);
+
     setRenderersModel(new MediaRendererModel(this));
 
     setRequestsModel(new ListModel(new HttpRequest, this));
@@ -310,6 +313,24 @@ void MyApplication::setFfmpegFolder(const QUrl &folder)
     }
 }
 
+QUrl MyApplication::exportFolder() const
+{
+    return settings.value("exportFolder").toUrl();
+}
+
+void MyApplication::setExportFolder(const QUrl &folder)
+{
+    if (folder.isLocalFile() && folder.isValid())
+    {
+        settings.setValue("exportFolder", folder);
+        emit exportFolderChanged();
+    }
+    else
+    {
+        qCritical() << "unable to set export folder, invalid folder" << folder;
+    }
+}
+
 QString MyApplication::ffmpegVersion() const
 {
     return m_ffmpegVersion;
@@ -384,7 +405,11 @@ void MyApplication::reload_playlists()
         while (query.next())
         {
             QSqlRecord elt = query.record();
-            qWarning() << "RELOAD playlist" << elt.value("name").toString() << elt.value("url").toString();
+
+            #if !defined(QT_NO_DEBUG_OUTPUT)
+            qDebug() << "RELOAD playlist" << elt.value("name").toString() << elt.value("url").toString();
+            #endif
+
             emit addLink(elt.value("url").toString());
         }
     }
@@ -408,4 +433,26 @@ void MyApplication::reload_network_links()
             emit addLink(elt.value("filename").toString());
         }
     }
+}
+
+void MyApplication::export_playlist(const QUrl &url)
+{
+    m_controller.export_playlist(url);
+}
+
+void MyApplication::update_playlist(const QUrl &url)
+{
+    if (url.isValid())
+    {
+        #if !defined(QT_NO_DEBUG_OUTPUT)
+        qDebug() << "update playlist url" << url;
+        #endif
+
+        emit addLink(url.toString());
+    }
+}
+
+void MyApplication::export_media(const QUrl &url)
+{
+    m_controller.export_media(url);
 }

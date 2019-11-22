@@ -10,7 +10,9 @@ void ApplicationWorker::scanFolder(const QString &path)
 {
 //    emit processStarted();
 
+    #if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << this << "scan folder" << path;
+    #endif
 
     QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
     if (db.isValid() && db.isOpen())
@@ -26,14 +28,18 @@ void ApplicationWorker::scanFolder(const QString &path)
 //        emit errorDuringProcess(QString("database is not valid, unable to scan folder %1").arg(path.absolutePath()));
     }
 
+    #if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "scan folder finished" << path;
+    #endif
 }
 
 void ApplicationWorker::checkNetworkLink()
 {
     emit processStarted();
 
+    #if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "start check network links.";
+    #endif
 
     // initialize database in current Thread
     QSqlDatabase database = GET_DATABASE("MEDIA_DATABASE");
@@ -50,7 +56,10 @@ void ApplicationWorker::checkNetworkLink()
 
         query.last();
         int total = query.at();
+
+        #if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << total << "links to check.";
+        #endif
 
         query.exec();
         while (query.next())
@@ -108,6 +117,9 @@ void ApplicationWorker::checkNetworkLink()
             ++nb;
         }
 
+        if (!COMMIT_DATABASE("MEDIA_DATABASE"))
+            qCritical() << "unable to COMMIT DATABASE";
+
         emit processOver(QString("%1 network links checked.").arg(total));
     }
     else
@@ -120,7 +132,10 @@ void ApplicationWorker::checkNetworkLink()
 void ApplicationWorker::scanVolumeInfo()
 {
     emit processStarted();
+
+    #if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "start volume information scan";
+    #endif
 
     // initialize database in current Thread
     QSqlDatabase database = GET_DATABASE("MEDIA_DATABASE");
@@ -150,7 +165,9 @@ void ApplicationWorker::scanVolumeInfo()
                     {
                         if (mime_type.startsWith("audio/"))
                         {
+                            #if !defined(QT_NO_DEBUG_OUTPUT)
                             qDebug() << "Analyze audio" << filename;
+                            #endif
 
                             DlnaMusicTrackFile track(filename);
                             if (!library.setVolumeInfo(idMedia, track.volumeInfo()))
@@ -158,7 +175,9 @@ void ApplicationWorker::scanVolumeInfo()
                         }
                         else if (mime_type.startsWith("video/")  && library.isLocalUrl(filename))
                         {
+                            #if !defined(QT_NO_DEBUG_OUTPUT)
                             qDebug() << "Analyze local video" << filename;
+                            #endif
 
                             DlnaVideoFile movie(filename);
                             if (!library.setVolumeInfo(idMedia, movie.volumeInfo(-1)))
@@ -166,7 +185,9 @@ void ApplicationWorker::scanVolumeInfo()
                         }
                         else if (mime_type.startsWith("video/") && !library.isLocalUrl(filename))
                         {
+                            #if !defined(QT_NO_DEBUG_OUTPUT)
                             qDebug() << "Analyze internet video" << filename;
+                            #endif
 
                             DlnaNetworkVideo video;
                             video.setUrl(filename);
@@ -212,4 +233,208 @@ void ApplicationWorker::initialize()
 void ApplicationWorker::initialisation()
 {
     MyNetwork::manager();
+}
+
+void ApplicationWorker::export_playlist(const QUrl &url)
+{
+    emit processStarted();
+    emit progress(-1);
+
+    #if !defined(QT_NO_DEBUG_OUTPUT)
+    qDebug() << "EXPORT PLAYLIST" << url;
+    #endif
+
+    if (playlist)
+    {
+        qCritical() << "previous export not finished!";
+    }
+    else
+    {
+        playlist = new DlnaNetworkPlaylist(url);
+        index_media = 0;
+        export_media_playlist();
+    }
+}
+
+void ApplicationWorker::export_media_playlist()
+{
+    QSettings settings("HOME", "QMS");
+    QUrl exportFolder = settings.value("exportFolder").toUrl();
+
+    if (playlist)
+    {        
+        if (index_media < playlist->getChildrenSize())
+        {
+            const AbstractPlaylist::T_URL *info = playlist->getMediaInfo(index_media);
+
+            auto media = qobject_cast<DlnaNetworkVideo*>(playlist->getChild(index_media));
+            if (media && media->isValid())
+            {
+                #if !defined(QT_NO_DEBUG_OUTPUT)
+                qDebug() << media->getDisplayName() << info->title << media->getSystemName() << media->mediaUrl() << media->size();
+                #endif
+
+                QUrl folder = QUrl(QString("%1/%2").arg(exportFolder.toString(), playlist->getName()));
+                if (!QFileInfo::exists(folder.toLocalFile()))
+                {
+                    QDir().mkdir(folder.toLocalFile());
+                }
+
+                QString mediaName = media->getDisplayName();
+                if (info->title.size() > mediaName.size())
+                    mediaName = info->title;
+
+                QString extension = "mp4";
+                if (media->sourceAudioFormat() == "opus")
+                    extension = "mkv";
+
+                QString filename = QString("%1/%2.%3").arg(folder.toLocalFile(), mediaName, extension);
+                if (QFileInfo::exists(filename))
+                {
+                    qWarning() << "file exists, export aborted for" << filename;
+                    ++index_media;
+                    export_media_playlist();
+                }
+                else
+                {
+                    auto process = new FfmpegTranscoding();
+
+                    connect(process, &FfmpegTranscoding::readyToOpen, this, &ApplicationWorker::streamToOpen);
+                    connect(process, &FfmpegTranscoding::openedSignal, process, &FfmpegTranscoding::startRequestData);
+                    connect(process, &FfmpegTranscoding::endReached, this, &ApplicationWorker::streamFromPlaylistCompleted);
+
+                    #if !defined(QT_NO_DEBUG_OUTPUT)
+                    connect(process, &FfmpegTranscoding::LogMessage, this, &ApplicationWorker::logMessage);
+                    #endif
+
+                    process->setOutput(filename);
+                    process->setFormat(COPY);
+                    process->setOriginalLengthInMSeconds(media->metaDataDuration());
+                    process->setBitrate(media->bitrate());
+                    process->setUrls(media->mediaUrl());
+                }
+            }
+            else
+            {
+                qCritical() << "invalid media in playlist" << index_media << info->url << info->title;
+                ++index_media;
+                export_media_playlist();
+            }
+        }
+        else
+        {
+            playlist->deleteLater();
+            playlist = Q_NULLPTR;
+            emit processOver();
+        }
+    }
+}
+
+void ApplicationWorker::export_media(const QUrl &url)
+{
+    emit processStarted();
+    emit progress(-1);
+
+    auto media = new DlnaNetworkVideo(this);
+
+    if (!media->setUrl(url))
+    {
+        emit errorDuringProcess(QString("invalid url %1").arg(url.url()));
+        return;
+    }
+
+    media->setMaxVideoHeight(720);
+
+    if (!media->waitUrl(5000))
+    {
+        qCritical() << "network media not ready" << media;
+        emit processOver();
+        return;
+    }
+
+    QSettings settings("HOME", "QMS");
+    QUrl exportFolder = settings.value("exportFolder").toUrl();
+
+    QString mediaName = media->getDisplayName();
+
+    QString extension = "mp4";
+    if (media->sourceAudioFormat() == "opus")
+        extension = "mkv";
+
+    QString filename = QString("%1/%2.%3").arg(exportFolder.toLocalFile(), mediaName, extension);
+    if (QFileInfo::exists(filename))
+    {
+        qWarning() << "file exists, export aborted for" << filename;
+        emit processOver();
+        return;
+    }
+
+    auto process = new FfmpegTranscoding();
+
+    connect(process, &FfmpegTranscoding::readyToOpen, this, &ApplicationWorker::streamToOpen);
+    connect(process, &FfmpegTranscoding::openedSignal, process, &FfmpegTranscoding::startRequestData);
+    connect(process, &FfmpegTranscoding::endReached, this, &ApplicationWorker::streamFromMediaCompleted);
+
+    #if !defined(QT_NO_DEBUG_OUTPUT)
+    connect(process, &FfmpegTranscoding::LogMessage, this, &ApplicationWorker::logMessage);
+    #endif
+
+    process->setOutput(filename);
+    process->setFormat(COPY);
+    process->setOriginalLengthInMSeconds(media->metaDataDuration());
+    process->setBitrate(media->bitrate());
+    process->setUrls(media->mediaUrl());
+
+}
+
+void ApplicationWorker::streamToOpen()
+{
+    auto stream = qobject_cast<FfmpegTranscoding*>(sender());
+
+    #if !defined(QT_NO_DEBUG_OUTPUT)
+    qDebug() << "open" << stream;
+    #endif
+
+    if (stream)
+        stream->open();
+}
+
+void ApplicationWorker::streamFromPlaylistCompleted()
+{
+    auto stream = qobject_cast<FfmpegTranscoding*>(sender());
+    if (stream)
+    {
+        #if !defined(QT_NO_DEBUG_OUTPUT)
+        qDebug() << "stream reached end" << stream;
+        #endif
+
+        stream->close();
+        stream->deleteLater();
+
+        ++index_media;
+        export_media_playlist();
+    }
+}
+
+void ApplicationWorker::streamFromMediaCompleted()
+{
+    auto stream = qobject_cast<FfmpegTranscoding*>(sender());
+    if (stream)
+    {
+        #if !defined(QT_NO_DEBUG_OUTPUT)
+        qDebug() << "stream reached end" << stream;
+        #endif
+
+        stream->close();
+        stream->deleteLater();
+    }
+}
+
+void ApplicationWorker::logMessage(const QString &message)
+{
+    Q_UNUSED(message)
+
+//    #if !defined(QT_NO_DEBUG_OUTPUT)
+    qWarning() << message;
+//    #endif
 }

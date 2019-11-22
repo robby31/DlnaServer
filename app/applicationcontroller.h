@@ -12,9 +12,14 @@ public:
     void checkNetworkLink();
     void scanVolumeInfo();
 
+    void export_playlist(const QUrl &url);
+    void export_media(const QUrl &url);
+
 signals:
     void checkNetworkLinkSignal();
     void scanVolumeInfoSignal();
+    void exportPlaylistSignal(const QUrl &url);
+    void exportMediaSignal(const QUrl &url);
 
 public slots:
 };

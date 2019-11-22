@@ -29,6 +29,7 @@ class MyApplication : public Application
 
     Q_PROPERTY(QUrl ffmpegFolder READ ffmpegFolder WRITE setFfmpegFolder NOTIFY ffmpegFolderChanged)
     Q_PROPERTY(QString ffmpegVersion READ ffmpegVersion WRITE setffmpegVersion NOTIFY ffmpegVersionChanged)
+    Q_PROPERTY(QUrl exportFolder READ exportFolder WRITE setExportFolder NOTIFY exportFolderChanged)
 
     Q_PROPERTY(bool auto_remove_request READ autoRemoveRequest WRITE setAutoRemoveRequest NOTIFY autoRemoveRequestChanged)
 
@@ -48,6 +49,9 @@ public:
 
     QString ffmpegVersion() const;
     void setffmpegVersion(const QString &version);
+
+    QUrl exportFolder() const;
+    void setExportFolder(const QUrl &folder);
 
     void setNetworkLinkModel(ListModel *model);
     Q_INVOKABLE void closeCheckLink();
@@ -78,6 +82,7 @@ signals:
     void ffmpegFolderChanged();
     void ffmpegVersionChanged();
     void autoRemoveRequestChanged();
+    void exportFolderChanged();
 
     void scanFolder(QString path);
     void addFolder(QString folder);
@@ -91,8 +96,12 @@ public slots:
     void clearRequests();
 
     void reload_playlists();
+    void update_playlist(const QUrl &url);
 
     void reload_network_links();
+
+    void export_playlist(const QUrl &url);
+    void export_media(const QUrl &url);
 
 private slots:
     void initializeDatabase();
