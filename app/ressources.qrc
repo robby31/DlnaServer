@@ -56,5 +56,8 @@
         <file>qml/content/RecentlyPlayedMediaView.qml</file>
         <file>qml/content/RecentlyPlayedMediaDelegate.qml</file>
         <file>qml/content/DebugDetails.qml</file>
+        <file>qml/content/PlaylistsView.qml</file>
+        <file>qml/content/PlaylistDelegate.qml</file>
+        <file>qtquickcontrols2.conf</file>
     </qresource>
 </RCC>
