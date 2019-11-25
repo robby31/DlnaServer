@@ -247,13 +247,15 @@ void ApplicationWorker::export_playlist(const QUrl &url)
     if (playlist)
     {
         qCritical() << "previous export not finished!";
+        emit errorDuringProcess("export playlist already in progress");
+        return;
     }
-    else
-    {
-        playlist = new DlnaNetworkPlaylist(url);
-        index_media = 0;
-        export_media_playlist();
-    }
+
+    playlist = new DlnaNetworkPlaylist(url, this);
+    connect(playlist, &DlnaNetworkPlaylist::destroyed, this, &ApplicationWorker::playlistDestroyed);
+    playlist->setProperty("index_media", 0);
+
+    export_media_playlist();
 }
 
 void ApplicationWorker::export_media_playlist()
@@ -261,8 +263,9 @@ void ApplicationWorker::export_media_playlist()
     QSettings settings("HOME", "QMS");
     QUrl exportFolder = settings.value("exportFolder").toUrl();
 
-    if (playlist)
+    if (playlist && playlist->property("index_media").isValid())
     {        
+        int index_media = playlist->property("index_media").toInt();
         if (index_media < playlist->getChildrenSize())
         {
             const AbstractPlaylist::T_URL *info = playlist->getMediaInfo(index_media);
@@ -270,15 +273,15 @@ void ApplicationWorker::export_media_playlist()
             auto media = qobject_cast<DlnaNetworkVideo*>(playlist->getChild(index_media));
             if (media && media->isValid())
             {
+                connect(media, &DlnaNetworkVideo::destroyed, this, &ApplicationWorker::mediaDestroyed);
+
                 #if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << media->getDisplayName() << info->title << media->getSystemName() << media->mediaUrl() << media->size();
                 #endif
 
                 QUrl folder = QUrl(QString("%1/%2").arg(exportFolder.toString(), playlist->getName()));
                 if (!QFileInfo::exists(folder.toLocalFile()))
-                {
                     QDir().mkdir(folder.toLocalFile());
-                }
 
                 QString mediaName = media->getDisplayName();
                 if (info->title.size() > mediaName.size())
@@ -292,41 +295,38 @@ void ApplicationWorker::export_media_playlist()
                 if (QFileInfo::exists(filename))
                 {
                     qWarning() << "file exists, export aborted for" << filename;
-                    ++index_media;
-                    export_media_playlist();
+                    media->deleteLater();
                 }
                 else
                 {
-                    auto process = new FfmpegTranscoding();
-
-                    connect(process, &FfmpegTranscoding::readyToOpen, this, &ApplicationWorker::streamToOpen);
-                    connect(process, &FfmpegTranscoding::openedSignal, process, &FfmpegTranscoding::startRequestData);
-                    connect(process, &FfmpegTranscoding::endReached, this, &ApplicationWorker::streamFromPlaylistCompleted);
-
-                    #if !defined(QT_NO_DEBUG_OUTPUT)
-                    connect(process, &FfmpegTranscoding::LogMessage, this, &ApplicationWorker::logMessage);
-                    #endif
-
-                    process->setOutput(filename);
-                    process->setFormat(COPY);
-                    process->setOriginalLengthInMSeconds(media->metaDataDuration());
-                    process->setBitrate(media->bitrate());
-                    process->setUrls(media->mediaUrl());
+                    _exportMediaTo(media, filename);
                 }
             }
             else
             {
                 qCritical() << "invalid media in playlist" << index_media << info->url << info->title;
-                ++index_media;
-                export_media_playlist();
+
+                if (media)
+                {
+                    media->deleteLater();
+                }
+                else
+                {
+                    playlist->setProperty("index_media", index_media+1);
+                    export_media_playlist();
+                }
             }
         }
         else
         {
             playlist->deleteLater();
-            playlist = Q_NULLPTR;
-            emit processOver();
         }
+    }
+    else
+    {
+        qCritical() << "invalid playlist initialisation.";
+        if (playlist)
+            playlist->deleteLater();
     }
 }
 
@@ -335,11 +335,20 @@ void ApplicationWorker::export_media(const QUrl &url)
     emit processStarted();
     emit progress(-1);
 
-    auto media = new DlnaNetworkVideo(this);
+    if (media)
+    {
+        qWarning() << "previous media export not finished.";
+        emit errorDuringProcess("export media already in progress");
+        return;
+    }
+
+    media = new DlnaNetworkVideo(this);
+    connect(media, &DlnaNetworkVideo::destroyed, this, &ApplicationWorker::mediaDestroyed);
 
     if (!media->setUrl(url))
     {
         emit errorDuringProcess(QString("invalid url %1").arg(url.url()));
+        media->deleteLater();
         return;
     }
 
@@ -348,7 +357,8 @@ void ApplicationWorker::export_media(const QUrl &url)
     if (!media->waitUrl(5000))
     {
         qCritical() << "network media not ready" << media;
-        emit processOver();
+        emit errorDuringProcess("network media not ready");
+        media->deleteLater();
         return;
     }
 
@@ -364,16 +374,21 @@ void ApplicationWorker::export_media(const QUrl &url)
     QString filename = QString("%1/%2.%3").arg(exportFolder.toLocalFile(), mediaName, extension);
     if (QFileInfo::exists(filename))
     {
-        qWarning() << "file exists, export aborted for" << filename;
-        emit processOver();
+        qDebug() << "file exists, export aborted for" << filename;
+        media->deleteLater();
         return;
     }
 
-    auto process = new FfmpegTranscoding();
+    _exportMediaTo(media, filename);
+}
+
+void ApplicationWorker::_exportMediaTo(DlnaNetworkVideo *media, const QString &filename)
+{
+    auto process = new FfmpegTranscoding(media);
 
     connect(process, &FfmpegTranscoding::readyToOpen, this, &ApplicationWorker::streamToOpen);
     connect(process, &FfmpegTranscoding::openedSignal, process, &FfmpegTranscoding::startRequestData);
-    connect(process, &FfmpegTranscoding::endReached, this, &ApplicationWorker::streamFromMediaCompleted);
+    connect(process, &FfmpegTranscoding::endReached, media, &DlnaNetworkVideo::deleteLater);
 
     #if !defined(QT_NO_DEBUG_OUTPUT)
     connect(process, &FfmpegTranscoding::LogMessage, this, &ApplicationWorker::logMessage);
@@ -399,34 +414,26 @@ void ApplicationWorker::streamToOpen()
         stream->open();
 }
 
-void ApplicationWorker::streamFromPlaylistCompleted()
+void ApplicationWorker::playlistDestroyed(QObject *object)
 {
-    auto stream = qobject_cast<FfmpegTranscoding*>(sender());
-    if (stream)
+    if (object == playlist)
     {
-        #if !defined(QT_NO_DEBUG_OUTPUT)
-        qDebug() << "stream reached end" << stream;
-        #endif
-
-        stream->close();
-        stream->deleteLater();
-
-        ++index_media;
-        export_media_playlist();
+        playlist = Q_NULLPTR;
+        emit processOver();
     }
 }
 
-void ApplicationWorker::streamFromMediaCompleted()
+void ApplicationWorker::mediaDestroyed(QObject *object)
 {
-    auto stream = qobject_cast<FfmpegTranscoding*>(sender());
-    if (stream)
+    if (object == media)
     {
-        #if !defined(QT_NO_DEBUG_OUTPUT)
-        qDebug() << "stream reached end" << stream;
-        #endif
-
-        stream->close();
-        stream->deleteLater();
+        media = Q_NULLPTR;
+        emit processOver();
+    }
+    else if (playlist)
+    {
+        playlist->setProperty("index_media", playlist->property("index_media").toInt()+1);
+        export_media_playlist();
     }
 }
 
@@ -434,7 +441,7 @@ void ApplicationWorker::logMessage(const QString &message)
 {
     Q_UNUSED(message)
 
-//    #if !defined(QT_NO_DEBUG_OUTPUT)
-    qWarning() << message;
-//    #endif
+    #if !defined(QT_NO_DEBUG_OUTPUT)
+    qDebug() << message;
+    #endif
 }

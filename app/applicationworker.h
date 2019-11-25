@@ -21,6 +21,7 @@ public:
 
 private:
     void export_media_playlist();
+    void _exportMediaTo(DlnaNetworkVideo *media, const QString &filename);
 
 signals:
     // signals used by checkNetworkLink
@@ -34,8 +35,6 @@ public slots:
     void export_media(const QUrl &url);
 
     void streamToOpen();
-    void streamFromPlaylistCompleted();
-    void streamFromMediaCompleted();
     void logMessage(const QString &message);
 
 private slots:
@@ -44,9 +43,12 @@ private slots:
     void checkNetworkLink();
     void scanVolumeInfo();
 
+    void playlistDestroyed(QObject *object);
+    void mediaDestroyed(QObject *object);
+
 private:
     DlnaNetworkPlaylist *playlist = Q_NULLPTR;
-    int index_media = 0;
+    DlnaNetworkVideo *media = Q_NULLPTR;
 };
 
 #endif // APPLICATIONWORKER_H
