@@ -5,13 +5,9 @@ const int MyApplication::SERVERPORT = 5002;
 MyApplication::MyApplication(int &argc, char **argv):
     Application(argc, argv),
     settings("HOME", "QMS"),
-    m_worker(Q_NULLPTR),
-    m_upnp(5050),
-    m_localrootdevice(Q_NULLPTR),
-    m_requestsModel(Q_NULLPTR),
-    m_renderersModel(Q_NULLPTR),
-    m_debugModel(DebugInfo::model),
-    m_checkNetworkLinkModel(Q_NULLPTR)
+    m_controller(this),
+    m_upnp(5050, this),
+    m_debugModel(DebugInfo::model)
 {
     addImageProvider("media", new MediaImageProvider);
     addImageProvider("album", new AlbumImageProvider);

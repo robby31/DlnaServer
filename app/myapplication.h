@@ -135,19 +135,19 @@ private:
     QStringList m_sharedFolderModel;
 
     ApplicationController m_controller;
-    ApplicationWorker *m_worker;
+    ApplicationWorker *m_worker = Q_NULLPTR;
 
     UpnpControlPoint m_upnp;
-    UpnpRootDevice *m_localrootdevice;
+    UpnpRootDevice *m_localrootdevice = Q_NULLPTR;
 
     // list of requests received by server
-    ListModel *m_requestsModel;
+    ListModel *m_requestsModel = Q_NULLPTR;
 
     // list of renderes connected to the server
-    MediaRendererModel *m_renderersModel;
+    MediaRendererModel *m_renderersModel = Q_NULLPTR;
 
-    ListModel *m_debugModel;
-    ListModel *m_checkNetworkLinkModel;
+    ListModel *m_debugModel = Q_NULLPTR;
+    ListModel *m_checkNetworkLinkModel = Q_NULLPTR;
 
     QUrl m_ffmpegFolder;
     QString m_ffmpegVersion;

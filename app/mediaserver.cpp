@@ -18,7 +18,7 @@ MediaServer::MediaServer(const QString &macAddress, const QString& host, int por
 
 void MediaServer::initDescription()
 {
-    auto deviceDescription = new UpnpRootDeviceDescription();
+    auto deviceDescription = new UpnpRootDeviceDescription(this);
     deviceDescription->setDeviceAttribute("deviceType", "urn:schemas-upnp-org:device:MediaServer:1");
     deviceDescription->setDeviceAttribute("friendlyName", "QT Media Server");
     deviceDescription->setDeviceAttribute("manufacturer", "G HIMBERT");
@@ -45,7 +45,7 @@ void MediaServer::initDescription()
 
 void MediaServer::initConnectionManager()
 {
-    auto connection_manager = new ServiceConnectionManager(this);
+    auto connection_manager = new ServiceConnectionManager(this, this);
 
     QStringList format;
     format << "http-get:*:image/jpeg:DLNA.ORG_PN=JPEG_SM";
@@ -91,7 +91,7 @@ void MediaServer::initConnectionManager()
 
 void MediaServer::initContentDirectory()
 {
-    auto content_directory = new ServiceContentDirectory(m_renderersModel, this);
+    auto content_directory = new ServiceContentDirectory(m_renderersModel, this, this);
 
     connect(m_renderersModel, SIGNAL(mediaRendererDestroyed(QString)), content_directory, SLOT(mediaRendererDestroyed(QString)));
 
