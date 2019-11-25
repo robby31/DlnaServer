@@ -9,25 +9,48 @@ ListViewDelegate {
 
     onDoubleClicked: playMedia("file:///%1".arg(filename))
 
-    swipe.left: Label {
-        id: deleteLabel
-        text: qsTr("Delete")
-        color: "white"
-        verticalAlignment: Label.AlignVCenter
-        padding: 12
+    swipe.left: Row {
         height: parent.height
         anchors.left: parent.left
+        spacing: 0
 
-        SwipeDelegate.onClicked: {
-            if (!delegate.ListView.view.model.remove(index))
+        Label {
+            id: exportLabel
+            text: qsTr("Export")
+            color: "white"
+            verticalAlignment: Label.AlignVCenter
+            padding: 12
+            height: parent.height
+
+            SwipeDelegate.onClicked: {
                 swipe.close()
-            else
-                delegate.ListView.view.model.select()
+                _app.export_media(filename)
+            }
 
+            background: Rectangle {
+                color: exportLabel.SwipeDelegate.pressed ? Qt.darker("tomato", 1.1) : "tomato"
+            }
         }
 
-        background: Rectangle {
-            color: deleteLabel.SwipeDelegate.pressed ? Qt.darker("tomato", 1.1) : "tomato"
+        Label {
+            id: deleteLabel
+            text: qsTr("Delete")
+            color: "white"
+            verticalAlignment: Label.AlignVCenter
+            padding: 12
+            height: parent.height
+
+            SwipeDelegate.onClicked: {
+                if (!delegate.ListView.view.model.remove(index))
+                    swipe.close()
+                else
+                    delegate.ListView.view.model.select()
+
+            }
+
+            background: Rectangle {
+                color: deleteLabel.SwipeDelegate.pressed ? Qt.darker("tomato", 1.1) : "tomato"
+            }
         }
     }
 
