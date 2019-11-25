@@ -7,9 +7,10 @@
 
 #include "dlna/dlnarootfolder.h"
 
-class tst_dlnarootfolder : public QObject
+class tst_dlnarootfolder : public DlnaCheckFunctions
 {
     Q_OBJECT
+
 public:
     explicit tst_dlnarootfolder(QObject *parent = Q_NULLPTR);
 

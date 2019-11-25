@@ -1,9 +1,8 @@
 #include "tst_dlnanetworkvideo.h"
 
 tst_dlnanetworkvideo::tst_dlnanetworkvideo(QObject *parent):
-    QObject(parent),
-    db(CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE")),
-    m_dlnaProfiles("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml")
+    DlnaCheckFunctions(parent),
+    db(CREATE_DATABASE("QSQLITE", "MEDIA_DATABASE"))
 {
     FfmpegTranscoding::setDirPath("/usr/local/bin");
 
@@ -22,6 +21,20 @@ void tst_dlnanetworkvideo::LogMessage(const QString &message)
     qInfo() << message;
 }
 
+void tst_dlnanetworkvideo::init()
+{
+    m_dlnaProfiles = new Protocol("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml");
+}
+
+void tst_dlnanetworkvideo::cleanup()
+{
+    delete m_dlnaProfiles;
+
+    DebugInfo::display_alive_objects();
+
+    QCOMPARE(DebugInfo::count_alive_objects(), 0);
+}
+
 void tst_dlnanetworkvideo::cleanupTestCase()
 {
     qInfo() << media_ok << "MEDIAS OK.";
@@ -30,18 +43,6 @@ void tst_dlnanetworkvideo::cleanupTestCase()
     qInfo() << media_timeout << "MEDIAS TIMEOUT.";
 
     DecryptYoutubeSignature::print_cache();
-
-    QCoreApplication::processEvents();
-
-    DebugInfo::display_alive_objects();
-
-    QVERIFY2(DlnaResource::objectCounter == 0, QString("memory leak detected, %1 DlnaResource objects.").arg(DlnaResource::objectCounter).toUtf8());
-
-    QCOMPARE(QFfmpegMedia::objectCounter, 0);
-    QCOMPARE(QFfmpegStream::objectCounter, 0);
-    QCOMPARE(QFfmpegFrame::objectCounter, 0);
-    QCOMPARE(QFfmpegCodec::objectCounter, 0);
-    QCOMPARE(QFfmpegBuffer::objectCounter, 0);
 }
 
 QString tst_dlnanetworkvideo::timeToString(const qint64 &msec)
@@ -119,8 +120,8 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo_data()
     QTest::newRow("Youtube_Lilly3") << true
                                     << QUrl("https://www.youtube.com/watch?v=RQlXgAR0F4Y") << -1
                                     << "Lilly Wood & The Prick en concert privé Le Mouv'"
-                                    << 3671000 << "640x356" << "25.000" << 4558800 << 44100 << 2
-                                    << "mov,mp4,m4a,3gp,3g2,mj2" << "vorbis" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(221908288);
+                                    << 3671000 << "640x356" << "25.000" << 4558800 << 48000 << 2
+                                    << "mov,mp4,m4a,3gp,3g2,mj2" << "opus" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(223662062);
 
     QTest::newRow("Youtube_not_available") << false
                                            << QUrl("https://www.youtube.com/watch?v=ji74LmoyqAg") << -1
@@ -252,7 +253,7 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
 
         auto artists = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(0));
         QCOMPARE(artists->getDisplayName(), "Artist");
-        QCOMPARE(artists->getChildrenSize(), 111);
+        QCOMPARE(artists->getChildrenSize(), 107);
 
         DlnaCachedFolder *artist = Q_NULLPTR;
         for (int index=0;index<artists->getChildrenSize();++index)
@@ -293,28 +294,16 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
                 sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA";
                 sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
                 sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
-                movie->setDlnaProfiles(&m_dlnaProfiles);
-                m_dlnaProfiles.setProtocols(sinkProtocol);
+                m_dlnaProfiles->setProtocols(sinkProtocol);
+                movie->setDlnaProfiles(m_dlnaProfiles);
 
-                QStringList properties;
-                properties << "upnp:genre";
-                properties << "res@size";
-                properties << "res@duration";
-                properties << "res@bitrate";
-                properties << "res@resolution";
-                properties << "res@nrAudioChannels";
-                properties << "res@sampleFrequency";
-
-                QDomDocument xml_res;
-                xml_res.appendChild(movie->getXmlContentDirectory(&xml_res, properties));
-                check_dlna_video(xml_res,
+                check_dlna_video(movie,
                                  "0$7$1$23$1", "0$7$1$23",
                                  "Cats on trees \"Sirens call\" [Clip Officiel]",
                                  "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
                                  "00:03:17", "1280x720", 2, 48000,
                                  569850, 121645286,
                                  "http://host:600/get/0$7$1$23$1/Media%2814955%29");
-                xml_res.clear();
 
                 QCOMPARE(movie->getdlnaOrgOpFlags(), "10");
                 QCOMPARE(movie->getdlnaOrgPN(), "MPEG_TS_HD_NA");
@@ -378,7 +367,7 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo_data()
                                             << "MPEG_TS_HD_NA"
                                             << "DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
                                             << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
-                                            << 17690325 << 159715687 << 114146080;
+                                            << 17690325 << 159715687 << 114146456;
 
     QTest::newRow("Youtube_Muse_H264_AAC") << H264_AAC
                                            << true
@@ -390,7 +379,7 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo_data()
                                            << "AVC_TS_MP_HD_AAC_MULT5"
                                            << "DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
                                            << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000"
-                                           << 17690325 << 214141541 << 64043704;
+                                           << 17690325 << 214141541 << 36574648;
 
 }
 
@@ -429,8 +418,8 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo()
     sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA";
     sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5";
     sinkProtocol << "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AC3";
-    video.setDlnaProfiles(&m_dlnaProfiles);
-    m_dlnaProfiles.setProtocols(sinkProtocol);
+    m_dlnaProfiles->setProtocols(sinkProtocol);
+    video.setDlnaProfiles(m_dlnaProfiles);
 
     qint64 duration = timer.elapsed();
     QVERIFY2(duration < 10000, QString("Duration: %1").arg(duration).toUtf8());
@@ -554,7 +543,7 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo_checkLink()
     }
     else
     {
-        qDebug() << "OK" << url << res << video.isValid() << video.metaDataTitle() << video.metaDataDuration() << video.getLengthInMilliSeconds() << video.metaDataBitrate();
+//        qInfo() << "OK" << url << res << video.isValid() << video.metaDataTitle() << video.metaDataDuration() << video.getLengthInMilliSeconds() << video.metaDataBitrate();
         ++media_ok;
     }
 }

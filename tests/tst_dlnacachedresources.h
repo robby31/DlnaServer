@@ -10,7 +10,7 @@
 #include "dlna/cached/dlnacachedfolder.h"
 #include "Http/httprange.h"
 
-class tst_dlnacachedresources: public QObject
+class tst_dlnacachedresources: public DlnaCheckFunctions
 {
     Q_OBJECT
 
@@ -30,6 +30,7 @@ private:
     qint64 parseFolder(const QString &resourceId, DlnaResource *resource);
 
 private Q_SLOTS:
+    void init();
     void cleanup();
 
     void testCase_DlnaCachedRootFolder();
@@ -55,11 +56,11 @@ private Q_SLOTS:
     void testCase_Library_NbPictureWithNoAlbum();
 
 private:
-    qint64 transcodedSize;
+    qint64 transcodedSize = 0;
     QSqlDatabase db;
     QString folderKO;
 
-    Protocol m_dlnaProfiles;
+    Protocol *m_dlnaProfiles = Q_NULLPTR;
 };
 
 #endif // TST_DLNACACHEDRESOURCES_H

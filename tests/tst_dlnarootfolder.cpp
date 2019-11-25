@@ -1,7 +1,7 @@
 #include "tst_dlnarootfolder.h"
 
 tst_dlnarootfolder::tst_dlnarootfolder(QObject *parent) :
-    QObject(parent)
+    DlnaCheckFunctions(parent)
 {
 }
 
@@ -16,13 +16,7 @@ void tst_dlnarootfolder::cleanup()
 
     DebugInfo::display_alive_objects();
 
-    QVERIFY2(DlnaResource::objectCounter == 0, QString("memory leak detected, %1 DlnaResource objects.").arg(DlnaResource::objectCounter).toUtf8());
-
-    QCOMPARE(QFfmpegMedia::objectCounter, 0);
-    QCOMPARE(QFfmpegStream::objectCounter, 0);
-    QCOMPARE(QFfmpegFrame::objectCounter, 0);
-    QCOMPARE(QFfmpegCodec::objectCounter, 0);
-    QCOMPARE(QFfmpegBuffer::objectCounter, 0);
+    QCOMPARE(DebugInfo::count_alive_objects(), 0);
 }
 
 void tst_dlnarootfolder::testCase_DlnaRootFolder()
@@ -40,21 +34,12 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QCOMPARE(rootFolder.getChildrenSize(), 0);
     QCOMPARE(rootFolder.getChild(0), Q_NULLPTR);
 
-    QStringList properties;
-    properties << "dc:title";
-    properties << "@childCount";
-
-    QDomDocument xml_res;
-    xml_res.appendChild(rootFolder.getXmlContentDirectory(&xml_res, properties));
-    check_dlna_storage(xml_res, "0", "-1", 0, "root");
-    xml_res.clear();
+    check_dlna_storage(&rootFolder, "0", "-1", 0, "root");
 
     DlnaFolder music("/Users/doudou/Music/iTunes/iTunes Media/Music");
     QCOMPARE(music.getName(), "Music");
 
-    xml_res.appendChild(music.getXmlContentDirectory(&xml_res, properties));
-    check_dlna_storage(xml_res, "", "-1", 610, "Music");
-    xml_res.clear();
+    check_dlna_storage(&music, "", "-1", 610, "Music");
 
     rootFolder.addChild(&music);
     QCOMPARE(music.getId(), "1");
@@ -67,9 +52,7 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QVERIFY(rootFolder.getChild(0) != Q_NULLPTR);
     QCOMPARE(rootFolder.getChildrenSize(), 1);
 
-    xml_res.appendChild(music.getXmlContentDirectory(&xml_res, properties));
-    check_dlna_storage(xml_res, "0$1", "0", 610, "Music");
-    xml_res.clear();
+    check_dlna_storage(&music, "0$1", "0", 610, "Music");
 
     rootFolder.addChild(&music);
     QCOMPARE(music.getId(), "2");

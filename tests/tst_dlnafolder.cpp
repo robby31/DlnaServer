@@ -1,7 +1,7 @@
 #include "tst_dlnafolder.h"
 
 tst_dlnafolder::tst_dlnafolder(QObject *parent) :
-    QObject(parent)
+    DlnaCheckFunctions(parent)
 {
 }
 
@@ -16,13 +16,7 @@ void tst_dlnafolder::cleanup()
 
     DebugInfo::display_alive_objects();
 
-    QVERIFY2(DlnaResource::objectCounter == 0, QString("memory leak detected, %1 DlnaResource objects.").arg(DlnaResource::objectCounter).toUtf8());
-
-    QCOMPARE(QFfmpegMedia::objectCounter, 0);
-    QCOMPARE(QFfmpegStream::objectCounter, 0);
-    QCOMPARE(QFfmpegFrame::objectCounter, 0);
-    QCOMPARE(QFfmpegCodec::objectCounter, 0);
-    QCOMPARE(QFfmpegBuffer::objectCounter, 0);
+    QCOMPARE(DebugInfo::count_alive_objects(), 0);
 }
 
 void tst_dlnafolder::testCase_DlnaFolder()
@@ -232,14 +226,7 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
         QCOMPARE(playlist->getSystemName(), "ninjago");
         QVERIFY(playlist->getChildrenSize() > 0);
 
-        {
-            QStringList properties;
-            properties << "*";
-
-            QDomDocument xml_res;
-            xml_res.appendChild(playlist->getXmlContentDirectory(&xml_res, properties));
-            check_dlna_storage(xml_res, "", "-1", playlist->getChildrenSize(), "ninjago");
-        }
+        check_dlna_storage(playlist.data(), "", "-1", playlist->getChildrenSize(), "ninjago");
 
         qint64 elapsed = parseFolder(playlist->getResourceId(), playlist.data());
         qInfo() << "PERFO" << elapsed << playlist->getResourceId() << playlist->getSystemName() << playlist->getChildrenSize() << "children";
@@ -247,28 +234,15 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
         QScopedPointer<DlnaNetworkVideo> video(qobject_cast<DlnaNetworkVideo*>(playlist->getChild(0)));
         QVERIFY(video != Q_NULLPTR);
 
-        {
-            QStringList properties;
-            properties << "upnp:genre";
-            properties << "res@size";
-            properties << "res@duration";
-            properties << "res@bitrate";
-            properties << "res@resolution";
-            properties << "res@nrAudioChannels";
-            properties << "res@sampleFrequency";
-
-            QDomDocument xml_res;
-            xml_res.appendChild(video->getXmlContentDirectory(&xml_res, properties));
-            check_dlna_video(xml_res,
-                             "$1", "",
-                             "S10 E01 Ninjago L'arriv\u00E9e des t\u00E9n\u00E8bres",
-                             "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
-                             "00:21:07",
-                             "1024x576",
-                             2, 48000,
-                             750000,
-                             1050385927,
-                             "http://host:600/get/$1/S10%20E01%20Ninjago%20L%27arriv%C3%A9e%20des%20t%C3%A9n%C3%A8bres");
-        }
+        check_dlna_video(video.data(),
+                         "$1", "",
+                         "S10 E01 Ninjago L'arriv\u00E9e des t\u00E9n\u00E8bres",
+                         "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
+                         "00:21:07",
+                         "1024x576",
+                         2, 48000,
+                         750000,
+                         1050385927,
+                         "http://host:600/get/$1/S10%20E01%20Ninjago%20L%27arriv%C3%A9e%20des%20t%C3%A9n%C3%A8bres");
     }
 }

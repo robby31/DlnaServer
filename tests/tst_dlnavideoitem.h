@@ -7,9 +7,10 @@
 
 #include "dlna/dlnavideofile.h"
 
-class tst_dlnavideoitem : public QObject
+class tst_dlnavideoitem : public DlnaCheckFunctions
 {
     Q_OBJECT
+
 public:
     explicit tst_dlnavideoitem(QObject *parent = Q_NULLPTR);
 
@@ -22,7 +23,10 @@ public slots:
     void transcodingOpened();
     void LogMessage(const QString &message);
 
-private Q_SLOTS:
+private slots:
+    void init();
+    void cleanup();
+
     void testCase_DlnaVideoItem_MKV_MPEG2_AC3();
     void testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3();
     void testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC();
@@ -32,7 +36,7 @@ private:
     long transcodedSize = 0;
     QElapsedTimer transcodeTimer;
     qint64 timeToOpenTranscoding = 0;
-    Protocol m_dlnaProfiles;
+    Protocol *m_dlnaProfiles = Q_NULLPTR;
     QStringList m_sinkProtocols;
 };
 

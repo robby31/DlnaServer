@@ -9,7 +9,7 @@
 #include "dlna/dlnanetworkvideo.h"
 #include "dlna/cached/dlnacachedrootfolder.h"
 
-class tst_dlnanetworkvideo : public QObject
+class tst_dlnanetworkvideo : public DlnaCheckFunctions
 {
     Q_OBJECT
 
@@ -23,7 +23,9 @@ public slots:
     void receivedTranscodedData(const QByteArray &data);
     void LogMessage(const QString &message);
 
-private Q_SLOTS:
+private slots:
+    void init();
+    void cleanup();
     void cleanupTestCase();
 
     void testCase_DlnaNetworkVideo_data();
@@ -43,7 +45,7 @@ private:
 private:
     long transcodedSize = 0;
     QSqlDatabase db;
-    Protocol m_dlnaProfiles;
+    Protocol *m_dlnaProfiles = Q_NULLPTR;
 
     int media_timeout = 0;
     int media_not_available = 0;

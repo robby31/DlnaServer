@@ -4,27 +4,18 @@
 #include <QObject>
 #include <QtTest>
 
+#include "dlna_check_functions.h"
 #include "dlna/dlnamusictrackfile.h"
-#include <QElapsedTimer>
-#include "Http/httprange.h"
 
-class tst_dlnamusictrack : public QObject
+class tst_dlnamusictrack : public DlnaCheckFunctions
 {
     Q_OBJECT
+
 public:
     explicit tst_dlnamusictrack(QObject *parent = Q_NULLPTR);
 
-signals:
-    void startTranscoding();
-    void requestData(const qint64 &maxlen);
-
-public slots:
-    void receivedTranscodedData(const QByteArray &data);
-    void dataAvailable();
-    void transcodingOpened();
-    void LogMessage(const QString &message);
-
-private Q_SLOTS:
+private slots:
+    void init();
     void cleanup();
 
     void testCase_DlnaMusicTrack_MP3();
@@ -41,10 +32,7 @@ private Q_SLOTS:
 
 private:
     QThread *m_streamingThread = Q_NULLPTR;
-    qint64 transcodedBytes;
-    QElapsedTimer transcodeTimer;
-    qint64 timeToOpenTranscoding;
-    Protocol m_dlnaProfiles;
+    Protocol *m_dlnaProfiles = Q_NULLPTR;
 };
 
 #endif // TST_DLNAMUSICTRACK_H

@@ -9,7 +9,7 @@
 #include "dlna/dlnafolder.h"
 #include "dlna/dlnanetworkplaylist.h"
 
-class tst_dlnafolder : public QObject
+class tst_dlnafolder : public DlnaCheckFunctions
 {
     Q_OBJECT
 
