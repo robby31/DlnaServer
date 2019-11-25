@@ -6,6 +6,7 @@
 class ApplicationController : public Controller
 {
     Q_OBJECT
+
 public:
     explicit ApplicationController(QObject *parent = Q_NULLPTR);
 
@@ -20,8 +21,6 @@ signals:
     void scanVolumeInfoSignal();
     void exportPlaylistSignal(const QUrl &url);
     void exportMediaSignal(const QUrl &url);
-
-public slots:
 };
 
 #endif // APPLICATIONCONTROLLER_H

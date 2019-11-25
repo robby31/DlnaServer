@@ -14,7 +14,7 @@ class AlbumImageProvider : public QQuickImageProvider
 public:
     AlbumImageProvider();
 
-    QImage requestImage(const QString &id, QSize *size, const QSize& requestedSize) Q_DECL_OVERRIDE;
+    QImage requestImage(const QString &id, QSize *size, const QSize &requestedSize) Q_DECL_OVERRIDE;
 
 };
 
