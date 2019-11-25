@@ -64,6 +64,7 @@ Item {
             id: listview
             Layout.fillWidth: true
             Layout.fillHeight: true
+            clip: true
 
             delegate: delegateItem
         }
