@@ -13,7 +13,7 @@ MediaRenderer::MediaRenderer(const QString& macAddress, const QString& host, int
 
 void MediaRenderer::initDescription()
 {
-    auto deviceDescription = new UpnpRootDeviceDescription();
+    auto deviceDescription = new UpnpRootDeviceDescription(this);
     deviceDescription->setDeviceAttribute("deviceType", "urn:schemas-upnp-org:device:MediaRenderer:1");
     deviceDescription->setDeviceAttribute("friendlyName", "Media Player");
     deviceDescription->setDeviceAttribute("manufacturer", "G HIMBERT");
@@ -31,7 +31,7 @@ void MediaRenderer::initDescription()
 
 void MediaRenderer::initConnectionManager()
 {
-    auto connection_manager = new ServiceConnectionManager(this);
+    auto connection_manager = new ServiceConnectionManager(this, this);
 
     QStringList format;
 
