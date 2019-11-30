@@ -8,11 +8,11 @@ ApplicationWorker::ApplicationWorker(QObject *parent):
 
 void ApplicationWorker::scanFolder(const QString &path)
 {
-//    emit processStarted();
+    //    emit processStarted();
 
-    #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << this << "scan folder" << path;
-    #endif
+#endif
 
     QSqlDatabase db = GET_DATABASE("MEDIA_DATABASE");
     if (db.isValid() && db.isOpen())
@@ -20,26 +20,26 @@ void ApplicationWorker::scanFolder(const QString &path)
         DlnaCachedRootFolder root;
         root.readDirectory(QDir(path));
 
-//        emit processOver();
+        //        emit processOver();
     }
     else
     {
         qCritical() << "database is not valid, unable to scan folder" << path;
-//        emit errorDuringProcess(QString("database is not valid, unable to scan folder %1").arg(path.absolutePath()));
+        //        emit errorDuringProcess(QString("database is not valid, unable to scan folder %1").arg(path.absolutePath()));
     }
 
-    #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "scan folder finished" << path;
-    #endif
+#endif
 }
 
 void ApplicationWorker::checkNetworkLink()
 {
     emit processStarted();
 
-    #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "start check network links.";
-    #endif
+#endif
 
     // initialize database in current Thread
     QSqlDatabase database = GET_DATABASE("MEDIA_DATABASE");
@@ -57,9 +57,9 @@ void ApplicationWorker::checkNetworkLink()
         query.last();
         int total = query.at();
 
-        #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << total << "links to check.";
-        #endif
+#endif
 
         query.exec();
         while (query.next())
@@ -133,9 +133,9 @@ void ApplicationWorker::scanVolumeInfo()
 {
     emit processStarted();
 
-    #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "start volume information scan";
-    #endif
+#endif
 
     // initialize database in current Thread
     QSqlDatabase database = GET_DATABASE("MEDIA_DATABASE");
@@ -165,9 +165,9 @@ void ApplicationWorker::scanVolumeInfo()
                     {
                         if (mime_type.startsWith("audio/"))
                         {
-                            #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
                             qDebug() << "Analyze audio" << filename;
-                            #endif
+#endif
 
                             DlnaMusicTrackFile track(filename);
                             if (!library.setVolumeInfo(idMedia, track.volumeInfo()))
@@ -175,9 +175,9 @@ void ApplicationWorker::scanVolumeInfo()
                         }
                         else if (mime_type.startsWith("video/")  && library.isLocalUrl(filename))
                         {
-                            #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
                             qDebug() << "Analyze local video" << filename;
-                            #endif
+#endif
 
                             DlnaVideoFile movie(filename);
                             if (!library.setVolumeInfo(idMedia, movie.volumeInfo(-1)))
@@ -185,9 +185,9 @@ void ApplicationWorker::scanVolumeInfo()
                         }
                         else if (mime_type.startsWith("video/") && !library.isLocalUrl(filename))
                         {
-                            #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
                             qDebug() << "Analyze internet video" << filename;
-                            #endif
+#endif
 
                             DlnaNetworkVideo video;
                             video.setUrl(filename);
@@ -240,9 +240,9 @@ void ApplicationWorker::export_playlist(const QUrl &url)
     emit processStarted();
     emit progress(-1);
 
-    #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "EXPORT PLAYLIST" << url;
-    #endif
+#endif
 
     if (playlist)
     {
@@ -264,7 +264,7 @@ void ApplicationWorker::export_media_playlist()
     QUrl exportFolder = settings.value("exportFolder").toUrl();
 
     if (playlist && playlist->property("index_media").isValid())
-    {        
+    {
         int index_media = playlist->property("index_media").toInt();
         if (index_media < playlist->getChildrenSize())
         {
@@ -275,9 +275,9 @@ void ApplicationWorker::export_media_playlist()
             {
                 connect(media, &DlnaNetworkVideo::destroyed, this, &ApplicationWorker::mediaDestroyed);
 
-                #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
                 qDebug() << media->getDisplayName() << info->title << media->getSystemName() << media->mediaUrl() << media->size();
-                #endif
+#endif
 
                 QUrl folder = QUrl(QString("%1/%2").arg(exportFolder.toString(), playlist->getName()));
                 if (!QFileInfo::exists(folder.toLocalFile()))
@@ -374,7 +374,9 @@ void ApplicationWorker::export_media(const QUrl &url)
     QString filename = QString("%1/%2.%3").arg(exportFolder.toLocalFile(), mediaName, extension);
     if (QFileInfo::exists(filename))
     {
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "file exists, export aborted for" << filename;
+#endif
         media->deleteLater();
         return;
     }
@@ -390,9 +392,9 @@ void ApplicationWorker::_exportMediaTo(DlnaNetworkVideo *media, const QString &f
     connect(process, &FfmpegTranscoding::openedSignal, process, &FfmpegTranscoding::startRequestData);
     connect(process, &FfmpegTranscoding::endReached, media, &DlnaNetworkVideo::deleteLater);
 
-    #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
     connect(process, &FfmpegTranscoding::LogMessage, this, &ApplicationWorker::logMessage);
-    #endif
+#endif
 
     process->setOutput(filename);
     process->setFormat(COPY);
@@ -406,9 +408,9 @@ void ApplicationWorker::streamToOpen()
 {
     auto stream = qobject_cast<FfmpegTranscoding*>(sender());
 
-    #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "open" << stream;
-    #endif
+#endif
 
     if (stream)
         stream->open();
@@ -441,7 +443,7 @@ void ApplicationWorker::logMessage(const QString &message)
 {
     Q_UNUSED(message)
 
-    #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << message;
-    #endif
+#endif
 }

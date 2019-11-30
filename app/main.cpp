@@ -18,13 +18,15 @@ int main(int argc, char** argv)
         ret = MyApplication::exec();
     }
 
-    #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << QSqlDatabase::connectionNames();
-    #endif
 
     DecryptYoutubeSignature::print_cache();
 
+    QCoreApplication::processEvents();
+
     DebugInfo::display_alive_objects();
+#endif
 
     return ret;
 }

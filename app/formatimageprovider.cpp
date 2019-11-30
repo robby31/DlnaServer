@@ -8,8 +8,9 @@ FormatImageProvider::FormatImageProvider():
 
 QImage FormatImageProvider::requestImage(const QString &id, QSize *size, const QSize &requestedSize)
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "IMAGE" << id << size << requestedSize;
-
+#endif
     QImage image;
 
     if (id.contains("/"))
@@ -31,6 +32,9 @@ QImage FormatImageProvider::requestImage(const QString &id, QSize *size, const Q
                 image.load(":/images/media/music.png");
             else
                 image.load(":/images/media/movie.png");
+
+            if (size)
+                *size = QSize(image.size().width(), image.size().height());
         }
         else
         {

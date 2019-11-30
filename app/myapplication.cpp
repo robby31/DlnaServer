@@ -91,8 +91,10 @@ void MyApplication::initializeDatabase()
 
 void MyApplication::serverStarted()
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
     auto device = qobject_cast<UpnpRootDevice*>(sender());
     qDebug() << "SERVER STARTED" << device->url() << device->host() << device->port();
+#endif
 
     m_controller.popMessage("Server started");
 
@@ -100,7 +102,7 @@ void MyApplication::serverStarted()
     loadSettings();
 
     // update volume informations
-//    m_controller.scanVolumeInfo();
+    //    m_controller.scanVolumeInfo();
 }
 
 void MyApplication::serverError(const QString &message)
@@ -146,8 +148,11 @@ void MyApplication::refreshFolder(const int &index)
     }
 }
 
-void MyApplication::quit() {
+void MyApplication::quit()
+{
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "Quit Application.";
+#endif
 
     // save the settings
     saveSettings();
@@ -264,7 +269,9 @@ void MyApplication::newRootDevice(UpnpRootDevice *device)
 
 void MyApplication::newRequest(HttpRequest *request)
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << "new request" << request;
+#endif
 
     connect(request, &HttpRequest::itemChanged, this, &MyApplication::requestDataChanged);
     request->setParent(m_requestsModel);
@@ -346,13 +353,7 @@ void MyApplication::requestDataChanged(const QVector<int> &roles)
     {
         QString status = request->data(HttpRequest::statusRole).toString();
         if (status == "OK")
-        {
-            QModelIndex index = m_requestsModel->indexFromItem(request);
-            if (index.isValid())
-            {
-                m_requestsModel->removeRow(index.row());
-            }
-        }
+            request->deleteLater();
     }
 }
 
@@ -362,18 +363,8 @@ void MyApplication::clearRequests()
     while (index<m_requestsModel->rowCount())
     {
         auto request = qobject_cast<HttpRequest*>(m_requestsModel->at(index));
-        if (request)
-        {
-            if (request->isClosed())
-            {
-                QModelIndex index = m_requestsModel->indexFromItem(request);
-                if (index.isValid())
-                {
-                    m_requestsModel->removeRow(index.row());
-                    continue;
-                }
-            }
-        }
+        if (request && request->isClosed())
+            request->deleteLater();
 
         ++index;
     }
@@ -402,9 +393,9 @@ void MyApplication::reload_playlists()
         {
             QSqlRecord elt = query.record();
 
-            #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
             qDebug() << "RELOAD playlist" << elt.value("name").toString() << elt.value("url").toString();
-            #endif
+#endif
 
             emit addLink(elt.value("url").toString());
         }
@@ -440,9 +431,9 @@ void MyApplication::update_playlist(const QUrl &url)
 {
     if (url.isValid())
     {
-        #if !defined(QT_NO_DEBUG_OUTPUT)
+#if !defined(QT_NO_DEBUG_OUTPUT)
         qDebug() << "update playlist url" << url;
-        #endif
+#endif
 
         emit addLink(url.toString());
     }

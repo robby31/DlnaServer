@@ -32,6 +32,6 @@ QVariant CheckNetworkLinkItem::data(int role) const
 
 bool CheckNetworkLinkItem::setData(const QVariant &value, const int &role)
 {
-    qWarning() << "unable to set data" << value << role;
+    qCritical() << "unable to set data" << value << role;
     return false;
 }
