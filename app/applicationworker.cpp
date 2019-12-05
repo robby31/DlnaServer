@@ -279,6 +279,14 @@ void ApplicationWorker::export_media_playlist()
                 qDebug() << media->getDisplayName() << info->title << media->getSystemName() << media->mediaUrl() << media->size();
 #endif
 
+                if (!media->isValid())
+                {
+                    qCritical() << "invalid media" << media;
+                    emit errorDuringProcess("invalid media to export");
+                    media->deleteLater();
+                    return;
+                }
+
                 QUrl folder = QUrl(QString("%1/%2").arg(exportFolder.toString(), playlist->getName()));
                 if (!QFileInfo::exists(folder.toLocalFile()))
                     QDir().mkdir(folder.toLocalFile());
@@ -287,14 +295,12 @@ void ApplicationWorker::export_media_playlist()
                 if (info->title.size() > mediaName.size())
                     mediaName = info->title;
 
-                QString extension = "mp4";
-                if (media->sourceAudioFormat() == "opus")
-                    extension = "mkv";
-
-                QString filename = QString("%1/%2.%3").arg(folder.toLocalFile(), mediaName, extension);
+                QString filename = QString("%1/%2.%3").arg(folder.toLocalFile(), mediaName, extensionFromMedia(media));
                 if (QFileInfo::exists(filename))
                 {
-                    qWarning() << "file exists, export aborted for" << filename;
+#if !defined(QT_NO_DEBUG_OUTPUT)
+                    qDebug() << "file exists, export aborted for" << filename;
+#endif
                     media->deleteLater();
                 }
                 else
@@ -362,16 +368,20 @@ void ApplicationWorker::export_media(const QUrl &url)
         return;
     }
 
+    if (!media->isValid())
+    {
+        qCritical() << "invalid media" << media;
+        emit errorDuringProcess("invalid media to export");
+        media->deleteLater();
+        return;
+    }
+
     QSettings settings("HOME", "QMS");
     QUrl exportFolder = settings.value("exportFolder").toUrl();
 
     QString mediaName = media->getDisplayName();
 
-    QString extension = "mp4";
-    if (media->sourceAudioFormat() == "opus")
-        extension = "mkv";
-
-    QString filename = QString("%1/%2.%3").arg(exportFolder.toLocalFile(), mediaName, extension);
+    QString filename = QString("%1/%2.%3").arg(exportFolder.toLocalFile(), mediaName, extensionFromMedia(media));
     if (QFileInfo::exists(filename))
     {
 #if !defined(QT_NO_DEBUG_OUTPUT)
@@ -390,6 +400,7 @@ void ApplicationWorker::_exportMediaTo(DlnaNetworkVideo *media, const QString &f
 
     connect(process, &FfmpegTranscoding::readyToOpen, this, &ApplicationWorker::streamToOpen);
     connect(process, &FfmpegTranscoding::openedSignal, process, &FfmpegTranscoding::startRequestData);
+    connect(process, &FfmpegTranscoding::errorRaised, this, &ApplicationWorker::streamingError);
     connect(process, &FfmpegTranscoding::endReached, media, &DlnaNetworkVideo::deleteLater);
 
 #if !defined(QT_NO_DEBUG_OUTPUT)
@@ -413,7 +424,16 @@ void ApplicationWorker::streamToOpen()
 #endif
 
     if (stream)
-        stream->open();
+    {
+        if (!stream->open())
+            emit errorDuringProcess("unable to open stream");
+    }
+}
+
+void ApplicationWorker::streamingError(const QString &message)
+{
+    qCritical() << "streaming error" << message;
+    emit errorDuringProcess(message);
 }
 
 void ApplicationWorker::playlistDestroyed(QObject *object)
@@ -446,4 +466,14 @@ void ApplicationWorker::logMessage(const QString &message)
 #if !defined(QT_NO_DEBUG_OUTPUT)
     qDebug() << message;
 #endif
+}
+
+QString ApplicationWorker::extensionFromMedia(DlnaNetworkVideo *media)
+{
+    QString extension = "mp4";
+    if (media->sourceContainer() == "matroska,webm")
+        extension = "mkv";
+    else if (media->sourceAudioFormat() == "opus")
+        extension = "mkv";
+    return extension;
 }

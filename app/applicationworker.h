@@ -23,6 +23,8 @@ private:
     void export_media_playlist();
     void _exportMediaTo(DlnaNetworkVideo *media, const QString &filename);
 
+    QString extensionFromMedia(DlnaNetworkVideo *media);
+
 signals:
     // signals used by checkNetworkLink
     void addMessage(QString name, QString message);
@@ -43,6 +45,7 @@ private slots:
     void checkNetworkLink();
     void scanVolumeInfo();
 
+    void streamingError(const QString &message);
     void playlistDestroyed(QObject *object);
     void mediaDestroyed(QObject *object);
 
