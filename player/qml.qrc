@@ -25,5 +25,6 @@
         <file>images/player/unmuted.png</file>
         <file>qml/Pages/ImageButton.qml</file>
         <file>qml/Pages/XmlItemContent.qml</file>
+        <file>qml/Pages/TreeArea.qml</file>
     </qresource>
 </RCC>

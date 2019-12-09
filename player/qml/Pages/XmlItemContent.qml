@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import QtQuick.Controls 1.4
+import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.12
 import MyComponents 1.0
 
@@ -68,29 +68,13 @@ Item {
             }
         }
 
-        TreeView {
+        TreeArea {
             id: view
 
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            TableViewColumn {
-                title: "Tag"
-                role: "display"
-                width: 300
-            }
-
             model: xmlModel
-
-            itemDelegate: Item {
-                Text {
-                    anchors.verticalCenter: parent.verticalCenter
-                    color: styleData.textColor
-                    elide: styleData.elideMode
-                    text: styleData.value
-                    textFormat: Text.PlainText
-                }
-            }
         }
     }
 

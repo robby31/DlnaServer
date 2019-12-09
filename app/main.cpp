@@ -1,7 +1,10 @@
 #include "myapplication.h"
 #include "mysqldatabase.h"
 #include "mediamodel.h"
+
+#if !defined(QT_NO_DEBUG_OUTPUT)
 #include "debuginfo.h"
+#endif
 
 int main(int argc, char** argv)
 {
