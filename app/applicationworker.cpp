@@ -292,7 +292,7 @@ void ApplicationWorker::export_media_playlist()
                     QDir().mkdir(folder.toLocalFile());
 
                 QString mediaName = media->getDisplayName();
-                if (info->title.size() > mediaName.size())
+                if (!info->title.isEmpty())
                     mediaName = info->title;
 
                 QString filename = QString("%1/%2.%3").arg(folder.toLocalFile(), mediaName, extensionFromMedia(media));
@@ -310,17 +310,13 @@ void ApplicationWorker::export_media_playlist()
             }
             else
             {
-                qCritical() << "invalid media in playlist" << index_media << info->url << info->title;
+                qCritical() << "invalid media in playlist" << index_media << media << info->url << info->title;
 
                 if (media)
-                {
                     media->deleteLater();
-                }
-                else
-                {
-                    playlist->setProperty("index_media", index_media+1);
-                    export_media_playlist();
-                }
+
+                playlist->setProperty("index_media", index_media+1);
+                export_media_playlist();
             }
         }
         else
