@@ -228,7 +228,7 @@ ListViewDelegate {
 
             Text {
                 text: filename
-                Layout.preferredWidth: 200
+                Layout.preferredWidth: 300
                 Layout.alignment: Qt.AlignVCenter
                 elide: Text.ElideRight
                 clip: true
