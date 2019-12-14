@@ -11,16 +11,6 @@ tst_dlnanetworkvideo::tst_dlnanetworkvideo(QObject *parent):
     db.open();
 }
 
-void tst_dlnanetworkvideo::receivedTranscodedData(const QByteArray &data)
-{
-    transcodedSize += data.size();
-}
-
-void tst_dlnanetworkvideo::LogMessage(const QString &message)
-{
-    qInfo() << message;
-}
-
 void tst_dlnanetworkvideo::init()
 {
     m_dlnaProfiles = new Protocol("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml");
@@ -78,8 +68,8 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo_data()
     QTest::newRow("ArteTv Jazz") << true
                                  << QUrl("https://www.arte.tv/fr/videos/086296-006-A/julian-roman-wasserfuhr-feat-joerg-brinkmann-au-wdr-3-jazzfest/") << -1
                                  << "Julian & Roman Wasserfuhr feat. J\u00F6rg Brinkmann au WDR 3 Jazzfest"
-                                 << 3705000 << "1280x720" << "25.000" << 4558800 << 48000 << 2
-                                 << "mov,mp4,m4a,3gp,3g2,mj2" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(1150792878);
+                                 << 3705000 << "720x406" << "25.000" << 4558800 << 48000 << 2
+                                 << "hls" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(1150792878);
 
     QTest::newRow("RMCDecouverte (Direct)") << true
                                             << QUrl("https://rmcdecouverte.bfmtv.com/mediaplayer-direct/") << -1
@@ -90,20 +80,20 @@ void tst_dlnanetworkvideo::testCase_DlnaNetworkVideo_data()
     QTest::newRow("Youtube_Comptines") << true
                                        << QUrl("http://www.youtube.com/watch?v=SLbxwYTymCQ") << -1
                                        << "Comptines et chansons pour enfants - Titounis"
-                                       << 1667521 << "1280x720" << "30.000" << 4558800 << 44100 << 2
-                                       << "mov,mp4,m4a,3gp,3g2,mj2" << "aac" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(122914585);
+                                       << 1667521 << "1280x720" << "29.970" << 4558800 << 48000 << 2
+                                       << "matroska,webm" << "opus" << "vp9" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(132966888);
 
     QTest::newRow("Youtube_Lilly") << true
                                    << QUrl("https://www.youtube.com/watch?v=JrlfFTS9kGU") << -1
                                    << "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]"
                                    << 193641 << "1920x1080" << "25.000" << 4558800 << 48000 << 2
-                                   << "mov,mp4,m4a,3gp,3g2,mj2" << "opus" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(49042411);
+                                   << "mov,mp4,m4a,3gp,3g2,mj2" << "opus" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(62967474);
 
     QTest::newRow("Youtube_Lilly_MaxHeight_720") << true
                                                  << QUrl("https://www.youtube.com/watch?v=JrlfFTS9kGU") << 720
                                                  << "Lilly Wood & The Prick - Prayer in C (Robin Schulz remix) [Clip officiel]"
                                                  << 193641 << "1280x720" << "25.000" << 4558800 << 48000 << 2
-                                                 << "mov,mp4,m4a,3gp,3g2,mj2" << "opus" << "h264" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(30880770);
+                                                 << "matroska,webm" << "opus" << "vp9" << "video/vnd.dlna.mpeg-tts" << static_cast<qint64>(25274395);
 
     QTest::newRow("Youtube_Lilly_MaxHeight_100") << true
                                                  << QUrl("https://www.youtube.com/watch?v=JrlfFTS9kGU") << 100
@@ -253,7 +243,7 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
 
         auto artists = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(0));
         QCOMPARE(artists->getDisplayName(), "Artist");
-        QCOMPARE(artists->getChildrenSize(), 107);
+        QCOMPARE(artists->getChildrenSize(), 112);
 
         DlnaCachedFolder *artist = Q_NULLPTR;
         for (int index=0;index<artists->getChildrenSize();++index)
@@ -453,32 +443,7 @@ void tst_dlnanetworkvideo::testCase_StreamingVideo()
 
     QCOMPARE(video.isValid(), is_valid);
 
-    // test transcoding
-    qInfo() << "transcode video";
-    Device *device = video.getStream();
-    QVERIFY(device != Q_NULLPTR);
-
-    QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
-    QVERIFY(transcodeProcess != Q_NULLPTR);
-
-    timer.start();
-    transcodedSize = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
-    connect(transcodeProcess.data(), &TranscodeProcess::sendDataToClientSignal, this, &tst_dlnanetworkvideo::receivedTranscodedData);
-    connect(transcodeProcess.data(), &TranscodeProcess::LogMessage, this, &tst_dlnanetworkvideo::LogMessage);
-    QVERIFY(transcodeProcess->open());
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-
-    double speed_ratio = static_cast<double>(video.getLengthInMilliSeconds()) / static_cast<double>(timer.elapsed());
-    qInfo() << "transcoding done in" << timeToString(timer.elapsed()).toUtf8().constData() << "speed :" << QString::number(speed_ratio, 'f', 2).toUtf8().constData();
-
-    QCOMPARE(transcodeProcess->exitCode(),  0);
-    transcodeProcess->requestData(transcodeProcess->bytesAvailable());
-    QCOMPARE(transcodeProcess->bytesAvailable(), 0);
-    qInfo() << "DELTA" << video.size()-transcodedSize << qAbs(double(video.size()-transcodedSize))/video.size();
-    QVERIFY(video.size() > transcodedSize);
-    QCOMPARE(transcodedSize, transcoded_size);
+    check_streaming(&video, -1, -1, "", 0, 0, video_size, transcoded_size, 6000);
 
     QCOMPARE(video.getdlnaOrgOpFlags(), "10");
     QCOMPARE(video.getdlnaOrgPN(), dlna_org_pn);

@@ -26,34 +26,6 @@ void tst_dlnavideoitem::cleanup()
     QCOMPARE(DebugInfo::count_alive_objects(), 0);
 }
 
-void tst_dlnavideoitem::dataAvailable()
-{
-    auto device = qobject_cast<TranscodeDevice*>(sender());
-    if (device)
-        device->requestData(1000000);
-    else
-        qCritical() << "invalid device" << sender();
-}
-
-void tst_dlnavideoitem::receivedTranscodedData(const QByteArray &data)
-{
-    transcodedSize += data.size();
-}
-
-void tst_dlnavideoitem::transcodingOpened()
-{
-    if (transcodeTimer.isValid())
-    {
-        timeToOpenTranscoding = transcodeTimer.elapsed();
-        qInfo() << "Transcoding opened in" << timeToOpenTranscoding << "ms.";
-    }
-}
-
-void tst_dlnavideoitem::LogMessage(const QString &message)
-{
-    qInfo() << message;
-}
-
 void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
 
     DlnaVideoFile movie("/Users/doudou/Movies/Films/Fiction/Starwars/Star.Wars.Episode.III.FRENCH.Bdrip.Xvid.AC3-FQT.mp4");
@@ -85,33 +57,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG4_AAC() {
 //    QVERIFY2(result["mean_volume"] == -20.7, QString("%1").arg(result["mean_volume"]).toUtf8());
 //    QVERIFY2(result["max_volume"] == -0.3, QString("%1").arg(result["max_volume"]).toUtf8());
 
-    QScopedPointer<FfmpegTranscoding> transcodeProcess(qobject_cast<FfmpegTranscoding*>(movie.getStream()));
-    QVERIFY(transcodeProcess != Q_NULLPTR);
-    transcodeProcess->setVariableBitrate(false);
-
-    transcodedSize = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
-    connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess.data(), SIGNAL(readyRead()), this, SLOT(dataAvailable()));
-    connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    QVERIFY(transcodeProcess->open());
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    transcodeProcess->requestData(transcodeProcess->bytesAvailable());
-    QCOMPARE(transcodeProcess->bytesAvailable(), 0);
-    qint64 duration = transcodeTimer.elapsed();
-    qInfo() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    if (timeToOpenTranscoding > 700)
-        qWarning() << "time to open transcoding > 700 : " << timeToOpenTranscoding;
-    if (duration > 3000000)
-        qWarning() << "Duration > 3000000 : " << duration;
-    QCOMPARE(transcodeProcess->exitCode(), 0);
-    qInfo() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-    QCOMPARE(transcodedSize, 6872799848);
-    QVERIFY(movie.size() > transcodedSize);
+    check_streaming(&movie, -1, -1, "", 0, 0, movie.size(), 6872799848, 7000, false);
 }
 
 void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
@@ -145,34 +91,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3() {
 //    QVERIFY2(result["mean_volume"] == -20.7, QString("%1").arg(result["mean_volume"]).toUtf8());
 //    QVERIFY2(result["max_volume"] == -0.3, QString("%1").arg(result["max_volume"]).toUtf8());
 
-    QScopedPointer<FfmpegTranscoding> transcodeProcess(qobject_cast<FfmpegTranscoding*>(movie.getStream()));
-    QVERIFY(transcodeProcess != Q_NULLPTR);
-
-    transcodedSize = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
-    connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess.data(), SIGNAL(readyRead()), this, SLOT(dataAvailable()));
-    connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-    connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    QVERIFY(transcodeProcess->open());
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    transcodeProcess->requestData(transcodeProcess->bytesAvailable());
-    qint64 duration = transcodeTimer.elapsed();
-
-    QCOMPARE(transcodeProcess->bytesAvailable(), 0);
-    QCOMPARE(transcodeProcess->exitCode(), 0);
-    qInfo() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-    QVERIFY(movie.size() > transcodedSize);
-    QCOMPARE(transcodedSize, 5159838224);
-
-    qInfo() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    if (timeToOpenTranscoding > 500)
-        qWarning() << "time to open transcoding > 500 : " << timeToOpenTranscoding;
-    if (duration > 450000)
-        qWarning() << "Duration > 450000 : " << duration;
+    check_streaming(&movie, -1, -1, "", 0, 0, movie.size(), 5159838224, 450000);
 }
 
 void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
@@ -206,35 +125,7 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_Looper_MPEG2_AC3() {
 //    QVERIFY2(result["mean_volume"] == -33.9, QString("%1").arg(result["mean_volume"]).toUtf8());
 //    QVERIFY2(result["max_volume"] == -0.9, QString("%1").arg(result["max_volume"]).toUtf8());
 
-    QScopedPointer<FfmpegTranscoding> transcodeProcess(qobject_cast<FfmpegTranscoding*>(movie.getStream()));
-    QVERIFY(transcodeProcess != Q_NULLPTR);
-    transcodeProcess->setVariableBitrate(false);
-
-    transcodedSize = 0;
-    connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
-    connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-    connect(transcodeProcess.data(), SIGNAL(readyRead()), this, SLOT(dataAvailable()));
-    connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-//    connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-    transcodeTimer.start();
-    timeToOpenTranscoding = 0;
-    QVERIFY(transcodeProcess->open());
-    emit startTranscoding();
-    transcodeProcess->waitForFinished(-1);
-    transcodeProcess->requestData(transcodeProcess->bytesAvailable());
-    qint64 duration = transcodeTimer.elapsed();
-
-    QCOMPARE(transcodeProcess->bytesAvailable(), 0);
-    QCOMPARE(transcodeProcess->exitCode(), 0);
-    qInfo() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-    QVERIFY(movie.size() > transcodedSize);
-    QCOMPARE(transcodedSize, 4198362044);
-
-    if (timeToOpenTranscoding > 7000)
-        qWarning() << "time to open transcoding > 7000 : " << timeToOpenTranscoding;
-    if (duration > 400000)
-        qWarning() << "Duration > 400000 : " << duration;
-    qInfo() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
+    check_streaming(&movie, -1, -1, "", 0, 0, movie.size(), 4198362044, 400000, false);
 }
 
 void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3()
@@ -279,104 +170,12 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3()
     QCOMPARE(movie.subtitleLanguages(), QStringList() << "eng");
     QCOMPARE(movie.framerate(), "23.976");
 
-    {
-        // test partial transcoding (10 seconds) in constant bitrate
-        QScopedPointer<FfmpegTranscoding> transcodeProcess(qobject_cast<FfmpegTranscoding*>(movie.getStream()));
-        QVERIFY(transcodeProcess != Q_NULLPTR);
-        transcodeProcess->setTimeSeek(-1, 10);
-        transcodeProcess->setVariableBitrate(false);
+    // test partial transcoding (10 seconds) in constant bitrate
+    check_streaming(&movie, -1, 10, "", 0, 0, 6181162, 6115828, 10000, false);
 
-        transcodedSize = 0;
-        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
-        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-        connect(transcodeProcess.data(), SIGNAL(readyRead()), this, SLOT(dataAvailable()));
-        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-        transcodeTimer.start();
-        timeToOpenTranscoding = 0;
-        QVERIFY(transcodeProcess->open());
-        emit startTranscoding();
-        transcodeProcess->waitForFinished(-1);
-        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
-        qint64 duration = transcodeTimer.elapsed();
+    // test partial transcoding (10 seconds) in variable bitrate
+    check_streaming(&movie, -1, 10, "", 0, 0, 6181162, 1827548, 10000, true);
 
-        QCOMPARE(transcodeProcess->bytesAvailable(), 0);
-        QCOMPARE(transcodeProcess->exitCode(), 0);
-        qInfo() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-        QCOMPARE(transcodedSize, 6115828);
-        QVERIFY(movie.size() > transcodedSize);
-
-        if (timeToOpenTranscoding > 10000)
-            qWarning() << "Time to open transcoding > 10000 : " << timeToOpenTranscoding;
-        if (duration > 10000)
-            qWarning() << "Duration > 10000 : " << duration;
-        qInfo() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    }
-
-    {
-        // test partial transcoding (10 seconds) in variable bitrate
-        QScopedPointer<FfmpegTranscoding> transcodeProcess(qobject_cast<FfmpegTranscoding*>(movie.getStream()));
-        QVERIFY(transcodeProcess != Q_NULLPTR);
-        transcodeProcess->setTimeSeek(-1, 10);
-        transcodeProcess->setVariableBitrate(true);
-
-        transcodedSize = 0;
-        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
-        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-        connect(transcodeProcess.data(), SIGNAL(readyRead()), this, SLOT(dataAvailable()));
-        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-        transcodeTimer.start();
-        timeToOpenTranscoding = 0;
-        QVERIFY(transcodeProcess->open());
-        emit startTranscoding();
-        transcodeProcess->waitForFinished(-1);
-        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
-        qint64 duration = transcodeTimer.elapsed();
-
-        QCOMPARE(transcodeProcess->bytesAvailable(), 0);
-        QCOMPARE(transcodeProcess->exitCode(), 0);
-        qInfo() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-        QCOMPARE(transcodedSize, 1827548);
-        QVERIFY(movie.size() > transcodedSize);
-
-        if (timeToOpenTranscoding > 10000)
-            qWarning() << "Time to open transcoding > 10000 : " << timeToOpenTranscoding;
-        if (duration > 10000)
-            qWarning() << "Duration > 10000 : " << duration;
-        qInfo() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    }
-
-    {
-        // test full transcoding in constant bitrate
-        QScopedPointer<FfmpegTranscoding> transcodeProcess(qobject_cast<FfmpegTranscoding*>(movie.getStream()));
-        QVERIFY(transcodeProcess != Q_NULLPTR);
-        transcodeProcess->setVariableBitrate(false);
-
-        transcodedSize = 0;
-        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
-        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-        connect(transcodeProcess.data(), SIGNAL(readyRead()), this, SLOT(dataAvailable()));
-        connect(transcodeProcess.data(), SIGNAL(openedSignal()), this, SLOT(transcodingOpened()));
-        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-        transcodeTimer.start();
-        timeToOpenTranscoding = 0;
-        QVERIFY(transcodeProcess->open());
-        emit startTranscoding();
-        transcodeProcess->waitForFinished(-1);
-        transcodeProcess->requestData(transcodeProcess->bytesAvailable());
-        qint64 duration = transcodeTimer.elapsed();
-
-        QCOMPARE(transcodeProcess->bytesAvailable(), 0);
-        QCOMPARE(transcodeProcess->exitCode(), 0);
-        qInfo() << "DELTA" << movie.size()-transcodedSize << qAbs(double(movie.size()-transcodedSize))/movie.size();
-        QCOMPARE(transcodedSize, 4165712084);
-        QVERIFY(movie.size() > transcodedSize);
-
-        if (timeToOpenTranscoding > 2000)
-            qWarning() << "time to open transcoding > 2000 : " << timeToOpenTranscoding;
-        if (duration > 700000)
-            qWarning() << "Duration > 700000 : " << duration;
-        qInfo() << "Transcoding opened in" << timeToOpenTranscoding << "ms and finished in" << duration << "ms.";
-    }
+    // test full transcoding in constant bitrate
+    check_streaming(&movie, -1, -1, "", 0, 0, movie.size(), 4165712084, 10000, false);
 }

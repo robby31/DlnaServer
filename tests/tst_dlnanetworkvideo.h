@@ -16,14 +16,7 @@ class tst_dlnanetworkvideo : public DlnaCheckFunctions
 public:
     explicit tst_dlnanetworkvideo(QObject *parent = Q_NULLPTR);
 
-signals:
-    void startTranscoding();
-
-public slots:
-    void receivedTranscodedData(const QByteArray &data);
-    void LogMessage(const QString &message);
-
-private slots:
+private Q_SLOTS:
     void init();
     void cleanup();
     void cleanupTestCase();
@@ -43,7 +36,6 @@ private:
     QString timeToString(const qint64 &msec);
 
 private:
-    long transcodedSize = 0;
     QSqlDatabase db;
     Protocol *m_dlnaProfiles = Q_NULLPTR;
 

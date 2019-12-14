@@ -65,7 +65,7 @@ void tst_dlnafolder::testCase_DlnaFolder()
     QVERIFY(list_found.isEmpty() == true);
 }
 
-qint64 tst_dlnafolder::parseFolder(const QString& resourceId, DlnaResource *resource)
+qint64 tst_dlnafolder::parseFolder(const QString &resourceId, DlnaResource *resource)
 {
     QElapsedTimer timer;
     qint64 elapsed = 0;
@@ -218,15 +218,15 @@ void tst_dlnafolder::testCase_PerformanceAllTracks()
 
 void tst_dlnafolder::testCase_DlnaFolderPlaylist()
 {
-    QScopedPointer<DlnaNetworkPlaylist> playlist(new DlnaNetworkPlaylist(QUrl("https://www.ludo.fr/heros/ninjago")));
+    QScopedPointer<DlnaNetworkPlaylist> playlist(new DlnaNetworkPlaylist(QUrl("https://www.france.tv/france-3/lego-ninjago/replay-videos/")));
 
     QVERIFY(playlist != Q_NULLPTR);
     if (playlist)
     {
-        QCOMPARE(playlist->getSystemName(), "ninjago");
+        QCOMPARE(playlist->getSystemName(), "lego-ninjago");
         QVERIFY(playlist->getChildrenSize() > 0);
 
-        check_dlna_storage(playlist.data(), "", "-1", playlist->getChildrenSize(), "ninjago");
+        check_dlna_storage(playlist.data(), "", "-1", playlist->getChildrenSize(), "lego-ninjago");
 
         qint64 elapsed = parseFolder(playlist->getResourceId(), playlist.data());
         qInfo() << "PERFO" << elapsed << playlist->getResourceId() << playlist->getSystemName() << playlist->getChildrenSize() << "children";
@@ -236,13 +236,13 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
 
         check_dlna_video(video.data(),
                          "$1", "",
-                         "S10 E01 Ninjago L'arriv\u00E9e des t\u00E9n\u00E8bres",
+                         "Ninjago Course ninjaball",
                          "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
-                         "00:21:07",
-                         "1024x576",
+                         "00:21:55",
+                         "1280x720",
                          2, 48000,
                          750000,
-                         1050385927,
-                         "http://host:600/get/$1/S10%20E01%20Ninjago%20L%27arriv%C3%A9e%20des%20t%C3%A9n%C3%A8bres");
+                         1089830283,
+                         "http://host:600/get/$1/Ninjago%20Course%20ninjaball");
     }
 }

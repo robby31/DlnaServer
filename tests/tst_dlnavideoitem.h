@@ -14,16 +14,7 @@ class tst_dlnavideoitem : public DlnaCheckFunctions
 public:
     explicit tst_dlnavideoitem(QObject *parent = Q_NULLPTR);
 
-signals:
-    void startTranscoding();
-
-public slots:
-    void dataAvailable();
-    void receivedTranscodedData(const QByteArray &data);
-    void transcodingOpened();
-    void LogMessage(const QString &message);
-
-private slots:
+private Q_SLOTS:
     void init();
     void cleanup();
 
@@ -33,9 +24,6 @@ private slots:
     void testCase_DlnaVideoItem_AVI_Starwars_MPEG2_AC3();
 
 private:
-    long transcodedSize = 0;
-    QElapsedTimer transcodeTimer;
-    qint64 timeToOpenTranscoding = 0;
     Protocol *m_dlnaProfiles = Q_NULLPTR;
     QStringList m_sinkProtocols;
 };

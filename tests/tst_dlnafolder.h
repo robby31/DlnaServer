@@ -16,10 +16,6 @@ class tst_dlnafolder : public DlnaCheckFunctions
 public:
     explicit tst_dlnafolder(QObject *parent = Q_NULLPTR);
 
-signals:
-
-public slots:
-
 private Q_SLOTS:
     void init();
     void cleanup();
@@ -32,7 +28,7 @@ private Q_SLOTS:
     void testCase_PerformanceAllTracks();
 
 private:
-    qint64 parseFolder(const QString& resourceId, DlnaResource* resource);
+    qint64 parseFolder(const QString &resourceId, DlnaResource *resource);
 
     Protocol *m_dlnaProfiles = Q_NULLPTR;
 };

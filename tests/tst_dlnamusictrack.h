@@ -14,7 +14,7 @@ class tst_dlnamusictrack : public DlnaCheckFunctions
 public:
     explicit tst_dlnamusictrack(QObject *parent = Q_NULLPTR);
 
-private slots:
+private Q_SLOTS:
     void init();
     void cleanup();
 
@@ -31,7 +31,6 @@ private slots:
     void testCase_DlnaMusicTrack_WAV_Transcoding_ALAC();
 
 private:
-    QThread *m_streamingThread = Q_NULLPTR;
     Protocol *m_dlnaProfiles = Q_NULLPTR;
 };
 

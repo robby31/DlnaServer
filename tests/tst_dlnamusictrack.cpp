@@ -9,17 +9,10 @@ tst_dlnamusictrack::tst_dlnamusictrack(QObject *parent) :
 void tst_dlnamusictrack::init()
 {
     m_dlnaProfiles = new Protocol("/Users/doudou/workspaceQT/DLNA_server/app/xml profiles/dlna_profiles.xml");
-
-    m_streamingThread = new QThread(this);
-    m_streamingThread->start();
 }
 
 void tst_dlnamusictrack::cleanup()
 {
-    m_streamingThread->terminate();
-    m_streamingThread->wait();
-    delete m_streamingThread;
-
     delete m_dlnaProfiles;
 
     DebugInfo::display_alive_objects();
@@ -77,11 +70,11 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3()
     //    QVERIFY2(result["histogram_7db"] == 1, QString("%1").arg(result["histogram_7db"]).toUtf8());
     //    QVERIFY2(result["histogram_8db"] == 3518, QString("%1").arg(result["histogram_8db"]).toUtf8());
 
-    check_streaming(&track, "RANGE: BYTES=0-", 376593, 376593, 376593, 376593, 5000);
+    check_streaming(&track, -1, -1, "RANGE: BYTES=0-", 376593, 376593, 376593, 376593, 5000);
 
-    check_streaming(&track, "RANGE: BYTES=0-5000", 5001, 5001, 5001, 5001, 5000);
+    check_streaming(&track, -1, -1, "RANGE: BYTES=0-5000", 5001, 5001, 5001, 5001, 5000);
 
-    check_streaming(&track, "RANGE: BYTES=1000-5000", 4001, 4001, 4001, 4001, 5000);
+    check_streaming(&track, -1, -1, "RANGE: BYTES=1000-5000", 4001, 4001, 4001, 4001, 5000);
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image()
@@ -189,7 +182,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode()
     //    QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
     //    QVERIFY2(result["histogram_0db"] == 25653, QString("%1").arg(result["histogram_0db"]).toUtf8());
 
-    check_streaming(&track, "RANGE: BYTES=0-", 3841064, 3841064, 3841064, 3841064, 5000);
+    check_streaming(&track, -1, -1, "RANGE: BYTES=0-", 3841064, 3841064, 3841064, 3841064, 5000);
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_LPCM()
@@ -238,7 +231,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_LPCM()
     //    QVERIFY2(result["histogram_7db"] == 1, QString("%1").arg(result["histogram_7db"]).toUtf8());
     //    QVERIFY2(result["histogram_8db"] == 3518, QString("%1").arg(result["histogram_8db"]).toUtf8());
 
-    check_streaming(&track, "", -1, 0, 3419018, 3410400, 6000);
+    check_streaming(&track, -1, -1, "", -1, 0, 3419018, 3410400, 6000);
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3()
@@ -290,7 +283,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3()
     //    QVERIFY2(result["max_volume"] == 0, QString("%1").arg(result["max_volume"]).toUtf8());
     //    QVERIFY2(result["histogram_0db"] == 28983, QString("%1").arg(result["histogram_0db"]).toUtf8());
 
-    check_streaming(&track, "", -1, 1089, 7561480, 7559880, 7000);
+    check_streaming(&track, -1, -1, "", -1, 1089, 7561480, 7559880, 7000);
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3()
@@ -334,7 +327,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3()
     QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
-    check_streaming(&track, "", -1, 1005, 21787040, 21787245, 22000);
+    check_streaming(&track, -1, -1, "", -1, 1005, 21787040, 21787245, 22000);
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM()
@@ -381,7 +374,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM()
     QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/L16;rate=48000;channels=2:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
-    check_streaming(&track, "", -1, 0, 104569237, 104568320, 700);
+    check_streaming(&track, -1, -1, "", -1, 0, 104569237, 104568320, 700);
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
@@ -426,7 +419,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
     QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=AAC_ISO;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
-    check_streaming(&track, "", -1, 40, 22662977, 21941819, 20000);
+    check_streaming(&track, -1, -1, "", -1, 40, 22662977, 21941819, 20000);
 }
 
 void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
@@ -471,5 +464,5 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
     QVERIFY(track.getDlnaContentFeatures() == "DLNA.ORG_PN=AAC_ISO;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
     QVERIFY(track.getProtocolInfo() == "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000");
 
-    check_streaming(&track, "", -1, 40, 116321656, 62792391, 20000);
+    check_streaming(&track, -1, -1, "", -1, 40, 116321656, 62792391, 20000);
 }

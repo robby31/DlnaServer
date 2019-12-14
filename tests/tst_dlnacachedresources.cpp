@@ -25,25 +25,6 @@ void tst_dlnacachedresources::cleanup()
     QCOMPARE(DebugInfo::count_alive_objects(), 0);
 }
 
-void tst_dlnacachedresources::dataAvailable()
-{
-    auto device = qobject_cast<TranscodeDevice*>(sender());
-    if (device)
-        device->requestData(1000000);
-    else
-        qCritical() << "invalid device" << sender();
-}
-
-void tst_dlnacachedresources::receivedTranscodedData(const QByteArray &data)
-{
-    transcodedSize += data.size();
-}
-
-void tst_dlnacachedresources::LogMessage(const QString &message)
-{
-    qInfo() << message;
-}
-
 void tst_dlnacachedresources::testCase_Library_NbMedias()
 {
     QVERIFY(db.open());
@@ -324,28 +305,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
         QCOMPARE(QVariant::fromValue(result["mean_volume"]).toString(), "-12.5");
         QCOMPARE(QVariant::fromValue(result["max_volume"]).toString(), "0");
 
-        Device *device = track->getStream();
-        QVERIFY(device != Q_NULLPTR);
-
-        QScopedPointer<QFfmpegTranscoding> transcodeProcess(qobject_cast<QFfmpegTranscoding*>(device));
-        QVERIFY(transcodeProcess != Q_NULLPTR);
-
-        transcodedSize = 0;
-        connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
-        connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-        connect(transcodeProcess.data(), SIGNAL(readyRead()), this, SLOT(dataAvailable()));
-        connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-        QVERIFY(transcodeProcess->open());
-        emit startTranscoding();
-        transcodeProcess->waitForFinished(-1);
-        QCOMPARE(transcodeProcess->exitCode(), 0);
-        QCOMPARE(transcodeProcess->bytesAvailable(), 0);
-        QCOMPARE(transcodedSize, 7559880);
-        QVERIFY(track->size() > transcodedSize);
-
-        /* delete stream because deleted by deletelater */
-        device = track->getStream();
-        delete device;
+        check_streaming(track, -1, -1, "", -1, 1089, track->size(), 7559880, 7000);
     }
 }
 
@@ -434,28 +394,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
             QCOMPARE(movie->framerate(), "23.976");
 
             /* test partial transcoding (10 seconds) */
-            Device *device = movie->getStream();
-            QVERIFY(device != Q_NULLPTR);
-            device->setTimeSeek(-1, 10);
-
-            {
-                QScopedPointer<TranscodeProcess> transcodeProcess(qobject_cast<TranscodeProcess*>(device));
-                QVERIFY(transcodeProcess != Q_NULLPTR);
-
-                transcodedSize = 0;
-                connect(this, SIGNAL(startTranscoding()), transcodeProcess.data(), SLOT(startRequestData()));
-                connect(transcodeProcess.data(), SIGNAL(sendDataToClientSignal(QByteArray)), this, SLOT(receivedTranscodedData(QByteArray)));
-                connect(transcodeProcess.data(), SIGNAL(readyRead()), this, SLOT(dataAvailable()));
-                connect(transcodeProcess.data(), SIGNAL(LogMessage(QString)), this, SLOT(LogMessage(QString)));
-                QVERIFY(transcodeProcess->open());
-                emit startTranscoding();
-                transcodeProcess->waitForFinished(-1);
-                QCOMPARE(transcodeProcess->exitCode(), 0);
-                transcodeProcess->requestData(transcodeProcess->bytesAvailable());
-                QCOMPARE(transcodeProcess->bytesAvailable(), 0);
-                QCOMPARE(transcodedSize, 6106804);
-                QVERIFY(movie->size() > transcodedSize);
-            }
+            check_streaming(movie, -1, 10, "", 0, 0, 6181162, 1827548, 100);
         }
     }
 }

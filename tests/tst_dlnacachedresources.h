@@ -17,14 +17,9 @@ class tst_dlnacachedresources: public DlnaCheckFunctions
 public:
     explicit tst_dlnacachedresources(QObject *parent = Q_NULLPTR);
 
-signals:
-    void startTranscoding();
 
 public slots:
-    void dataAvailable();
-    void receivedTranscodedData(const QByteArray &data);
     void error_addFolder(const QString &folder) { folderKO = folder; }
-    void LogMessage(const QString &message);
 
 private:
     qint64 parseFolder(const QString &resourceId, DlnaResource *resource);
@@ -56,7 +51,6 @@ private Q_SLOTS:
     void testCase_Library_NbPictureWithNoAlbum();
 
 private:
-    qint64 transcodedSize = 0;
     QSqlDatabase db;
     QString folderKO;
 
