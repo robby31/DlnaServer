@@ -59,5 +59,12 @@
         <file>qml/content/PlaylistsView.qml</file>
         <file>qml/content/PlaylistDelegate.qml</file>
         <file>qtquickcontrols2.conf</file>
+        <file>images/internet.png</file>
+        <file>images/youtube.png</file>
+        <file>images/mytf1.png</file>
+        <file>images/arte.png</file>
+        <file>images/m6replay.png</file>
+        <file>images/francetv.png</file>
+        <file>images/rmcdecouverte.png</file>
     </qresource>
 </RCC>
