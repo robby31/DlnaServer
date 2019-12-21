@@ -85,7 +85,7 @@ Item {
             }
 
             function setContentItem(objectId, data) {
-                view.push("ItemContent.qml", { objectId: objectId, objectData: data })
+                view.push("XmlItemContent.qml", { objectId: objectId, objectData: data })
             }
         }
     }
