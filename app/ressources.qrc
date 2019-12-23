@@ -66,5 +66,6 @@
         <file>images/m6replay.png</file>
         <file>images/francetv.png</file>
         <file>images/rmcdecouverte.png</file>
+        <file>images/dailymotion.png</file>
     </qresource>
 </RCC>

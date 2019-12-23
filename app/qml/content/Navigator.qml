@@ -78,6 +78,7 @@ Page {
         ListElement { name: "ArteTv"; url: "https://www.arte.tv"; icon: "qrc:///images/arte.png" }
         ListElement { name: "M6"; url: "https://www.6play.fr"; icon: "qrc:///images/m6replay.png" }
         ListElement { name: "RmcDecouverte"; url: "https://rmcdecouverte.bfmtv.com"; icon: "qrc:///images/rmcdecouverte.png" }
+        ListElement { name: "DailyMotion"; url: "https://www.dailymotion.com"; icon: "qrc:///images/dailymotion.png" }
     }
 
     Component {
