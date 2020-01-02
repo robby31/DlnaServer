@@ -4,7 +4,6 @@ import MyComponents 1.0
 
 ListViewDelegate {
     id: delegate
-    width: parent ? parent.width : 0
     height: 40
 
     contentItem: Item {
@@ -36,16 +35,12 @@ ListViewDelegate {
                 clip: true
             }
 
-            ModelEditableText {
+            Text {
                 id: textFilename
+                text: model["filename"] ? model["filename"] : ""
                 width: (parent.width-textId.width)/2
                 anchors.verticalCenter: parent.verticalCenter
-
-                textRole: "filename"
-                placeholderText: "unknown filename"
-
-                onEditingFinished: _app.updateFilenameMedia(id, text)
-
+                elide: Text.ElideRight
                 clip: true
             }
 

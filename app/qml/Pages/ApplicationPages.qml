@@ -71,5 +71,6 @@ Item {
         id: settingsPage
         anchors.fill: parent
         visible: mainWindow.state === "SETTINGS"
+        onQuit: mainWindow.close()
     }
 }

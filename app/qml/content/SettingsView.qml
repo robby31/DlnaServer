@@ -10,6 +10,25 @@ Page {
     width: 600
     height: 300
 
+    signal quit()
+
+    actions: pageActions
+
+    onActionClicked: {
+        if (name == "Quit")
+            quit()
+    }
+
+    ListModel {
+        id: pageActions
+
+        ListElement {
+            name: "Quit"
+            description: "exit application"
+            icon: "qrc:///images/exit.png"
+        }
+    }
+
     Column {
         anchors { left: parent.left; leftMargin: 10; right: parent.right; rightMargin: 10; top: parent.top; topMargin: 10 }
 
