@@ -6,9 +6,12 @@ MyApplication::MyApplication(int &argc, char **argv):
     Application(argc, argv),
     settings("HOME", "QMS"),
     m_controller(this),
-    m_upnp(5050, this),
-    m_debugModel(DebugInfo::model)
+    m_upnp(5050, this)
 {
+#if !defined(QT_NO_DEBUG_OUTPUT)
+    m_debugModel = DebugInfo::model;
+#endif
+
     addImageProvider("media", new MediaImageProvider);
     addImageProvider("album", new AlbumImageProvider);
     addImageProvider("format", new FormatImageProvider);
