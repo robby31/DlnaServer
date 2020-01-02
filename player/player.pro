@@ -7,6 +7,9 @@ CONFIG(release, debug|release):DEFINES += QT_NO_DEBUG_OUTPUT
 INCLUDEPATH += $$(MYLIBRARY)/include/analyzer
 LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(analyzer)
 
+INCLUDEPATH += $$(MYLIBRARY)/include/Http
+LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(Http)
+
 INCLUDEPATH += $$(MYLIBRARY)/include/QmlApplication
 LIBS += -L$$(MYLIBRARY)/lib -l$$qtLibraryTarget(QmlApplication)
 
