@@ -39,7 +39,7 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     DlnaFolder music("/Users/doudou/Music/iTunes/iTunes Media/Music");
     QCOMPARE(music.getName(), "Music");
 
-    check_dlna_storage(&music, "", "-1", 610, "Music");
+    check_dlna_storage(&music, "", "-1", 612, "Music");
 
     rootFolder.addChild(&music);
     QCOMPARE(music.getId(), "1");
@@ -52,7 +52,7 @@ void tst_dlnarootfolder::testCase_DlnaRootFolder()
     QVERIFY(rootFolder.getChild(0) != Q_NULLPTR);
     QCOMPARE(rootFolder.getChildrenSize(), 1);
 
-    check_dlna_storage(&music, "0$1", "0", 610, "Music");
+    check_dlna_storage(&music, "0$1", "0", 612, "Music");
 
     rootFolder.addChild(&music);
     QCOMPARE(music.getId(), "2");
