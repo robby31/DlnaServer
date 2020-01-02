@@ -61,6 +61,7 @@ Page {
         ListElement { name: "All media"; qml: "AllMediaView.qml" }
         ListElement { name: "Off-Line"; qml: "OffLineMediaView.qml" }
         ListElement { name: "Recently played"; qml: "RecentlyPlayedMediaView.qml" }
+        ListElement { name: "Last added"; qml: "LastAddedMediaView.qml" }
 
         ListElement { name: "Artists"; qml: "ArtistsView.qml" }
         ListElement { name: "Albums"; qml: "AlbumsView.qml" }
