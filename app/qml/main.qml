@@ -47,11 +47,6 @@ MyApplication {
             icon: "qrc:/images/media.png"
         }
         ListElement {
-            title: "Debug"
-            state: "DEBUG"
-            icon: "qrc:/images/debug.png"
-        }
-        ListElement {
             title: "Settings"
             state: "SETTINGS"
             icon: "qrc:/images/settings.png"
@@ -63,5 +58,11 @@ MyApplication {
         selectExisting: true
         nameFilters: [ "Database (*.database)" ]
         onAccepted:  _app.databaseName = fileUrl.toString().replace(/^(file:\/{2})/,"")
+    }
+
+    Component.onCompleted: {
+        if (_app.debugModel) {
+            mybuttons.append({title: "Debug", state: "DEBUG", icon: "qrc:/images/debug.png"})
+        }
     }
 }
