@@ -18,6 +18,8 @@ Page {
             quit()
         else if (name == "Clear")
             _app.clearRequests()
+        else if (name == "Auto Clear")
+            _app.auto_remove_request=!_app.auto_remove_request
     }
 
     ListModel {
@@ -26,6 +28,12 @@ Page {
         ListElement {
             name: "Clear"
             description: "clear requests"
+            icon: "qrc:///images/clear.png"
+        }
+
+        ListElement {
+            name: "Auto Clear"
+            description: "clear automatically requests"
             icon: "qrc:///images/clear.png"
         }
 
