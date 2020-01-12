@@ -35,7 +35,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QCOMPARE(nbMedias, 17377);
+    QCOMPARE(nbMedias, 17571);
     db.close();
 }
 
@@ -49,7 +49,7 @@ void tst_dlnacachedresources::testCase_Library_NbAudios()
         if (query.last())
             nbAudios = query.at() + 1;
     }
-    QCOMPARE(nbAudios, 15242);
+    QCOMPARE(nbAudios, 15262);
     db.close();
 }
 
@@ -63,7 +63,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QCOMPARE(nbVideos, 2135);
+    QCOMPARE(nbVideos, 2309);
     db.close();
 }
 
@@ -77,7 +77,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbums()
         if (query.last())
             nbAlbums = query.at() + 1;
     }
-    QCOMPARE(nbAlbums, 1366);
+    QCOMPARE(nbAlbums, 1373);
     db.close();
 }
 
@@ -91,7 +91,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbumPictures()
         if (query.last())
             nbAlbumPictures = query.at() + 1;
     }
-    QCOMPARE(nbAlbumPictures, 870);
+    QCOMPARE(nbAlbumPictures, 873);
     db.close();
 }
 
@@ -105,7 +105,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithAlbum()
         if (query.last())
             nbTracksWithAlbum = query.at() + 1;
     }
-    QCOMPARE(nbTracksWithAlbum, 14650);
+    QCOMPARE(nbTracksWithAlbum, 14844);
     db.close();
 }
 
@@ -119,7 +119,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithPicture()
         if (query.last())
             nbTracksWithPicture = query.at() + 1;
     }
-    QCOMPARE(nbTracksWithPicture, 9587);
+    QCOMPARE(nbTracksWithPicture, 9606);
     db.close();
 }
 
@@ -366,12 +366,18 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
             check_dlna_video(movie,
                              "0$8$126", "0$8",
                              "District.9.2009.720p.BrRip.YIFY",
-                             1);
+                             2);
 
             check_dlna_video_res(movie, 0,
                                  "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
                                  "01:52:16", "1280x688", 2, 48000,
                                  569850, 3973129325, "");
+
+            check_dlna_audio_res(movie, 1,
+                                 "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
+                                 "01:52:16", 2, 48000,
+                                 40000, 52800000,
+                                 "http://host:600/get/$1/S05 E05 Ninjago Le sabre du sanctuaire?format=MP3");
 
             QCOMPARE(movie->getdlnaOrgOpFlags(), "10");
             QCOMPARE(movie->getdlnaOrgPN(), "MPEG_TS_HD_NA");

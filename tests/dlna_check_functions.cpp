@@ -91,7 +91,7 @@ void DlnaCheckFunctions::check_dlna_video_res(DlnaResource *dlna, const int &ind
 
     QDomDocument xml;
     xml.appendChild(dlna->getXmlContentDirectory(&xml, properties));
-    qWarning() << "XML CONTENT" << xml.toString();
+    qDebug() << "XML CONTENT" << xml.toString();
 
     QDomNodeList l_res = xml.elementsByTagName("res");
     QVERIFY(index >= 0);

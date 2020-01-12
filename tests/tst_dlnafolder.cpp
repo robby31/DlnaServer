@@ -236,16 +236,22 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
 
         check_dlna_video(video.data(),
                          "$1", "",
-                         "Ninjago Course ninjaball",
-                         1);
+                         "S05 E05 Ninjago Le sabre du sanctuaire",
+                         2);
 
         check_dlna_video_res(video.data(), 0,
                              "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
-                             "00:21:55",
+                             "00:22:00",
                              "1280x720",
                              2, 48000,
                              750000,
-                             1089830283,
-                             "http://host:600/get/$1/Ninjago%20Course%20ninjaball");
+                             1093916850,
+                             "http://host:600/get/$1/S05%20E05%20Ninjago%20Le%20sabre%20du%20sanctuaire?format=AVC_TS_MP_HD_AAC_MULT5");
+
+        check_dlna_audio_res(video.data(), 1,
+                             "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
+                             "00:22:00", 2, 48000,
+                             40000, 52800000,
+                             "http://host:600/get/$1/S05 E05 Ninjago Le sabre du sanctuaire?format=MP3");
     }
 }
