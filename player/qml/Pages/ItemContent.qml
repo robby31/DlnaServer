@@ -106,9 +106,4 @@ Item {
             text: "size :" + objectData["res@size"]
         }
     }
-
-    Component.onCompleted: {
-        if (objectData["res"])
-            playMedia(objectData)
-    }
 }
