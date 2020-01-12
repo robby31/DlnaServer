@@ -407,7 +407,7 @@ void ApplicationWorker::_exportMediaTo(DlnaNetworkVideo *media, const QString &f
     process->setFormat(COPY);
     process->setOriginalLengthInMSeconds(media->metaDataDuration());
     process->setBitrate(media->bitrate());
-    process->setUrls(media->mediaUrl());
+    process->setUrls(media->videoUrl(), media->audioUrl());
 
 }
 
