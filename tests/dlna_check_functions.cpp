@@ -37,7 +37,7 @@ void DlnaCheckFunctions::check_dlna_storage(DlnaResource *dlna, const QString &i
     QCOMPARE(xml.elementsByTagName("upnp:class").at(0).firstChild().nodeValue(), "object.container.storageFolder");
 }
 
-void DlnaCheckFunctions::check_dlna_video(DlnaResource *dlna, const QString &id, const QString &parentId, const QString &title, const QString &protocolInfo, const QString &duration, const QString &resolution, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size, const QString &link)
+void DlnaCheckFunctions::check_dlna_video(DlnaResource *dlna, const QString &id, const QString &parentId, const QString &title, const int &nb_res)
 {
     QStringList properties;
     properties << "upnp:genre";
@@ -64,7 +64,7 @@ void DlnaCheckFunctions::check_dlna_video(DlnaResource *dlna, const QString &id,
     QCOMPARE(node.attributes().namedItem("restricted").nodeValue(), "true");
 
     // check children nodes : dc:title, upnp:class, upnp:genre, res
-    QCOMPARE(node.childNodes().size(), 4);
+    QCOMPARE(node.childNodes().size(), 3+nb_res);
 
     QCOMPARE(xml.elementsByTagName("dc:title").size(), 1);
     QCOMPARE(xml.elementsByTagName("dc:title").at(0).firstChild().nodeValue(), title);
@@ -75,15 +75,29 @@ void DlnaCheckFunctions::check_dlna_video(DlnaResource *dlna, const QString &id,
     QCOMPARE(xml.elementsByTagName("upnp:genre").size(), 1);
     QCOMPARE(xml.elementsByTagName("upnp:genre").at(0).firstChild().nodeValue(), "");
 
-    QCOMPARE(xml.elementsByTagName("res").size(), 1);
-    QDomNode res = xml.elementsByTagName("res").at(0);
-
-    // check attributes : protocolInfo, xmlns:dlna, duration, resolution, nrAudioChannels, sampleFrequency, bitrate, size
-    check_dlna_video_res(res, protocolInfo, duration, resolution, channels, samplerate, bitrate, size, link);
+    QCOMPARE(xml.elementsByTagName("res").size(), nb_res);
 }
 
-void DlnaCheckFunctions::check_dlna_video_res(const QDomNode &res, const QString &protocolInfo, const QString &duration, const QString &resolution, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size, const QString &link)
+void DlnaCheckFunctions::check_dlna_video_res(DlnaResource *dlna, const int &index, const QString &protocolInfo, const QString &duration, const QString &resolution, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size, const QString &link)
 {
+    QStringList properties;
+    properties << "upnp:genre";
+    properties << "res@size";
+    properties << "res@duration";
+    properties << "res@bitrate";
+    properties << "res@resolution";
+    properties << "res@nrAudioChannels";
+    properties << "res@sampleFrequency";
+
+    QDomDocument xml;
+    xml.appendChild(dlna->getXmlContentDirectory(&xml, properties));
+    qWarning() << "XML CONTENT" << xml.toString();
+
+    QDomNodeList l_res = xml.elementsByTagName("res");
+    QVERIFY(index >= 0);
+    QVERIFY(l_res.size() > index);
+
+    QDomNode res = l_res.at(index);
     QDomNamedNodeMap attributes = res.attributes();
 
     QCOMPARE(attributes.size(), 8);
@@ -101,7 +115,7 @@ void DlnaCheckFunctions::check_dlna_video_res(const QDomNode &res, const QString
     QCOMPARE(res.childNodes().at(0).nodeValue(), link);
 }
 
-void DlnaCheckFunctions::check_dlna_audio(DlnaResource *track, const QString &id, const QString &parentId, const QString &title, const QString &album, const QString &artist, const QString &contributor, const QString &genre, const int &trackNumber, const QString &date, const QString &protocolInfo, const QString &duration, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size, const QString &link)
+void DlnaCheckFunctions::check_dlna_audio(DlnaResource *track, const QString &id, const QString &parentId, const QString &title, const QString &album, const QString &artist, const QString &contributor, const QString &genre, const int &trackNumber, const QString &date, const int &nb_res)
 {
     QStringList properties;
     properties << "dc:title";
@@ -159,19 +173,33 @@ void DlnaCheckFunctions::check_dlna_audio(DlnaResource *track, const QString &id
     QCOMPARE(xml.elementsByTagName("upnp:class").size(), 1);
     QCOMPARE(xml.elementsByTagName("upnp:class").at(0).firstChild().nodeValue(), "object.item.audioItem.musicTrack");
 
-    QCOMPARE(xml.elementsByTagName("res").size(), 1);
-    QDomNode res = xml.elementsByTagName("res").at(0);
-
-    // check attributes : protocolInfo, xmlns:dlna, duration, nrAudioChannels, sampleFrequency, bitrate, size
-    check_dlna_audio_res(res, protocolInfo, duration, channels, samplerate, bitrate, size, link);
-
-    // check child node : text node
-    QCOMPARE(res.childNodes().size(), 1);
-    QVERIFY(!res.childNodes().at(0).nodeValue().isEmpty());
+    QCOMPARE(xml.elementsByTagName("res").size(), nb_res);
 }
 
-void DlnaCheckFunctions::check_dlna_audio_res(const QDomNode &res, const QString &protocolInfo, const QString &duration, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size, const QString &link)
+void DlnaCheckFunctions::check_dlna_audio_res(DlnaResource *track, const int &index, const QString &protocolInfo, const QString &duration, const int &channels, const int &samplerate, const qint64 &bitrate, const qint64 &size, const QString &link)
 {
+    QStringList properties;
+    properties << "dc:title";
+    properties << "upnp:album";
+    properties << "upnp:artist";
+    properties << "dc:contributor";
+    properties << "upnp:genre";
+    properties << "upnp:originalTrackNumber";
+    properties << "dc:date";
+    properties << "res@size";
+    properties << "res@duration";
+    properties << "res@bitrate";
+    properties << "res@sampleFrequency";
+    properties << "res@nrAudioChannels";
+
+    QDomDocument xml;
+    xml.appendChild(track->getXmlContentDirectory(&xml, properties));
+
+    QDomNodeList l_res = xml.elementsByTagName("res");
+    QVERIFY(index >= 0);
+    QVERIFY(l_res.size() > index);
+
+    QDomNode res = l_res.at(index);
     QDomNamedNodeMap attributes = res.attributes();
 
     QCOMPARE(attributes.size(), 7);

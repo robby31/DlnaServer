@@ -139,9 +139,13 @@ void tst_dlnavideoitem::testCase_DlnaVideoItem_MKV_MPEG2_AC3()
 
     check_dlna_video(&movie,
                      "", "-1",
-                     "District.9.2009.720p.BrRip.YIFY", "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
-                     "01:52:16", "1280x688", 2, 48000,
-                     569850, 4163526283, "http://host:600/get//District.9.2009.720p.BrRip.YIFY.mkv");
+                     "District.9.2009.720p.BrRip.YIFY",
+                     1);
+
+    check_dlna_video_res(&movie, 0,
+                         "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
+                         "01:52:16", "1280x688", 2, 48000,
+                         569850, 4163526283, "http://host:600/get//District.9.2009.720p.BrRip.YIFY.mkv");
 
     QCOMPARE(movie.getdlnaOrgOpFlags(), "10");
     QCOMPARE(movie.getdlnaOrgPN(), "MPEG_TS_HD_NA");

@@ -272,9 +272,12 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
         check_dlna_audio(track,
                          "0$6$1$4$1", "0$6$1$4",
                          "Monde virtuel", "Je dis aime", "-M-", "-M-", "Pop", 1, "2013-01-02",
-                         "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
-                         "00:03:09", 2, 44100,
-                         40000, 7561480, "http://host:600/get/0$6$1$4$1/Media%281%29");
+                         1);
+
+        check_dlna_audio_res(track, 0,
+                             "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
+                             "00:03:09", 2, 44100,
+                             40000, 7561480, "http://host:600/get/0$6$1$4$1/Media%281%29");
 
         QCOMPARE(track->mimeType(), "audio/mpeg");
         QCOMPARE(track->metaDataFormat(), "aac");
@@ -363,9 +366,12 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
             check_dlna_video(movie,
                              "0$8$126", "0$8",
                              "District.9.2009.720p.BrRip.YIFY",
-                             "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
-                             "01:52:16", "1280x688", 2, 48000,
-                             569850, 3973129325, "");
+                             1);
+
+            check_dlna_video_res(movie, 0,
+                                 "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
+                                 "01:52:16", "1280x688", 2, 48000,
+                                 569850, 3973129325, "");
 
             QCOMPARE(movie->getdlnaOrgOpFlags(), "10");
             QCOMPARE(movie->getdlnaOrgPN(), "MPEG_TS_HD_NA");

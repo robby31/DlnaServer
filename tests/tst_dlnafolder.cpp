@@ -237,12 +237,15 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
         check_dlna_video(video.data(),
                          "$1", "",
                          "Ninjago Course ninjaball",
-                         "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
-                         "00:21:55",
-                         "1280x720",
-                         2, 48000,
-                         750000,
-                         1089830283,
-                         "http://host:600/get/$1/Ninjago%20Course%20ninjaball");
+                         1);
+
+        check_dlna_video_res(video.data(), 0,
+                             "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=AVC_TS_MP_HD_AAC_MULT5;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
+                             "00:21:55",
+                             "1280x720",
+                             2, 48000,
+                             750000,
+                             1089830283,
+                             "http://host:600/get/$1/Ninjago%20Course%20ninjaball");
     }
 }
