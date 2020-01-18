@@ -366,7 +366,7 @@ void ApplicationWorker::export_media(const QUrl &url)
 
     if (!media->isValid())
     {
-        qCritical() << "invalid media" << media;
+        qCritical() << "invalid media" << media << url << media->error();
         emit errorDuringProcess("invalid media to export");
         media->deleteLater();
         return;
