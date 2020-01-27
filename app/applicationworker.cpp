@@ -276,7 +276,7 @@ void ApplicationWorker::export_media_playlist()
                 connect(media, &DlnaNetworkVideo::destroyed, this, &ApplicationWorker::mediaDestroyed);
 
 #if !defined(QT_NO_DEBUG_OUTPUT)
-                qDebug() << media->getDisplayName() << info->title << media->getSystemName() << media->mediaUrl() << media->size();
+                qDebug() << media->getDisplayName() << info->title << media->getSystemName() << media->url() << media->size();
 #endif
 
                 if (!media->isValid())
