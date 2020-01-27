@@ -19,9 +19,15 @@ Item {
             fillMode: Image.PreserveAspectFit
             height: (parent.height-text.height)*0.8
             sourceSize.height: height
-            source: "image://upnpclass/" + upnpClass
+            source: albumArtURI != "" ? albumArtURI : "image://upnpclass/" + upnpClass
             asynchronous: true
             clip: true
+
+            onStatusChanged: {
+                // albumArtURI cannot be loaded
+                if (image.status == Image.Error && source == albumArtURI)
+                    source = "image://upnpclass/" + upnpClass
+            }
         }
 
         Label {
@@ -48,10 +54,5 @@ Item {
             else
                 delegate.GridView.view.setContentItem(objectId, model)
         }
-    }
-
-    Component.onCompleted: {
-        if (albumArtURI)
-            image.source = albumArtURI
     }
 }
