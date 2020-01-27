@@ -49,5 +49,5 @@ ListViewDelegate {
         }
     }
 
-    onClicked: delegate.ListView.view.selectServer(index)
+    onDoubleClicked: delegate.ListView.view.selectServer(index)
 }
