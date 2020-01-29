@@ -41,7 +41,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3()
     check_dlna_audio_res(&track, 0,
                          "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=A1100000000000000000000000000000",
                          "00:00:19", 2, 44100,
-                         18751, 376593, "http://host:600/get//07%20On_Off.mp3");
+                         18751, 376593, "http://host:600/get/content?id");
 
     QCOMPARE(track.mimeType(), "audio/mpeg");
     QCOMPARE(track.format(), MP3);
@@ -100,7 +100,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_with_image()
     check_dlna_audio_res(&track, 0,
                          "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=A1100000000000000000000000000000",
                          "00:00:51", 2, 44100,
-                         16000, 845029, "http://host:600/get//16%20Funk%20Ad.mp3");
+                         16000, 845029, "http://host:600/get/content?id");
 
     QVERIFY(track.mimeType() == "audio/mpeg");
     QVERIFY(track.format() == MP3);
@@ -162,7 +162,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_unicode()
     check_dlna_audio_res(&track, 0,
                          "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=01;DLNA.ORG_CI=0;DLNA.ORG_FLAGS=A1100000000000000000000000000000",
                          "00:02:39", 2, 44100,
-                         23657, 3841064, "http://host:600/get//1-02%20Phe%CC%81bus.mp3");
+                         23657, 3841064, "http://host:600/get/content?id");
 
     QVERIFY(track.mimeType() == "audio/mpeg");
     QVERIFY(track.format() == MP3);
@@ -215,7 +215,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_MP3_Trancoding_LPCM()
     check_dlna_audio_res(&track, 0,
                          "http-get:*:audio/L16;rate=44100;channels=2:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
                          "00:00:19", 2, 44100,
-                         176400, 3419018, "http://host:600/get//07%20On_Off.mp3");
+                         176400, 3419018, "http://host:600/get/content?id");
 
     QCOMPARE(track.mimeType(), "audio/L16;rate=44100;channels=2");
     QVERIFY(track.format() == LPCM_S16BE);
@@ -267,7 +267,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_AAC_Transcoding_MP3()
     check_dlna_audio_res(&track,0,
                          "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
                          "00:03:09", 2, 44100,
-                         40000, 7561480, "http://host:600/get//01%20Monde%20virtuel.m4a");
+                         40000, 7561480, "http://host:600/get/content?id");
 
     QVERIFY(track.mimeType() == "audio/mpeg");
     QVERIFY(track.format() == MP3);
@@ -322,7 +322,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_MP3()
     check_dlna_audio_res(&track, 0,
                          "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
                          "00:09:05", 2, 48000,
-                         40000, 21787040, "http://host:600/get//test.wav");
+                         40000, 21787040, "http://host:600/get/content?id");
 
     QVERIFY(track.mimeType() == "audio/mpeg");
     QVERIFY(track.format() == MP3);
@@ -372,7 +372,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_LPCM()
     check_dlna_audio_res(&track, 0,
                          "http-get:*:audio/L16;rate=48000;channels=2:DLNA.ORG_PN=LPCM;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
                          "00:09:05", 2, 48000,
-                         192000, 104569237, "http://host:600/get//test.wav");
+                         192000, 104569237, "http://host:600/get/content?id");
 
     QVERIFY2(track.mimeType() == "audio/L16;rate=48000;channels=2", track.mimeType().toUtf8());
     QVERIFY(track.format() == LPCM_S16BE);
@@ -420,7 +420,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_AAC()
     check_dlna_audio_res(&track, 0,
                          "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
                          "00:09:05", 2, 48000,
-                         40000, 22662977, "http://host:600/get//test.wav");
+                         40000, 22662977, "http://host:600/get/content?id");
 
     QVERIFY(track.mimeType() == "audio/mp4");
     QVERIFY(track.format() == AAC);
@@ -468,7 +468,7 @@ void tst_dlnamusictrack::testCase_DlnaMusicTrack_WAV_Transcoding_ALAC()
     check_dlna_audio_res(&track, 0,
                          "http-get:*:audio/mp4:DLNA.ORG_PN=AAC_ISO;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
                          "00:09:05", 2, 48000,
-                         192000, 116321656, "http://host:600/get//test.wav");
+                         192000, 116321656, "http://host:600/get/content?id");
 
     QVERIFY(track.mimeType() == "audio/mp4");
     QVERIFY(track.format() == ALAC);
