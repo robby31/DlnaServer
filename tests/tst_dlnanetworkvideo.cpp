@@ -296,13 +296,13 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
                                      "http-get:*:video/vnd.dlna.mpeg-tts:DLNA.ORG_PN=MPEG_TS_HD_NA;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
                                      "00:03:17", "1280x720", 2, 48000,
                                      569850, 121645286,
-                                     "http://host:600/get/0$7$1$24$1/Media(14955)?format=MPEG_TS_HD_NA");
+                                     "http://host:600/get/content?id=0$7$1$24$1&amp;format=MPEG_TS_HD_NA");
 
                 check_dlna_audio_res(movie, 1,
                                      "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
                                      "00:03:17", 2, 48000,
                                      40000, 7880000,
-                                     "http://host:600/get/0$7$1$24$1/Media(14955)?format=MP3");
+                                     "http://host:600/get/content?id=0$7$1$24$1&amp;format=MP3");
 
                 QCOMPARE(movie->getdlnaOrgOpFlags(), "10");
                 QCOMPARE(movie->getdlnaOrgPN(), "MPEG_TS_HD_NA");

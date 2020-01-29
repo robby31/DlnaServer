@@ -277,7 +277,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedMusicTrack() {
         check_dlna_audio_res(track, 0,
                              "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1;DLNA.ORG_FLAGS=C1100000000000000000000000000000",
                              "00:03:09", 2, 44100,
-                             40000, 7561480, "http://host:600/get/0$6$1$4$1/Media%281%29");
+                             40000, 7561480, "http://host:600/get/content?id=0$6$1$4$1");
 
         QCOMPARE(track->mimeType(), "audio/mpeg");
         QCOMPARE(track->metaDataFormat(), "aac");
@@ -377,7 +377,7 @@ void tst_dlnacachedresources::testCase_DlnaCachedVideo() {
                                  "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
                                  "01:52:16", 2, 48000,
                                  40000, 52800000,
-                                 "http://host:600/get/$1/S05 E05 Ninjago Le sabre du sanctuaire?format=MP3");
+                                 "http://host:600/get/content?id=$1&amp;format=MP3");
 
             QCOMPARE(movie->getdlnaOrgOpFlags(), "10");
             QCOMPARE(movie->getdlnaOrgPN(), "MPEG_TS_HD_NA");

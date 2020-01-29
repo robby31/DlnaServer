@@ -234,9 +234,11 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
         QScopedPointer<DlnaNetworkVideo> video(qobject_cast<DlnaNetworkVideo*>(playlist->getChild(0)));
         QVERIFY(video != Q_NULLPTR);
 
+        qWarning() << "DURATION" << video->metaDataDuration();
+
         check_dlna_video(video.data(),
                          "$1", "",
-                         "S05 E05 Ninjago Le sabre du sanctuaire",
+                         "S08 E05 Ninjago La bourrasque de l'homme mort",
                          2);
 
         check_dlna_video_res(video.data(), 0,
@@ -246,12 +248,12 @@ void tst_dlnafolder::testCase_DlnaFolderPlaylist()
                              2, 48000,
                              750000,
                              1093916850,
-                             "http://host:600/get/$1/S05%20E05%20Ninjago%20Le%20sabre%20du%20sanctuaire?format=AVC_TS_MP_HD_AAC_MULT5");
+                             "http://host:600/get/content?id=$1&amp;format=AVC_TS_MP_HD_AAC_MULT5");
 
         check_dlna_audio_res(video.data(), 1,
                              "http-get:*:audio/mpeg:DLNA.ORG_PN=MP3;DLNA.ORG_OP=10;DLNA.ORG_CI=1",
                              "00:22:00", 2, 48000,
                              40000, 52800000,
-                             "http://host:600/get/$1/S05 E05 Ninjago Le sabre du sanctuaire?format=MP3");
+                             "http://host:600/get/content?id=$1&amp;format=MP3");
     }
 }
