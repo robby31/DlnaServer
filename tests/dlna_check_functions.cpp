@@ -100,6 +100,9 @@ void DlnaCheckFunctions::check_dlna_video_res(DlnaResource *dlna, const int &ind
     QDomNode res = l_res.at(index);
     QDomNamedNodeMap attributes = res.attributes();
 
+    if (attributes.size() != 8)
+        qWarning() << xml.toString();
+
     QCOMPARE(attributes.size(), 8);
     QCOMPARE(attributes.namedItem("protocolInfo").nodeValue(), protocolInfo);
     QCOMPARE(attributes.namedItem("xmlns:dlna").nodeValue(), "urn:schemas-dlna-org:metadata-1-0/");
@@ -201,6 +204,9 @@ void DlnaCheckFunctions::check_dlna_audio_res(DlnaResource *track, const int &in
 
     QDomNode res = l_res.at(index);
     QDomNamedNodeMap attributes = res.attributes();
+
+    if (attributes.size() != 7)
+        qWarning() << xml.toString();
 
     QCOMPARE(attributes.size(), 7);
     QCOMPARE(attributes.namedItem("protocolInfo").nodeValue(), protocolInfo);
