@@ -35,7 +35,7 @@ void tst_dlnacachedresources::testCase_Library_NbMedias()
         if (query.last())
             nbMedias = query.at() + 1;
     }
-    QCOMPARE(nbMedias, 17571);
+    QCOMPARE(nbMedias, 17656);
     db.close();
 }
 
@@ -63,7 +63,7 @@ void tst_dlnacachedresources::testCase_Library_NbVideos()
         if (query.last())
             nbVideos = query.at() + 1;
     }
-    QCOMPARE(nbVideos, 2309);
+    QCOMPARE(nbVideos, 2394);
     db.close();
 }
 
@@ -77,7 +77,7 @@ void tst_dlnacachedresources::testCase_Library_NbAlbums()
         if (query.last())
             nbAlbums = query.at() + 1;
     }
-    QCOMPARE(nbAlbums, 1373);
+    QCOMPARE(nbAlbums, 1374);
     db.close();
 }
 
@@ -105,7 +105,7 @@ void tst_dlnacachedresources::testCase_Library_NbTracksWithAlbum()
         if (query.last())
             nbTracksWithAlbum = query.at() + 1;
     }
-    QCOMPARE(nbTracksWithAlbum, 14844);
+    QCOMPARE(nbTracksWithAlbum, 14905);
     db.close();
 }
 

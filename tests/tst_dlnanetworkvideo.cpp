@@ -243,7 +243,7 @@ void tst_dlnanetworkvideo::testCase_DlnaCachedNetworkVideo()
 
         auto artists = qobject_cast<DlnaCachedFolderMetaData*>(folder->getChild(0));
         QCOMPARE(artists->getDisplayName(), "Artist");
-        QCOMPARE(artists->getChildrenSize(), 116);
+        QCOMPARE(artists->getChildrenSize(), 120);
 
         DlnaCachedFolder *artist = Q_NULLPTR;
         for (int index=0;index<artists->getChildrenSize();++index)
